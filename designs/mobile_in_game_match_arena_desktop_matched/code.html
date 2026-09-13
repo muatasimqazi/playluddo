@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-surface" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Ludo Royale - Match Arena</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f3f4f5",
+            "surface-container-highest": "#e1e3e4",
+            "surface-container-high": "#e7e8e9",
+            "tertiary-container": "#e22525",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#ffb4ab",
+            "secondary-fixed-dim": "#aac7ff",
+            "surface": "#f8f9fa",
+            "surface-bright": "#f8f9fa",
+            "primary-fixed-dim": "#adc6ff",
+            "on-surface": "#191c1d",
+            "on-secondary-fixed": "#001b3e",
+            "on-secondary-container": "#002d61",
+            "on-tertiary-fixed-variant": "#93000a",
+            "tertiary-fixed": "#ffdad6",
+            "surface-container": "#edeeef",
+            "surface-tint": "#005bc1",
+            "inverse-primary": "#adc6ff",
+            "surface-variant": "#e1e3e4",
+            "on-surface-variant": "#414755",
+            "inverse-on-surface": "#f0f1f2",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2e3132",
+            "primary-fixed": "#d8e2ff",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "on-background": "#191c1d",
+            "error-container": "#ffdad6",
+            "outline-variant": "#c1c6d7",
+            "on-primary-fixed-variant": "#004493",
+            "background": "#f8f9fa",
+            "outline": "#717786",
+            "primary": "#0058bc",
+            "on-primary-fixed": "#001a41",
+            "on-secondary-fixed-variant": "#00458e",
+            "on-primary-container": "#fefcff",
+            "on-tertiary-fixed": "#410002",
+            "on-secondary": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "secondary-fixed": "#d7e3ff",
+            "primary-container": "#0070eb",
+            "secondary": "#005cba",
+            "surface-dim": "#d9dadb",
+            "on-error": "#ffffff",
+            "tertiary": "#bb0011",
+            "secondary-container": "#5095fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1rem",
+            "margin": "1rem",
+            "gutter-sm": "0.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "timer-display": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "display": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-lg": ["17px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-lg": ["17px", { "lineHeight": "22px", "fontWeight": "600" }],
+            "timer-display": ["24px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "13px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "25px", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+            "body-md": ["15px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "display": ["34px", { "lineHeight": "41px", "fontWeight": "700" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      font-feature-settings: 'liga';
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Tactile Disk Tokens */
+    .ceramic-disk {
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .ceramic-disk:active {
+      transform: scale(0.92);
+    }
+
+    /* Pulse wave for active user turn pawn */
+    @keyframes tokenPulse {
+      0% { box-shadow: 0 0 0 0 rgba(224, 36, 36, 0.65), 0 3px 6px rgba(0, 0, 0, 0.22); }
+      70% { box-shadow: 0 0 0 8px rgba(224, 36, 36, 0), 0 3px 6px rgba(0, 0, 0, 0.22); }
+      100% { box-shadow: 0 0 0 0 rgba(224, 36, 36, 0), 0 3px 6px rgba(0, 0, 0, 0.22); }
+    }
+    .active-token-pulse {
+      animation: tokenPulse 1.8s infinite;
+    }
+  </style>
+</head>
+<body class="h-full bg-surface text-on-surface flex flex-col items-center justify-start antialiased selection:bg-primary-fixed">
+<!-- Mobile Canvas Device Frame (max-w-md viewport anchor) -->
+<div class="relative w-full max-w-[430px] min-h-screen bg-surface flex flex-col justify-between shadow-2xl overflow-x-hidden pb-4">
+<!-- Top Navigation Anchor (Shared Component: TopAppBar with match context) -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-4 h-14 w-full bg-white/90 backdrop-blur-md border-b border-black/10">
+<div class="flex items-center space-x-2.5">
+<button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 text-zinc-800 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<div class="flex items-center space-x-2">
+<span class="font-bold text-[16px] text-zinc-900 tracking-tight leading-none">Ludo Royale</span>
+<span class="px-1.5 py-0.5 rounded-full bg-zinc-100 text-[10px] font-semibold text-zinc-600 border border-black/5">#LUDO-7842</span>
+</div>
+<span class="text-[11px] text-zinc-500 font-medium tracking-normal mt-0.5">Standard 4P Match</span>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<div class="flex items-center space-x-1 px-2.5 py-1 bg-zinc-100/80 rounded-full border border-black/5 text-zinc-600">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span class="text-[12px] font-semibold text-zinc-800 tabular-nums">08:42</span>
+</div>
+<button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/5 text-zinc-600 transition-colors">
+<span class="material-symbols-outlined text-[19px]">volume_up</span>
+</button>
+<button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-50 text-red-600 transition-colors">
+<span class="material-symbols-outlined text-[19px]">logout</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col px-margin pt-2 pb-2 space-y-2">
+<!-- UPPER PLAYER BAR (Opponents: Green & Yellow) -->
+<section class="grid grid-cols-2 gap-2.5">
+<!-- Opponent 1: Sofia Chen (Green) -->
+<div class="bg-white rounded-2xl p-2.5 border border-black/10 shadow-sm flex items-center justify-between transition-all">
+<div class="flex items-center space-x-2 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-emerald-500/20">
+<span>SC</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-[7px] font-bold">G</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-xs font-semibold text-zinc-900 truncate">Sofia Chen</span>
+<span class="text-[10px] text-zinc-500 truncate">Green • 0/4 Home</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-zinc-100 text-[11px] font-medium text-zinc-500 flex-shrink-0">Wait</span>
+</div>
+<!-- Opponent 2: David Vance (Yellow) -->
+<div class="bg-white rounded-2xl p-2.5 border border-black/10 shadow-sm flex items-center justify-between transition-all">
+<div class="flex items-center space-x-2 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-amber-400/20">
+<span>DV</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-white flex items-center justify-center text-white text-[7px] font-bold">Y</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-xs font-semibold text-zinc-900 truncate">David Vance</span>
+<span class="text-[10px] text-zinc-500 truncate">Yellow • 0/4 Home</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-zinc-100 text-[11px] font-medium text-zinc-500 flex-shrink-0">Wait</span>
+</div>
+</section>
+<!-- MAIN GAME ARENA (Strict 1:1 Aspect Ratio Board Matrix) -->
+<section class="relative w-full aspect-square rounded-3xl bg-zinc-900 p-2.5 shadow-md flex items-center justify-center overflow-hidden border border-black/15">
+<!-- Inner Board with rounded corners -->
+<div class="relative w-full h-full rounded-2xl overflow-hidden bg-white shadow-inner">
+<img alt="Ludo Game Board Arena" class="w-full h-full object-contain pointer-events-none select-none" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8afiVZ3D_WI94BkSVUYuNQwc0yNA82u70S9iiLRG6HDmQGk9JugLfliNfcQsZqhU94lY3a73ycwE_OYQSRlbUHwaVYQg_cO-aduaJPwbldK2smItOmzmAo_8IQ5xkKOon04rHbojwi3ZUTUrYPOn6t_Zf9mIj7TeIHtEM4Hp1AaT4bZoLq6AdDRTDCLzTHqdOVTJU8q3Q0MveaY7TtNjIB9kh9kRbsmHup3J1GvyLAXUEhyKM9fDx2K0OTK-CALLbgck"/>
+<!-- Dynamic Ceramic Disk Tokens Overlay -->
+<!-- RED STARTING NEST (Top Left) -->
+<div class="absolute top-[8%] left-[8%] w-[34%] h-[34%] pointer-events-none flex items-center justify-center">
+<div class="relative w-full h-full">
+<div class="absolute top-[28%] left-[26%] w-7 h-7 rounded-full bg-red-600 border-2 border-white ceramic-disk flex items-center justify-center pointer-events-auto cursor-pointer shadow">
+<div class="w-3.5 h-3.5 rounded-full border border-white/70 bg-red-700"></div>
+</div>
+<div class="absolute top-[28%] right-[26%] w-7 h-7 rounded-full bg-red-600 border-2 border-white ceramic-disk flex items-center justify-center pointer-events-auto cursor-pointer shadow">
+<div class="w-3.5 h-3.5 rounded-full border border-white/70 bg-red-700"></div>
+</div>
+<div class="absolute bottom-[24%] left-[36%] w-7 h-7 rounded-full bg-red-600 border-2 border-white ceramic-disk flex items-center justify-center pointer-events-auto cursor-pointer shadow">
+<div class="w-3.5 h-3.5 rounded-full border border-white/70 bg-red-700"></div>
+</div>
+</div>
+</div>
+<!-- GREEN STARTING NEST (Top Right) -->
+<div class="absolute top-[8%] right-[8%] w-[34%] h-[34%] pointer-events-none flex items-center justify-center">
+<div class="relative w-full h-full">
+<div class="absolute top-[26%] left-[26%] w-6 h-6 rounded-full bg-emerald-700 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-emerald-800"></div>
+</div>
+<div class="absolute top-[26%] right-[26%] w-6 h-6 rounded-full bg-emerald-700 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-emerald-800"></div>
+</div>
+<div class="absolute bottom-[24%] left-[26%] w-6 h-6 rounded-full bg-emerald-700 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-emerald-800"></div>
+</div>
+<div class="absolute bottom-[24%] right-[26%] w-6 h-6 rounded-full bg-emerald-700 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-emerald-800"></div>
+</div>
+</div>
+</div>
+<!-- BLUE STARTING NEST (Bottom Left) -->
+<div class="absolute bottom-[8%] left-[8%] w-[34%] h-[34%] pointer-events-none flex items-center justify-center">
+<div class="relative w-full h-full">
+<div class="absolute top-[26%] left-[26%] w-6 h-6 rounded-full bg-blue-600 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-blue-700"></div>
+</div>
+<div class="absolute top-[26%] right-[26%] w-6 h-6 rounded-full bg-blue-600 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-blue-700"></div>
+</div>
+<div class="absolute bottom-[24%] left-[26%] w-6 h-6 rounded-full bg-blue-600 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-blue-700"></div>
+</div>
+<div class="absolute bottom-[24%] right-[26%] w-6 h-6 rounded-full bg-blue-600 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-blue-700"></div>
+</div>
+</div>
+</div>
+<!-- YELLOW STARTING NEST (Bottom Right) -->
+<div class="absolute bottom-[8%] right-[8%] w-[34%] h-[34%] pointer-events-none flex items-center justify-center">
+<div class="relative w-full h-full">
+<div class="absolute top-[26%] left-[26%] w-6 h-6 rounded-full bg-amber-500 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-amber-600"></div>
+</div>
+<div class="absolute top-[26%] right-[26%] w-6 h-6 rounded-full bg-amber-500 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-amber-600"></div>
+</div>
+<div class="absolute bottom-[24%] left-[26%] w-6 h-6 rounded-full bg-amber-500 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-amber-600"></div>
+</div>
+<div class="absolute bottom-[24%] right-[26%] w-6 h-6 rounded-full bg-amber-500 border-2 border-white ceramic-disk flex items-center justify-center shadow-sm">
+<div class="w-2.5 h-2.5 rounded-full border border-white/60 bg-amber-600"></div>
+</div>
+</div>
+</div>
+<!-- ACTIVE TOKEN ON TRACK (Red Player released token on Red Home Path) -->
+<div class="absolute top-[47%] left-[24.5%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto cursor-pointer z-20 group">
+<!-- 'YOU' Indicator Tag Floating Above Active Token -->
+<div class="mb-1 px-1.5 py-0.5 bg-red-600 text-white rounded font-bold text-[9px] tracking-wider shadow-sm animate-bounce flex items-center space-x-0.5">
+<span>YOU</span>
+<span class="material-symbols-outlined text-[10px]">arrow_downward</span>
+</div>
+<!-- Tactile Pawn Disk with Pulsing Glow -->
+<div class="w-8 h-8 rounded-full bg-red-600 border-2 border-white ceramic-disk active-token-pulse flex items-center justify-center shadow-lg">
+<div class="w-4 h-4 rounded-full border border-white/80 bg-red-700 flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- LOWER PLAYER BAR (Opponent: Marcus & Active User: Alex) -->
+<section class="grid grid-cols-2 gap-2.5">
+<!-- Opponent 3: Marcus King (Blue) -->
+<div class="bg-white rounded-2xl p-2.5 border border-black/10 shadow-sm flex items-center justify-between transition-all">
+<div class="flex items-center space-x-2 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-blue-500/20">
+<span>MK</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-white text-[7px] font-bold">B</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="text-xs font-semibold text-zinc-900 truncate">Marcus King</span>
+<span class="text-[10px] text-zinc-500 truncate">Blue • 0/4 Home</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-zinc-100 text-[11px] font-medium text-zinc-500 flex-shrink-0">Wait</span>
+</div>
+<!-- ACTIVE USER: Alex (Red - YOU) -->
+<div class="bg-white rounded-2xl p-2.5 border-2 border-red-500 flex flex-col justify-between shadow-sm relative ring-2 ring-red-500/20">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2 min-w-0">
+<div class="relative flex-shrink-0">
+<div class="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-red-500/30">
+<span>AL</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-white text-[7px] font-bold">R</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center space-x-1.5">
+<span class="text-xs font-bold text-zinc-900 truncate">Alex</span>
+<span class="px-1.5 py-0.2 rounded-full bg-red-500 text-white text-[9px] font-bold leading-tight">YOU</span>
+</div>
+<span class="text-[10px] font-medium text-red-600 truncate">Your Move • 1/4</span>
+</div>
+</div>
+<div class="flex items-center space-x-1 text-red-600 flex-shrink-0">
+<span class="material-symbols-outlined text-[13px]">timer</span>
+<span class="text-xs font-bold tabular-nums">12s</span>
+</div>
+</div>
+<!-- Active turn timer line -->
+<div class="w-full bg-zinc-100 h-1 rounded-full mt-2 overflow-hidden">
+<div class="bg-red-500 h-full rounded-full w-[80%] transition-all duration-1000"></div>
+</div>
+</div>
+</section>
+<!-- BOTTOM ACTION DRAWER / CONTROL CENTER -->
+<section class="bg-white rounded-2xl p-3 border border-black/10 shadow-sm flex flex-col space-y-3">
+<!-- Section Header & Result Banner -->
+<div class="flex items-center justify-between px-0.5">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+<span class="text-xs font-bold text-zinc-900 uppercase tracking-wider">Turn Actions</span>
+<span class="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[11px] font-bold border border-red-200/50">Rolled a 6!</span>
+</div>
+<span class="text-[11px] text-zinc-500 font-medium">Select token to advance</span>
+</div>
+<!-- Main Interactive Dock (Die + CTA + Auto-Roll) -->
+<div class="flex items-center space-x-3">
+<!-- Tactile Ceramic Die (Value 6) -->
+<div class="relative w-12 h-12 bg-white rounded-xl border border-black/15 shadow-sm flex flex-col justify-between p-2 flex-shrink-0 active:scale-95 cursor-pointer transition-transform">
+<div class="flex justify-between w-full">
+<span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+<span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+</div>
+<div class="flex justify-between w-full">
+<span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+<span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+</div>
+<div class="flex justify-between w-full">
+<span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+<span class="w-2 h-2 rounded-full bg-zinc-900"></span>
+</div>
+</div>
+<!-- Primary CTA Button (Apple Blue #007AFF) -->
+<button class="flex-1 h-12 bg-[#007AFF] hover:bg-[#0069D9] text-white rounded-xl font-semibold text-[15px] flex items-center justify-center space-x-2 shadow-sm transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">touch_app</span>
+<span>Move Token</span>
+</button>
+<!-- iOS Toggle Switch -->
+<div class="flex flex-col items-center justify-center space-y-0.5 px-1">
+<span class="text-[10px] text-zinc-500 font-semibold uppercase tracking-tight">Auto</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#34C759] shadow-inner"></div>
+</label>
+</div>
+</div>
+<!-- Quick Chat & Emoji Reaction Bar -->
+<div class="pt-2 border-t border-black/5 flex items-center space-x-1.5 overflow-x-auto no-scrollbar">
+<button class="px-2.5 py-1 rounded-full bg-white border border-zinc-200/80 hover:bg-zinc-50 text-zinc-700 text-[12px] font-medium transition-colors flex items-center space-x-1 shadow-sm flex-shrink-0">
+<span>👋</span>
+<span>Hi!</span>
+</button>
+<button class="px-2.5 py-1 rounded-full bg-white border border-zinc-200/80 hover:bg-zinc-50 text-zinc-700 text-[12px] font-medium transition-colors flex items-center space-x-1 shadow-sm flex-shrink-0">
+<span>🔥</span>
+<span>Nice</span>
+</button>
+<button class="px-2.5 py-1 rounded-full bg-white border border-zinc-200/80 hover:bg-zinc-50 text-zinc-700 text-[12px] font-medium transition-colors flex items-center space-x-1 shadow-sm flex-shrink-0">
+<span>⏱️</span>
+<span>Hurry</span>
+</button>
+<button class="px-2.5 py-1 rounded-full bg-white border border-zinc-200/80 hover:bg-zinc-50 text-zinc-700 text-[12px] font-medium transition-colors flex items-center space-x-1 shadow-sm flex-shrink-0">
+<span>🤝</span>
+<span>GG</span>
+</button>
+<div class="flex-1 min-w-[75px] flex items-center relative">
+<input class="w-full bg-zinc-100/90 text-zinc-900 placeholder:text-zinc-400 text-xs px-2.5 py-1 rounded-full border border-black/5 focus:outline-none focus:ring-1 focus:ring-[#007AFF] h-7" placeholder="Chat..." type="text"/>
+<button class="absolute right-2 text-zinc-400 hover:text-[#007AFF]">
+<span class="material-symbols-outlined text-[15px]">send</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

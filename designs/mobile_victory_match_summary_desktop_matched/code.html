@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ludo Royale - Match Results</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f3f4f5",
+            "surface-container-highest": "#e1e3e4",
+            "surface-container-high": "#e7e8e9",
+            "tertiary-container": "#e22525",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#ffb4ab",
+            "secondary-fixed-dim": "#aac7ff",
+            "surface": "#f8f9fa",
+            "surface-bright": "#f8f9fa",
+            "primary-fixed-dim": "#adc6ff",
+            "on-surface": "#191c1d",
+            "on-secondary-fixed": "#001b3e",
+            "on-secondary-container": "#002d61",
+            "on-tertiary-fixed-variant": "#93000a",
+            "tertiary-fixed": "#ffdad6",
+            "surface-container": "#edeeef",
+            "surface-tint": "#005bc1",
+            "inverse-primary": "#adc6ff",
+            "surface-variant": "#e1e3e4",
+            "on-surface-variant": "#414755",
+            "inverse-on-surface": "#f0f1f2",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2e3132",
+            "primary-fixed": "#d8e2ff",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "on-background": "#191c1d",
+            "error-container": "#ffdad6",
+            "outline-variant": "#c1c6d7",
+            "on-primary-fixed-variant": "#004493",
+            "background": "#f8f9fa",
+            "outline": "#717786",
+            "primary": "#0058bc",
+            "on-primary-fixed": "#001a41",
+            "on-secondary-fixed-variant": "#00458e",
+            "on-primary-container": "#fefcff",
+            "on-tertiary-fixed": "#410002",
+            "on-secondary": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "secondary-fixed": "#d7e3ff",
+            "primary-container": "#0070eb",
+            "secondary": "#005cba",
+            "surface-dim": "#d9dadb",
+            "on-error": "#ffffff",
+            "tertiary": "#bb0011",
+            "secondary-container": "#5095fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1rem",
+            "margin": "1rem",
+            "gutter-sm": "0.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "timer-display": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "display": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-lg": ["17px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-lg": ["17px", { "lineHeight": "22px", "fontWeight": "600" }],
+            "timer-display": ["24px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "13px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "25px", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+            "body-md": ["15px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "display": ["34px", { "lineHeight": "41px", "fontWeight": "700" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .token-shadow {
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+    .card-elevation {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex justify-center selection:bg-primary-fixed">
+<!-- Mobile Screen Container -->
+<div class="w-full max-w-[430px] min-h-screen bg-surface flex flex-col relative pb-8 select-none"><!-- iOS Status Bar Simulation -->
+<header class="w-full bg-surface-container-lowest px-margin pt-3 pb-1 flex items-center justify-between text-on-surface border-b border-surface-container-high">
+<span class="text-label-md font-label-md font-bold tracking-tight">9:41</span>
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</header>
+<!-- Top Navigation Bar -->
+<nav class="h-14 bg-surface-container-lowest px-margin flex items-center justify-between border-b border-surface-container-high">
+<button aria-label="Close" class="w-9 h-9 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+<div class="flex flex-col items-center">
+<h1 class="text-headline-sm font-headline-sm tracking-tight text-on-surface font-bold">Match Results</h1>
+<span class="text-label-sm font-label-sm text-on-surface-variant font-medium">Room #LUDO-7842 • 12:45</span>
+</div>
+<button aria-label="Share" class="w-9 h-9 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</nav>
+<!-- Content Area -->
+<main class="flex-1 px-margin space-y-4 pt-3">
+<!-- Winner Celebration Banner -->
+<section class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-lg card-elevation border border-surface-container-high text-center shadow-sm">
+<div class="absolute -top-3 left-4 w-6 h-6 rounded-full bg-tertiary/10 rotate-12 flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px] text-tertiary">star</span>
+</div>
+<div class="absolute top-2 right-6 w-5 h-5 rounded-full bg-primary/10 -rotate-12 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-primary">circle</span>
+</div>
+<div class="absolute bottom-2 left-6 w-4 h-4 rounded-sm bg-secondary-container/20 rotate-45"></div>
+<div class="absolute bottom-3 right-5 w-5 h-5 rounded-full bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-[13px] text-tertiary">diamond</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-low text-on-surface border border-surface-container-high mb-2 shadow-sm">
+<span class="material-symbols-outlined text-[18px] text-tertiary" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span class="text-label-sm font-label-sm font-bold tracking-wider text-tertiary">VICTORY!</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface font-bold mb-0.5 tracking-tight">Alex Rivera is the Champion!</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant font-normal">Clean sweep triumph on standard quadrant grid</p>
+</section>
+<!-- Final Standings Podium (Restyled with crisp desktop pod aesthetic) -->
+<section class="rounded-xl bg-surface-container-lowest p-space-lg card-elevation border border-surface-container-high shadow-sm">
+<div class="flex justify-between items-center mb-3">
+<span class="text-label-md font-label-md text-on-surface font-bold">Final Standings</span>
+<span class="text-label-sm font-label-sm text-on-surface-variant font-medium">4 Players Active</span>
+</div>
+<div class="grid grid-cols-3 gap-2 items-end pt-5 pb-1 text-center border-b border-surface-container-high">
+<!-- 2nd Place: Sofia Chen -->
+<div class="flex flex-col items-center">
+<div class="relative mb-2">
+<div class="w-11 h-11 rounded-full bg-surface-container-lowest border-2 border-[#0E703C] flex items-center justify-center text-[#0E703C] text-label-md font-label-md font-bold shadow-sm">
+SC
+</div>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest border border-surface-container-high shadow flex items-center justify-center">
+<span class="text-label-sm font-label-sm font-bold text-on-surface-variant">2</span>
+</div>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold truncate w-full">Sofia Chen</span>
+<div class="inline-flex items-center gap-0.5 text-label-sm font-label-sm text-on-surface-variant mb-2">
+<span class="material-symbols-outlined text-[12px] text-[#0E703C]" style="font-variation-settings: 'FILL' 1;">flag</span>
+<span>3/4 home</span>
+</div>
+<div class="w-full h-16 rounded-t-lg bg-surface-container-low border border-surface-container-high flex flex-col justify-center items-center py-1">
+<span class="text-label-sm font-label-sm font-bold text-on-surface">+4,000 XP</span>
+<span class="text-[10px] text-outline font-semibold tracking-wider">RUNNER UP</span>
+</div>
+</div>
+<!-- 1st Place: Alex Rivera (Center, Champion) -->
+<div class="flex flex-col items-center -mt-4">
+<div class="mb-1 text-[#F5A623]">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">crown</span>
+</div>
+<div class="relative mb-2">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest border-2 border-tertiary flex items-center justify-center text-tertiary text-headline-sm font-headline-sm font-bold shadow">
+AL
+</div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-tertiary text-on-tertiary shadow flex items-center justify-center text-label-sm font-label-sm font-bold">
+1
+</div>
+</div>
+<span class="text-label-md font-label-md text-on-surface font-bold truncate w-full">Alex (You)</span>
+<div class="inline-flex items-center gap-1 text-label-sm font-label-sm text-tertiary font-bold mb-2">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span>4/4 tokens</span>
+</div>
+<div class="w-full h-24 rounded-t-lg bg-primary text-on-primary border border-primary flex flex-col justify-center items-center py-1 px-1 shadow-sm">
+<span class="text-label-sm font-label-sm font-bold tracking-tight text-on-primary">+36,000</span>
+<span class="text-[10px] font-bold tracking-wider text-on-primary">CHAMPION</span>
+<div class="mt-1 px-2 py-0.5 rounded-full bg-surface-container-lowest/20 text-[10px] font-semibold text-on-primary border border-surface-container-lowest/20">
+Gold Cup
+</div>
+</div>
+</div>
+<!-- 3rd Place: David Vance -->
+<div class="flex flex-col items-center">
+<div class="relative mb-2">
+<div class="w-11 h-11 rounded-full bg-surface-container-lowest border-2 border-[#F5A623] flex items-center justify-center text-[#B45309] text-label-md font-label-md font-bold shadow-sm">
+DV
+</div>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest border border-surface-container-high shadow flex items-center justify-center">
+<span class="text-label-sm font-label-sm font-bold text-on-surface-variant">3</span>
+</div>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold truncate w-full">David Vance</span>
+<div class="inline-flex items-center gap-0.5 text-label-sm font-label-sm text-on-surface-variant mb-2">
+<span class="material-symbols-outlined text-[12px] text-[#B45309]" style="font-variation-settings: 'FILL' 1;">flag</span>
+<span>2/4 home</span>
+</div>
+<div class="w-full h-12 rounded-t-lg bg-surface-container-low border border-surface-container-high flex flex-col justify-center items-center py-1">
+<span class="text-label-sm font-label-sm font-bold text-on-surface">+2,000 XP</span>
+<span class="text-[10px] text-outline font-semibold tracking-wider">3RD PLACE</span>
+</div>
+</div>
+</div>
+<!-- 4th Place: Marcus King Row -->
+<div class="mt-3 flex items-center justify-between px-3 py-2 rounded-lg bg-surface-container-low border border-surface-container-high">
+<div class="flex items-center space-x-3">
+<span class="text-label-sm font-label-sm font-bold text-outline w-3 text-center">4</span>
+<div class="w-7 h-7 rounded-full bg-surface-container-lowest border border-[#0066CC] flex items-center justify-center text-[#0066CC] text-[11px] font-bold shadow-sm">
+MK
+</div>
+<div>
+<p class="text-label-md font-label-md text-on-surface font-semibold leading-tight">Marcus King</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant leading-tight">1 of 4 tokens home</p>
+</div>
+</div>
+<span class="text-label-sm font-label-sm text-on-surface-variant font-semibold">+800 XP</span>
+</div>
+</section>
+<!-- Rewards Credited Card -->
+<section class="rounded-xl bg-surface-container-lowest p-space-lg card-elevation border border-surface-container-high space-y-3 shadow-sm">
+<div class="flex justify-between items-center border-b border-surface-container-high pb-2">
+<span class="text-label-md font-label-md text-on-surface font-bold">Rewards Credited</span>
+<span class="text-label-sm font-label-sm text-primary font-bold">Instant Payout</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center text-body-md font-body-md">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-[#B45309]" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+<span class="font-medium">1st Place Winner Prize</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface font-bold">+36,000</span>
+</div>
+<div class="flex justify-between items-center text-body-md font-body-md">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-tertiary" style="font-variation-settings: 'FILL' 1;">celebration</span>
+<span class="font-medium">First Win of the Day Bonus</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface font-bold">+2,500</span>
+</div>
+<div class="flex justify-between items-center text-body-md font-body-md">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-medium">Player Mastery XP</span>
+</div>
+<span class="text-label-md font-label-md text-primary font-bold">+1,200 XP</span>
+</div>
+</div>
+<!-- Level 24 -> 25 Progress Bar in Apple Blue -->
+<div class="pt-2 border-t border-surface-container-high">
+<div class="flex justify-between text-label-sm font-label-sm mb-1.5">
+<span class="text-on-surface font-bold">Level 24 • Tactician</span>
+<span class="text-on-surface-variant font-medium">Level 25 (85%)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-high overflow-hidden">
+<div class="h-full rounded-full bg-primary transition-all duration-500" style="width: 85%;"></div>
+</div>
+</div>
+</section>
+<!-- Match Performance Statistics Bento -->
+<section class="rounded-xl bg-surface-container-lowest p-space-lg card-elevation border border-surface-container-high shadow-sm">
+<h3 class="text-label-md font-label-md text-on-surface font-bold mb-3">Match Performance</h3>
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container-low p-2.5 rounded-lg text-center border border-surface-container-high">
+<span class="material-symbols-outlined text-[20px] text-tertiary mb-1">security</span>
+<div class="text-headline-sm font-headline-sm text-on-surface font-bold leading-tight">3</div>
+<span class="text-[11px] text-on-surface-variant font-medium">Captured</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded-lg text-center border border-surface-container-high">
+<span class="material-symbols-outlined text-[20px] text-primary mb-1">casino</span>
+<div class="text-headline-sm font-headline-sm text-on-surface font-bold leading-tight">7</div>
+<span class="text-[11px] text-on-surface-variant font-medium">Sixes Rolled</span>
+</div>
+<div class="bg-surface-container-low p-2.5 rounded-lg text-center border border-surface-container-high">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant mb-1">schedule</span>
+<div class="text-headline-sm font-headline-sm text-on-surface font-bold leading-tight">28</div>
+<span class="text-[11px] text-on-surface-variant font-medium">Total Turns</span>
+</div>
+</div>
+</section>
+<!-- Bottom CTAs: Apple styled primary blue & secondary outline button -->
+<div class="pt-2 space-y-2.5">
+<button class="w-full h-[50px] bg-primary text-on-primary rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary/95 active:scale-[0.98] transition-all shadow-sm">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">replay</span>
+<span>Play Again / Rematch</span>
+</button>
+<button class="w-full h-[48px] bg-surface-container-lowest text-on-surface border border-surface-container-high rounded-xl font-label-lg text-label-lg font-medium flex items-center justify-center gap-2 hover:bg-surface-container-low active:scale-[0.98] transition-all shadow-sm">
+<span class="material-symbols-outlined text-[20px]">roofing</span>
+<span>Return to Lobby</span>
+</button>
+</div>
+</main></div>
+</body></html>

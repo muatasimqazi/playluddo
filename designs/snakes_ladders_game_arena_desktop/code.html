@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Snakes &amp; Ladders Royale - macOS Edition</title>
+<!-- Tailwind CSS CDN with forms and container queries plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter / Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            appleBlue: '#007aff',
+            appleGreen: '#34c759',
+            appleRed: '#ff3b30',
+            appleYellow: '#ff9500',
+            slateCanvas: '#eef1f5',
+          },
+          boxShadow: {
+            'apple-card': '0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+            'apple-bezel': '0 25px 50px -12px rgba(15, 23, 42, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.1)',
+            'puck': '0 4px 8px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.4)',
+            'dice-depth': '0 6px 14px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 -3px 0 rgba(0,0,0,0.06)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles: Ceramic Pieces, UI refinements -->
+<style data-purpose="custom-tokens">
+    /* Ceramic puck tokens styling */
+    .ceramic-disk {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border-radius: 9999px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.38), inset 0 2px 2px rgba(255, 255, 255, 0.45), inset 0 -2px 3px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ceramic-disk::after {
+      content: '';
+      position: absolute;
+      width: 55%;
+      height: 55%;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    /* Pulsing halo around active player */
+    .active-turn-ring {
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.15); }
+      50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.35); }
+    }
+  </style>
+</head>
+<body class="bg-[#dce2e8] min-h-screen text-slate-800 font-sans p-2 md:p-6 flex items-center justify-center antialiased">
+<!-- BEGIN: ApplicationWindowContainer -->
+<!-- Main Outer Window replicating Apple macOS desktop app shell -->
+<div class="w-full max-w-[1480px] bg-[#f8f9fa] rounded-2xl shadow-2xl border border-[#e2e5e9] overflow-hidden flex flex-col min-h-[920px]" data-purpose="desktop-app-window">
+<!-- BEGIN: AppHeader -->
+<!-- Window titlebar with macOS window controls, game meta & status pills -->
+<header class="bg-white/95 backdrop-blur-md px-5 py-3 border-b border-[#e5e7eb] flex items-center justify-between select-none" data-purpose="macos-window-header">
+<!-- Left side: Mac window buttons & Game Branding -->
+<div class="flex items-center space-x-4">
+<!-- Traffic lights -->
+<div class="flex items-center space-x-2">
+<span class="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] cursor-pointer inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] cursor-pointer inline-block"></span>
+<span class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] cursor-pointer inline-block"></span>
+</div>
+<!-- App Icon & Title -->
+<div class="flex items-center pl-2 space-x-2 border-l border-slate-200">
+<div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-rose-500 to-red-500 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+            🎲
+          </div>
+<h1 class="text-sm font-bold tracking-tight text-slate-800">Snakes &amp; Ladders Royale</h1>
+<span class="bg-blue-500 text-white text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wide">macOS</span>
+</div>
+<!-- Room code identifier -->
+<div class="hidden sm:flex items-center bg-slate-100 hover:bg-slate-200/80 transition-colors px-2.5 py-1 rounded-full text-xs text-slate-600 font-medium">
+<span class="text-slate-400 mr-1">Room</span>
+<span class="font-semibold text-slate-700">#SNAKE-4092</span>
+<button class="ml-1.5 text-slate-400 hover:text-slate-700" title="Copy Room ID">
+<svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Coin Wallet balance -->
+<div class="flex items-center bg-amber-50 border border-amber-200/70 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold shadow-xs">
+<span class="mr-1.5 text-sm leading-none">🪙</span>
+<span>50,000 Coins</span>
+</div>
+</div>
+<!-- Right side: Match Timer & Action Buttons -->
+<div class="flex items-center space-x-4">
+<!-- Match clock -->
+<div class="flex items-center text-xs font-medium text-slate-500 bg-slate-100/80 px-3 py-1 rounded-full">
+<svg class="w-3.5 h-3.5 mr-1.5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Match Time</span>
+<span class="font-bold text-slate-700 ml-1.5 tabular-nums">06:18</span>
+</div>
+<!-- Audio, Rules & Settings buttons -->
+<div class="flex items-center space-x-1 border-l border-slate-200 pl-3">
+<button class="p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors" title="Audio Settings">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors" title="Rules &amp; Ladders Info">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100 transition-colors" title="System Settings">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Leave room button -->
+<button class="flex items-center text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-lg shadow-xs transition-colors">
+<svg class="w-3.5 h-3.5 mr-1 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>Leave</span>
+</button>
+</div>
+</header>
+<!-- END: AppHeader -->
+<!-- BEGIN: MainGameBoardLayout -->
+<!-- 3-Column Layout: Feed & Chat (Left), Game Board (Center), Controls & Race (Right) -->
+<main class="flex-1 grid grid-cols-12 gap-6 p-6 bg-[#f4f6f9]" data-purpose="boardroom-main-area">
+<!-- BEGIN: LeftSidebar (Match Events & Quick Chat) -->
+<aside class="col-span-12 lg:col-span-3 flex flex-col justify-between space-y-4" data-purpose="match-events-column">
+<!-- Live Match Activity Card -->
+<div class="bg-white rounded-2xl p-4 shadow-apple-card border border-slate-200/80 flex-1 flex flex-col">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Match Events</h2>
+<span class="flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span>
+              LIVE
+            </span>
+</div>
+<!-- Chronological Live feed list -->
+<div class="mt-3 space-y-3 flex-1 overflow-y-auto pr-1 text-xs">
+<!-- Event 1 (Latest action) -->
+<div class="p-2.5 rounded-xl bg-red-50/60 border border-red-100 transition-all hover:bg-red-50">
+<div class="flex items-center justify-between mb-1">
+<span class="flex items-center font-bold text-red-600">
+<span class="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span>
+                  Alex (Red)
+                </span>
+<span class="text-[10px] text-slate-400">Just now</span>
+</div>
+<p class="text-slate-700 leading-snug">Rolled a <strong class="text-slate-900 font-bold">4</strong>! Advanced safely onto tile <span class="bg-white px-1 py-0.2 rounded border border-red-200 text-red-700 font-bold">64</span>.</p>
+</div>
+<!-- Event 2 -->
+<div class="p-2.5 rounded-xl bg-amber-50/50 border border-amber-100/80 hover:bg-amber-50 transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="flex items-center font-bold text-amber-600">
+<span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>
+                  David (Yellow)
+                </span>
+<span class="text-[10px] text-slate-400">45s ago</span>
+</div>
+<p class="text-slate-700 leading-snug">🪜 <span class="font-medium text-amber-800">Super Climb!</span> Took the tall ladder from tile <strong>28</strong> straight to <strong class="text-slate-900">84</strong>!</p>
+</div>
+<!-- Event 3 -->
+<div class="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100/80 hover:bg-emerald-50 transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="flex items-center font-bold text-emerald-600">
+<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>
+                  Sofia (Green)
+                </span>
+<span class="text-[10px] text-slate-400">2m ago</span>
+</div>
+<p class="text-slate-700 leading-snug">🐍 <span class="text-rose-600 font-medium">Bitten by Red Viper!</span> Slid from tile 95 all the way down to <strong>75</strong>.</p>
+</div>
+<!-- Event 4 -->
+<div class="p-2.5 rounded-xl bg-blue-50/50 border border-blue-100/80 hover:bg-blue-50 transition-all">
+<div class="flex items-center justify-between mb-1">
+<span class="flex items-center font-bold text-blue-600">
+<span class="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>
+                  Marcus (Blue)
+                </span>
+<span class="text-[10px] text-slate-400">3m ago</span>
+</div>
+<p class="text-slate-700 leading-snug">Rolled a <strong>3</strong>. Hopped onto tile <strong>38</strong> with steady momentum.</p>
+</div>
+<!-- Event 5 -->
+<div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-slate-500">
+<div class="flex items-center justify-between mb-1">
+<span class="font-semibold text-slate-600">Game Started</span>
+<span class="text-[10px] text-slate-400">6m ago</span>
+</div>
+<p class="text-slate-600 text-[11px]">All 4 ceramic disks placed at tile 1 (Start).</p>
+</div>
+</div>
+</div>
+<!-- Quick reactions & Message Bar -->
+<div class="bg-white rounded-2xl p-3 shadow-apple-card border border-slate-200/80 space-y-2.5">
+<!-- Quick emoji reactions -->
+<div class="flex items-center justify-between gap-1 text-xs">
+<button class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium flex items-center space-x-1">
+<span>👏</span><span>GG</span>
+</button>
+<button class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium flex items-center space-x-1">
+<span>🎲</span><span>Roll</span>
+</button>
+<button class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium flex items-center space-x-1">
+<span>🔥</span><span>Nice</span>
+</button>
+<button class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors font-medium flex items-center space-x-1">
+<span>🏃</span><span>Hurry</span>
+</button>
+</div>
+<!-- Input bar styled as macOS iMessage -->
+<div class="relative flex items-center">
+<input class="w-full bg-slate-100 border-none rounded-full py-2 pl-3.5 pr-9 text-xs focus:ring-2 focus:ring-blue-500 text-slate-800 placeholder-slate-400" placeholder="iMessage..." type="text"/>
+<button class="absolute right-1.5 w-6 h-6 bg-appleBlue text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-xs">
+<svg class="w-3.5 h-3.5 transform rotate-90" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path></svg>
+</button>
+</div>
+</div>
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: CenterGameStage (Board & Player Status Pods) -->
+<section class="col-span-12 lg:col-span-6 flex flex-col items-center justify-between" data-purpose="center-stage-snakes-ladders">
+<!-- Top Player Status Pods (Alex & Sofia) -->
+<div class="w-full flex items-center justify-between gap-4 mb-3" data-purpose="top-players-pods">
+<!-- Alex Rivera (Current User - ACTIVE) -->
+<div class="bg-white rounded-2xl px-4 py-2.5 shadow-apple-card border-2 border-red-500/80 flex items-center space-x-3 w-1/2 relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-red-500 text-white font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-bl-lg">
+              YOU
+            </div>
+<!-- Avatar -->
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-red-600 text-white font-bold flex items-center justify-center shadow-md ring-2 ring-red-100 text-sm">
+              AL
+            </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h3 class="text-xs font-bold text-slate-800">Alex Rivera</h3>
+</div>
+<p class="text-[11px] font-semibold text-red-600 flex items-center">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 animate-ping"></span>
+                Your Move • <span class="text-slate-600 ml-1 font-medium">Tile 64 / 100</span>
+</p>
+</div>
+</div>
+<!-- Sofia Chen (Opponent Bot) -->
+<div class="bg-white rounded-2xl px-4 py-2.5 shadow-apple-card border border-slate-200 flex items-center justify-between w-1/2">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 text-white font-bold flex items-center justify-center shadow-md ring-2 ring-emerald-100 text-sm">
+                SC
+              </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="text-[9px] font-extrabold uppercase bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded">BOT</span>
+<h3 class="text-xs font-bold text-slate-800">Sofia Chen</h3>
+</div>
+<p class="text-[11px] text-emerald-600 font-medium">Green Base • Tile 75 / 100</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Center Hardware Bezel & Snakes & Ladders Canvas Board -->
+<div class="relative bg-zinc-900 p-3.5 sm:p-4 rounded-[28px] shadow-apple-bezel border-4 border-zinc-800/90 w-full max-w-[540px] aspect-square flex items-center justify-center" data-purpose="apple-bezel-board-frame">
+<!-- Inner screen cutout -->
+<div class="relative w-full h-full rounded-2xl overflow-hidden shadow-inner bg-white select-none">
+<!-- Exact artwork of the 100-tile Snakes & Ladders reference board -->
+<img alt="Snakes and Ladders Board" class="w-full h-full object-cover block" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqm7H6uNuufFk-5wu6Vs9qF5C3f2d_8oUbaixXSkSerZdD7X4FpZ6CayWNd_CVYJWKDGI-EorbE7c1fhnGseb9p9BGc3emo7RIr-4-zDjJLGNUQCU22kYWz9kZlbVQ9J6rANB1iqc2m6OSeUcSxr6VoqGaVm0pXq8ZdvgsaCNnw8VtQ7lEX1jRbZdGXNXokBTdIH1b6s_23tD_k9KevL7YLGdgSrItSUSaFr2iKqYc90yhB3KaB1zL0-0VHRWZXaHrbug"/>
+<!-- OVERLAID CERAMIC PIECES & MARKERS -->
+<!-- 1. Alex Rivera (Matte Crimson Ceramic Puck) positioned at tile 64 -->
+<!-- Tile 64 is in the 7th row from bottom, 4th column from left -->
+<div class="absolute active-turn-ring w-10 h-10 rounded-full border-2 border-red-400/80 pointer-events-none" style="top: 38%; left: 35%;"></div>
+<div class="ceramic-disk bg-[#e11d48] w-7 h-7 sm:w-8 sm:h-8" style="top: 38%; left: 35%;" title="Alex Rivera (Red) - Square 64">
+<span class="text-[10px] font-black text-white drop-shadow-sm">A</span>
+</div>
+<!-- 2. Sofia Chen (Matte Emerald Green Ceramic Puck) at tile 75 -->
+<!-- Row 8 from bottom, 5th col -->
+<div class="ceramic-disk bg-[#10b981] w-7 h-7 sm:w-8 sm:h-8" style="top: 28%; left: 55%;" title="Sofia Chen (Green) - Square 75">
+<span class="text-[10px] font-black text-white drop-shadow-sm">S</span>
+</div>
+<!-- 3. David Vance (Matte Golden Yellow Ceramic Puck) at tile 84 -->
+<!-- Row 9 from bottom, 4th col (after ladder climb) -->
+<div class="ceramic-disk bg-[#f59e0b] w-7 h-7 sm:w-8 sm:h-8" style="top: 18%; left: 38%;" title="David Vance (Yellow) - Square 84">
+<span class="text-[10px] font-black text-white drop-shadow-sm">D</span>
+</div>
+<!-- 4. Marcus King (Matte Cobalt Blue Ceramic Puck) at tile 38 -->
+<!-- Row 4 from bottom, 3rd col -->
+<div class="ceramic-disk bg-[#2563eb] w-7 h-7 sm:w-8 sm:h-8" style="top: 62%; left: 30%;" title="Marcus King (Blue) - Square 38">
+<span class="text-[10px] font-black text-white drop-shadow-sm">M</span>
+</div>
+</div>
+<!-- Subtle Bezel Camera dot for Apple Display Vibe -->
+<div class="absolute top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-zinc-700/80"></div>
+</div>
+<!-- Bottom Player Status Pods (Marcus & David) -->
+<div class="w-full flex items-center justify-between gap-4 mt-3" data-purpose="bottom-players-pods">
+<!-- Marcus King (Opponent Bot) -->
+<div class="bg-white rounded-2xl px-4 py-2.5 shadow-apple-card border border-slate-200 flex items-center space-x-3 w-1/2">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold flex items-center justify-center shadow-md ring-2 ring-blue-100 text-sm">
+              MK
+            </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h3 class="text-xs font-bold text-slate-800">Marcus King</h3>
+<span class="text-[9px] font-extrabold uppercase bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded">BOT</span>
+</div>
+<p class="text-[11px] text-blue-600 font-medium">Blue Base • Tile 38 / 100</p>
+</div>
+</div>
+<!-- David Vance (Opponent Bot) -->
+<div class="bg-white rounded-2xl px-4 py-2.5 shadow-apple-card border border-slate-200 flex items-center justify-between w-1/2">
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white font-bold flex items-center justify-center shadow-md ring-2 ring-amber-100 text-sm">
+                DV
+              </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<span class="text-[9px] font-extrabold uppercase bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded">BOT</span>
+<h3 class="text-xs font-bold text-slate-800">David Vance</h3>
+</div>
+<p class="text-[11px] text-amber-600 font-medium">Yellow Base • Tile 84 / 100</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: CenterGameStage -->
+<!-- BEGIN: RightSidebar (Control Center & Standings) -->
+<aside class="col-span-12 lg:col-span-3 flex flex-col justify-between space-y-4" data-purpose="control-center-column">
+<!-- Turn Actions & Interactive Die Card -->
+<div class="bg-white rounded-2xl p-5 shadow-apple-card border border-slate-200/80 flex flex-col" data-purpose="dice-controls-card">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100">
+<div>
+<span class="text-[10px] font-extrabold tracking-wider uppercase text-slate-400">CONTROL CENTER</span>
+<h2 class="text-sm font-bold text-slate-800">Turn Actions</h2>
+</div>
+<span class="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">Round 18</span>
+</div>
+<!-- Tactile Dice Presentation Area -->
+<div class="my-5 flex flex-col items-center">
+<div class="inline-block bg-slate-50 border border-slate-200 px-3 py-1 rounded-full text-xs font-semibold text-slate-700 mb-4 shadow-2xs">
+              Roll Result: <span class="text-red-600 font-bold">4</span>
+</div>
+<!-- Tactile 3D White Die with 4 Dots -->
+<div class="w-20 h-20 bg-white border border-slate-200 rounded-2xl shadow-dice-depth p-3 flex flex-col justify-between transition-transform transform active:scale-95 cursor-pointer group hover:border-slate-300" title="Click to shake die">
+<!-- Top row (2 pips) -->
+<div class="flex justify-between items-center w-full">
+<span class="w-3 h-3 rounded-full bg-slate-900 shadow-inner block"></span>
+<span class="w-3 h-3 rounded-full bg-slate-900 shadow-inner block"></span>
+</div>
+<!-- Bottom row (2 pips) -->
+<div class="flex justify-between items-center w-full">
+<span class="w-3 h-3 rounded-full bg-slate-900 shadow-inner block"></span>
+<span class="w-3 h-3 rounded-full bg-slate-900 shadow-inner block"></span>
+</div>
+</div>
+<!-- Action Instruction Prompt -->
+<p class="mt-4 text-center text-xs text-slate-500 max-w-[210px] leading-relaxed">
+              You rolled a <strong class="text-slate-800">4</strong>! Ceramic token advances from tile 60 to <strong class="text-red-600">64</strong>.
+            </p>
+</div>
+<!-- Roll CTA Button (Apple Vibrant Blue) -->
+<button class="w-full bg-[#007aff] hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm">
+<span class="text-base">🎲</span>
+<span>Roll Dice</span>
+</button>
+<!-- Auto-Roll Toggle -->
+<div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="text-amber-500 text-sm">🪄</span>
+<span class="text-xs font-semibold text-slate-700">Auto-Roll</span>
+</div>
+<!-- Switch toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+</label>
+</div>
+</div>
+<!-- Race to 100 Standings / Progress Bar Card -->
+<div class="bg-white rounded-2xl p-4 shadow-apple-card border border-slate-200/80 flex-1 flex flex-col justify-between" data-purpose="race-standings-card">
+<div>
+<div class="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100">
+<h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Race to Tile 100</h3>
+<span class="text-[11px] font-semibold text-slate-400">Target: 100</span>
+</div>
+<!-- Player Progress Rows -->
+<div class="space-y-3 text-xs">
+<!-- 1st: David Vance (84%) -->
+<div>
+<div class="flex items-center justify-between font-semibold mb-1">
+<span class="flex items-center text-slate-700">
+<span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-2"></span>
+                    David Vance
+                    <span class="ml-1 text-[10px] text-amber-600 font-bold">#1 Leader</span>
+</span>
+<span class="text-slate-900 font-bold tabular-nums">84 / 100</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 84%"></div>
+</div>
+</div>
+<!-- 2nd: Sofia Chen (75%) -->
+<div>
+<div class="flex items-center justify-between font-semibold mb-1">
+<span class="flex items-center text-slate-700">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2"></span>
+                    Sofia Chen
+                  </span>
+<span class="text-slate-900 font-bold tabular-nums">75 / 100</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 75%"></div>
+</div>
+</div>
+<!-- 3rd: Alex Rivera (You - 64%) -->
+<div>
+<div class="flex items-center justify-between font-semibold mb-1">
+<span class="flex items-center text-slate-900 font-bold">
+<span class="w-2.5 h-2.5 rounded-full bg-red-500 mr-2"></span>
+                    Alex (You)
+                  </span>
+<span class="text-red-600 font-bold tabular-nums">64 / 100</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-red-500 h-full rounded-full transition-all duration-500" style="width: 64%"></div>
+</div>
+</div>
+<!-- 4th: Marcus King (38%) -->
+<div>
+<div class="flex items-center justify-between font-semibold mb-1">
+<span class="flex items-center text-slate-700">
+<span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></span>
+                    Marcus King
+                  </span>
+<span class="text-slate-900 font-bold tabular-nums">38 / 100</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full rounded-full transition-all duration-500" style="width: 38%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Game Legend / Rules reminder footer -->
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+<span class="flex items-center"><span class="text-emerald-500 mr-1 text-xs">🪜</span> Ladders elevate</span>
+<span class="flex items-center"><span class="text-rose-500 mr-1 text-xs">🐍</span> Snakes drop</span>
+</div>
+</div>
+</aside>
+<!-- END: RightSidebar -->
+</main>
+<!-- END: MainGameBoardLayout -->
+</div>
+<!-- END: ApplicationWindowContainer -->
+</body></html>

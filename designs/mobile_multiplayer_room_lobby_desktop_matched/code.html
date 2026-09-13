@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ludo Royale - Matchmaking Lobby</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f3f4f5",
+            "surface-container-highest": "#e1e3e4",
+            "surface-container-high": "#e7e8e9",
+            "tertiary-container": "#e22525",
+            "on-primary": "#ffffff",
+            "tertiary-fixed-dim": "#ffb4ab",
+            "secondary-fixed-dim": "#aac7ff",
+            "surface": "#f8f9fa",
+            "surface-bright": "#f8f9fa",
+            "primary-fixed-dim": "#adc6ff",
+            "on-surface": "#191c1d",
+            "on-secondary-fixed": "#001b3e",
+            "on-secondary-container": "#002d61",
+            "on-tertiary-fixed-variant": "#93000a",
+            "tertiary-fixed": "#ffdad6",
+            "surface-container": "#edeeef",
+            "surface-tint": "#005bc1",
+            "inverse-primary": "#adc6ff",
+            "surface-variant": "#e1e3e4",
+            "on-surface-variant": "#414755",
+            "inverse-on-surface": "#f0f1f2",
+            "error": "#ba1a1a",
+            "inverse-surface": "#2e3132",
+            "primary-fixed": "#d8e2ff",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "on-background": "#191c1d",
+            "error-container": "#ffdad6",
+            "outline-variant": "#c1c6d7",
+            "on-primary-fixed-variant": "#004493",
+            "background": "#f8f9fa",
+            "outline": "#717786",
+            "primary": "#0058bc",
+            "on-primary-fixed": "#001a41",
+            "on-secondary-fixed-variant": "#00458e",
+            "on-primary-container": "#fefcff",
+            "on-tertiary-fixed": "#410002",
+            "on-secondary": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "secondary-fixed": "#d7e3ff",
+            "primary-container": "#0070eb",
+            "secondary": "#005cba",
+            "surface-dim": "#d9dadb",
+            "on-error": "#ffffff",
+            "tertiary": "#bb0011",
+            "secondary-container": "#5095fe",
+            // Ludo Quadrants & Board Accents
+            "ludo-red": "#E02424",
+            "ludo-green": "#0E703C",
+            "ludo-yellow": "#D97706",
+            "ludo-blue": "#0058bc",
+            "coin-gold": "#B45309",
+            "coin-bg": "#FFF8E1"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "3xl": "1.25rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1rem",
+            "margin": "1rem",
+            "gutter-sm": "0.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Plus Jakarta Sans", "sans-serif"],
+            "body-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "label-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "timer-display": ["Plus Jakarta Sans", "sans-serif"],
+            "body-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "label-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "body-md": ["Plus Jakarta Sans", "sans-serif"],
+            "display": ["Plus Jakarta Sans", "sans-serif"],
+            "label-md": ["Plus Jakarta Sans", "sans-serif"]
+          },
+          "fontSize": {
+            "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-lg": ["17px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-lg": ["17px", { "lineHeight": "22px", "fontWeight": "600" }],
+            "timer-display": ["24px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "13px", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "25px", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "34px", "fontWeight": "700" }],
+            "body-md": ["15px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "display": ["34px", { "lineHeight": "41px", "fontWeight": "700" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .material-symbols-fill {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Physical ceramic token tactile drop */
+    .token-shadow {
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+    .card-hairline {
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+    /* Turn timer pulsation */
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 0.9; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+    .animate-pulse-ring {
+      animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-[#F5F5F7] text-on-surface antialiased min-h-screen pb-28 pt-20 selection:bg-primary selection:text-white">
+<!-- Top Fixed App Bar & iOS Header Combined Structure -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest border-b border-surface-container-high w-full"><!-- iOS Status Bar Simulation -->
+<div class="flex items-center justify-between px-6 pt-2 pb-1 text-on-surface">
+<span class="font-headline-sm text-body-sm tracking-tight font-semibold">9:41</span>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<!-- Main Navigation Bar -->
+<div class="flex items-center justify-between px-margin h-14 w-full">
+<div class="flex items-center space-x-2.5">
+<button aria-label="Back" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 text-on-surface border border-surface-container-high">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+</button>
+<div>
+<h1 class="font-headline-sm text-[18px] font-bold text-on-surface tracking-tight leading-tight">Ludo Royale</h1>
+<span class="font-label-sm text-[12px] text-on-surface-variant font-medium">Tournament Arena</span>
+</div>
+</div>
+<div class="flex items-center space-x-2">
+<!-- Coin Balance Chip Apple desktop style -->
+<div class="flex items-center space-x-1.5 bg-surface-container-lowest border border-surface-container-high px-3 py-1 rounded-full shadow-sm">
+<span class="material-symbols-outlined material-symbols-fill text-[#F59E0B] text-[16px]">monetization_on</span>
+<span class="font-label-md text-[13px] font-bold text-on-surface tabular-nums">50,000</span>
+<span class="text-[11px] text-on-surface-variant font-medium">Coins</span>
+</div>
+<!-- Settings Action -->
+<button aria-label="Settings" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 text-on-surface-variant border border-surface-container-high">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</div></header>
+<!-- Main Canvas Container -->
+<main class="max-w-md mx-auto px-margin mt-3 space-y-4"><!-- Room Identity & Share Banner Bar -->
+<div class="flex items-center justify-between bg-surface-container-lowest border border-surface-container-high rounded-2xl px-4 py-3 shadow-sm">
+<div class="flex items-center space-x-2.5">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+<span class="text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant">Lobby Code</span>
+<div class="bg-surface-container-low px-2.5 py-1 rounded-lg border border-surface-container-high">
+<span class="font-headline-sm text-[13px] font-bold text-primary tracking-wide">#LUDO-7842</span>
+</div>
+</div>
+<button class="flex items-center space-x-1 text-primary hover:text-secondary text-[13px] font-semibold active:scale-95 transition-transform" onclick="navigator.clipboard &amp;&amp; navigator.clipboard.writeText('LUDO-7842')">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span>Copy</span>
+</button>
+</div>
+<!-- Mode Selector Tabs (Native iOS Segmented Control) -->
+<section>
+<div class="p-1 bg-[#E5E5EA] rounded-xl flex items-center justify-between gap-1">
+<button class="flex-1 py-1.5 px-2 text-center rounded-lg bg-surface-container-lowest text-on-surface text-[13px] font-bold shadow-sm transition-all">
+  Classic 4P
+</button>
+<button class="flex-1 py-1.5 px-2 text-center rounded-lg text-on-surface-variant hover:text-on-surface text-[13px] font-medium transition-all">
+  Quick Rush
+</button>
+<button class="flex-1 py-1.5 px-2 text-center rounded-lg text-on-surface-variant hover:text-on-surface text-[13px] font-medium transition-all">
+  2 Players
+</button>
+<button class="flex-1 py-1.5 px-2 text-center rounded-lg text-on-surface-variant hover:text-on-surface text-[13px] font-medium transition-all">
+  Team Battle
+</button>
+</div>
+</section>
+<!-- Stake & Prize Pot Tactical Card -->
+<section class="bg-surface-container-lowest border border-surface-container-high rounded-2xl p-4 shadow-sm relative overflow-hidden">
+<!-- Top Section: Metric Splits -->
+<div class="grid grid-cols-2 gap-3 pb-3.5 border-b border-surface-container-high">
+<div class="space-y-0.5">
+<div class="flex items-center space-x-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">toll</span>
+<span class="text-[11px] font-semibold uppercase tracking-wider">Entry Fee</span>
+</div>
+<div class="flex items-baseline space-x-1.5 pt-1">
+<span class="text-[22px] font-bold text-on-surface">10,000</span>
+<span class="text-[12px] text-on-surface-variant font-medium">Coins</span>
+</div>
+</div>
+<div class="space-y-0.5 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+<div class="flex items-center space-x-1.5 text-[#B45309]">
+<span class="material-symbols-outlined material-symbols-fill text-[16px]">emoji_events</span>
+<span class="text-[11px] font-bold uppercase tracking-wider">Winner Prize</span>
+</div>
+<div class="flex items-baseline space-x-1.5 pt-1">
+<span class="text-[22px] font-extrabold text-[#B45309]">36,000</span>
+<span class="text-[12px] text-[#B45309] font-semibold">Coins</span>
+</div>
+</div>
+</div>
+<!-- Preset Stakes Selector -->
+<div class="mt-3.5 space-y-2">
+<div class="flex items-center justify-between text-on-surface-variant text-[12px]">
+<span class="font-medium">Preset Stake Tiers</span>
+<span class="font-medium text-primary">Standard Pot (10% Rake)</span>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button class="py-1.5 text-center rounded-lg border border-surface-container-high bg-surface-container-low text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors">
+  2.5k
+</button>
+<button class="py-1.5 text-center rounded-lg border border-surface-container-high bg-surface-container-low text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors">
+  5k
+</button>
+<button class="py-1.5 text-center rounded-lg border-2 border-primary bg-primary/5 text-primary text-[13px] font-bold shadow-sm">
+  10k
+</button>
+<button class="py-1.5 text-center rounded-lg border border-surface-container-high bg-surface-container-low text-on-surface text-[13px] font-semibold hover:bg-surface-container transition-colors">
+  25k
+</button>
+</div>
+</div>
+</section>
+<!-- 4 Player Room Slots (2x2 Balanced Apple Matrix) -->
+<section class="space-y-2.5">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">group</span>
+<h2 class="text-[15px] font-bold text-on-surface">Player Quadrants</h2>
+</div>
+<span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">3/4 Players Ready</span>
+</div>
+<!-- 2x2 Grid Layout -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Slot 1: Host / Player (Red Quadrant) -->
+<div class="relative bg-surface-container-lowest border border-surface-container-high rounded-2xl p-3.5 shadow-sm overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="relative">
+<div class="w-11 h-11 rounded-full bg-red-50 border border-ludo-red/30 flex items-center justify-center text-ludo-red font-bold text-[15px]">
+  AL
+</div>
+<div class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-0.5 border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] font-bold">check</span>
+</div>
+</div>
+<!-- Quadrant Badge -->
+<div class="flex items-center space-x-1 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+<div class="w-2 h-2 rounded-full bg-ludo-red"></div>
+<span class="text-[10px] text-ludo-red font-bold">RED</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-center space-x-1.5">
+<span class="text-[13px] font-bold text-on-surface truncate">Alex Rivera</span>
+<span class="text-[9px] bg-red-100 text-ludo-red font-bold px-1 rounded">YOU</span>
+</div>
+<div class="flex items-center justify-between mt-1">
+<span class="text-[11px] text-on-surface-variant font-medium">Level 24</span>
+<span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold uppercase tracking-wide">READY</span>
+</div>
+</div>
+</div>
+<!-- Slot 2: Player Green (Green Quadrant) -->
+<div class="relative bg-surface-container-lowest border border-surface-container-high rounded-2xl p-3.5 shadow-sm overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="relative">
+<div class="w-11 h-11 rounded-full bg-emerald-50 border border-ludo-green/30 flex items-center justify-center text-ludo-green font-bold text-[15px]">
+  SC
+</div>
+<div class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-0.5 border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] font-bold">check</span>
+</div>
+</div>
+<!-- Quadrant Badge -->
+<div class="flex items-center space-x-1 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+<div class="w-2 h-2 rounded-full bg-ludo-green"></div>
+<span class="text-[10px] text-ludo-green font-bold">GREEN</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-center space-x-1.5">
+<span class="text-[13px] font-bold text-on-surface truncate">Sofia Chen</span>
+</div>
+<div class="flex items-center justify-between mt-1">
+<span class="text-[11px] text-on-surface-variant font-medium">Level 19</span>
+<span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold uppercase tracking-wide">READY</span>
+</div>
+</div>
+</div>
+<!-- Slot 3: Player Yellow (Yellow Quadrant) -->
+<div class="relative bg-surface-container-lowest border border-surface-container-high rounded-2xl p-3.5 shadow-sm overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="relative">
+<div class="w-11 h-11 rounded-full bg-amber-50 border border-ludo-yellow/30 flex items-center justify-center text-ludo-yellow font-bold text-[15px]">
+  DV
+</div>
+<div class="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-0.5 border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] font-bold">check</span>
+</div>
+</div>
+<!-- Quadrant Badge -->
+<div class="flex items-center space-x-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+<div class="w-2 h-2 rounded-full bg-ludo-yellow"></div>
+<span class="text-[10px] text-ludo-yellow font-bold">YELLOW</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="flex items-center space-x-1.5">
+<span class="text-[13px] font-bold text-on-surface truncate">David Vance</span>
+</div>
+<div class="flex items-center justify-between mt-1">
+<span class="text-[11px] text-on-surface-variant font-medium">Level 28</span>
+<span class="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold uppercase tracking-wide">READY</span>
+</div>
+</div>
+</div>
+<!-- Slot 4: Waiting / Invite (Blue Quadrant) -->
+<div class="relative bg-surface-container-lowest border border-dashed border-primary/40 rounded-2xl p-3.5 flex flex-col justify-between items-center text-center group hover:border-primary transition-colors cursor-pointer shadow-sm">
+<div class="w-11 h-11 rounded-full bg-blue-50 border border-primary/30 flex items-center justify-center text-primary group-hover:scale-105 transition-transform mt-0.5">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+</div>
+<div class="my-2">
+<span class="text-[13px] font-bold text-primary block">Invite Friend</span>
+<span class="text-[11px] text-on-surface-variant">Slot 4 (Blue) Empty</span>
+</div>
+<div class="flex items-center space-x-1 bg-surface-container-low border border-surface-container-high px-2.5 py-1 rounded-md text-primary text-[11px] font-semibold">
+<span class="material-symbols-outlined text-[13px]">share</span>
+<span>Share</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Tournament Game Rules Pill Cluster -->
+<section class="bg-surface-container-lowest border border-surface-container-high rounded-2xl p-3.5 shadow-sm">
+<div class="flex items-center space-x-1.5 mb-2.5">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">gavel</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Room Match Settings</span>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<div class="inline-flex items-center space-x-1 bg-surface-container-low border border-surface-container-high px-2.5 py-1 rounded-full text-on-surface text-[12px]">
+<span class="material-symbols-outlined text-[14px] text-primary">casino</span>
+<span>6 to enter board</span>
+</div>
+<div class="inline-flex items-center space-x-1 bg-surface-container-low border border-surface-container-high px-2.5 py-1 rounded-full text-on-surface text-[12px]">
+<span class="material-symbols-outlined text-[14px] text-emerald-600">replay</span>
+<span>Pawn Capture +1 Free Roll</span>
+</div>
+<div class="inline-flex items-center space-x-1 bg-surface-container-low border border-surface-container-high px-2.5 py-1 rounded-full text-on-surface text-[12px]">
+<span class="material-symbols-outlined text-[14px] text-amber-600">timer</span>
+<span>Timer: 15s/turn</span>
+</div>
+<div class="inline-flex items-center space-x-1 bg-surface-container-low border border-surface-container-high px-2.5 py-1 rounded-full text-on-surface text-[12px]">
+<span class="material-symbols-outlined text-[14px] text-purple-600">shield</span>
+<span>8 Safe Star Havens</span>
+</div>
+</div>
+</section>
+<!-- Bottom Action Area -->
+<section class="pt-2 pb-4 space-y-2.5">
+<!-- Apple Blue Primary Launch Button -->
+<button class="w-full h-[50px] bg-primary hover:bg-secondary text-white text-[15px] font-bold rounded-xl shadow-sm flex items-center justify-center space-x-2 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined material-symbols-fill text-[20px]">play_arrow</span>
+<span>START MATCH (3/4)</span>
+</button>
+<!-- Secondary Ghost Action: Share Room Code -->
+<button class="w-full h-11 bg-surface-container-lowest border border-surface-container-high hover:bg-surface-container-low text-on-surface text-[13px] font-semibold rounded-xl flex items-center justify-center space-x-2 active:scale-[0.98] transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">send</span>
+<span>Share Room Code via WhatsApp</span>
+</button>
+</section></main>
+<!-- Bottom Navigation Bar (Shared Component: BottomNavBar) -->
+<!-- Contextual State Lock: Active Destination is "Arena" according to screen identity -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-margin py-space-xs bg-surface-container-lowest border-t border-surface-container-high w-full shadow-sm">
+<!-- Destination 1: Lobby -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors py-1 active:scale-95 duration-150" href="#lobby">
+<span class="material-symbols-outlined text-[24px]">sports_esports</span>
+<span class="font-label-sm text-label-sm mt-0.5">Lobby</span>
+</a>
+<!-- Destination 2: Arena (ACTIVE TAB) -->
+<a class="flex flex-col items-center justify-center text-primary font-semibold py-1 active:scale-95 duration-150" href="#arena">
+<span class="material-symbols-outlined text-[24px] material-symbols-fill">casino</span>
+<span class="font-label-sm text-label-sm mt-0.5">Arena</span>
+</a>
+<!-- Destination 3: Rankings -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors py-1 active:scale-95 duration-150" href="#rankings">
+<span class="material-symbols-outlined text-[24px]">leaderboard</span>
+<span class="font-label-sm text-label-sm mt-0.5">Rankings</span>
+</a>
+<!-- Destination 4: Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors py-1 active:scale-95 duration-150" href="#profile">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="font-label-sm text-label-sm mt-0.5">Profile</span>
+</a>
+</nav>
+<!-- Light Micro-Interactions Script for High Haptic Tactile Touch -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Preset stakes selector toggle
+      const stakeButtons = document.querySelectorAll('section:nth-of-type(2) button');
+      stakeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          stakeButtons.forEach(b => {
+            b.className = 'py-1.5 text-center rounded-lg border border-surface-container-high bg-surface-container-low text-on-surface font-label-md text-label-md font-semibold hover:bg-surface-container transition-colors';
+          });
+          btn.className = 'py-1.5 text-center rounded-lg border-2 border-primary bg-primary/5 text-primary font-label-md text-label-md font-bold shadow-sm';
+        });
+      });
+    });
+  </script>
+</body></html>

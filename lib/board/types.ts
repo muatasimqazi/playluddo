@@ -30,6 +30,8 @@ export interface Player {
   missedDecisionCount: number;
   level: number;
   testWalletBalance: number;
+  /** PRD 5.2 Auto-Roll — added in M3; not in the original PRD 6.7 Player shape. */
+  autoRollEnabled: boolean;
 }
 
 export interface Pawn {

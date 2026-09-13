@@ -20,3 +20,26 @@ jobs:
       - run: npm run lint
       - run: npx tsc --noEmit
       - run: npm run build
+      - run: npm test # DB-free TS rules-engine unit tests only (tests/rules-engine-ts)
+
+  # M1 gate (docs/IMPLEMENTATION_HANDOFF.md Section 10): the plpgsql rules
+  # engine's own pgTAP suite, plus the parity suite proving it agrees with
+  # the TS engine above — both need a live local Postgres.
+  test-db:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - run: supabase start
+      - run: supabase test db
+      - run: npm run test:parity

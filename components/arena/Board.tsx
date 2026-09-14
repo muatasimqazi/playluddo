@@ -1,7 +1,7 @@
 "use client";
 
 import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
-import { StarBadge, StarIcon } from "@/components/shared/StarBadge";
+import { CompassEmblem, StarBadge, StarIcon } from "@/components/shared/StarBadge";
 import { SAFE_CELLS, pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState, Pawn, PlayerColor } from "@/lib/board/types";
 import {
@@ -10,7 +10,6 @@ import {
   CORNER_CELLS,
   GRID_SIZE,
   HOME_LANE_CELLS,
-  NEST_SLOTS,
   armColorForCell,
   globalCellToGridPosition,
 } from "./boardLayout";
@@ -163,9 +162,20 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
   );
 }
 
+// The 4 parking-spot positions, fixed relative to each base quadrant's own
+// box (independent of color) — close to the true corners, matching the
+// reference's corner-parked pawns-on-star-badges.
+const NEST_SLOT_POSITIONS: readonly (readonly [number, number])[] = [
+  [13, 13],
+  [87, 13],
+  [13, 87],
+  [87, 87],
+];
+
 // DESIGN reference: each base is a solid quadrant-color block with a large
-// low-opacity compass-star emblem behind 4 individual parking slots (one
-// per pawn), each slot marked with its own star badge.
+// medallion emblem (CompassEmblem, on its own white inset panel) behind 4
+// individual parking slots (one per pawn), each slot marked with its own
+// star badge.
 function BaseQuadrant({
   color,
   pawns,
@@ -179,7 +189,6 @@ function BaseQuadrant({
 }) {
   const area = BASE_AREA[color];
   const classes = QUADRANT_CLASSES[color];
-  const slots = NEST_SLOTS[color];
 
   return (
     <div
@@ -190,24 +199,18 @@ function BaseQuadrant({
         zIndex: 0,
       }}
     >
-      {/* Compass emblem */}
-      <div
-        className="absolute inset-[18%] rounded-full border-2 border-white/30"
-        aria-hidden
-      >
-        <StarIcon className="absolute inset-0 h-full w-full p-[18%] text-white/25" />
+      {/* White inset panel + compass medallion */}
+      <div className="absolute inset-[16%] rounded-xl bg-white" aria-hidden>
+        <CompassEmblem color={color} className="h-full w-full p-[8%]" />
       </div>
 
-      {slots.map(([row, col], i) => {
+      {NEST_SLOT_POSITIONS.map(([left, top], i) => {
         const pawn = pawns[i];
         return (
           <div
             key={i}
             className="absolute -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: `${((col - area.colStart + 0.5) / (area.colEnd - area.colStart + 1)) * 100}%`,
-              top: `${((row - area.rowStart + 0.5) / (area.rowEnd - area.rowStart + 1)) * 100}%`,
-            }}
+            style={{ left: `${left}%`, top: `${top}%` }}
           >
             {pawn ? (
               <PawnToken
@@ -216,9 +219,7 @@ function BaseQuadrant({
                 onClick={() => onSelectPawn(pawn.id)}
               />
             ) : (
-              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-white/60 bg-white/90">
-                <StarIcon className={classes.text} size={10} />
-              </span>
+              <StarBadge color={color} size={20} />
             )}
           </div>
         );

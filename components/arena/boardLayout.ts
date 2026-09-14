@@ -77,38 +77,6 @@ export const BASE_AREA: Record<PlayerColor, GridArea> = {
   blue: { rowStart: 9, rowEnd: 14, colStart: 0, colEnd: 5 },
 };
 
-/**
- * The 4 individual parking-spot cells within each base, one per pawn — per
- * the reference screenshot, pawns sit at the base's 4 inner corners (each
- * marked with its own star badge), not clustered in one shared box.
- */
-export const NEST_SLOTS: Record<PlayerColor, readonly (readonly [number, number])[]> = {
-  red: [
-    [1, 1],
-    [1, 4],
-    [4, 1],
-    [4, 4],
-  ],
-  green: [
-    [1, 10],
-    [1, 13],
-    [4, 10],
-    [4, 13],
-  ],
-  yellow: [
-    [10, 10],
-    [10, 13],
-    [13, 10],
-    [13, 13],
-  ],
-  blue: [
-    [10, 1],
-    [10, 4],
-    [13, 1],
-    [13, 4],
-  ],
-};
-
 /** The true center 3x3, decorative "triumph" area (includes the 4 CORNER_CELLS). */
 export const CENTER_AREA: GridArea = { rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8 };
 

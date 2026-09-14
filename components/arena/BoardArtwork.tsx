@@ -196,7 +196,15 @@ function BaseQuadrantArt({ color }: { color: PlayerColor }) {
   // corners (no radius) — per direct instruction.
   const panelInset = 1;
   const panelSize = size - panelInset * 2;
-  const emblemInset = panelSize * 0.14;
+  // The compass circle's own edge should sit 1/4 unit inside the white
+  // panel's edge (grid unit ≈ inch is the only scale this board has) — per
+  // direct instruction. CompassEmblem draws its circle at r=46 of its own
+  // 100-wide viewBox, i.e. 92% of whatever bounding box it's given, so back
+  // out the box size that produces a circle exactly panelSize - 2*0.25 wide.
+  const circleMarginFromPanel = 0.25;
+  const circleFillRatio = 0.92;
+  const emblemBoxSize = (panelSize - circleMarginFromPanel * 2) / circleFillRatio;
+  const emblemInset = (panelSize - emblemBoxSize) / 2;
 
   return (
     <g>
@@ -206,8 +214,8 @@ function BaseQuadrantArt({ color }: { color: PlayerColor }) {
         color={color}
         x={x + panelInset + emblemInset}
         y={y + panelInset + emblemInset}
-        width={panelSize - emblemInset * 2}
-        height={panelSize - emblemInset * 2}
+        width={emblemBoxSize}
+        height={emblemBoxSize}
       />
       {NEST_SLOT_POSITIONS[color].map(([leftPct, topPct], i) => (
         <NestBadge key={i} color={color} cx={x + (leftPct / 100) * size} cy={y + (topPct / 100) * size} r={size * 0.075} />

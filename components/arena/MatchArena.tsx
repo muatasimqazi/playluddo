@@ -81,7 +81,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-4 p-3 sm:p-4 lg:h-[calc(100vh-2rem)] lg:flex-row">
+    <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-4 p-3 sm:p-4 lg:h-[calc(100vh-2rem)] lg:flex-row">
       {/* LEFT: Match Events */}
       <aside className="order-3 hidden w-64 shrink-0 rounded-2xl border border-hairline bg-surface p-3 shadow-elevation-1 xl:order-1 xl:flex xl:min-h-0 xl:flex-col">
         <ActivityFeed events={events} players={roomState.players} />
@@ -92,13 +92,13 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         {sessionReplaced && (
           <div
             role="alert"
-            className="w-full max-w-[580px] rounded-md border border-quadrant-red-border bg-quadrant-red-tint p-2 text-center text-body-sm text-quadrant-red"
+            className="w-full max-w-115 sm:max-w-135 md:max-w-160 xl:max-w-190 rounded-md border border-quadrant-red-border bg-quadrant-red-tint p-2 text-center text-body-sm text-quadrant-red"
           >
             This seat is now controlled from another tab or device.
           </div>
         )}
 
-        <div className="flex w-full max-w-[580px] items-center justify-between gap-2">
+        <div className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 xl:max-w-190 items-center justify-between gap-2">
           {podFor(roomState, QUADRANT_SLOTS[0].color, "left")}
           {podFor(roomState, QUADRANT_SLOTS[1].color, "right")}
         </div>
@@ -109,13 +109,13 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
           onSelectPawn={(pawnId) => void handleAction(() => requestMove(client, roomId, pawnId, connectionToken))}
         />
 
-        <div className="flex w-full max-w-[580px] items-center justify-between gap-2">
+        <div className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 xl:max-w-190 items-center justify-between gap-2">
           {podFor(roomState, QUADRANT_SLOTS[2].color, "left")}
           {podFor(roomState, QUADRANT_SLOTS[3].color, "right")}
         </div>
 
         {/* Below lg, the control center collapses into the flow here. */}
-        <div className="w-full max-w-[580px] lg:hidden">
+        <div className="w-full max-w-115 sm:max-w-135 md:max-w-160 xl:max-w-190 lg:hidden">
           <ControlCenter
             roomState={roomState}
             myPlayer={myPlayer}

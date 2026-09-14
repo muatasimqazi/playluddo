@@ -83,7 +83,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
   return (
     // DESIGN reference "Board Chassis": a white card housing a dark inner
     // bezel around the playing surface.
-    <div className="mx-auto w-full max-w-[540px] rounded-3xl border border-hairline bg-surface p-2 shadow-elevation-2">
+    <div className="mx-auto w-full max-w-115 rounded-3xl border border-hairline bg-surface p-2 shadow-elevation-2 sm:max-w-135 md:max-w-160 xl:max-w-190">
       <div
         className="relative grid aspect-square w-full gap-px overflow-hidden rounded-2xl border border-black/10 bg-[#2b2b2b] p-1"
         style={{

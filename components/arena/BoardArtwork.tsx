@@ -14,6 +14,11 @@ const COLORS: readonly PlayerColor[] = ["red", "green", "yellow", "blue"];
 
 const HAIRLINE_STROKE = 0.025;
 
+// Every on-track star badge — home lane, the 8 real SAFE_CELLS, and the
+// extra decorative ArmDecorations star — is the same size in the
+// reference; there's no visual distinction by badge "importance".
+const CELL_STAR_RADIUS = 0.32;
+
 function quadrant(color: PlayerColor, suffix?: "tint" | "border"): string {
   return `var(--quadrant-${color}${suffix ? `-${suffix}` : ""})`;
 }
@@ -64,7 +69,7 @@ export function BoardArtwork() {
               fill="white"
               style={{ stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
             />
-            <CellStarBadge color={color} cx={col + 0.5} cy={row + 0.5} r={0.36} />
+            <CellStarBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
           </g>
         )),
       )}
@@ -82,7 +87,9 @@ export function BoardArtwork() {
               fill="white"
               style={{ stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
             />
-            {isSafe && <CellStarBadge color={armColorForCell(row, col)} cx={col + 0.5} cy={row + 0.5} r={0.28} />}
+            {isSafe && (
+              <CellStarBadge color={armColorForCell(row, col)} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
+            )}
           </g>
         );
       })}
@@ -143,7 +150,7 @@ function ArmDecorations() {
       </defs>
       {ARM_ROTATIONS.map(({ angle, color }) => (
         <g key={angle} transform={`rotate(${angle} 7.5 7.5)`}>
-          <CellStarBadge color={color} cx={6.5} cy={2.5} r={0.26} />
+          <CellStarBadge color={color} cx={6.5} cy={2.5} r={CELL_STAR_RADIUS} />
           <path
             d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
             fill="none"

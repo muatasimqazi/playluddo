@@ -118,18 +118,38 @@ function ArmDecorations() {
     <>
       <defs>
         {ARM_ROTATIONS.map(({ color }) => (
-          <marker
-            key={color}
-            id={`arrowhead-${color}`}
-            viewBox="0 0 10 10"
-            refX="8.5"
-            refY="5"
-            markerWidth="3.4"
-            markerHeight="3.4"
-            orient="auto-start-reverse"
-          >
-            <path d="M0,0 L10,5 L0,10 Z" style={{ fill: quadrant(color) }} />
-          </marker>
+          <g key={color}>
+            {/* Bold triangular head, per the user-supplied reference shape. */}
+            <marker
+              id={`arrowhead-${color}`}
+              viewBox="0 0 12 12"
+              refX="10"
+              refY="6"
+              markerWidth="4.4"
+              markerHeight="4.4"
+              orient="auto-start-reverse"
+            >
+              <path d="M0,1 L11,6 L0,11 Z" style={{ fill: quadrant(color) }} />
+            </marker>
+            {/* 3-chevron fletching at the tail, per the same reference. */}
+            <marker
+              id={`arrowtail-${color}`}
+              viewBox="0 0 12 12"
+              refX="9"
+              refY="6"
+              markerWidth="5.4"
+              markerHeight="5.4"
+              orient="auto-start-reverse"
+            >
+              <path
+                d="M9,2 L6,6 L9,10 M6.5,2 L3.5,6 L6.5,10 M4,2 L1,6 L4,10"
+                fill="none"
+                style={{ stroke: quadrant(color) }}
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </marker>
+          </g>
         ))}
       </defs>
       {ARM_ROTATIONS.map(({ angle, color }) => (
@@ -138,6 +158,7 @@ function ArmDecorations() {
             d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
             fill="none"
             style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
+            markerStart={`url(#arrowtail-${color})`}
             markerEnd={`url(#arrowhead-${color})`}
           />
           <line
@@ -146,14 +167,18 @@ function ArmDecorations() {
             x2={8.5}
             y2={3.4}
             style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
+            markerStart={`url(#arrowtail-${color})`}
             markerEnd={`url(#arrowhead-${color})`}
           />
+          {/* Middle of cell 12 to middle of cell 13 — the arm-to-arm
+              handoff at this corner (rotated per arm: 25→26, 38→39, 51→0). */}
           <line
-            x1={8.2}
-            y1={5.25}
-            x2={8.75}
-            y2={5.75}
+            x1={8.5}
+            y1={5.5}
+            x2={9.5}
+            y2={6.5}
             style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
+            markerStart={`url(#arrowtail-${color})`}
             markerEnd={`url(#arrowhead-${color})`}
           />
         </g>

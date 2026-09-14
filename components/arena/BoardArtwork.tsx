@@ -192,14 +192,16 @@ function BaseQuadrantArt({ color }: { color: PlayerColor }) {
   const x = area.colStart;
   const y = area.rowStart;
   const size = area.colEnd - area.colStart + 1; // 6 cells
-  const panelInset = size * 0.24;
+  // Inset exactly 1 grid unit from the base's own edge on every side, sharp
+  // corners (no radius) — per direct instruction.
+  const panelInset = 1;
   const panelSize = size - panelInset * 2;
   const emblemInset = panelSize * 0.14;
 
   return (
     <g>
       <rect x={x} y={y} width={size} height={size} style={{ fill: quadrant(color) }} />
-      <rect x={x + panelInset} y={y + panelInset} width={panelSize} height={panelSize} rx={size * 0.04} fill="white" />
+      <rect x={x + panelInset} y={y + panelInset} width={panelSize} height={panelSize} fill="white" />
       <CompassEmblem
         color={color}
         x={x + panelInset + emblemInset}

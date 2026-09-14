@@ -32,15 +32,26 @@ export interface Player {
   testWalletBalance: number;
   /** PRD 5.2 Auto-Roll — added in M3; not in the original PRD 6.7 Player shape. */
   autoRollEnabled: boolean;
+  /** PRD 5.3 rematch vote — added in M4. */
+  rematchReady: boolean;
 }
 
+/**
+ * Matches the actual jsonb shape `private.ludo_room_pawns_json` produces on
+ * the wire (id/color/index/state/pathIndex) — the same shape as
+ * EnginePawn (engine-types.ts), reused as-is for `GameRoomState.pawns`
+ * rather than re-shaped into a separate DB-row-like format. A pawn's owner
+ * is found by matching `color` against a `Player.color` — safe because a
+ * room has at most one player per color.
+ */
 export interface Pawn {
   id: string;
-  playerId: string;
+  color: PlayerColor;
+  /** Stable 0-3 ordering, mirrors the DB's pawn_index column. */
+  index: number;
   state: PawnState;
   /** 0-56 forward-progress index, relative to the pawn's own color. See geometry.ts. */
   pathIndex: number | null;
-  boardTileId: string | null;
 }
 
 export interface LegalMove {
@@ -53,8 +64,10 @@ export interface LegalMove {
 
 export interface GameRoomState {
   roomId: string;
+  /** Join code shown/shared in the lobby. Added to the wire shape in M4 — the initial PRD 6.7 shape omitted it. */
+  code: string;
   gameType: GameType;
-  status: "lobby" | "in_game" | "summary";
+  status: "lobby" | "in_game" | "summary" | "abandoned";
   players: Player[];
   pawns: Pawn[];
   turnPlayerId: string | null;

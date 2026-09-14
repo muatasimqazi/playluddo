@@ -1,26 +1,60 @@
 @import "tailwindcss";
 
+/*
+ * "Modern Boardroom" tokens, reconciled from designs/modern_boardroom/DESIGN.md
+ * (the canonical source per docs/PRD.md Section 10.1 punch-list item #7 —
+ * DESIGN.md is more complete than the values PRD 7.1 had, so PRD 7.1 should
+ * eventually be updated to match these, not the other way around).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8f9fa;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --hairline: #e5e7eb;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+
+  --action: #007aff; /* System Action (Apple Blue) — nav/confirm/primary controls only */
+
+  --quadrant-red: #e02424;
+  --quadrant-red-tint: #fdf2f2;
+  --quadrant-red-border: #f87171;
+  --quadrant-blue: #0066cc;
+  --quadrant-blue-tint: #eff6ff;
+  --quadrant-blue-border: #60a5fa;
+  --quadrant-green: #0e703c;
+  --quadrant-green-tint: #ecfdf5;
+  --quadrant-green-border: #34d399;
+  --quadrant-yellow: #f5a623;
+  --quadrant-yellow-tint: #fffbeb;
+  --quadrant-yellow-border: #fbbf24;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-hairline: var(--hairline);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-action: var(--action);
+  --color-quadrant-red: var(--quadrant-red);
+  --color-quadrant-red-tint: var(--quadrant-red-tint);
+  --color-quadrant-red-border: var(--quadrant-red-border);
+  --color-quadrant-blue: var(--quadrant-blue);
+  --color-quadrant-blue-tint: var(--quadrant-blue-tint);
+  --color-quadrant-blue-border: var(--quadrant-blue-border);
+  --color-quadrant-green: var(--quadrant-green);
+  --color-quadrant-green-tint: var(--quadrant-green-tint);
+  --color-quadrant-green-border: var(--quadrant-green-border);
+  --color-quadrant-yellow: var(--quadrant-yellow);
+  --color-quadrant-yellow-tint: var(--quadrant-yellow-tint);
+  --color-quadrant-yellow-border: var(--quadrant-yellow-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

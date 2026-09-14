@@ -441,7 +441,9 @@ These are called out inline above; consolidated here so nothing gets implemented
 8. ~~RLS policy authorship owner~~ — **Resolved.** Policies are AI-authored, human-reviewed by the product owner before any policy reaches a real environment (6.2).
 
 ### 10.1 Design ↔ PRD Alignment Punch List
-Findings from comparing `designs/` against this PRD (2026-09-13). None of these block engineering on the rules engine or server, but all should be resolved before UI implementation starts against these mockups:
+Findings from comparing `designs/` against this PRD (2026-09-13). None of these block engineering on the rules engine or server, but all should be resolved before UI implementation starts against these mockups.
+
+**Status (M4):** the shipped MVP UI was built directly against this PRD and the RPC contracts rather than against the mockup HTML, so it doesn't carry any of these issues — but that's a byproduct of starting from scratch, not this list being resolved. The mockup files under `designs/` themselves were not edited and still contain every issue below; don't use them as a source for further UI work until they're actually corrected.
 
 | # | Screen(s) | Issue | Required direction |
 |---|---|---|---|

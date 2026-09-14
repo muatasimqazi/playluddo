@@ -1,10 +1,109 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { ensureSession } from "@/lib/supabase/auth";
+import { createRoom, joinRoom } from "@/lib/supabase/rpc";
+
 export default function Home() {
+  const router = useRouter();
+  const [displayName, setDisplayName] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [pending, setPending] = useState<"create" | "join" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleCreate() {
+    if (!displayName.trim()) {
+      setError("Enter a display name first.");
+      return;
+    }
+    setPending("create");
+    setError(null);
+    try {
+      const client = createClient();
+      await ensureSession(client);
+      const { roomId } = await createRoom(client, displayName.trim());
+      router.push(`/room/${roomId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setPending(null);
+    }
+  }
+
+  async function handleJoin() {
+    if (!displayName.trim() || !joinCode.trim()) {
+      setError("Enter a display name and room code.");
+      return;
+    }
+    setPending("join");
+    setError(null);
+    try {
+      const client = createClient();
+      await ensureSession(client);
+      const { roomId } = await joinRoom(client, joinCode.trim(), displayName.trim());
+      router.push(`/room/${roomId}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setPending(null);
+    }
+  }
+
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
-      <h1 className="text-2xl font-semibold">Ludo Rivals</h1>
-      <p className="text-sm text-gray-500">
-        Scaffolding in progress — see docs/IMPLEMENTATION_HANDOFF.md.
-      </p>
+    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold text-foreground">Ludo Rivals</h1>
+        <p className="text-sm text-text-secondary">Fast online Ludo with friends and rivals.</p>
+      </div>
+
+      <label className="flex flex-col gap-1 text-sm text-foreground">
+        Display name
+        <input
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          maxLength={24}
+          className="rounded-md border border-hairline px-3 py-2 text-sm"
+          placeholder="Alex"
+        />
+      </label>
+
+      <button
+        type="button"
+        disabled={pending !== null}
+        onClick={() => void handleCreate()}
+        className="rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+      >
+        {pending === "create" ? "Creating…" : "Create Private Room"}
+      </button>
+
+      <div className="flex items-center gap-2 text-xs text-text-muted" aria-hidden>
+        <div className="h-px flex-1 bg-hairline" /> or <div className="h-px flex-1 bg-hairline" />
+      </div>
+
+      <label className="flex flex-col gap-1 text-sm text-foreground">
+        Room code
+        <input
+          value={joinCode}
+          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+          maxLength={6}
+          className="rounded-md border border-hairline px-3 py-2 text-sm uppercase tracking-wide"
+          placeholder="ABC123"
+        />
+      </label>
+      <button
+        type="button"
+        disabled={pending !== null}
+        onClick={() => void handleJoin()}
+        className="rounded-lg border border-hairline px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"
+      >
+        {pending === "join" ? "Joining…" : "Join Room"}
+      </button>
+
+      {error && (
+        <p role="alert" className="text-center text-sm text-quadrant-red">
+          {error}
+        </p>
+      )}
     </main>
   );
 }

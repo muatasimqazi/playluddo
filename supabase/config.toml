@@ -175,7 +175,12 @@ refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
 enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
-enable_anonymous_sign_ins = false
+# Enabled for MVP identity (PRD 1.3: "lightweight player identity", no full
+# account system) — a player gets a real auth.uid() without signup friction.
+# NOTE: this only affects local dev; enable the equivalent toggle in the
+# hosted Supabase project's dashboard (Authentication > Sign In / Providers)
+# before this works against staging/production.
+enable_anonymous_sign_ins = true
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.

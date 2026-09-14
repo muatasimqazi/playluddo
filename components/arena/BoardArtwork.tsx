@@ -66,10 +66,9 @@ export function BoardArtwork() {
               y={row}
               width={1}
               height={1}
-              fill="white"
-              style={{ stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
+              style={{ fill: quadrant(color), stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
             />
-            <CellStarBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
+            <NestBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
           </g>
         )),
       )}

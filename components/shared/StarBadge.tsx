@@ -1,10 +1,13 @@
 import { QUADRANT_CLASSES } from "@/components/shared/colors";
 import type { PlayerColor } from "@/lib/board/types";
 
-function polarPoint(cx: number, cy: number, radius: number, degrees: number): string {
+function polarXY(cx: number, cy: number, radius: number, degrees: number): [number, number] {
   const radians = (degrees * Math.PI) / 180;
-  const x = cx + radius * Math.cos(radians);
-  const y = cy + radius * Math.sin(radians);
+  return [cx + radius * Math.cos(radians), cy + radius * Math.sin(radians)];
+}
+
+function polarPoint(cx: number, cy: number, radius: number, degrees: number): string {
+  const [x, y] = polarXY(cx, cy, radius, degrees);
   return `${x.toFixed(2)} ${y.toFixed(2)}`;
 }
 
@@ -95,30 +98,29 @@ export function StarIcon({
   );
 }
 
-// The reference medallion (a high-resolution crop of the design's red
-// quadrant, supplied directly by the user) is a 4-point compass kite — not
-// a 5-point star — reaching almost to the disc's edge, with a small
-// same-color pentagram sitting directly on the white kite where its points
-// converge, and exactly 4 white sparkle stars in the diagonal notches
-// between the kite's arms. Confirmed against that crop point-by-point, not
-// approximated from the lower-fidelity full-board screenshot.
-const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 9, 4, -90);
+// The reference medallion (a clean, unambiguous screenshot supplied
+// directly by the user) is a 5-point star reaching almost to the disc's
+// edge, with a small same-color pentagram sitting directly on the white
+// star where its points converge, and 5 white sparkle stars — one in each
+// of the 5 notches between adjacent points, not 4 diagonal ones.
+const COMPASS_POINTS = 5;
+const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 9, COMPASS_POINTS, -90);
 const CENTER_STAR_PATH = starPolygonPath(50, 50, 11, 4.3, 5, -90);
 const SPARKLE_PATH = starPolygonPath(0, 0, 6, 1.8, 4, -90);
 
-// Diagonal notch positions (NE/SE/SW/NW) between the kite's 4 arms.
-const SPARKLE_POSITIONS: readonly (readonly [number, number])[] = [
-  [70.5, 29.5],
-  [70.5, 70.5],
-  [29.5, 70.5],
-  [29.5, 29.5],
-];
+// One sparkle per notch: the valley between star point i and point i+1
+// sits exactly halfway between their two angles (points are 360/5 apart,
+// starting at -90° per COMPASS_STAR_PATH's own startDegrees).
+const SPARKLE_POSITIONS: readonly (readonly [number, number])[] = Array.from(
+  { length: COMPASS_POINTS },
+  (_, i) => polarXY(50, 50, 29, -90 + 360 / COMPASS_POINTS / 2 + (i * 360) / COMPASS_POINTS),
+);
 
 /**
  * The medallion inside each base quadrant: a solid color disc, a white
- * 4-point compass kite reaching toward its edge, a small same-color
- * pentagram where the kite's points converge, and 4 small white sparkle
- * stars in the diagonal notches between them.
+ * 5-point star reaching toward its edge, a small same-color pentagram
+ * where the star's points converge, and 5 small white sparkle stars, one
+ * in each notch between adjacent points.
  */
 export function CompassEmblem({
   color,

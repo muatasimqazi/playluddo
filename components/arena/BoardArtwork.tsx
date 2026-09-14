@@ -98,7 +98,77 @@ export function BoardArtwork() {
           style={{ stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
         />
       ))}
+
+      <ArmDecorations />
     </svg>
+  );
+}
+
+// One extra star (beyond the real SAFE_CELLS) plus 3 decorative arrows per
+// arm — a curved "entry flow" arrow near the top of the near-base column, a
+// straight "advance" arrow partway down the far column, and a short
+// diagonal arrow at the arm-to-center corner — matching the density the
+// reference board actually has (it isn't just the home lane and 8 safe
+// cells that carry decoration; every arm is busier than that). Drawn once
+// for the top arm in absolute grid coordinates, then rotated 90/180/270°
+// around the board's true center for the other 3 arms — the same 4-fold
+// rotation the rest of the board's geometry (CENTER_WEDGES, HOME_LANE_CELLS,
+// armColorForCell) already relies on, so no separate per-arm coordinates to
+// keep in sync.
+const ARM_ROTATIONS: readonly { angle: number; color: PlayerColor }[] = [
+  { angle: 0, color: "green" },
+  { angle: 90, color: "yellow" },
+  { angle: 180, color: "blue" },
+  { angle: 270, color: "red" },
+];
+
+function ArmDecorations() {
+  return (
+    <>
+      <defs>
+        {ARM_ROTATIONS.map(({ color }) => (
+          <marker
+            key={color}
+            id={`arrowhead-${color}`}
+            viewBox="0 0 10 10"
+            refX="8.5"
+            refY="5"
+            markerWidth="3.4"
+            markerHeight="3.4"
+            orient="auto-start-reverse"
+          >
+            <path d="M0,0 L10,5 L0,10 Z" style={{ fill: quadrant(color) }} />
+          </marker>
+        ))}
+      </defs>
+      {ARM_ROTATIONS.map(({ angle, color }) => (
+        <g key={angle} transform={`rotate(${angle} 7.5 7.5)`}>
+          <CellStarBadge color={color} cx={6.5} cy={2.5} r={0.26} />
+          <path
+            d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
+            fill="none"
+            style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
+            markerEnd={`url(#arrowhead-${color})`}
+          />
+          <line
+            x1={8.5}
+            y1={2.15}
+            x2={8.5}
+            y2={3.4}
+            style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
+            markerEnd={`url(#arrowhead-${color})`}
+          />
+          <line
+            x1={8.2}
+            y1={5.25}
+            x2={8.75}
+            y2={5.75}
+            style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
+            markerEnd={`url(#arrowhead-${color})`}
+          />
+        </g>
+      ))}
+    </>
   );
 }
 

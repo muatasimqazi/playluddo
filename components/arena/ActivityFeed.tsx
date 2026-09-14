@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { QUADRANT_CLASSES } from "@/components/shared/colors";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { Player } from "@/lib/board/types";
 
@@ -11,20 +13,60 @@ interface ActivityFeedProps {
 /** PRD 5.2: concise event feed — rolls, moves, captures, home entries, bot takeovers, reconnects, win state. */
 export function ActivityFeed({ events, players }: ActivityFeedProps) {
   const playerById = new Map(players.map((p) => [p.id, p]));
+  // Newest first, matching the reference's "Just now" → "4m ago" ordering.
+  const ordered = [...events].reverse();
 
   return (
-    <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-lg border border-hairline bg-surface p-2 text-body-sm shadow-elevation-1">
-      {events.length === 0 && <p className="text-text-muted">No events yet.</p>}
-      {events.map((event) => (
-        <p key={event.id} className="text-text-secondary">
-          <span className="font-medium text-foreground">
-            {event.player_id ? (playerById.get(event.player_id)?.displayName ?? "Someone") : "Match"}
-          </span>{" "}
-          {describeEvent(event)}
-        </p>
-      ))}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex shrink-0 items-center justify-between px-1 pb-3">
+        <span className="text-label-md text-foreground">Match Events</span>
+        <span className="flex items-center gap-1 rounded-full bg-quadrant-green-tint px-2 py-0.5 text-label-sm text-quadrant-green">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-quadrant-green" aria-hidden />
+          LIVE
+        </span>
+      </div>
+      <div className="flex-1 space-y-2 overflow-y-auto">
+        {ordered.length === 0 && <p className="px-1 text-body-sm text-text-muted">No events yet.</p>}
+        {ordered.map((event) => {
+          const player = event.player_id ? playerById.get(event.player_id) : undefined;
+          return (
+            <div key={event.id} className="rounded-xl border border-hairline bg-surface p-2.5 shadow-elevation-1">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  {player && (
+                    <span
+                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${QUADRANT_CLASSES[player.color].bg}`}
+                      aria-hidden
+                    />
+                  )}
+                  <span className="truncate text-label-md text-foreground">{player?.displayName ?? "Match"}</span>
+                </div>
+                <RelativeTime iso={event.created_at} />
+              </div>
+              <p className="text-body-sm text-text-secondary">{describeEvent(event)}</p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
+}
+
+function RelativeTime({ iso }: { iso: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const seconds = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
+  let label: string;
+  if (seconds < 10) label = "Just now";
+  else if (seconds < 60) label = `${seconds}s ago`;
+  else if (seconds < 3600) label = `${Math.floor(seconds / 60)}m ago`;
+  else label = `${Math.floor(seconds / 3600)}h ago`;
+
+  return <span className="shrink-0 text-label-sm text-text-muted">{label}</span>;
 }
 
 function describeEvent(event: MatchEventRow): string {

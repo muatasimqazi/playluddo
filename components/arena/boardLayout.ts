@@ -77,13 +77,52 @@ export const BASE_AREA: Record<PlayerColor, GridArea> = {
   blue: { rowStart: 9, rowEnd: 14, colStart: 0, colEnd: 5 },
 };
 
-/** Inner nest inset within each base, where pawn tokens are actually drawn. */
-export const NEST_AREA: Record<PlayerColor, GridArea> = {
-  red: { rowStart: 1, rowEnd: 4, colStart: 1, colEnd: 4 },
-  green: { rowStart: 1, rowEnd: 4, colStart: 10, colEnd: 13 },
-  yellow: { rowStart: 10, rowEnd: 13, colStart: 10, colEnd: 13 },
-  blue: { rowStart: 10, rowEnd: 13, colStart: 1, colEnd: 4 },
+/**
+ * The 4 individual parking-spot cells within each base, one per pawn — per
+ * the reference screenshot, pawns sit at the base's 4 inner corners (each
+ * marked with its own star badge), not clustered in one shared box.
+ */
+export const NEST_SLOTS: Record<PlayerColor, readonly (readonly [number, number])[]> = {
+  red: [
+    [1, 1],
+    [1, 4],
+    [4, 1],
+    [4, 4],
+  ],
+  green: [
+    [1, 10],
+    [1, 13],
+    [4, 10],
+    [4, 13],
+  ],
+  yellow: [
+    [10, 10],
+    [10, 13],
+    [13, 10],
+    [13, 13],
+  ],
+  blue: [
+    [10, 1],
+    [10, 4],
+    [13, 1],
+    [13, 4],
+  ],
 };
 
 /** The true center 3x3, decorative "triumph" area (includes the 4 CORNER_CELLS). */
 export const CENTER_AREA: GridArea = { rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8 };
+
+/**
+ * Which color's home-lane arm a shared-track cell physically sits in —
+ * confirmed against the reference screenshot, where each arm's stars/
+ * decorations are consistently colored to match the home lane running
+ * through its middle column (top arm = green's home lane, right = yellow's,
+ * bottom = blue's, left = red's — exactly HOME_LANE_CELLS below). Used only
+ * to color the 8 real SAFE_CELLS' star badges; purely decorative.
+ */
+export function armColorForCell(row: number, col: number): PlayerColor {
+  if (row < 6) return "green";
+  if (row > 8) return "blue";
+  if (col < 6) return "red";
+  return "yellow";
+}

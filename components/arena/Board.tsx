@@ -1,6 +1,7 @@
 "use client";
 
 import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
+import { StarBadge, StarIcon } from "@/components/shared/StarBadge";
 import { SAFE_CELLS, pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState, Pawn, PlayerColor } from "@/lib/board/types";
 import {
@@ -9,7 +10,8 @@ import {
   CORNER_CELLS,
   GRID_SIZE,
   HOME_LANE_CELLS,
-  NEST_AREA,
+  NEST_SLOTS,
+  armColorForCell,
   globalCellToGridPosition,
 } from "./boardLayout";
 
@@ -19,10 +21,14 @@ interface BoardProps {
   onSelectPawn: (pawnId: string) => void;
 }
 
-// DESIGN.md: "Home runs: tinted 12% opacity ... leading to the central
-// triumph triangle." The center pinwheel wedges follow the same
-// top/right/bottom/left placement as each color's home-lane arm.
-const CENTER_WEDGE_ORDER: readonly PlayerColor[] = ["green", "yellow", "blue", "red"];
+// Center pinwheel wedges, top/right/bottom/left — matches the color of the
+// home-lane arm on that side (see boardLayout.ts's armColorForCell doc).
+const CENTER_WEDGE_ORDER: readonly PlayerColor[] = [
+  "green",
+  "yellow",
+  "blue",
+  "red",
+];
 
 export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
   const trackPawnsByCell = new Map<number, Pawn[]>();
@@ -49,18 +55,24 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
     cells.push(
       <div
         key={`cell-${i}`}
-        className={`flex items-center justify-center border border-hairline ${isSafe ? "bg-[#F3F4F6]" : "bg-surface"}`}
+        className="flex items-center justify-center border border-hairline bg-surface"
         style={{ gridRow: row + 1, gridColumn: col + 1, zIndex: 2 }}
       >
         {isSafe && pawnsHere.length === 0 && (
-          <span aria-hidden className="text-[10px] text-[#9CA3AF]">
-            ★
-          </span>
+          <StarBadge color={armColorForCell(row, col)} size={14} />
         )}
         <div className="flex items-center justify-center">
           {pawnsHere.map((pawn, i) => (
-            <div key={pawn.id} className={i > 0 ? "-ml-1.5" : ""} style={{ zIndex: i }}>
-              <PawnToken color={pawn.color} isLegal={legalPawnIds.has(pawn.id)} onClick={() => onSelectPawn(pawn.id)} />
+            <div
+              key={pawn.id}
+              className={i > 0 ? "-ml-1.5" : ""}
+              style={{ zIndex: i }}
+            >
+              <PawnToken
+                color={pawn.color}
+                isLegal={legalPawnIds.has(pawn.id)}
+                onClick={() => onSelectPawn(pawn.id)}
+              />
             </div>
           ))}
         </div>
@@ -69,88 +81,92 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
   }
 
   return (
-    <div
-      className="relative mx-auto grid aspect-square w-full max-w-[520px] gap-px rounded-lg border border-hairline bg-hairline p-1"
-      style={{
-        gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
-        gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
-      }}
-    >
-      {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
-        <BaseQuadrant key={color} color={color} />
-      ))}
-
-      {/* Central triumph triangle: a pinwheel of the 4 quadrant colors,
-          spanning the 3x3 center. The 4 diagonal corner cells (real,
-          addressable-in-render-only track bridges — see boardLayout.ts)
-          are drawn afterward, above this, so they read as distinct cells. */}
+    // DESIGN reference "Board Chassis": a white card housing a dark inner
+    // bezel around the playing surface.
+    <div className="mx-auto w-full max-w-[540px] rounded-3xl border border-hairline bg-surface p-2 shadow-elevation-2">
       <div
-        aria-hidden
-        className="rounded-[3px]"
+        className="relative grid aspect-square w-full gap-px overflow-hidden rounded-2xl border border-black/10 bg-[#2b2b2b] p-1"
         style={{
-          gridRow: `${CENTER_AREA.rowStart + 1} / span ${CENTER_AREA.rowEnd - CENTER_AREA.rowStart + 1}`,
-          gridColumn: `${CENTER_AREA.colStart + 1} / span ${CENTER_AREA.colEnd - CENTER_AREA.colStart + 1}`,
-          zIndex: 1,
-          background: `conic-gradient(from -45deg, ${CENTER_WEDGE_ORDER.map(
-            (color, i) => `var(--quadrant-${color}) ${i * 90}deg ${(i + 1) * 90}deg`,
-          ).join(", ")})`,
+          gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
+          gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
         }}
-      />
-
-      {(Object.keys(HOME_LANE_CELLS) as PlayerColor[]).flatMap((color) =>
-        HOME_LANE_CELLS[color].map(([row, col], i) => (
-          <div
-            key={`home-${color}-${i}`}
-            aria-hidden
-            className={`border border-hairline ${QUADRANT_CLASSES[color].tint}`}
-            style={{ gridRow: row + 1, gridColumn: col + 1, zIndex: 1 }}
+      >
+        {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
+          <BaseQuadrant
+            key={color}
+            color={color}
+            pawns={nestPawnsByColor.get(color) ?? []}
+            legalPawnIds={legalPawnIds}
+            onSelectPawn={onSelectPawn}
           />
-        )),
-      )}
+        ))}
 
-      {cells}
-
-      {CORNER_CELLS.map(([row, col], i) => (
+        {/* Central triumph triangle: a pinwheel of the 4 quadrant colors,
+          spanning the 3x3 center, with a star badge per wedge. The 4
+          diagonal corner cells (real, rendered track bridges — see
+          boardLayout.ts) are drawn afterward, above this. */}
         <div
-          key={`corner-${i}`}
           aria-hidden
-          className="border border-hairline bg-surface"
-          style={{ gridRow: row + 1, gridColumn: col + 1, zIndex: 2 }}
-        />
-      ))}
+          className="relative rounded-[3px]"
+          style={{
+            gridRow: `${CENTER_AREA.rowStart + 1} / span ${CENTER_AREA.rowEnd - CENTER_AREA.rowStart + 1}`,
+            gridColumn: `${CENTER_AREA.colStart + 1} / span ${CENTER_AREA.colEnd - CENTER_AREA.colStart + 1}`,
+            zIndex: 1,
+            background: `conic-gradient(from -45deg, ${CENTER_WEDGE_ORDER.map(
+              (color, i) =>
+                `var(--quadrant-${color}) ${i * 90}deg ${(i + 1) * 90}deg`,
+            ).join(", ")})`,
+          }}
+        >
+          {(
+            [
+              ["green", "50%", "22%"],
+              ["yellow", "78%", "50%"],
+              ["blue", "50%", "78%"],
+              ["red", "22%", "50%"],
+            ] as const
+          ).map(([color, left, top]) => (
+            <span
+              key={color}
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/90 p-[3px]"
+              style={{ left, top }}
+            >
+              <StarIcon className={QUADRANT_CLASSES[color].text} size={10} />
+            </span>
+          ))}
+        </div>
 
-      {(Object.keys(NEST_AREA) as PlayerColor[]).map((color) => (
-        <NestArea
-          key={color}
-          color={color}
-          pawns={nestPawnsByColor.get(color) ?? []}
-          legalPawnIds={legalPawnIds}
-          onSelectPawn={onSelectPawn}
-        />
-      ))}
+        {(Object.keys(HOME_LANE_CELLS) as PlayerColor[]).flatMap((color) =>
+          HOME_LANE_CELLS[color].map(([row, col], i) => (
+            <div
+              key={`home-${color}-${i}`}
+              className="flex items-center justify-center border border-hairline bg-surface"
+              style={{ gridRow: row + 1, gridColumn: col + 1, zIndex: 1 }}
+            >
+              <StarBadge color={color} size={16} filled />
+            </div>
+          )),
+        )}
+
+        {cells}
+
+        {CORNER_CELLS.map(([row, col], i) => (
+          <div
+            key={`corner-${i}`}
+            aria-hidden
+            className="border border-hairline bg-surface"
+            style={{ gridRow: row + 1, gridColumn: col + 1, zIndex: 2 }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-// DESIGN.md quadrant blocks: a large solid-tinted base square per player,
-// with a bordered emblem area (NestArea, drawn separately) inset within it.
-function BaseQuadrant({ color }: { color: PlayerColor }) {
-  const area = BASE_AREA[color];
-  const classes = QUADRANT_CLASSES[color];
-  return (
-    <div
-      aria-hidden
-      className={`rounded-md border ${classes.border} ${classes.tint}`}
-      style={{
-        gridRow: `${area.rowStart + 1} / span ${area.rowEnd - area.rowStart + 1}`,
-        gridColumn: `${area.colStart + 1} / span ${area.colEnd - area.colStart + 1}`,
-        zIndex: 0,
-      }}
-    />
-  );
-}
-
-function NestArea({
+// DESIGN reference: each base is a solid quadrant-color block with a large
+// low-opacity compass-star emblem behind 4 individual parking slots (one
+// per pawn), each slot marked with its own star badge.
+function BaseQuadrant({
   color,
   pawns,
   legalPawnIds,
@@ -161,39 +177,61 @@ function NestArea({
   legalPawnIds: ReadonlySet<string>;
   onSelectPawn: (pawnId: string) => void;
 }) {
-  const area = NEST_AREA[color];
+  const area = BASE_AREA[color];
   const classes = QUADRANT_CLASSES[color];
+  const slots = NEST_SLOTS[color];
 
   return (
     <div
-      className={`flex flex-wrap content-center items-center justify-center gap-1.5 rounded-md border ${classes.border} bg-surface p-2 shadow-elevation-1`}
+      className={`relative flex items-center justify-center rounded-md border ${classes.border} ${classes.bg}`}
       style={{
         gridRow: `${area.rowStart + 1} / span ${area.rowEnd - area.rowStart + 1}`,
         gridColumn: `${area.colStart + 1} / span ${area.colEnd - area.colStart + 1}`,
-        zIndex: 3,
+        zIndex: 0,
       }}
     >
-      {pawns.length === 0 ? (
-        <span className={`text-xs font-semibold ${classes.text}`} aria-hidden>
-          {QUADRANT_INITIAL[color]}
-        </span>
-      ) : (
-        pawns.map((pawn) => (
-          <PawnToken
-            key={pawn.id}
-            color={color}
-            isLegal={legalPawnIds.has(pawn.id)}
-            onClick={() => onSelectPawn(pawn.id)}
-          />
-        ))
-      )}
+      {/* Compass emblem */}
+      <div
+        className="absolute inset-[18%] rounded-full border-2 border-white/30"
+        aria-hidden
+      >
+        <StarIcon className="absolute inset-0 h-full w-full p-[18%] text-white/25" />
+      </div>
+
+      {slots.map(([row, col], i) => {
+        const pawn = pawns[i];
+        return (
+          <div
+            key={i}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{
+              left: `${((col - area.colStart + 0.5) / (area.colEnd - area.colStart + 1)) * 100}%`,
+              top: `${((row - area.rowStart + 0.5) / (area.rowEnd - area.rowStart + 1)) * 100}%`,
+            }}
+          >
+            {pawn ? (
+              <PawnToken
+                color={color}
+                isLegal={legalPawnIds.has(pawn.id)}
+                onClick={() => onSelectPawn(pawn.id)}
+              />
+            ) : (
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-white/60 bg-white/90">
+                <StarIcon className={classes.text} size={10} />
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-// DESIGN.md "Ceramic Disk Tokens": solid quadrant fill, 1.5pt white
-// perimeter ring, an inner engraved circle motif, and a grounded contact
-// shadow with an inset highlight (elevation level 3).
+// Translucent glass pawn tokens (app/globals.css `.glass-token`/`.glass-*`),
+// ported from the reference's exact CSS. A legal, tappable pawn pulses with
+// the reference's turn-ring glow; the initial stays as a faint watermark so
+// identity never depends on color alone (PRD 7.2) without fighting the glass
+// look.
 function PawnToken({
   color,
   isLegal,
@@ -203,21 +241,21 @@ function PawnToken({
   isLegal: boolean;
   onClick: () => void;
 }) {
-  const classes = QUADRANT_CLASSES[color];
   return (
     <button
       type="button"
       onClick={isLegal ? onClick : undefined}
       disabled={!isLegal}
       aria-label={`${color} pawn${isLegal ? " — legal move, tap to select" : ""}`}
-      className={`relative h-[18px] w-[18px] shrink-0 rounded-full border-[1.5px] border-white shadow-elevation-3 ${classes.bg} ${
-        isLegal ? "cursor-pointer ring-2 ring-action ring-offset-1" : ""
+      className={`glass-token relative flex h-5 w-5 shrink-0 items-center justify-center glass-${color} ${
+        isLegal ? "is-legal token-turn-ring cursor-pointer" : ""
       }`}
     >
-      {/* Inner engraved-ceramic motif. */}
-      <span className="absolute inset-0.75 rounded-full border border-white/40" aria-hidden />
-      {/* Non-color identity per PRD 7.2: the initial doubles as a symbol distinct from color alone. */}
-      <span className="absolute inset-0 flex items-center justify-center text-[7px] font-bold text-white" aria-hidden>
+      <span
+        className="relative z-[1] text-[7px] font-bold text-white/85"
+        style={{ textShadow: "0 1px 1px rgba(0,0,0,0.35)" }}
+        aria-hidden
+      >
         {QUADRANT_INITIAL[color]}
       </span>
     </button>

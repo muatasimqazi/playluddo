@@ -28,10 +28,10 @@ function quadrant(color: PlayerColor, suffix?: "tint" | "border"): string {
 // boardLayout.ts's armColorForCell doc). Spans the 3x3 CENTER_AREA (x/y
 // 6-9), apex at the true center (7.5, 7.5).
 const CENTER_WEDGES: readonly { color: PlayerColor; points: string; starAt: readonly [number, number] }[] = [
-  { color: "green", points: "6,6 9,6 7.5,7.5", starAt: [7.5, 6.75] },
-  { color: "yellow", points: "9,6 9,9 7.5,7.5", starAt: [8.25, 7.5] },
-  { color: "blue", points: "9,9 6,9 7.5,7.5", starAt: [7.5, 8.25] },
-  { color: "red", points: "6,9 6,6 7.5,7.5", starAt: [6.75, 7.5] },
+  { color: "green", points: "6,6 9,6 7.5,7.5", starAt: [7.5, 6.62] },
+  { color: "yellow", points: "9,6 9,9 7.5,7.5", starAt: [8.38, 7.5] },
+  { color: "blue", points: "9,9 6,9 7.5,7.5", starAt: [7.5, 8.38] },
+  { color: "red", points: "6,9 6,6 7.5,7.5", starAt: [6.62, 7.5] },
 ];
 
 const BOARD_CENTER: readonly [number, number] = [7.5, 7.5];
@@ -62,7 +62,7 @@ export function BoardArtwork() {
           <polygon key={color} points={points} style={{ fill: quadrant(color) }} />
         ))}
         {CENTER_WEDGES.map(({ color, starAt: [cx, cy] }) => (
-          <NestBadge key={color} color={color} cx={cx} cy={cy} r={0.5} />
+          <NestBadge key={color} color={color} cx={cx} cy={cy} r={0.44} />
         ))}
       </g>
 
@@ -203,7 +203,7 @@ function CellStarBadge({ color, cx, cy, r }: { color: PlayerColor; cx: number; c
   return (
     <g>
       <circle cx={cx} cy={cy} r={r} style={{ fill: quadrant(color) }} />
-      <StarIcon x={cx - r * 0.64} y={cy - r * 0.64} width={r * 1.28} height={r * 1.28} fill="white" />
+      <StarIcon x={cx - r * 0.935} y={cy - r * 0.935} width={r * 1.87} height={r * 1.87} fill="white" />
     </g>
   );
 }
@@ -237,13 +237,14 @@ function BaseQuadrantArt({ color }: { color: PlayerColor }) {
 
 // A white disc with a colored star — the pawn-parking marker at each base's
 // 4 corners, distinct from CellStarBadge's solid-disc treatment because the
-// reference draws these two motifs differently (confirmed from a
-// high-resolution crop the user supplied of the red quadrant specifically).
+// reference draws these two motifs differently. A plain circle with no
+// border ring, and the star sized to nearly fill it — confirmed by pixel-
+// sampling designs/board-design.png directly, not approximated.
 function NestBadge({ color, cx, cy, r }: { color: PlayerColor; cx: number; cy: number; r: number }) {
   return (
     <g>
-      <circle cx={cx} cy={cy} r={r} fill="white" style={{ stroke: quadrant(color, "border"), strokeWidth: r * 0.14 }} />
-      <StarIcon x={cx - r * 0.62} y={cy - r * 0.62} width={r * 1.24} height={r * 1.24} fill={quadrant(color)} />
+      <circle cx={cx} cy={cy} r={r} fill="white" />
+      <StarIcon x={cx - r * 0.935} y={cy - r * 0.935} width={r * 1.87} height={r * 1.87} fill={quadrant(color)} />
     </g>
   );
 }

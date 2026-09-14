@@ -104,7 +104,12 @@ export function StarIcon({
 // star where its points converge, and 5 white sparkle stars — one in each
 // of the 5 notches between adjacent points, not 4 diagonal ones.
 const COMPASS_POINTS = 5;
-const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 9, COMPASS_POINTS, -90);
+// Inner/outer ratio ~0.39 — same proportion as STAR_PATH above (already
+// checked against the reference elsewhere on the board). Carried over the
+// old 4-point kite's inner radius (9, a much thinner ~0.2 ratio) when this
+// went from 4 points to 5 without re-tuning it, which is what made the
+// star read as squished/distorted rather than a clean 5-point star.
+const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 17, COMPASS_POINTS, -90);
 const CENTER_STAR_PATH = starPolygonPath(50, 50, 11, 4.3, 5, -90);
 const SPARKLE_PATH = starPolygonPath(0, 0, 6, 1.8, 4, -90);
 

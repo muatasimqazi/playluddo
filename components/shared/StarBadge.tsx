@@ -70,15 +70,6 @@ export function StarIcon({
   );
 }
 
-// Sparkle positions around CompassEmblem, in the same 0-100 viewBox space.
-const SPARKLE_POSITIONS: readonly (readonly [number, number])[] = [
-  [50, 24],
-  [73, 43],
-  [64, 72],
-  [36, 72],
-  [27, 43],
-];
-
 function polarPoint(cx: number, cy: number, radius: number, degrees: number): string {
   const radians = (degrees * Math.PI) / 180;
   const x = cx + radius * Math.cos(radians);
@@ -86,24 +77,45 @@ function polarPoint(cx: number, cy: number, radius: number, degrees: number): st
   return `${x.toFixed(2)} ${y.toFixed(2)}`;
 }
 
-function starPolygonPath(cx: number, cy: number, outerRadius: number, innerRadius: number, startDegrees = -90): string {
-  const points = Array.from({ length: 10 }, (_, i) =>
-    polarPoint(cx, cy, i % 2 === 0 ? outerRadius : innerRadius, startDegrees + i * 36),
+function starPolygonPath(
+  cx: number,
+  cy: number,
+  outerRadius: number,
+  innerRadius: number,
+  points: number,
+  startDegrees = -90,
+): string {
+  const step = 360 / points;
+  const vertices = Array.from({ length: points * 2 }, (_, i) =>
+    polarPoint(cx, cy, i % 2 === 0 ? outerRadius : innerRadius, startDegrees + (i * step) / 2),
   );
-  return `M${points.join(" L")} Z`;
+  return `M${vertices.join(" L")} Z`;
 }
 
-const COMPASS_STAR_PATH = starPolygonPath(50, 50, 43, 18, -90);
+// The reference medallion (a high-resolution crop of the design's red
+// quadrant, supplied directly by the user) is a 4-point compass kite — not
+// a 5-point star — reaching almost to the disc's edge, with a small
+// same-color pentagram sitting directly on the white kite where its points
+// converge, and exactly 4 white sparkle stars in the diagonal notches
+// between the kite's arms. Confirmed against that crop point-by-point, not
+// approximated from the lower-fidelity full-board screenshot.
+const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 9, 4, -90);
+const CENTER_STAR_PATH = starPolygonPath(50, 50, 11, 4.3, 5, -90);
+const SPARKLE_PATH = starPolygonPath(0, 0, 6, 1.8, 4, -90);
 
-const CENTER_STAR_PATH =
-  "M50 27 L56 43 L73 43 L59 53 L64 70 L50 60 L36 70 L41 53 L27 43 L44 43 Z";
-
-const SPARKLE_PATH = "M0 -12 L3.4 -3.4 L12 0 L3.4 3.4 L0 12 L-3.4 3.4 L-12 0 L-3.4 -3.4 Z";
+// Diagonal notch positions (NE/SE/SW/NW) between the kite's 4 arms.
+const SPARKLE_POSITIONS: readonly (readonly [number, number])[] = [
+  [70.5, 29.5],
+  [70.5, 70.5],
+  [29.5, 70.5],
+  [29.5, 29.5],
+];
 
 /**
- * The medallion inside each base quadrant: a solid color disc, a broad
- * 5-corner white compass star, small accent stars, and a colored center seal
- * with a white star.
+ * The medallion inside each base quadrant: a solid color disc, a white
+ * 4-point compass kite reaching toward its edge, a small same-color
+ * pentagram where the kite's points converge, and 4 small white sparkle
+ * stars in the diagonal notches between them.
  */
 export function CompassEmblem({
   color,
@@ -124,29 +136,11 @@ export function CompassEmblem({
   const classes = QUADRANT_CLASSES[color];
   return (
     <svg viewBox="0 0 100 100" x={x} y={y} width={width} height={height} className={className} aria-hidden>
-      <defs>
-        <filter id={`sparkle-glow-${color}`} x="-35%" y="-35%" width="170%" height="170%">
-          <feGaussianBlur stdDeviation="1.2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
       <circle cx="50" cy="50" r="46" className={classes.text} fill="currentColor" />
       <path d={COMPASS_STAR_PATH} fill="white" />
-      <circle cx="50" cy="50" r="17" className={classes.text} fill="currentColor" />
-      <path d={CENTER_STAR_PATH} fill="white" transform="translate(50 50) scale(0.48) translate(-50 -50)" />
+      <path d={CENTER_STAR_PATH} className={classes.text} fill="currentColor" />
       {SPARKLE_POSITIONS.map(([cx, cy], i) => (
-        <g
-          key={i}
-          transform={`translate(${cx} ${cy}) scale(0.55)`}
-          fill="white"
-          filter={`url(#sparkle-glow-${color})`}
-          opacity="0.96"
-        >
-          <path d={SPARKLE_PATH} />
-        </g>
+        <path key={i} d={SPARKLE_PATH} transform={`translate(${cx} ${cy})`} fill="white" />
       ))}
     </svg>
   );

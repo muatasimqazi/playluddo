@@ -104,21 +104,36 @@ export function StarIcon({
 // star where its points converge, and 5 white sparkle stars — one in each
 // of the 5 notches between adjacent points, not 4 diagonal ones.
 const COMPASS_POINTS = 5;
+// The star's own rotation — shared by every piece that needs to stay
+// aligned with it (the star itself, the sparkles sitting in its notches).
+// SPARKLE_POSITIONS used to hardcode -90 independently of this, so
+// rotating the star to -75 here without updating that too is exactly what
+// threw the sparkles out of their notches.
+const COMPASS_START_DEGREES = -75;
 // Inner/outer ratio ~0.39 — same proportion as STAR_PATH above (already
 // checked against the reference elsewhere on the board). Carried over the
 // old 4-point kite's inner radius (9, a much thinner ~0.2 ratio) when this
 // went from 4 points to 5 without re-tuning it, which is what made the
 // star read as squished/distorted rather than a clean 5-point star.
-const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 17, COMPASS_POINTS, -90);
-const CENTER_STAR_PATH = starPolygonPath(50, 50, 11, 4.3, 5, -90);
-const SPARKLE_PATH = starPolygonPath(0, 0, 6, 1.8, 4, -90);
+const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 15, COMPASS_POINTS, COMPASS_START_DEGREES);
+const CENTER_STAR_PATH = starPolygonPath(50, 50, 16, 5, 5, COMPASS_START_DEGREES + 35);
+// radius 16
+const CENTER_CIRCLE_PATH = "M50,34 A16,16 0 1,0 50,66 A16,16 0 1,0 50,34 Z";
+const SPARKLE_PATH = starPolygonPath(0, 0, 3.5, 1, 5, COMPASS_START_DEGREES);
 
 // One sparkle per notch: the valley between star point i and point i+1
 // sits exactly halfway between their two angles (points are 360/5 apart,
-// starting at -90° per COMPASS_STAR_PATH's own startDegrees).
+// starting at COMPASS_START_DEGREES — the same rotation the star itself
+// uses, so the two can't drift apart again).
 const SPARKLE_POSITIONS: readonly (readonly [number, number])[] = Array.from(
   { length: COMPASS_POINTS },
-  (_, i) => polarXY(50, 50, 29, -90 + 360 / COMPASS_POINTS / 2 + (i * 360) / COMPASS_POINTS),
+  (_, i) =>
+    polarXY(
+      50,
+      50,
+      29,
+      COMPASS_START_DEGREES + 360 / COMPASS_POINTS / 2 + (i * 360) / COMPASS_POINTS,
+    ),
 );
 
 /**
@@ -148,7 +163,8 @@ export function CompassEmblem({
     <svg viewBox="0 0 100 100" x={x} y={y} width={width} height={height} className={className} aria-hidden>
       <circle cx="50" cy="50" r="46" className={classes.text} fill="currentColor" />
       <path d={COMPASS_STAR_PATH} fill="white" />
-      <path d={CENTER_STAR_PATH} className={classes.text} fill="currentColor" />
+      <path d={CENTER_CIRCLE_PATH} className={classes.text} fill="currentColor" />
+      <path d={CENTER_STAR_PATH} className={classes.text} fill="white" />
       {SPARKLE_POSITIONS.map(([cx, cy], i) => (
         <path key={i} d={SPARKLE_PATH} transform={`translate(${cx} ${cy})`} fill="white" />
       ))}

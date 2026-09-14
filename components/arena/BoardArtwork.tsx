@@ -28,11 +28,19 @@ function quadrant(color: PlayerColor, suffix?: "tint" | "border"): string {
 // boardLayout.ts's armColorForCell doc). Spans the 3x3 CENTER_AREA (x/y
 // 6-9), apex at the true center (7.5, 7.5).
 const CENTER_WEDGES: readonly { color: PlayerColor; points: string; starAt: readonly [number, number] }[] = [
-  { color: "green", points: "6,6 9,6 7.5,7.5", starAt: [7.5, 6.6] },
-  { color: "yellow", points: "9,6 9,9 7.5,7.5", starAt: [8.4, 7.5] },
-  { color: "blue", points: "9,9 6,9 7.5,7.5", starAt: [7.5, 8.4] },
-  { color: "red", points: "6,9 6,6 7.5,7.5", starAt: [6.6, 7.5] },
+  { color: "green", points: "6,6 9,6 7.5,7.5", starAt: [7.5, 6.75] },
+  { color: "yellow", points: "9,6 9,9 7.5,7.5", starAt: [8.25, 7.5] },
+  { color: "blue", points: "9,9 6,9 7.5,7.5", starAt: [7.5, 8.25] },
+  { color: "red", points: "6,9 6,6 7.5,7.5", starAt: [6.75, 7.5] },
 ];
+
+const BOARD_CENTER: readonly [number, number] = [7.5, 7.5];
+
+function distanceToCenter([row, col]: readonly [number, number]): number {
+  const cx = col + 0.5;
+  const cy = row + 0.5;
+  return Math.hypot(cx - BOARD_CENTER[0], cy - BOARD_CENTER[1]);
+}
 
 /**
  * The board texture as real vector SVG — every cell, badge and wedge is its
@@ -54,24 +62,33 @@ export function BoardArtwork() {
           <polygon key={color} points={points} style={{ fill: quadrant(color) }} />
         ))}
         {CENTER_WEDGES.map(({ color, starAt: [cx, cy] }) => (
-          <StarIcon key={color} x={cx - 0.22} y={cy - 0.22} width={0.44} height={0.44} fill="white" />
+          <NestBadge key={color} color={color} cx={cx} cy={cy} r={0.5} />
         ))}
       </g>
 
-      {COLORS.flatMap((color) =>
-        HOME_LANE_CELLS[color].map(([row, col], i) => (
-          <g key={`home-${color}-${i}`}>
-            <rect
-              x={col}
-              y={row}
-              width={1}
-              height={1}
-              style={{ fill: quadrant(color), stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
-            />
-            <NestBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
-          </g>
-        )),
-      )}
+      {COLORS.flatMap((color) => {
+        const cells = HOME_LANE_CELLS[color];
+        // The home-lane cell nearest the center is folded into the wedge
+        // (a plain same-color square, no badge) instead of getting its own
+        // star — the wedge now occupies that box, and the next cell out
+        // becomes the last visible star, per direct instruction.
+        const closest = cells.reduce((a, b) => (distanceToCenter(a) < distanceToCenter(b) ? a : b));
+        return cells.map(([row, col], i) => {
+          const isWedgeExtension = row === closest[0] && col === closest[1];
+          return (
+            <g key={`home-${color}-${i}`}>
+              <rect
+                x={col}
+                y={row}
+                width={1}
+                height={1}
+                style={{ fill: quadrant(color), stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
+              />
+              {!isWedgeExtension && <NestBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />}
+            </g>
+          );
+        });
+      })}
 
       {Array.from({ length: 52 }, (_, index) => {
         const { row, col } = globalCellToGridPosition(index);

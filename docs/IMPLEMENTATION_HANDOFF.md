@@ -86,7 +86,7 @@ create table players (                            -- a seat, not necessarily a s
   id uuid primary key default gen_random_uuid(),
   room_id uuid not null references rooms(id) on delete cascade,
   seat_index int not null,
-  user_id uuid references auth.users(id),         -- null for a bot-only/unfilled seat
+  user_id uuid references auth.users(id) on delete set null, -- null for a bot-only/unfilled seat, or an orphaned one
   display_name text not null,
   color text not null check (color in ('red','green','yellow','blue')),
   status text not null default 'connected'

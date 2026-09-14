@@ -14,9 +14,10 @@ const COLORS: readonly PlayerColor[] = ["red", "green", "yellow", "blue"];
 
 const HAIRLINE_STROKE = 0.025;
 
-// Every on-track star badge — the home lane and the 8 real SAFE_CELLS — is
-// the same size, matching designs/board-design.png.
-const CELL_STAR_RADIUS = 0.32;
+// Shared by every star badge on the board — home lane, the 8 real
+// SAFE_CELLS, and the center wedges — so they all read as the same motif
+// at the same size, per direct instruction.
+const CELL_STAR_RADIUS = 0.44;
 
 function quadrant(color: PlayerColor, suffix?: "tint" | "border"): string {
   return `var(--quadrant-${color}${suffix ? `-${suffix}` : ""})`;
@@ -32,14 +33,6 @@ const CENTER_WEDGES: readonly { color: PlayerColor; points: string; starAt: read
   { color: "blue", points: "9,9 6,9 7.5,7.5", starAt: [7.5, 8.38] },
   { color: "red", points: "6,9 6,6 7.5,7.5", starAt: [6.62, 7.5] },
 ];
-
-const BOARD_CENTER: readonly [number, number] = [7.5, 7.5];
-
-function distanceToCenter([row, col]: readonly [number, number]): number {
-  const cx = col + 0.5;
-  const cy = row + 0.5;
-  return Math.hypot(cx - BOARD_CENTER[0], cy - BOARD_CENTER[1]);
-}
 
 /**
  * The board texture as real vector SVG — every cell, badge and wedge is its
@@ -61,33 +54,24 @@ export function BoardArtwork() {
           <polygon key={color} points={points} style={{ fill: quadrant(color) }} />
         ))}
         {CENTER_WEDGES.map(({ color, starAt: [cx, cy] }) => (
-          <NestBadge key={color} color={color} cx={cx} cy={cy} r={0.44} />
+          <NestBadge key={color} color={color} cx={cx} cy={cy} r={CELL_STAR_RADIUS} />
         ))}
       </g>
 
-      {COLORS.flatMap((color) => {
-        const cells = HOME_LANE_CELLS[color];
-        // The home-lane cell nearest the center is folded into the wedge
-        // (a plain same-color square, no badge) instead of getting its own
-        // star — the wedge now occupies that box, and the next cell out
-        // becomes the last visible star, per direct instruction.
-        const closest = cells.reduce((a, b) => (distanceToCenter(a) < distanceToCenter(b) ? a : b));
-        return cells.map(([row, col], i) => {
-          const isWedgeExtension = row === closest[0] && col === closest[1];
-          return (
-            <g key={`home-${color}-${i}`}>
-              <rect
-                x={col}
-                y={row}
-                width={1}
-                height={1}
-                style={{ fill: quadrant(color), stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
-              />
-              {!isWedgeExtension && <NestBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />}
-            </g>
-          );
-        });
-      })}
+      {COLORS.flatMap((color) =>
+        HOME_LANE_CELLS[color].map(([row, col], i) => (
+          <g key={`home-${color}-${i}`}>
+            <rect
+              x={col}
+              y={row}
+              width={1}
+              height={1}
+              style={{ fill: quadrant(color), stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
+            />
+            <NestBadge color={color} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
+          </g>
+        )),
+      )}
 
       {Array.from({ length: 52 }, (_, index) => {
         const { row, col } = globalCellToGridPosition(index);

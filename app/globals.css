@@ -114,134 +114,114 @@ body {
   font-variant-numeric: tabular-nums; /* DESIGN.md: "tabular figures for all live countdowns and currency counters" */
 }
 
-/*
- * Translucent glass pawn tokens, ported verbatim from
- * designs/apple_inspired_ludo_arena_with_translucent_glass_pieces/code.html
- * (its `.glass-token`/`.glass-{color}` rules) — that reference board is a
- * flat, externally-sourced screenshot we can't extract exact pixels from,
- * but its pawn styling is real, authored CSS, so it's copied exactly rather
- * than approximated from the screenshot.
- */
-.glass-token {
-  border-radius: 9999px;
+.ludo-piece {
+  --piece: #999;
+  --piece-dark: #555;
+  --piece-light: #fff;
   position: relative;
-  backdrop-filter: blur(1.5px);
-  -webkit-backdrop-filter: blur(1.5px);
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255, 255, 255, 0.95) 0 7%, rgba(255, 255, 255, 0.42) 8% 18%, transparent 19%),
+    radial-gradient(circle at 50% 58%, var(--piece-light) 0%, var(--piece) 46%, var(--piece-dark) 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.9),
+    inset 0 -5px 8px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.72),
+    0 5px 10px rgba(0, 0, 0, 0.28),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+  isolation: isolate;
   transition:
-    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.22s ease,
-    filter 0.22s ease;
+    filter 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
-.glass-token::before {
+
+.ludo-piece::before {
   content: "";
   position: absolute;
-  top: 10%;
-  left: 14%;
-  width: 42%;
-  height: 34%;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.65) 45%,
-    rgba(255, 255, 255, 0) 80%
-  );
-  transform: rotate(-25deg);
+  inset: 10%;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 42%);
   pointer-events: none;
-  filter: blur(0.3px);
-  z-index: 2;
+  z-index: 1;
 }
-.glass-token::after {
+
+.ludo-piece::after {
   content: "";
   position: absolute;
-  bottom: 8%;
-  right: 14%;
-  width: 38%;
-  height: 22%;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 75%);
+  inset: 3%;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.22);
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
-.glass-token.is-legal:hover {
-  transform: scale(1.18);
-  filter: brightness(1.12);
+
+.ludo-piece-track {
+  transform: scale(0.98);
 }
-.glass-red {
-  background: radial-gradient(
-    circle at 35% 28%,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(254, 202, 202, 0.82) 16%,
-    rgba(239, 68, 68, 0.75) 46%,
-    rgba(185, 28, 28, 0.9) 82%,
-    rgba(220, 38, 38, 0.96) 100%
-  );
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.9),
-    inset 0 -3px 6px rgba(80, 5, 5, 0.65),
-    inset 1px 0 3px rgba(254, 205, 211, 0.6),
-    inset -1px 0 3px rgba(185, 28, 28, 0.5),
-    0 6px 14px -2px rgba(239, 68, 68, 0.45),
-    0 3px 6px rgba(0, 0, 0, 0.22),
-    0 0 12px rgba(248, 113, 113, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+
+.ludo-piece-nest {
+  transform: scale(0.92);
 }
-.glass-green {
-  background: radial-gradient(
-    circle at 35% 28%,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(187, 247, 208, 0.82) 16%,
-    rgba(34, 197, 94, 0.72) 46%,
-    rgba(21, 128, 61, 0.9) 82%,
-    rgba(22, 163, 74, 0.96) 100%
-  );
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.9),
-    inset 0 -3px 6px rgba(5, 60, 20, 0.65),
-    inset 1px 0 3px rgba(187, 247, 208, 0.6),
-    inset -1px 0 3px rgba(21, 128, 61, 0.5),
-    0 6px 14px -2px rgba(34, 197, 94, 0.42),
-    0 3px 6px rgba(0, 0, 0, 0.22),
-    0 0 12px rgba(74, 222, 128, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+
+.ludo-piece-red {
+  --piece: #ed1c24;
+  --piece-dark: #9f1118;
+  --piece-light: #ff7479;
 }
-.glass-yellow {
-  background: radial-gradient(
-    circle at 35% 28%,
-    rgba(255, 255, 255, 0.94) 0%,
-    rgba(254, 240, 138, 0.85) 18%,
-    rgba(234, 179, 8, 0.76) 48%,
-    rgba(180, 83, 9, 0.88) 84%,
-    rgba(245, 158, 11, 0.96) 100%
-  );
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.9),
-    inset 0 -3px 6px rgba(120, 53, 15, 0.65),
-    inset 1px 0 3px rgba(254, 249, 195, 0.65),
-    inset -1px 0 3px rgba(180, 83, 9, 0.5),
-    0 6px 14px -2px rgba(234, 179, 8, 0.45),
-    0 3px 6px rgba(0, 0, 0, 0.22),
-    0 0 12px rgba(250, 204, 21, 0.38);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+
+.ludo-piece-green {
+  --piece: #45b862;
+  --piece-dark: #176d32;
+  --piece-light: #91e4a4;
 }
-.glass-blue {
-  background: radial-gradient(
-    circle at 35% 28%,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(125, 211, 252, 0.85) 18%,
-    rgba(14, 165, 233, 0.72) 48%,
-    rgba(3, 105, 161, 0.88) 82%,
-    rgba(2, 132, 199, 0.96) 100%
-  );
-  box-shadow:
-    inset 0 2px 4px rgba(255, 255, 255, 0.9),
-    inset 0 -3px 6px rgba(1, 40, 80, 0.65),
-    inset 1px 0 3px rgba(186, 230, 253, 0.6),
-    inset -1px 0 3px rgba(2, 132, 199, 0.5),
-    0 6px 14px -2px rgba(2, 132, 199, 0.45),
-    0 3px 6px rgba(0, 0, 0, 0.22),
-    0 0 12px rgba(56, 189, 248, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+
+.ludo-piece-yellow {
+  --piece: #ffdf00;
+  --piece-dark: #b98d00;
+  --piece-light: #fff47a;
+}
+
+.ludo-piece-blue {
+  --piece: #2e3192;
+  --piece-dark: #17194f;
+  --piece-light: #6b72e7;
+}
+
+.ludo-piece-legal {
+  animation: ludo-piece-ready 1.15s ease-in-out infinite alternate;
+  cursor: pointer;
+}
+
+button:hover > .ludo-piece-legal {
+  filter: brightness(1.08) saturate(1.08);
+  transform: scale(1.08);
+}
+
+@keyframes ludo-piece-ready {
+  from {
+    box-shadow:
+      inset 0 2px 3px rgba(255, 255, 255, 0.9),
+      inset 0 -5px 8px rgba(0, 0, 0, 0.3),
+      inset 0 0 0 2px rgba(255, 255, 255, 0.72),
+      0 5px 10px rgba(0, 0, 0, 0.28),
+      0 0 0 0 rgba(0, 122, 255, 0.1);
+  }
+  to {
+    box-shadow:
+      inset 0 2px 3px rgba(255, 255, 255, 0.9),
+      inset 0 -5px 8px rgba(0, 0, 0, 0.3),
+      inset 0 0 0 2px rgba(255, 255, 255, 0.72),
+      0 5px 10px rgba(0, 0, 0, 0.28),
+      0 0 0 4px rgba(0, 122, 255, 0.24),
+      0 0 18px rgba(0, 122, 255, 0.38);
+  }
 }
 
 /* iOS-style toggle switch, ported from the same reference's `.ios-switch`. */
@@ -287,26 +267,3 @@ body {
   transform: translateX(18px);
 }
 
-/* Active-turn glass token pulse, ported from the same reference's `.token-turn-ring`. */
-.token-turn-ring {
-  animation: glass-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-@keyframes glass-pulse {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 2px 5px rgba(255, 255, 255, 0.95),
-      inset 0 -3px 6px rgba(80, 5, 5, 0.65),
-      0 0 0 0 rgba(255, 59, 48, 0.65),
-      0 8px 18px rgba(255, 59, 48, 0.45),
-      0 0 22px rgba(255, 59, 48, 0.4);
-  }
-  50% {
-    box-shadow:
-      inset 0 2px 5px rgba(255, 255, 255, 0.95),
-      inset 0 -3px 6px rgba(80, 5, 5, 0.65),
-      0 0 0 7px rgba(255, 204, 0, 0.8),
-      0 10px 22px rgba(255, 59, 48, 0.55),
-      0 0 28px rgba(255, 204, 0, 0.6);
-  }
-}

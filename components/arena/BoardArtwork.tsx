@@ -93,6 +93,7 @@ export function BoardArtwork() {
       {Array.from({ length: 52 }, (_, index) => {
         const { row, col } = globalCellToGridPosition(index);
         const isSafe = SAFE_CELLS.has(index);
+        const safeColor = isSafe ? armColorForCell(row, col) : null;
         return (
           <g key={index}>
             <rect
@@ -100,12 +101,13 @@ export function BoardArtwork() {
               y={row}
               width={1}
               height={1}
-              fill="white"
-              style={{ stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
+              style={{
+                fill: safeColor ? quadrant(safeColor) : "white",
+                stroke: "var(--hairline)",
+                strokeWidth: HAIRLINE_STROKE,
+              }}
             />
-            {isSafe && (
-              <CellStarBadge color={armColorForCell(row, col)} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />
-            )}
+            {safeColor && <NestBadge color={safeColor} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />}
           </g>
         );
       })}
@@ -166,7 +168,7 @@ function ArmDecorations() {
       </defs>
       {ARM_ROTATIONS.map(({ angle, color }) => (
         <g key={angle} transform={`rotate(${angle} 7.5 7.5)`}>
-          <CellStarBadge color={color} cx={6.5} cy={2.5} r={CELL_STAR_RADIUS} />
+          <NestBadge color={color} cx={6.5} cy={2.5} r={CELL_STAR_RADIUS} />
           <path
             d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
             fill="none"
@@ -192,19 +194,6 @@ function ArmDecorations() {
         </g>
       ))}
     </>
-  );
-}
-
-// A solid-color disc with a white star glyph — the marker used for both the
-// dense home-lane run and the 8 real SAFE_CELLS on the shared track (sized
-// differently by the caller), matching the reference's star-on-color-disc
-// motif for on-track markers.
-function CellStarBadge({ color, cx, cy, r }: { color: PlayerColor; cx: number; cy: number; r: number }) {
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r={r} style={{ fill: quadrant(color) }} />
-      <StarIcon x={cx - r * 0.935} y={cy - r * 0.935} width={r * 1.87} height={r * 1.87} fill="white" />
-    </g>
   );
 }
 

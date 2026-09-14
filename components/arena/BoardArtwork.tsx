@@ -1,13 +1,7 @@
 import { CompassEmblem, StarIcon } from "@/components/shared/StarBadge";
 import { SAFE_CELLS } from "@/lib/board/geometry";
 import type { PlayerColor } from "@/lib/board/types";
-import {
-  BASE_AREA,
-  CORNER_CELLS,
-  HOME_LANE_CELLS,
-  armColorForCell,
-  globalCellToGridPosition,
-} from "./boardLayout";
+import { BASE_AREA, HOME_LANE_CELLS, armColorForCell, globalCellToGridPosition } from "./boardLayout";
 import { NEST_SLOT_POSITIONS } from "./boardArtworkGeometry";
 
 const COLORS: readonly PlayerColor[] = ["red", "green", "yellow", "blue"];
@@ -93,18 +87,6 @@ export function BoardArtwork() {
           </g>
         );
       })}
-
-      {CORNER_CELLS.map(([row, col], i) => (
-        <rect
-          key={i}
-          x={col}
-          y={row}
-          width={1}
-          height={1}
-          fill="white"
-          style={{ stroke: "var(--hairline)", strokeWidth: HAIRLINE_STROKE }}
-        />
-      ))}
 
       <ArmDecorations />
     </svg>

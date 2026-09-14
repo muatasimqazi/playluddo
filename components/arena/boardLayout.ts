@@ -41,14 +41,6 @@ export function globalCellToGridPosition(globalCell: number): { row: number; col
   return { row, col };
 }
 
-/** Arm-to-arm turn cells — real board cells, always empty, never addressable by any pathIndex. */
-export const CORNER_CELLS: readonly (readonly [number, number])[] = [
-  [6, 6],
-  [6, 8],
-  [8, 6],
-  [8, 8],
-];
-
 /**
  * Decorative home-lane strips (DESIGN.md: "Home runs: tinted 12% opacity
  * ... leading to the central triumph triangle"). Purely decorative — a
@@ -77,7 +69,14 @@ export const BASE_AREA: Record<PlayerColor, GridArea> = {
   blue: { rowStart: 9, rowEnd: 14, colStart: 0, colEnd: 5 },
 };
 
-/** The true center 3x3, decorative "triumph" area (includes the 4 CORNER_CELLS). */
+/**
+ * The true center 3x3, decorative "triumph" area — including its 4 corner
+ * cells (the arm-to-arm bridge points the 56-vs-52-cell math above
+ * describes). Those corners are real grid positions, never addressable by
+ * any pathIndex, but per designs/board-design.png they're rendered as part
+ * of the wedge pinwheel (no separate cell outline), not masked out with a
+ * white square — the wedge triangles already span this whole 3x3 area.
+ */
 export const CENTER_AREA: GridArea = { rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8 };
 
 /**

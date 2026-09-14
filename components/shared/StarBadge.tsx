@@ -26,6 +26,19 @@ function starPolygonPath(
   return `M${vertices.join(" L")} Z`;
 }
 
+// A true pentagram: 5 points on a circle, connected every-2nd (0→2→4→1→3→0)
+// instead of adjacent-to-adjacent, so the 5 chords cross each other and
+// form the small pentagon where they meet — the classic star-in-a-circle
+// look, geometrically different from starPolygonPath's "puffy star"
+// (alternating outer/inner radius, no crossings, no inner pentagon).
+function pentagramPath(cx: number, cy: number, radius: number, startDegrees = -90): string {
+  const points = 5;
+  const step = 360 / points;
+  const vertices = Array.from({ length: points }, (_, i) => polarPoint(cx, cy, radius, startDegrees + i * step));
+  const order = [0, 2, 4, 1, 3];
+  return `M${order.map((i) => vertices[i]).join(" L")} Z`;
+}
+
 // A crisp 5-point star (outer/inner ratio ~0.39, points reaching almost to
 // the edge of its own 24x24 box) — matches designs/board-design.png's star
 // exactly where it was checked pixel-by-pixel (a plain white circle, no
@@ -33,7 +46,7 @@ function starPolygonPath(
 // Replaces an earlier Heroicons-style outline star, which has rounded/
 // beveled points and a much larger inner radius — a visibly softer,
 // smaller-looking star than the reference actually uses.
-export const STAR_PATH = starPolygonPath(12, 12, 11.3, 4.4, 5, -90);
+export const STAR_PATH = starPolygonPath(12, 12, 13.3, 4.6, 5, -75);
 
 /**
  * The circular star badge used all over designs/board-design.png — parking
@@ -116,10 +129,13 @@ const COMPASS_START_DEGREES = -75;
 // went from 4 points to 5 without re-tuning it, which is what made the
 // star read as squished/distorted rather than a clean 5-point star.
 const COMPASS_STAR_PATH = starPolygonPath(50, 50, 44, 15, COMPASS_POINTS, COMPASS_START_DEGREES);
-const CENTER_STAR_PATH = starPolygonPath(50, 50, 16, 5, 5, COMPASS_START_DEGREES + 35);
 // radius 16
 const CENTER_CIRCLE_PATH = "M50,34 A16,16 0 1,0 50,66 A16,16 0 1,0 50,34 Z";
 const SPARKLE_PATH = starPolygonPath(0, 0, 3.5, 1, 5, COMPASS_START_DEGREES);
+// A true pentagram, not a puffy star — per a direct reference screenshot of
+// exactly this detail — sitting on the small circle above, rotated the
+// same +35° off the main star's own rotation as the earlier attempts here.
+const CENTER_STAR_PATH = pentagramPath(50, 50, 16, COMPASS_START_DEGREES + 35);
 
 // One sparkle per notch: the valley between star point i and point i+1
 // sits exactly halfway between their two angles (points are 360/5 apart,
@@ -164,10 +180,10 @@ export function CompassEmblem({
       <circle cx="50" cy="50" r="46" className={classes.text} fill="currentColor" />
       <path d={COMPASS_STAR_PATH} fill="white" />
       <path d={CENTER_CIRCLE_PATH} className={classes.text} fill="currentColor" />
-      <path d={CENTER_STAR_PATH} className={classes.text} fill="white" />
       {SPARKLE_POSITIONS.map(([cx, cy], i) => (
         <path key={i} d={SPARKLE_PATH} transform={`translate(${cx} ${cy})`} fill="white" />
       ))}
+      <path d={CENTER_STAR_PATH} fill="white" fillRule="evenodd" />
     </svg>
   );
 }

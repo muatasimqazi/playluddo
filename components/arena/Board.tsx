@@ -36,22 +36,19 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
     cells.push(
       <div
         key={`cell-${i}`}
-        className={`flex items-center justify-center border border-hairline ${isSafe ? "bg-gray-50" : "bg-surface"}`}
+        className={`flex items-center justify-center border border-hairline ${isSafe ? "bg-[#F3F4F6]" : "bg-surface"}`}
         style={{ gridRow: row + 1, gridColumn: col + 1 }}
       >
         {isSafe && pawnsHere.length === 0 && (
-          <span aria-hidden className="text-[10px] text-text-muted">
+          <span aria-hidden className="text-[10px] text-[#9CA3AF]">
             ★
           </span>
         )}
-        <div className="flex flex-wrap items-center justify-center gap-0.5">
-          {pawnsHere.map((pawn) => (
-            <PawnToken
-              key={pawn.id}
-              color={pawn.color}
-              isLegal={legalPawnIds.has(pawn.id)}
-              onClick={() => onSelectPawn(pawn.id)}
-            />
+        <div className="flex items-center justify-center">
+          {pawnsHere.map((pawn, i) => (
+            <div key={pawn.id} className={i > 0 ? "-ml-1.5" : ""} style={{ zIndex: i }}>
+              <PawnToken color={pawn.color} isLegal={legalPawnIds.has(pawn.id)} onClick={() => onSelectPawn(pawn.id)} />
+            </div>
           ))}
         </div>
       </div>,
@@ -120,6 +117,9 @@ function NestArea({
   );
 }
 
+// DESIGN.md "Ceramic Disk Tokens": solid quadrant fill, 1.5pt white
+// perimeter ring, an inner engraved circle motif, and a grounded contact
+// shadow with an inset highlight (elevation level 3).
 function PawnToken({
   color,
   isLegal,
@@ -136,10 +136,12 @@ function PawnToken({
       onClick={isLegal ? onClick : undefined}
       disabled={!isLegal}
       aria-label={`${color} pawn${isLegal ? " — legal move, tap to select" : ""}`}
-      className={`relative h-[18px] w-[18px] shrink-0 rounded-full border-2 border-white ${classes.bg} shadow-sm ${
+      className={`relative h-[18px] w-[18px] shrink-0 rounded-full border-[1.5px] border-white shadow-elevation-3 ${classes.bg} ${
         isLegal ? "cursor-pointer ring-2 ring-action ring-offset-1" : ""
       }`}
     >
+      {/* Inner engraved-ceramic motif. */}
+      <span className="absolute inset-0.75 rounded-full border border-white/40" aria-hidden />
       {/* Non-color identity per PRD 7.2: the initial doubles as a symbol distinct from color alone. */}
       <span className="absolute inset-0 flex items-center justify-center text-[7px] font-bold text-white" aria-hidden>
         {QUADRANT_INITIAL[color]}

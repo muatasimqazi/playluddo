@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
 /*
- * "Modern Boardroom" tokens, reconciled from designs/modern_boardroom/DESIGN.md
- * (the canonical source per docs/PRD.md Section 10.1 punch-list item #7 —
- * DESIGN.md is more complete than the values PRD 7.1 had, so PRD 7.1 should
- * eventually be updated to match these, not the other way around).
+ * "Modern Boardroom" design system tokens, transcribed directly from
+ * designs/modern_boardroom/DESIGN.md — the canonical source per
+ * docs/PRD.md Section 10.1 punch-list item #7.
  */
 :root {
   --background: #f8f9fa;
   --foreground: #111827;
   --surface: #ffffff;
+  --surface-container: #edeeef;
   --hairline: #e5e7eb;
+  --outline: #717786;
   --text-secondary: #6b7280;
   --text-muted: #9ca3af;
 
   --action: #007aff; /* System Action (Apple Blue) — nav/confirm/primary controls only */
+  --error: #ba1a1a;
 
   --quadrant-red: #e02424;
   --quadrant-red-tint: #fdf2f2;
@@ -28,16 +30,25 @@
   --quadrant-yellow: #f5a623;
   --quadrant-yellow-tint: #fffbeb;
   --quadrant-yellow-border: #fbbf24;
+
+  /* Elevation & Depth — DESIGN.md "Elevation & Depth" levels 1-4. */
+  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --elevation-2: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --elevation-3: 0 3px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --elevation-4: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
   --color-hairline: var(--hairline);
+  --color-outline: var(--outline);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-action: var(--action);
+  --color-error: var(--error);
   --color-quadrant-red: var(--quadrant-red);
   --color-quadrant-red-tint: var(--quadrant-red-tint);
   --color-quadrant-red-border: var(--quadrant-red-border);
@@ -50,11 +61,55 @@
   --color-quadrant-yellow: var(--quadrant-yellow);
   --color-quadrant-yellow-tint: var(--quadrant-yellow-tint);
   --color-quadrant-yellow-border: var(--quadrant-yellow-border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-sans);
+
+  /* Typography scale — DESIGN.md "typography" frontmatter. */
+  --text-display: 34px;
+  --text-display--line-height: 41px;
+  --text-display--font-weight: 700;
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 34px;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 20px;
+  --text-headline-sm--line-height: 25px;
+  --text-headline-sm--font-weight: 600;
+  --text-body-lg: 17px;
+  --text-body-lg--line-height: 22px;
+  --text-body-md: 15px;
+  --text-body-md--line-height: 20px;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 18px;
+  --text-label-lg: 17px;
+  --text-label-lg--line-height: 22px;
+  --text-label-lg--font-weight: 600;
+  --text-label-md: 13px;
+  --text-label-md--line-height: 18px;
+  --text-label-md--font-weight: 600;
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 13px;
+  --text-label-sm--font-weight: 600;
+  --text-timer-display: 24px;
+  --text-timer-display--line-height: 28px;
+  --text-timer-display--font-weight: 700;
+
+  /* Shapes — DESIGN.md "rounded" frontmatter. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-elevation-1: var(--elevation-1);
+  --shadow-elevation-2: var(--elevation-2);
+  --shadow-elevation-3: var(--elevation-3);
+  --shadow-elevation-4: var(--elevation-4);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-variant-numeric: tabular-nums; /* DESIGN.md: "tabular figures for all live countdowns and currency counters" */
 }

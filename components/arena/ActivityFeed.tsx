@@ -13,7 +13,7 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
   const playerById = new Map(players.map((p) => [p.id, p]));
 
   return (
-    <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-lg border border-hairline bg-surface p-2 text-xs">
+    <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-lg border border-hairline bg-surface p-2 text-body-sm shadow-elevation-1">
       {events.length === 0 && <p className="text-text-muted">No events yet.</p>}
       {events.map((event) => (
         <p key={event.id} className="text-text-secondary">

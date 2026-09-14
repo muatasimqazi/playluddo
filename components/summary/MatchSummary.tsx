@@ -62,17 +62,17 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <div className="rounded-lg border border-hairline bg-surface p-4 text-center">
-        <p className="text-sm font-medium text-action">{isAbandoned ? "Match Abandoned" : "Victory!"}</p>
-        <h1 className="mt-1 text-xl font-semibold text-foreground">
+      <div className="rounded-lg border border-hairline bg-surface p-4 text-center shadow-elevation-2">
+        <p className="text-label-lg text-action">{isAbandoned ? "Match Abandoned" : "Victory!"}</p>
+        <h1 className="mt-1 text-headline-md tracking-tight text-foreground">
           {isAbandoned
             ? "No active players remained"
             : `${playerById.get(roomState.winnerIds[0])?.displayName ?? "A player"} is the champion!`}
         </h1>
       </div>
 
-      <div className="flex flex-col gap-2 rounded-lg border border-hairline bg-surface p-3">
-        <h2 className="text-sm font-semibold text-foreground">Final Standings</h2>
+      <div className="flex flex-col gap-2 rounded-lg border border-hairline bg-surface p-3 shadow-elevation-1">
+        <h2 className="text-label-md text-foreground">Final Standings</h2>
         {ranking.map((playerId, index) => {
           const player = playerById.get(playerId);
           if (!player) return null;
@@ -81,14 +81,14 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
           const finished = pawns.filter((p) => p.state === "finished").length;
           return (
             <div key={playerId} className="flex items-center gap-2">
-              <span className="w-5 text-sm font-semibold text-text-secondary">{index + 1}</span>
-              <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white ${classes.bg}`}>
+              <span className="w-5 text-body-sm font-semibold text-text-secondary">{index + 1}</span>
+              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-label-sm text-white shadow-elevation-3 ${classes.bg}`}>
                 {QUADRANT_INITIAL[player.color]}
               </div>
-              <span className="flex-1 truncate text-sm text-foreground">
+              <span className="flex-1 truncate text-body-sm text-foreground">
                 {player.displayName} {player.id === myPlayerId && "(You)"}
               </span>
-              <span className="text-xs text-text-secondary">{finished}/4 home</span>
+              <span className="text-label-sm text-text-secondary">{finished}/4 home</span>
             </div>
           );
         })}
@@ -99,7 +99,7 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
           type="button"
           disabled={pending || rematchAction.disabled}
           onClick={rematchAction.onClick}
-          className="rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          className="h-12.5 rounded-md bg-action text-label-lg text-white shadow-elevation-2 transition-transform active:scale-97 disabled:opacity-50"
         >
           {rematchAction.label}
         </button>
@@ -107,13 +107,13 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
       <button
         type="button"
         onClick={() => router.push("/")}
-        className="rounded-lg border border-hairline px-4 py-2.5 text-sm font-medium text-foreground"
+        className="h-12.5 rounded-md border border-hairline bg-white text-label-lg text-foreground transition-transform active:scale-97"
       >
         Return to Lobby
       </button>
 
       {error && (
-        <p role="alert" className="text-center text-sm text-quadrant-red">
+        <p role="alert" className="text-center text-body-sm text-quadrant-red">
           {error}
         </p>
       )}

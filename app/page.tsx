@@ -52,17 +52,17 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-foreground">Ludo Rivals</h1>
-        <p className="text-sm text-text-secondary">Fast online Ludo with friends and rivals.</p>
+        <h1 className="text-headline-lg tracking-tight text-foreground">Ludo Rivals</h1>
+        <p className="text-body-md text-text-secondary">Fast online Ludo with friends and rivals.</p>
       </div>
 
-      <label className="flex flex-col gap-1 text-sm text-foreground">
+      <label className="flex flex-col gap-1 text-body-sm text-foreground">
         Display name
         <input
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           maxLength={24}
-          className="rounded-md border border-hairline px-3 py-2 text-sm"
+          className="rounded-md border border-hairline px-3 py-2 text-body-md shadow-elevation-1"
           placeholder="Alex"
         />
       </label>
@@ -71,22 +71,22 @@ export default function Home() {
         type="button"
         disabled={pending !== null}
         onClick={() => void handleCreate()}
-        className="rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="h-12.5 rounded-md bg-action text-label-lg text-white shadow-elevation-2 transition-transform active:scale-97 disabled:opacity-50"
       >
         {pending === "create" ? "Creating…" : "Create Private Room"}
       </button>
 
-      <div className="flex items-center gap-2 text-xs text-text-muted" aria-hidden>
+      <div className="flex items-center gap-2 text-label-sm text-text-muted" aria-hidden>
         <div className="h-px flex-1 bg-hairline" /> or <div className="h-px flex-1 bg-hairline" />
       </div>
 
-      <label className="flex flex-col gap-1 text-sm text-foreground">
+      <label className="flex flex-col gap-1 text-body-sm text-foreground">
         Room code
         <input
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
           maxLength={6}
-          className="rounded-md border border-hairline px-3 py-2 text-sm uppercase tracking-wide"
+          className="rounded-md border border-hairline px-3 py-2 text-body-md uppercase tracking-wide shadow-elevation-1"
           placeholder="ABC123"
         />
       </label>
@@ -94,13 +94,13 @@ export default function Home() {
         type="button"
         disabled={pending !== null}
         onClick={() => void handleJoin()}
-        className="rounded-lg border border-hairline px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"
+        className="h-12.5 rounded-md border border-hairline bg-white text-label-lg text-foreground transition-transform active:scale-97 disabled:opacity-50"
       >
         {pending === "join" ? "Joining…" : "Join Room"}
       </button>
 
       {error && (
-        <p role="alert" className="text-center text-sm text-quadrant-red">
+        <p role="alert" className="text-center text-body-sm text-quadrant-red">
           {error}
         </p>
       )}

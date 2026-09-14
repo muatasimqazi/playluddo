@@ -52,15 +52,15 @@ export function RoomLobby({ client, roomId }: RoomLobbyProps) {
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <div className="flex items-center justify-between rounded-lg border border-hairline bg-surface p-3">
+      <div className="flex items-center justify-between rounded-lg border border-hairline bg-surface p-3 shadow-elevation-1">
         <div>
-          <p className="text-xs text-text-secondary">Room code</p>
-          <p className="text-lg font-semibold tracking-wide text-foreground">{roomState.code}</p>
+          <p className="text-label-sm text-text-secondary">Room code</p>
+          <p className="text-headline-sm tracking-tight text-foreground">{roomState.code}</p>
         </div>
         <button
           type="button"
           onClick={() => void copyCode()}
-          className="rounded-md border border-hairline px-3 py-1.5 text-sm font-medium text-action"
+          className="rounded-md border border-hairline bg-white px-3 py-1.5 text-label-md text-action"
         >
           {copied ? "Copied" : "Copy"}
         </button>
@@ -87,16 +87,16 @@ export function RoomLobby({ client, roomId }: RoomLobbyProps) {
           type="button"
           disabled={!canStart || pending}
           onClick={() => void run(() => startMatch(client, roomId))}
-          className="rounded-lg bg-action px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+          className="h-12.5 rounded-md bg-action text-label-lg text-white shadow-elevation-2 transition-transform active:scale-97 disabled:opacity-40"
         >
           {seatedCount < 2 ? "Waiting for at least 2 players…" : "Start Match"}
         </button>
       ) : (
-        <p className="text-center text-sm text-text-secondary">Waiting for the host to start the match…</p>
+        <p className="text-center text-body-sm text-text-secondary">Waiting for the host to start the match…</p>
       )}
 
       {error && (
-        <p role="alert" className="text-sm text-quadrant-red">
+        <p role="alert" className="text-body-sm text-quadrant-red">
           {error}
         </p>
       )}
@@ -122,13 +122,13 @@ function SeatSlot({
   if (!player) {
     return (
       <div className={`flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 ${classes.border}`}>
-        <span className={`text-xs font-medium uppercase ${classes.text}`}>{color} — empty</span>
+        <span className={`text-label-sm uppercase ${classes.text}`}>{color} — empty</span>
         {isHost && (
           <button
             type="button"
             disabled={pending}
             onClick={onFillBot}
-            className="rounded-md border border-hairline px-2 py-1 text-xs font-medium text-text-secondary disabled:opacity-40"
+            className="rounded-md border border-hairline bg-white px-2 py-1 text-label-sm text-text-secondary disabled:opacity-40"
           >
             Fill with Bot
           </button>
@@ -138,13 +138,13 @@ function SeatSlot({
   }
 
   return (
-    <div className={`flex items-center gap-2 rounded-lg border p-3 ${classes.border} ${classes.tint}`}>
-      <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold text-white ${classes.bg}`}>
+    <div className={`flex items-center gap-2 rounded-lg border p-3 shadow-elevation-1 ${classes.border} ${classes.tint}`}>
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-label-md text-white shadow-elevation-3 ${classes.bg}`}>
         {QUADRANT_INITIAL[color]}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-foreground">{player.displayName}</p>
-        <p className="text-xs text-text-secondary">{player.isBot ? "Bot" : "Ready"}</p>
+        <p className="truncate text-body-sm font-medium text-foreground">{player.displayName}</p>
+        <p className="text-label-sm text-text-secondary">{player.isBot ? "Bot" : "Ready"}</p>
       </div>
     </div>
   );

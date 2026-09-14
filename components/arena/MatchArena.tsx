@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Board } from "./Board";
+import { Dice } from "./Dice";
 import { StatusPod, pawnCountFor } from "./StatusPod";
 import { ActivityFeed } from "./ActivityFeed";
+import { QUADRANT_CLASSES } from "@/components/shared/colors";
 import { RpcError, requestMove, requestRoll, toggleAutoRoll } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import type { GameRoomState } from "@/lib/board/types";
@@ -63,7 +65,8 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* DESIGN.md: "organized top-to-bottom in a 2x2 split dock depending on portrait orientation limits" */}
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {roomState.players.map((player) => (
           <StatusPod
             key={player.id}
@@ -82,9 +85,9 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         onSelectPawn={(pawnId) => void handleAction(() => requestMove(client, roomId, pawnId, connectionToken))}
       />
 
-      <div className="flex flex-col items-center gap-2 rounded-lg border border-hairline bg-surface p-3">
-        <DiceFace value={roomState.activeDiceValue} />
-        <p className="text-sm text-text-secondary" aria-live="polite">
+      <div className="flex flex-col items-center gap-3 rounded-lg border border-hairline bg-surface p-4 shadow-elevation-1">
+        <Dice value={roomState.activeDiceValue} playerColor={myPlayer?.color ?? "red"} />
+        <p className="text-body-sm text-text-secondary" aria-live="polite">
           {statusMessage(isMyTurn, canRoll, canChoosePawn, roomState.status)}
         </p>
         {canRoll && (
@@ -92,13 +95,15 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
             type="button"
             disabled={pending}
             onClick={() => void handleAction(() => requestRoll(client, roomId, connectionToken))}
-            className="rounded-lg bg-action px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            className={`h-12.5 w-full max-w-xs rounded-md text-label-lg text-white shadow-elevation-2 transition-transform active:scale-97 disabled:opacity-50 ${
+              myPlayer ? QUADRANT_CLASSES[myPlayer.color].bg : "bg-action"
+            }`}
           >
             Roll Dice
           </button>
         )}
         {myPlayer && !myPlayer.isBot && (
-          <label className="flex items-center gap-2 text-xs text-text-secondary">
+          <label className="flex items-center gap-2 text-body-sm text-text-secondary">
             <input
               type="checkbox"
               checked={myPlayer.autoRollEnabled}
@@ -108,24 +113,13 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
           </label>
         )}
         {actionError && (
-          <p role="alert" className="text-xs text-quadrant-red">
+          <p role="alert" className="text-body-sm text-quadrant-red">
             {actionError}
           </p>
         )}
       </div>
 
       <ActivityFeed events={events} players={roomState.players} />
-    </div>
-  );
-}
-
-function DiceFace({ value }: { value: number | null }) {
-  return (
-    <div
-      className="flex h-14 w-14 items-center justify-center rounded-xl border border-hairline bg-white text-2xl font-bold text-foreground shadow-sm"
-      aria-label={value === null ? "No roll yet" : `Dice showing ${value}`}
-    >
-      {value ?? "–"}
     </div>
   );
 }

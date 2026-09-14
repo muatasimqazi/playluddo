@@ -14,9 +14,8 @@ const COLORS: readonly PlayerColor[] = ["red", "green", "yellow", "blue"];
 
 const HAIRLINE_STROKE = 0.025;
 
-// Every on-track star badge — home lane, the 8 real SAFE_CELLS, and the
-// extra decorative ArmDecorations star — is the same size in the
-// reference; there's no visual distinction by badge "importance".
+// Every on-track star badge — the home lane and the 8 real SAFE_CELLS — is
+// the same size, matching designs/board-design.png.
 const CELL_STAR_RADIUS = 0.32;
 
 function quadrant(color: PlayerColor, suffix?: "tint" | "border"): string {
@@ -92,8 +91,7 @@ export function BoardArtwork() {
 
       {Array.from({ length: 52 }, (_, index) => {
         const { row, col } = globalCellToGridPosition(index);
-        const isSafe = SAFE_CELLS.has(index);
-        const safeColor = isSafe ? armColorForCell(row, col) : null;
+        const safeColor = SAFE_CELLS.has(index) ? armColorForCell(row, col) : null;
         return (
           <g key={index}>
             <rect
@@ -129,17 +127,19 @@ export function BoardArtwork() {
   );
 }
 
-// One extra star (beyond the real SAFE_CELLS) plus 3 decorative arrows per
-// arm — a curved "entry flow" arrow near the top of the near-base column, a
-// straight "advance" arrow partway down the far column, and a short
-// diagonal arrow at the arm-to-center corner — matching the density the
-// reference board actually has (it isn't just the home lane and 8 safe
-// cells that carry decoration; every arm is busier than that). Drawn once
-// for the top arm in absolute grid coordinates, then rotated 90/180/270°
-// around the board's true center for the other 3 arms — the same 4-fold
-// rotation the rest of the board's geometry (CENTER_WEDGES, HOME_LANE_CELLS,
-// armColorForCell) already relies on, so no separate per-arm coordinates to
-// keep in sync.
+// 3 decorative arrows per arm — a curved "entry flow" arrow near the top of
+// the near-base column, a straight "advance" arrow partway down the far
+// column, and a short diagonal arrow at the arm-to-center corner — matching
+// the density the reference board actually has beyond its star badges.
+// Drawn once for the top arm in absolute grid coordinates, then rotated
+// 90/180/270° around the board's true center for the other 3 arms — the
+// same 4-fold rotation the rest of the board's geometry (CENTER_WEDGES,
+// HOME_LANE_CELLS, armColorForCell) already relies on, so no separate
+// per-arm coordinates to keep in sync. (This used to also draw an "extra"
+// star at this same spot — that cell turned out to be a real SAFE_CELLS
+// position (index 3 of the top arm) once pixel-checked against
+// designs/board-design.png, so it's now drawn once, correctly, by the main
+// SAFE_CELLS loop above instead of a second time here.)
 const ARM_ROTATIONS: readonly { angle: number; color: PlayerColor }[] = [
   { angle: 0, color: "green" },
   { angle: 90, color: "yellow" },
@@ -168,7 +168,6 @@ function ArmDecorations() {
       </defs>
       {ARM_ROTATIONS.map(({ angle, color }) => (
         <g key={angle} transform={`rotate(${angle} 7.5 7.5)`}>
-          <NestBadge color={color} cx={6.5} cy={2.5} r={CELL_STAR_RADIUS} />
           <path
             d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
             fill="none"

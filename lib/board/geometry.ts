@@ -25,11 +25,15 @@ export const ENTRY_OFFSET: Record<PlayerColor, number> = {
 };
 
 /**
- * Global shared-track indices that are capture-immune: each color's entry
- * cell plus a star cell 8 steps after it. 8 cells total.
+ * Global shared-track indices that are capture-immune: for each color, the
+ * star cells 3 and 8 steps after its entry (NOT the bare entry cell itself
+ * — a common assumption this file got wrong until it was checked against
+ * designs/board-design.png directly, star badge by star badge, cell by
+ * cell: the reference marks 3/8/16/21/29/34/42/47, not 0/8/13/21/26/34/39/47).
+ * 8 cells total.
  */
 export const SAFE_CELLS: ReadonlySet<number> = new Set([
-  0, 8, 13, 21, 26, 34, 39, 47,
+  3, 8, 16, 21, 29, 34, 42, 47,
 ]);
 
 /** pathIndex boundaries, per PRD 4.1 / Pawn.pathIndex (types.ts). */

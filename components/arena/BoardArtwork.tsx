@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { CompassEmblem, StarIcon } from "@/components/shared/StarBadge";
 import { SAFE_CELLS } from "@/lib/board/geometry";
 import type { PlayerColor } from "@/lib/board/types";
@@ -36,11 +37,11 @@ const CENTER_WEDGES: readonly { color: PlayerColor; points: string; starAt: read
  * screenshot of the reference mockup via <image>, which is exactly the kind
  * of thing that can't be animated piece-by-piece.
  */
-export function BoardArtwork() {
+export function BoardArtwork({ activeColor }: { activeColor?: PlayerColor | null }) {
   return (
     <svg viewBox="0 0 15 15" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
       {COLORS.map((color) => (
-        <BaseQuadrantArt key={color} color={color} />
+        <BaseQuadrantArt key={color} color={color} isActive={color === activeColor} />
       ))}
 
       <g>
@@ -195,7 +196,13 @@ function ArmDecorations() {
   );
 }
 
-function BaseQuadrantArt({ color }: { color: PlayerColor }) {
+// How far the highlight ring's stroke sits outside the base's own edge,
+// in the same 0-15 grid units as everything else here — half of it draws
+// inward (over the base's own colored rect) and half outward, since SVG
+// centers a stroke on its path.
+const TURN_HIGHLIGHT_STROKE_WIDTH = 0.4;
+
+function BaseQuadrantArt({ color, isActive }: { color: PlayerColor; isActive: boolean }) {
   const area = BASE_AREA[color];
   const x = area.colStart;
   const y = area.rowStart;
@@ -228,6 +235,34 @@ function BaseQuadrantArt({ color }: { color: PlayerColor }) {
       {NEST_SLOT_POSITIONS[color].map(([leftPct, topPct], i) => (
         <NestBadge key={i} color={color} cx={x + (leftPct / 100) * size} cy={y + (topPct / 100) * size} r={size * 0.075} />
       ))}
+      {/* Per direct instruction: highlight whichever base belongs to the
+          player whose turn it currently is. A pulsing stroke ring right on
+          the base's own edge — same "energetic accent pulse" motif
+          DESIGN.md already uses for the dice's six-roll glow — rather than
+          a static border, so it reads as "this one's live" instead of
+          just another static color block among four.
+          Always mounted (never AnimatePresence-exited) deliberately: an
+          infinite-repeat `animate` and a one-shot `exit` can't share a
+          single `transition` prop — exit inherits the same repeat:Infinity
+          tween, so it never actually settles at its target and unmount
+          never fires, leaving old highlights stuck on screen right where
+          they were when the turn moved on (confirmed live: bases from
+          turns two players ago were still pulsing). Toggling `animate`'s
+          own target between the pulse and a flat 0 sidesteps that
+          entirely, each with its own appropriately-scoped transition. */}
+      <motion.rect
+        x={x}
+        y={y}
+        width={size}
+        height={size}
+        fill="none"
+        stroke={quadrant(color, "border")}
+        strokeWidth={TURN_HIGHLIGHT_STROKE_WIDTH}
+        animate={isActive ? { opacity: [0.35, 1, 0.35] } : { opacity: 0 }}
+        transition={
+          isActive ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3, ease: "easeOut" }
+        }
+      />
     </g>
   );
 }

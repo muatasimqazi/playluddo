@@ -257,7 +257,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
               gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
             }}
           >
-            <BoardArtwork />
+            <BoardArtwork activeColor={roomState.players.find((p) => p.id === roomState.turnPlayerId)?.color ?? null} />
 
             {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
               <BaseQuadrantHitArea

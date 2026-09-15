@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Board } from "./Board";
-import { Dice } from "./Dice";
 import { StatusPod, pawnCountFor } from "./StatusPod";
 import { ActivityFeed } from "./ActivityFeed";
 import { QUADRANT_CLASSES } from "@/components/shared/colors";
@@ -76,6 +75,14 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         turnDeadlineAt={room.turnDeadlineAt}
         isYou={player.id === myPlayerId}
         align={align}
+        dice={{
+          value: room.activeDiceValue,
+          // Scoped to "it's genuinely my own turn, and the roll phase" —
+          // safe to hand to every pod, see StatusPod's own comment on this.
+          canRoll,
+          pending,
+          onRoll: () => void handleAction(() => requestRoll(client, roomId, connectionToken)),
+        }}
       />
     );
   }
@@ -122,9 +129,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
             isMyTurn={isMyTurn}
             canRoll={canRoll}
             canChoosePawn={canChoosePawn}
-            pending={pending}
             actionError={actionError}
-            onRoll={() => void handleAction(() => requestRoll(client, roomId, connectionToken))}
             onToggleAutoRoll={(checked) => void handleAction(() => toggleAutoRoll(client, roomId, checked))}
           />
         </div>
@@ -138,9 +143,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
           isMyTurn={isMyTurn}
           canRoll={canRoll}
           canChoosePawn={canChoosePawn}
-          pending={pending}
           actionError={actionError}
-          onRoll={() => void handleAction(() => requestRoll(client, roomId, connectionToken))}
           onToggleAutoRoll={(checked) => void handleAction(() => toggleAutoRoll(client, roomId, checked))}
         />
       </aside>
@@ -154,9 +157,7 @@ function ControlCenter({
   isMyTurn,
   canRoll,
   canChoosePawn,
-  pending,
   actionError,
-  onRoll,
   onToggleAutoRoll,
 }: {
   roomState: GameRoomState;
@@ -164,9 +165,7 @@ function ControlCenter({
   isMyTurn: boolean;
   canRoll: boolean;
   canChoosePawn: boolean;
-  pending: boolean;
   actionError: string | null;
-  onRoll: () => void;
   onToggleAutoRoll: (checked: boolean) => void;
 }) {
   const standings = [...roomState.players]
@@ -180,25 +179,14 @@ function ControlCenter({
         <p className="mt-0.5 text-label-md text-foreground">Turn Actions</p>
       </div>
 
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-hairline bg-surface p-4 shadow-elevation-1">
-        <Dice value={roomState.activeDiceValue} playerColor={myPlayer?.color ?? "red"} />
+      {/* The dice itself — next to the acting player's own name card on
+          the board above — is the roll control now; this panel is just
+          status text, per direct instruction. */}
+      <div className="flex flex-col items-center gap-1 rounded-2xl border border-hairline bg-surface p-4 shadow-elevation-1">
         <p className="text-center text-body-sm text-text-secondary" aria-live="polite">
           {statusMessage(isMyTurn, canRoll, canChoosePawn, roomState.status)}
         </p>
       </div>
-
-      {canRoll && (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={onRoll}
-          className={`h-12.5 w-full rounded-xl text-label-lg text-white shadow-elevation-2 transition-transform active:scale-97 disabled:opacity-50 ${
-            myPlayer ? QUADRANT_CLASSES[myPlayer.color].bg : "bg-action"
-          }`}
-        >
-          Roll Dice
-        </button>
-      )}
 
       {myPlayer && !myPlayer.isBot && (
         <div className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-3.5 py-2.5 shadow-elevation-1">
@@ -282,7 +270,7 @@ function statusMessage(
 ): string {
   if (status !== "in_game") return "";
   if (!isMyTurn) return "Waiting for the current player…";
-  if (canRoll) return "Your turn — roll the dice.";
+  if (canRoll) return "Your turn — tap the dice next to your name to roll.";
   if (canChoosePawn) return "Choose a highlighted pawn to move.";
   return "Waiting…";
 }

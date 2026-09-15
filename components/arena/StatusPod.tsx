@@ -2,7 +2,12 @@
 
 import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { Dice } from "./Dice";
 import type { GameRoomState, Player } from "@/lib/board/types";
+
+// Inline dice next to the pod's own avatar+name — smaller than the
+// DESIGN.md 56-64pt standalone dice so it doesn't dominate the compact pod.
+const INLINE_DICE_SIZE = 40;
 
 interface StatusPodProps {
   player: Player;
@@ -12,6 +17,19 @@ interface StatusPodProps {
   isYou: boolean;
   /** Mirrors the pod for the board's right-side quadrants (green/yellow), matching the reference layout. */
   align?: "left" | "right";
+  /**
+   * The dice roll functionality itself — per direct instruction, moved to
+   * sit next to each player's own name card instead of a persistent
+   * Control Center panel. Only meaningful (and only rendered) while it's
+   * this pod's own turn; `diceValue`/`onRoll` are otherwise omitted.
+   */
+  dice?: {
+    value: number | null;
+    /** True only for the acting player's own pod, during their roll phase — everyone else's (and a mid-move) dice is a plain display. */
+    canRoll: boolean;
+    pending: boolean;
+    onRoll: () => void;
+  };
 }
 
 const DECISION_WINDOW_SECONDS = 15;
@@ -23,7 +41,7 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 // border; active turn state is full opacity, a 1.5pt player-color border,
 // and a micro-scale of 1.03. The countdown ring depletes from the player's
 // quadrant color into warning red as time runs low.
-export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, isYou, align = "left" }: StatusPodProps) {
+export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, isYou, align = "left", dice }: StatusPodProps) {
   const classes = QUADRANT_CLASSES[player.color];
   const secondsLeft = useCountdown(isCurrentTurn ? turnDeadlineAt : null);
   const isLow = secondsLeft !== null && secondsLeft <= 5;
@@ -92,6 +110,30 @@ export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, is
     </div>
   );
 
+  // The dice roll control itself — appears only in the acting player's own
+  // pod (isCurrentTurn), next to their name card, per direct instruction.
+  // `dice.canRoll` is already scoped to "it's genuinely my own turn, and
+  // the roll phase" by the caller, so passing the same prop to every pod
+  // is safe: a bot's or opponent's pod can be isCurrentTurn without ever
+  // being canRoll, so it only ever renders as a plain (non-clickable)
+  // display of the shared roll value, never a control I can tap for them.
+  const diceControl = isCurrentTurn && dice && (
+    <Dice
+      value={dice.value}
+      playerColor={player.color}
+      size={INLINE_DICE_SIZE}
+      onRoll={dice.canRoll ? dice.onRoll : undefined}
+      disabled={dice.pending}
+    />
+  );
+
+  const outerSlot = (isCurrentTurn && secondsLeft !== null) || diceControl ? (
+    <div className="flex shrink-0 flex-col items-center gap-1">
+      {diceControl}
+      {isCurrentTurn && secondsLeft !== null && <TimerPill isLow={isLow} secondsLeft={secondsLeft} />}
+    </div>
+  ) : null;
+
   return (
     <div
       className={`flex items-center gap-2 rounded-2xl border bg-surface p-2 shadow-elevation-1 transition-all ${
@@ -100,7 +142,7 @@ export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, is
     >
       {isRight ? (
         <>
-          {isCurrentTurn && secondsLeft !== null && <TimerPill isLow={isLow} secondsLeft={secondsLeft} />}
+          {outerSlot}
           {info}
           {avatar}
         </>
@@ -108,7 +150,7 @@ export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, is
         <>
           {avatar}
           {info}
-          {isCurrentTurn && secondsLeft !== null && <TimerPill isLow={isLow} secondsLeft={secondsLeft} />}
+          {outerSlot}
         </>
       )}
     </div>

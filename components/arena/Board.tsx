@@ -1,9 +1,10 @@
 "use client";
 
 import type { Ref } from "react";
+import { useState } from "react";
 import { LayoutGroup, MotionConfig, motion } from "framer-motion";
 import { PATH_INDEX, pathIndexToGlobalCell } from "@/lib/board/geometry";
-import type { GameRoomState, Pawn, PlayerColor } from "@/lib/board/types";
+import type { GameRoomState, Pawn, PawnState, PlayerColor } from "@/lib/board/types";
 import {
   BASE_AREA,
   GRID_SIZE,
@@ -11,6 +12,7 @@ import {
   globalCellToGridPosition,
 } from "./boardLayout";
 import { BoardArtwork } from "./BoardArtwork";
+import { type GridPoint, trackHopWaypoints } from "./pawnMovePath";
 
 interface BoardProps {
   roomState: GameRoomState;
@@ -39,7 +41,36 @@ interface BoardProps {
 // unmount, so "on arrival" IS this transition settling.
 const PAWN_LAYOUT_TRANSITION = { type: "spring", stiffness: 480, damping: 24 } as const;
 
+// How long each individual hop (one cell to the next) takes while a pawn
+// is animating a multi-cell track advance — see the diffing block below
+// and HoppingPawn. A 6-cell move (the longest a single die roll can be)
+// takes 6 * this.
+const HOP_STEP_MS = 170;
+
+type PawnSnapshot = ReadonlyMap<string, { state: PawnState; pathIndex: number | null }>;
+
+function snapshotPawns(pawns: readonly Pawn[]): PawnSnapshot {
+  return new Map(pawns.map((p) => [p.id, { state: p.state, pathIndex: p.pathIndex }]));
+}
+
 export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
+  // Detects pawns that just started a multi-cell TRACK advance (previous
+  // render's pathIndex to this one spans more than one step) so they can
+  // hop through the intermediate cells (below) instead of the plain
+  // layoutId FLIP every other pawn wrapper uses — FLIP would cut a
+  // straight line across the board for a non-adjacent pair. roomState is
+  // a full snapshot on every broadcast (no diff info of its own — see
+  // lib/store/room-store.ts), so this compares against the PREVIOUS
+  // render's own snapshot, kept in state. This is React's documented
+  // "adjust state when a prop changes" escape hatch (react.dev — "You
+  // Might Not Need an Effect"), not a useEffect: a useEffect would only
+  // run after the destination cell had already committed the pawn
+  // teleported there, one frame too late to intercept.
+  const [prevPawnSnapshot, setPrevPawnSnapshot] = useState<PawnSnapshot | null>(null);
+  const [hoppingPawns, setHoppingPawns] = useState<
+    ReadonlyMap<string, { color: PlayerColor; waypoints: GridPoint[] }>
+  >(new Map());
+
   const trackPawnsByCell = new Map<number, Pawn[]>();
   const nestPawnsByColor = new Map<PlayerColor, Pawn[]>();
   // Keyed by `${color}-${homeIndex}` (homeIndex 0-4, one of HOME_LANE_CELLS'
@@ -76,10 +107,63 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
     }
   }
 
+  const currentPawnSnapshot = snapshotPawns(roomState.pawns);
+  const snapshotChanged =
+    prevPawnSnapshot === null ||
+    currentPawnSnapshot.size !== prevPawnSnapshot.size ||
+    [...currentPawnSnapshot].some(([id, current]) => {
+      const prev = prevPawnSnapshot.get(id);
+      return !prev || prev.state !== current.state || prev.pathIndex !== current.pathIndex;
+    });
+
+  if (snapshotChanged) {
+    // Only ever ADDS entries here — a hop is removed from hoppingPawns by
+    // HoppingPawn's own onAnimationComplete callback once it's actually
+    // finished playing, not by this diff (which runs once per broadcast,
+    // long before a multi-second hop sequence is done).
+    const nextHoppingPawns = new Map(hoppingPawns);
+    let addedHop = false;
+    if (prevPawnSnapshot) {
+      for (const pawn of roomState.pawns) {
+        const prev = prevPawnSnapshot.get(pawn.id);
+        if (
+          prev?.state !== "track" ||
+          pawn.state !== "track" ||
+          prev.pathIndex === null ||
+          pawn.pathIndex === null ||
+          pawn.pathIndex - prev.pathIndex <= 1 ||
+          hoppingPawns.has(pawn.id)
+        ) {
+          continue;
+        }
+        // Skip the custom hop if the destination will end up with 2+
+        // pawns: the hop's own landing position doesn't know about the
+        // "-ml-[46%]" stacking offset the destination cell would apply
+        // to a non-first pawn, so it'd land slightly off from where the
+        // static render puts it. Rare (landing deliberately on your own
+        // color), and a plain FLIP there still looks correct, just
+        // straight instead of curved.
+        const destinationGlobalCell = pathIndexToGlobalCell(pawn.color, pawn.pathIndex);
+        if ((trackPawnsByCell.get(destinationGlobalCell)?.length ?? 0) > 1) continue;
+
+        const originCell = globalCellToGridPosition(pathIndexToGlobalCell(pawn.color, prev.pathIndex));
+        nextHoppingPawns.set(pawn.id, {
+          color: pawn.color,
+          waypoints: [originCell, ...trackHopWaypoints(pawn.color, prev.pathIndex, pawn.pathIndex)],
+        });
+        addedHop = true;
+      }
+    }
+    setPrevPawnSnapshot(currentPawnSnapshot);
+    if (addedHop) setHoppingPawns(nextHoppingPawns);
+  }
+
   const cells = [];
   for (let i = 0; i <= 51; i++) {
     const { row, col } = globalCellToGridPosition(i);
-    const pawnsHere = trackPawnsByCell.get(i) ?? [];
+    // A hopping pawn is drawn by the HoppingPawn overlay below instead —
+    // rendering it here too, mid-hop, would show it twice.
+    const pawnsHere = (trackPawnsByCell.get(i) ?? []).filter((p) => !hoppingPawns.has(p.id));
     cells.push(
       <div
         key={`cell-${i}`}
@@ -178,6 +262,24 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
 
             {(Object.keys(FINISH_SLOT_POSITIONS) as PlayerColor[]).map((color) => (
               <FinishedPawnCluster key={color} color={color} pawns={finishedPawnsByColor.get(color) ?? []} />
+            ))}
+
+            {[...hoppingPawns].map(([pawnId, { color, waypoints }]) => (
+              <HoppingPawn
+                key={pawnId}
+                color={color}
+                waypoints={waypoints}
+                isLegal={legalPawnIds.has(pawnId)}
+                onSelectPawn={() => onSelectPawn(pawnId)}
+                onDone={() =>
+                  setHoppingPawns((prev) => {
+                    if (!prev.has(pawnId)) return prev;
+                    const next = new Map(prev);
+                    next.delete(pawnId);
+                    return next;
+                  })
+                }
+              />
             ))}
           </div>
         </LayoutGroup>
@@ -291,6 +393,54 @@ function FinishedPawnCluster({ color, pawns }: { color: PlayerColor; pawns: Pawn
         );
       })}
     </>
+  );
+}
+
+// The one case plain layoutId FLIP isn't used for — a multi-cell TRACK
+// advance. `waypoints` is the full path INCLUDING the pawn's starting
+// cell (index 0) through its destination (last), computed once by the
+// diffing block in Board.tsx. Deliberately no layoutId here: mixing
+// layoutId's own transform-based FLIP with an explicit left/top keyframe
+// `animate` on the same element risks the two positioning systems
+// fighting each other. Instead this relies on `waypoints`' last entry
+// resolving to the EXACT same coordinates the static grid cell would
+// (same globalCellToGridPosition math either way), so handing back off
+// to normal grid rendering once `onDone` fires is seamless without needing
+// FLIP continuity.
+function HoppingPawn({
+  color,
+  waypoints,
+  isLegal,
+  onSelectPawn,
+  onDone,
+}: {
+  color: PlayerColor;
+  waypoints: GridPoint[];
+  isLegal: boolean;
+  onSelectPawn: () => void;
+  onDone: () => void;
+}) {
+  const lefts = waypoints.map((w) => `${(w.col / GRID_SIZE) * 100}%`);
+  const tops = waypoints.map((w) => `${(w.row / GRID_SIZE) * 100}%`);
+  const hopCount = waypoints.length - 1;
+
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        width: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
+        height: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
+        x: "-50%",
+        y: "-50%",
+        zIndex: 5,
+      }}
+      initial={{ left: lefts[0], top: tops[0] }}
+      animate={{ left: lefts, top: tops }}
+      transition={{ duration: (hopCount * HOP_STEP_MS) / 1000, ease: "easeInOut" }}
+      onAnimationComplete={onDone}
+    >
+      <PawnToken color={color} isLegal={isLegal} onClick={onSelectPawn} variant="track" />
+    </motion.div>
   );
 }
 

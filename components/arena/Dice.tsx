@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import type { PlayerColor } from "@/lib/board/types";
 
 // DESIGN.md "The Dice Component": 56-64pt white body, 14px micro-radius,
@@ -39,6 +41,10 @@ const PIP_LAYOUT: Record<number, [number, number][]> = {
   ],
 };
 
+// A gentle spring for "the dice just settled" — gives the pip grid a
+// slight bounce-in instead of snapping, without needing a keyframe array.
+const SETTLE_TRANSITION = { type: "spring", stiffness: 420, damping: 16 } as const;
+
 interface DiceProps {
   value: number | null;
   playerColor: PlayerColor;
@@ -62,6 +68,25 @@ export function Dice({ value, playerColor, size = 64, onRoll, disabled = false }
   const gridSize = Math.round(size * 0.625);
   const pipSize = Math.max(4, Math.round(size * 0.109));
 
+  // Purely decorative "in flight" flourish — starts the instant the roll
+  // is tapped, stops once the RPC call actually resolves (tracked via
+  // `disabled`, which the caller ties to its own pending state — success
+  // or failure, the shake should stop either way). This never guesses the
+  // outcome: the pip value shown always comes from `value`, which only
+  // ever changes once the server's real answer lands (PRD 6.2 — no
+  // client-side prediction of the dice value).
+  const [isRolling, setIsRolling] = useState(false);
+  const wasDisabledRef = useRef(disabled);
+  useEffect(() => {
+    if (wasDisabledRef.current && !disabled) setIsRolling(false);
+    wasDisabledRef.current = disabled;
+  }, [disabled]);
+
+  function handleRollClick() {
+    setIsRolling(true);
+    onRoll?.();
+  }
+
   const label = value === null ? (isInteractive ? "Tap to roll the dice" : "No roll yet") : `Dice showing ${value}`;
 
   const body = (
@@ -75,9 +100,13 @@ export function Dice({ value, playerColor, size = 64, onRoll, disabled = false }
           –
         </span>
       ) : (
-        <div
+        <motion.div
+          key={value}
           className="grid grid-cols-3 grid-rows-3 gap-0.5"
           style={{ width: gridSize, height: gridSize }}
+          initial={{ scale: 0.55, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={SETTLE_TRANSITION}
           aria-hidden
         >
           {Array.from({ length: 9 }, (_, i) => {
@@ -92,47 +121,60 @@ export function Dice({ value, playerColor, size = 64, onRoll, disabled = false }
               />
             );
           })}
-        </div>
+        </motion.div>
       )}
     </>
   );
 
-  // A ring around the body signals "roll" affordance (interactive, not
-  // disabled, not yet rolled this phase) or the six-roll pulse (either
-  // state) — never both at once, so a single boxShadow value covers it.
-  // Set via inline style (not a Tailwind shadow-* class) since the size is
-  // already dynamic — a disabled `shadow-none` class couldn't win against
-  // that inline style's specificity, so disabled state just omits the ring
-  // instead of trying to override it.
-  const ringShadow = isSix
-    ? `0 0 0 3px var(--quadrant-${playerColor})`
-    : isInteractive && !disabled
-      ? `0 0 0 2px var(--quadrant-${playerColor})`
-      : undefined;
+  // Priority: mid-roll shake beats the six-glow beats the plain "you can
+  // tap this" ring — in practice only one is ever true at a time, since
+  // isRolling always turns off before a value (and thus isSix) can land.
+  const idleShadow = isInteractive && !disabled ? `0 0 0 2px var(--quadrant-${playerColor})` : "0 0 0 0px transparent";
+  const sixShadow = `0 0 0 3px var(--quadrant-${playerColor})`;
 
-  const sharedClassName = `relative flex shrink-0 items-center justify-center rounded-[14px] border border-hairline bg-white shadow-elevation-2 transition-transform ${
-    isSix ? "animate-pulse" : ""
-  }`;
-  const sharedStyle = { width: size, height: size, ...(ringShadow ? { boxShadow: ringShadow } : {}) };
+  const animateTarget = isRolling
+    ? { rotate: [0, -10, 10, -8, 8, 0], scale: [1, 1.06, 0.96, 1.05, 0.97, 1], boxShadow: idleShadow }
+    : isSix
+      ? { rotate: 0, scale: [1, 1.05, 1], boxShadow: [sixShadow, "0 0 0 6px transparent", sixShadow] }
+      : { rotate: 0, scale: 1, boxShadow: idleShadow };
+
+  const transition = isRolling
+    ? { duration: 0.5, ease: "easeInOut" as const }
+    : isSix
+      ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" as const }
+      : SETTLE_TRANSITION;
+
+  const sharedClassName =
+    "relative flex shrink-0 items-center justify-center rounded-[14px] border border-hairline bg-white shadow-elevation-2";
 
   if (isInteractive) {
     return (
-      <button
+      <motion.button
         type="button"
-        onClick={onRoll}
+        onClick={handleRollClick}
         disabled={disabled}
-        className={`${sharedClassName} cursor-pointer active:scale-95 disabled:cursor-not-allowed disabled:opacity-60`}
-        style={sharedStyle}
+        className={`${sharedClassName} cursor-pointer disabled:cursor-not-allowed disabled:opacity-60`}
+        style={{ width: size, height: size }}
+        animate={animateTarget}
+        transition={transition}
+        whileTap={disabled ? undefined : { scale: 0.92 }}
         aria-label={label}
       >
         {body}
-      </button>
+      </motion.button>
     );
   }
 
   return (
-    <div className={sharedClassName} style={sharedStyle} aria-label={label} role="img">
+    <motion.div
+      className={sharedClassName}
+      style={{ width: size, height: size }}
+      animate={animateTarget}
+      transition={transition}
+      aria-label={label}
+      role="img"
+    >
       {body}
-    </div>
+    </motion.div>
   );
 }

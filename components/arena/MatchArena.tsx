@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { AnimatePresence, motion } from "framer-motion";
 import { Board } from "./Board";
 import { Dice } from "./Dice";
 import { StatusPod, pawnCountFor } from "./StatusPod";
@@ -190,20 +191,39 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
     // A standalone element next to (not inside) the card, appearing on
     // that player's own turn, plus the brief lingering window above — see
     // the const above for the exact left/right mapping `align` produces.
-    const dice = (isCurrentTurn || isLingering) && (
-      <Dice
-        value={isCurrentTurn ? room.activeDiceValue : (dicePresence?.value ?? null)}
-        playerColor={color}
-        size={INLINE_DICE_SIZE}
-        // Scoped to "it's genuinely my own turn, and the roll phase" —
-        // safe to check here directly: only the pod that is both
-        // isCurrentTurn AND mine can ever satisfy canRoll too, so a
-        // bot's or opponent's turn (lingering or not) always renders a
-        // plain, non-clickable dice, never a control I could tap on
-        // their behalf.
-        onRoll={canRoll ? () => void handleAction(() => requestRoll(client, roomId, connectionToken)) : undefined}
-        disabled={pending}
-      />
+    // Wrapped in its own AnimatePresence (not Dice.tsx's own internals) so
+    // the box itself fades/pops in and out as it mounts/unmounts — the
+    // hold window (previous fix) is what makes it stick around long
+    // enough to be seen at all; this is what makes that appearance and
+    // disappearance feel deliberate rather than an instant swap.
+    const dice = (
+      <AnimatePresence>
+        {(isCurrentTurn || isLingering) && (
+          <motion.div
+            key="dice"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ type: "spring", stiffness: 320, damping: 22 }}
+          >
+            <Dice
+              value={isCurrentTurn ? room.activeDiceValue : (dicePresence?.value ?? null)}
+              playerColor={color}
+              size={INLINE_DICE_SIZE}
+              // Scoped to "it's genuinely my own turn, and the roll phase" —
+              // safe to check here directly: only the pod that is both
+              // isCurrentTurn AND mine can ever satisfy canRoll too, so a
+              // bot's or opponent's turn (lingering or not) always renders a
+              // plain, non-clickable dice, never a control I could tap on
+              // their behalf.
+              onRoll={
+                canRoll ? () => void handleAction(() => requestRoll(client, roomId, connectionToken)) : undefined
+              }
+              disabled={pending}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     );
 
     return (

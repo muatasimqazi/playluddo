@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { QUADRANT_CLASSES } from "@/components/shared/colors";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { Player } from "@/lib/board/types";
@@ -27,26 +28,39 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
       </div>
       <div className="flex-1 space-y-2 overflow-y-auto">
         {ordered.length === 0 && <p className="px-1 text-body-sm text-text-muted">No events yet.</p>}
-        {ordered.map((event) => {
-          const player = event.player_id ? playerById.get(event.player_id) : undefined;
-          return (
-            <div key={event.id} className="rounded-xl border border-hairline bg-surface p-2.5 shadow-elevation-1">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-1.5">
-                  {player && (
-                    <span
-                      className={`h-2.5 w-2.5 shrink-0 rounded-full ${QUADRANT_CLASSES[player.color].bg}`}
-                      aria-hidden
-                    />
-                  )}
-                  <span className="truncate text-label-md text-foreground">{player?.displayName ?? "Match"}</span>
+        {/* initial={false}: only events that arrive AFTER first mount get
+            the slide-in — the feed a player joins mid-match to shouldn't
+            cascade-animate its whole backlog in at once. */}
+        <AnimatePresence initial={false}>
+          {ordered.map((event) => {
+            const player = event.player_id ? playerById.get(event.player_id) : undefined;
+            return (
+              <motion.div
+                key={event.id}
+                layout
+                initial={{ opacity: 0, y: -14, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                className="rounded-xl border border-hairline bg-surface p-2.5 shadow-elevation-1"
+              >
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    {player && (
+                      <span
+                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${QUADRANT_CLASSES[player.color].bg}`}
+                        aria-hidden
+                      />
+                    )}
+                    <span className="truncate text-label-md text-foreground">{player?.displayName ?? "Match"}</span>
+                  </div>
+                  <RelativeTime iso={event.created_at} />
                 </div>
-                <RelativeTime iso={event.created_at} />
-              </div>
-              <p className="text-body-sm text-text-secondary">{describeEvent(event)}</p>
-            </div>
-          );
-        })}
+                <p className="text-body-sm text-text-secondary">{describeEvent(event)}</p>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </div>
   );

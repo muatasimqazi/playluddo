@@ -1,6 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
+import { LayoutGroup, MotionConfig, motion } from "framer-motion";
 import { PATH_INDEX, pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState, Pawn, PlayerColor } from "@/lib/board/types";
 import {
@@ -24,6 +25,19 @@ interface BoardProps {
    */
   boardRef?: Ref<HTMLDivElement>;
 }
+
+// Every pawn wrapper below carries the SAME layoutId (pawn.id) across four
+// structurally different parents (a track cell, a home-lane cell, a nest
+// slot, a finished-cluster slot) — Framer's layoutId matches across the
+// whole tree regardless of component boundaries, so a pawn changing which
+// of those it's rendered in (nest exit, capture back to nest, home-lane
+// entry, finishing) animates as a FLIP slide instead of the hard
+// teleport/remount it was before. A touch of spring overshoot is what
+// gives every arrival — including a capture "bump" back to nest, or a
+// pawn finishing — some weight instead of a flat glide-and-stop; there's
+// no separate mount-triggered flourish because layoutId transitions never
+// unmount, so "on arrival" IS this transition settling.
+const PAWN_LAYOUT_TRANSITION = { type: "spring", stiffness: 480, damping: 24 } as const;
 
 export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
   const trackPawnsByCell = new Map<number, Pawn[]>();
@@ -74,8 +88,11 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       >
         <div className="flex h-full w-full items-center justify-center">
           {pawnsHere.map((pawn, i) => (
-            <div
+            <motion.div
               key={pawn.id}
+              layout
+              layoutId={pawn.id}
+              transition={PAWN_LAYOUT_TRANSITION}
               className={`relative flex h-[78%] w-[78%] items-center justify-center ${
                 i > 0 ? "-ml-[46%]" : ""
               }`}
@@ -87,7 +104,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
                 onClick={() => onSelectPawn(pawn.id)}
                 variant="track"
               />
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>,
@@ -105,8 +122,11 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
         >
           <div className="flex h-full w-full items-center justify-center">
             {pawnsHere.map((pawn, i) => (
-              <div
+              <motion.div
                 key={pawn.id}
+                layout
+                layoutId={pawn.id}
+                transition={PAWN_LAYOUT_TRANSITION}
                 className={`relative flex h-[78%] w-[78%] items-center justify-center ${
                   i > 0 ? "-ml-[46%]" : ""
                 }`}
@@ -118,7 +138,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
                   onClick={() => onSelectPawn(pawn.id)}
                   variant="track"
                 />
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -131,33 +151,37 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       ref={boardRef}
       className="mx-auto w-full max-w-115 border border-outline/55 bg-surface p-2 shadow-elevation-2 sm:max-w-135 sm:p-4 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
     >
-      <div
-        data-board-grid
-        className="relative grid aspect-square w-full max-w-full lg:h-full lg:w-auto overflow-hidden bg-surface"
-        style={{
-          gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
-          gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
-        }}
-      >
-        <BoardArtwork />
+      <MotionConfig reducedMotion="user">
+        <LayoutGroup>
+          <div
+            data-board-grid
+            className="relative grid aspect-square w-full max-w-full lg:h-full lg:w-auto overflow-hidden bg-surface"
+            style={{
+              gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
+              gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+            }}
+          >
+            <BoardArtwork />
 
-        {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
-          <BaseQuadrantHitArea
-            key={color}
-            color={color}
-            pawns={nestPawnsByColor.get(color) ?? []}
-            legalPawnIds={legalPawnIds}
-            onSelectPawn={onSelectPawn}
-          />
-        ))}
+            {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
+              <BaseQuadrantHitArea
+                key={color}
+                color={color}
+                pawns={nestPawnsByColor.get(color) ?? []}
+                legalPawnIds={legalPawnIds}
+                onSelectPawn={onSelectPawn}
+              />
+            ))}
 
-        {cells}
-        {homeLaneCells}
+            {cells}
+            {homeLaneCells}
 
-        {(Object.keys(FINISH_SLOT_POSITIONS) as PlayerColor[]).map((color) => (
-          <FinishedPawnCluster key={color} color={color} pawns={finishedPawnsByColor.get(color) ?? []} />
-        ))}
-      </div>
+            {(Object.keys(FINISH_SLOT_POSITIONS) as PlayerColor[]).map((color) => (
+              <FinishedPawnCluster key={color} color={color} pawns={finishedPawnsByColor.get(color) ?? []} />
+            ))}
+          </div>
+        </LayoutGroup>
+      </MotionConfig>
     </div>
   );
 }
@@ -240,19 +264,30 @@ function FinishedPawnCluster({ color, pawns }: { color: PlayerColor; pawns: Pawn
         const pawn = pawns[i];
         if (!pawn) return null;
         return (
-          <div
+          <motion.div
             key={pawn.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
+            layout
+            layoutId={pawn.id}
+            transition={PAWN_LAYOUT_TRANSITION}
+            className="absolute"
             style={{
               left: `${(col / GRID_SIZE) * 100}%`,
               top: `${(row / GRID_SIZE) * 100}%`,
               width: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
               height: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
+              // Centers the box on (left, top) — via framer's own x/y motion
+              // values, NOT a CSS `-translate-x-1/2` class: that class sets
+              // the same `transform` property framer's layout animation
+              // drives directly, and framer's inline style would win,
+              // silently dropping the centering offset the instant this
+              // element becomes layout-animated.
+              x: "-50%",
+              y: "-50%",
               zIndex: 5,
             }}
           >
             <PawnToken color={color} isLegal={false} onClick={onSelectPawnNoop} variant="track" />
-          </div>
+          </motion.div>
         );
       })}
     </>
@@ -330,15 +365,18 @@ function NestSlot({
   }
 
   return (
-    <button
+    <motion.button
       type="button"
+      layout
+      layoutId={pawn.id}
+      transition={PAWN_LAYOUT_TRANSITION}
       onClick={isLegal ? () => onSelectPawn(pawn.id) : undefined}
       disabled={!isLegal}
       aria-label={`${color} pawn in nest${isLegal ? " — legal move, tap to select" : ""}`}
       className="relative flex h-full w-full items-center justify-center rounded-full"
     >
       <PieceFace color={color} isLegal={isLegal} variant="nest" />
-    </button>
+    </motion.button>
   );
 }
 

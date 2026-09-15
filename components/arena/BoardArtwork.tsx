@@ -84,6 +84,9 @@ export function BoardArtwork() {
               }}
             />
             {safeColor && <NestBadge color={safeColor} cx={col + 0.5} cy={row + 0.5} r={CELL_STAR_RADIUS} />}
+            {/* <text x={col + 0.5} y={row + 0.9} fontSize={0.35} textAnchor="middle" fill="magenta">
+              {index}
+            </text> */}
           </g>
         );
       })}

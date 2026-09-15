@@ -96,7 +96,13 @@ export function BoardArtwork() {
 // 3 decorative arrows per arm — a curved "entry flow" arrow near the top of
 // the near-base column, a straight "advance" arrow partway down the far
 // column, and a short diagonal arrow at the arm-to-center corner — matching
-// the density the reference board actually has beyond its star badges.
+// the density the reference board actually has beyond its star badges. Per
+// direct instruction, every arrow should point inward (toward the board's
+// true center / each color's home lane), not outward toward the rim: the
+// straight and diagonal arrows already did (their arrowhead end is closer
+// to (7.5, 7.5) than their tail), but the curved arrow's head sat farther
+// from center than its tail, i.e. it pointed outward — fixed by reversing
+// the path direction (same arc, head and tail swapped) below.
 // Drawn once for the top arm in absolute grid coordinates, then rotated
 // 90/180/270° around the board's true center for the other 3 arms — the
 // same 4-fold rotation the rest of the board's geometry (CENTER_WEDGES,
@@ -123,7 +129,7 @@ function ArmDecorations() {
             <marker
               id={`arrowhead-${color}`}
               viewBox="0 0 12 12"
-              refX="10"
+              refX="8"
               refY="6"
               markerWidth="4.4"
               markerHeight="4.4"
@@ -135,7 +141,7 @@ function ArmDecorations() {
             <marker
               id={`arrowtail-${color}`}
               viewBox="0 0 12 12"
-              refX="9"
+              refX="13"
               refY="6"
               markerWidth="5.4"
               markerHeight="5.4"
@@ -145,7 +151,7 @@ function ArmDecorations() {
                 d="M9,2 L6,6 L9,10 M6.5,2 L3.5,6 L6.5,10 M4,2 L1,6 L4,10"
                 fill="none"
                 style={{ stroke: quadrant(color) }}
-                strokeWidth="1.8"
+                strokeWidth="1.2"
                 strokeLinecap="round"
               />
             </marker>
@@ -155,7 +161,7 @@ function ArmDecorations() {
       {ARM_ROTATIONS.map(({ angle, color }) => (
         <g key={angle} transform={`rotate(${angle} 7.5 7.5)`}>
           <path
-            d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
+            d="M7.3 0.65 Q6.55 0.55 6.35 1.75"
             fill="none"
             style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
             markerStart={`url(#arrowtail-${color})`}

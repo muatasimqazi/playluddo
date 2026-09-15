@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Board } from "./Board";
+import { Dice } from "./Dice";
 import { StatusPod, pawnCountFor } from "./StatusPod";
 import { ActivityFeed } from "./ActivityFeed";
 import { QUADRANT_CLASSES } from "@/components/shared/colors";
@@ -24,6 +25,15 @@ const QUADRANT_SLOTS: readonly { color: PlayerColor; corner: "tl" | "tr" | "bl" 
   { color: "blue", corner: "bl" },
   { color: "yellow", corner: "br" },
 ];
+
+// Standalone dice, next to (not inside) each name card — per direct
+// instruction, on the side that already faces "inward" for that card:
+// red/blue (left-column, align="left") on their own right; green/yellow
+// (right-column, align="right") on their own left. Confirmed explicitly
+// after an earlier ambiguous answer: red right, green left, blue right,
+// yellow left — exactly what QUADRANT_SLOTS' existing align already
+// encodes, so no separate per-color table is needed here.
+const INLINE_DICE_SIZE = 40;
 
 export function MatchArena({ client, roomId }: MatchArenaProps) {
   const roomState = useRoomStore((s) => s.roomState);
@@ -67,23 +77,51 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
   function podFor(room: GameRoomState, color: PlayerColor, align: "left" | "right") {
     const player = playerByColor.get(color);
     if (!player) return <div />;
-    return (
+    const isCurrentTurn = room.turnPlayerId === player.id;
+
+    const pod = (
       <StatusPod
         player={player}
         pawnCount={pawnCountFor(room, color)}
-        isCurrentTurn={room.turnPlayerId === player.id}
+        isCurrentTurn={isCurrentTurn}
         turnDeadlineAt={room.turnDeadlineAt}
         isYou={player.id === myPlayerId}
         align={align}
-        dice={{
-          value: room.activeDiceValue,
-          // Scoped to "it's genuinely my own turn, and the roll phase" —
-          // safe to hand to every pod, see StatusPod's own comment on this.
-          canRoll,
-          pending,
-          onRoll: () => void handleAction(() => requestRoll(client, roomId, connectionToken)),
-        }}
       />
+    );
+
+    // A standalone element next to (not inside) the card, appearing only
+    // on that player's own turn — see the const above for the exact
+    // left/right mapping this `align` produces.
+    const dice = isCurrentTurn && (
+      <Dice
+        value={room.activeDiceValue}
+        playerColor={color}
+        size={INLINE_DICE_SIZE}
+        // Scoped to "it's genuinely my own turn, and the roll phase" —
+        // safe to check here directly: only the pod that is both
+        // isCurrentTurn AND mine can ever satisfy canRoll too, so a
+        // bot's or opponent's turn always renders a plain, non-clickable
+        // dice, never a control I could tap on their behalf.
+        onRoll={canRoll ? () => void handleAction(() => requestRoll(client, roomId, connectionToken)) : undefined}
+        disabled={pending}
+      />
+    );
+
+    return (
+      <div className="flex min-w-0 items-center gap-2">
+        {align === "left" ? (
+          <>
+            {pod}
+            {dice}
+          </>
+        ) : (
+          <>
+            {dice}
+            {pod}
+          </>
+        )}
+      </div>
     );
   }
 

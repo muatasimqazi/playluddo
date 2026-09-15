@@ -57,10 +57,13 @@ export function globalCellToGridPosition(globalCell: number): { row: number; col
 }
 
 /**
- * Decorative home-lane strips (DESIGN.md: "Home runs: tinted 12% opacity
- * ... leading to the central triumph triangle"). Purely decorative — a
- * pawn in home_lane/finished state is never positioned on these cells;
- * PRD 5.2's "home progress" indicator in the status pod covers that.
+ * Home-lane strips (DESIGN.md: "Home runs: tinted 12% opacity ... leading
+ * to the central triumph triangle"). Index i is a pawn's homeIndex
+ * (pathIndex - PATH_INDEX.HOME_LANE_START, 0-4) for that color — Board.tsx
+ * actually positions home_lane-state pawns here (a pawn just vanishing on
+ * entering its home lane was the bug, not a real simplification worth
+ * keeping; the status pod's "home progress" count is a supplement to
+ * seeing the pawns move, not a replacement for it).
  */
 export const HOME_LANE_CELLS: Record<PlayerColor, readonly (readonly [number, number])[]> = {
   green: [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],

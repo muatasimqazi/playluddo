@@ -1,11 +1,12 @@
 "use client";
 
 import type { Ref } from "react";
-import { pathIndexToGlobalCell } from "@/lib/board/geometry";
+import { PATH_INDEX, pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState, Pawn, PlayerColor } from "@/lib/board/types";
 import {
   BASE_AREA,
   GRID_SIZE,
+  HOME_LANE_CELLS,
   globalCellToGridPosition,
 } from "./boardLayout";
 import { BoardArtwork } from "./BoardArtwork";
@@ -27,6 +28,17 @@ interface BoardProps {
 export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
   const trackPawnsByCell = new Map<number, Pawn[]>();
   const nestPawnsByColor = new Map<PlayerColor, Pawn[]>();
+  // Keyed by `${color}-${homeIndex}` (homeIndex 0-4, one of HOME_LANE_CELLS'
+  // 5 cells for that color) — a pawn's pathIndex maps to exactly one
+  // homeIndex the same way it maps to exactly one global track cell, and
+  // same-color pawns can share a cell here too (no-blockade rule applies
+  // in the home lane the same as the shared track), so this stacks the
+  // same way trackPawnsByCell does.
+  const homeLanePawnsByKey = new Map<string, Pawn[]>();
+  // Order-stable (roomState.pawns' own order, i.e. by pawn.index) so a
+  // given pawn keeps the same finish slot as more of its color finish —
+  // same pattern NEST_SLOT_POSITIONS below already uses for nest pawns.
+  const finishedPawnsByColor = new Map<PlayerColor, Pawn[]>();
 
   for (const pawn of roomState.pawns) {
     if (pawn.state === "track" && pawn.pathIndex !== null) {
@@ -38,6 +50,15 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       const list = nestPawnsByColor.get(pawn.color) ?? [];
       list.push(pawn);
       nestPawnsByColor.set(pawn.color, list);
+    } else if (pawn.state === "home_lane" && pawn.pathIndex !== null) {
+      const key = `${pawn.color}-${pawn.pathIndex - PATH_INDEX.HOME_LANE_START}`;
+      const list = homeLanePawnsByKey.get(key) ?? [];
+      list.push(pawn);
+      homeLanePawnsByKey.set(key, list);
+    } else if (pawn.state === "finished") {
+      const list = finishedPawnsByColor.get(pawn.color) ?? [];
+      list.push(pawn);
+      finishedPawnsByColor.set(pawn.color, list);
     }
   }
 
@@ -73,6 +94,38 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
     );
   }
 
+  const homeLaneCells = (Object.keys(HOME_LANE_CELLS) as PlayerColor[]).flatMap((color) =>
+    HOME_LANE_CELLS[color].map(([row, col], homeIndex) => {
+      const pawnsHere = homeLanePawnsByKey.get(`${color}-${homeIndex}`) ?? [];
+      return (
+        <div
+          key={`home-${color}-${homeIndex}`}
+          className="flex items-center justify-center"
+          style={{ gridRow: row + 1, gridColumn: col + 1, zIndex: 4 }}
+        >
+          <div className="flex h-full w-full items-center justify-center">
+            {pawnsHere.map((pawn, i) => (
+              <div
+                key={pawn.id}
+                className={`relative flex h-[78%] w-[78%] items-center justify-center ${
+                  i > 0 ? "-ml-[46%]" : ""
+                }`}
+                style={{ zIndex: i }}
+              >
+                <PawnToken
+                  color={pawn.color}
+                  isLegal={legalPawnIds.has(pawn.id)}
+                  onClick={() => onSelectPawn(pawn.id)}
+                  variant="track"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }),
+  );
+
   return (
     <div
       ref={boardRef}
@@ -99,6 +152,11 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
         ))}
 
         {cells}
+        {homeLaneCells}
+
+        {(Object.keys(FINISH_SLOT_POSITIONS) as PlayerColor[]).map((color) => (
+          <FinishedPawnCluster key={color} color={color} pawns={finishedPawnsByColor.get(color) ?? []} />
+        ))}
       </div>
     </div>
   );
@@ -133,6 +191,79 @@ const NEST_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number, numbe
     [89.728, 88.655],
   ],
 };
+
+// The 4 "home pile" slots per color, inside that color's own center
+// pinwheel wedge — pawns in the "finished" state (pathIndex 56) were
+// computed but never actually rendered anywhere before, so a pawn that
+// completed the board just vanished. Two rows of two, straddling that
+// wedge's own star badge (CENTER_WEDGES in BoardArtwork.tsx) — some
+// visual overlap with the star is expected/fine (real Ludo boards pile
+// finished pawns right on top of the home decoration), spaced roughly a
+// pawn-diameter apart so up to 4 in the same wedge don't overlap each
+// other. Board-grid units (0-15), same space as everything else on this
+// board, not percentages — converted in FinishedPawnCluster below.
+const FINISH_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number, number])[]> = {
+  green: [
+    [7.1, 6.95],
+    [7.9, 6.95],
+    [7.1, 6.35],
+    [7.9, 6.35],
+  ],
+  yellow: [
+    [8.05, 7.1],
+    [8.05, 7.9],
+    [8.65, 7.1],
+    [8.65, 7.9],
+  ],
+  blue: [
+    [7.1, 8.05],
+    [7.9, 8.05],
+    [7.1, 8.65],
+    [7.9, 8.65],
+  ],
+  red: [
+    [6.95, 7.1],
+    [6.95, 7.9],
+    [6.35, 7.1],
+    [6.35, 7.9],
+  ],
+};
+
+// Absolutely positioned (not a grid item, unlike track/home-lane cells) —
+// FINISH_SLOT_POSITIONS' coordinates don't land on integer grid lines, so
+// this converts them to percentages of the whole board instead of using
+// gridRow/gridColumn placement.
+function FinishedPawnCluster({ color, pawns }: { color: PlayerColor; pawns: Pawn[] }) {
+  return (
+    <>
+      {FINISH_SLOT_POSITIONS[color].map(([col, row], i) => {
+        const pawn = pawns[i];
+        if (!pawn) return null;
+        return (
+          <div
+            key={pawn.id}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{
+              left: `${(col / GRID_SIZE) * 100}%`,
+              top: `${(row / GRID_SIZE) * 100}%`,
+              width: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
+              height: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
+              zIndex: 5,
+            }}
+          >
+            <PawnToken color={color} isLegal={false} onClick={onSelectPawnNoop} variant="track" />
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// Finished pawns are never a legal move target (PRD/rules.test.ts: "finished
+// pawns never appear in legal moves again"), so PawnToken's button is always
+// disabled here regardless — this exists only because PawnToken's onClick
+// prop is required, not because it can ever actually fire.
+function onSelectPawnNoop() {}
 
 // Transparent hit areas aligned over the printed nest slots in the board
 // texture. The artwork supplies the visible star badges; this layer only

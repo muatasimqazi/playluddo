@@ -11,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Ludo Rivals",
+  title: "Let's Play Luddo",
   description: "Fast online Ludo matches with friends and rivals.",
 };
 

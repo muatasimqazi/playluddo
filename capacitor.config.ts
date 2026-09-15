@@ -6,8 +6,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * has been added, and none should be until that scope decision changes.
  */
 const config: CapacitorConfig = {
-  appId: "com.ludorivals.app",
-  appName: "Ludo Rivals",
+  appId: "com.playluddo.app",
+  appName: "Let's Play Luddo",
   webDir: "out",
 };
 

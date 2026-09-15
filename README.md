@@ -1,4 +1,4 @@
-# Ludo Rivals
+# Let's Play Luddo
 
 Fast, server-authoritative online Ludo with private rooms, bots, and a responsive web arena.
 

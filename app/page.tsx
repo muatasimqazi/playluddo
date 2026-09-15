@@ -52,7 +52,7 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
       <div className="text-center">
-        <h1 className="text-headline-lg tracking-tight text-foreground">Ludo Rivals</h1>
+        <h1 className="text-headline-lg tracking-tight text-foreground">Let&apos;s Play Luddo</h1>
         <p className="text-body-md text-text-secondary">Fast online Ludo with friends and rivals.</p>
       </div>
 

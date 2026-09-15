@@ -64,12 +64,25 @@ export function globalCellToGridPosition(globalCell: number): { row: number; col
  * entering its home lane was the bug, not a real simplification worth
  * keeping; the status pod's "home progress" count is a supplement to
  * seeing the pawns move, not a replacement for it).
+ *
+ * Index 0 must be the cell adjacent to that color's OWN last shared-track
+ * cell (pathIndex 50 — where a pawn actually enters its home lane from),
+ * and index 4 the cell adjacent to the center. red's and yellow's arrays
+ * had this backwards (verified by computing each color's real pathIndex-50
+ * exit cell via TRACK_POSITIONS/ENTRY_OFFSET and comparing distances): red
+ * exits the shared track at [7,0], right next to what was index 4 ([7,1]),
+ * not index 0 ([7,5]) — same shape of bug for yellow, exiting at [7,14]
+ * next to what was index 4 ([7,13]). A pawn advancing through the home
+ * lane read as moving AWAY from the center instead of toward it — visually
+ * backward — for exactly those two colors; green ([0,7] exit next to its
+ * own index 0, [1,7]) and blue ([14,7] exit next to its index 0, [13,7])
+ * were already correct.
  */
 export const HOME_LANE_CELLS: Record<PlayerColor, readonly (readonly [number, number])[]> = {
   green: [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
-  yellow: [[7, 9], [7, 10], [7, 11], [7, 12], [7, 13]],
+  yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
   blue: [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]],
-  red: [[7, 5], [7, 4], [7, 3], [7, 2], [7, 1]],
+  red: [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
 };
 
 interface GridArea {

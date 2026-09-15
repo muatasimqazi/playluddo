@@ -282,7 +282,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
     );
 
     return (
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
         {align === "left" ? (
           <>
             {pod}
@@ -339,9 +339,23 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
             </div>
           )}
 
+          {/* flex-col below sm: two ~210px+ pods (avatar + timer slot +
+              name/status/roll text, each already at its own practical
+              minimum) plus the inline dice box simply don't fit side by
+              side in a <400px viewport — they don't wrap, they overflow
+              the row, and since the section around them sets
+              overflow-y-auto, the CSS spec's "non-visible one axis makes
+              visible-on-the-other compute to auto" rule silently makes
+              overflow-x auto too, so the excess is clipped/scrollable
+              instead of visibly broken — invisibly eating the current
+              player's own dice/roll control off to the side. Stacking
+              (each pod full width) sidesteps the fit problem entirely
+              instead of trying to cram content into less space; per the
+              wrapper below, normal page scroll already handles the
+              resulting extra height below lg. */}
           <div
             style={matchBoardWidthStyle}
-            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 items-center justify-between gap-2"
+            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
           >
             {podFor(roomState, QUADRANT_SLOTS[0].color, "left")}
             {podFor(roomState, QUADRANT_SLOTS[1].color, "right")}
@@ -365,7 +379,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
 
           <div
             style={matchBoardWidthStyle}
-            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 items-center justify-between gap-2"
+            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
           >
             {podFor(roomState, QUADRANT_SLOTS[2].color, "left")}
             {podFor(roomState, QUADRANT_SLOTS[3].color, "right")}

@@ -180,7 +180,7 @@ export function StatusPod({
 
   return (
     <motion.div
-      className={`flex items-center gap-2 rounded-2xl border bg-surface p-2 shadow-elevation-1 transition-colors duration-200 ${
+      className={`flex min-w-0 items-center gap-2 rounded-2xl border bg-surface p-2 shadow-elevation-1 transition-colors duration-200 ${
         isCurrentTurn ? `${classes.border} border-[1.5px]` : "border-hairline"
       }`}
       animate={{ scale: isCurrentTurn ? 1.03 : 1, opacity: isCurrentTurn ? 1 : 0.72 }}

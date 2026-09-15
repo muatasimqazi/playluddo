@@ -72,7 +72,17 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
   >(new Map());
 
   const trackPawnsByCell = new Map<number, Pawn[]>();
-  const nestPawnsByColor = new Map<PlayerColor, Pawn[]>();
+  // Keyed by the pawn's own stable `index` (0-3, mirrors the DB's
+  // pawn_index), NOT array/encounter order — unlike finishedPawnsByColor
+  // below, nest pawns are removed from this list (not just added to) as
+  // they exit, and removing an entry from the MIDDLE of a plain array
+  // shifts every later pawn's array index down. Since NestSlot below used
+  // to key each slot by array position, that shift made an untouched
+  // sibling pawn's own layoutId FLIP-slide into the vacated slot — a
+  // pawn that never left the nest visibly "jumping" there instead of the
+  // pawn that actually did. A 4-slot array indexed by pawn.index directly
+  // means a slot's occupant only ever changes for that exact pawn.
+  const nestPawnsByColor = new Map<PlayerColor, (Pawn | undefined)[]>();
   // Keyed by `${color}-${homeIndex}` (homeIndex 0-4, one of HOME_LANE_CELLS'
   // 5 cells for that color) — a pawn's pathIndex maps to exactly one
   // homeIndex the same way it maps to exactly one global track cell, and
@@ -82,7 +92,9 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
   const homeLanePawnsByKey = new Map<string, Pawn[]>();
   // Order-stable (roomState.pawns' own order, i.e. by pawn.index) so a
   // given pawn keeps the same finish slot as more of its color finish —
-  // same pattern NEST_SLOT_POSITIONS below already uses for nest pawns.
+  // safe as a plain append-only array (unlike nestPawnsByColor above)
+  // because a finished pawn never leaves the finished state, so nothing
+  // is ever removed from the middle to reshuffle it.
   const finishedPawnsByColor = new Map<PlayerColor, Pawn[]>();
 
   for (const pawn of roomState.pawns) {
@@ -92,8 +104,8 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       list.push(pawn);
       trackPawnsByCell.set(globalCell, list);
     } else if (pawn.state === "nest") {
-      const list = nestPawnsByColor.get(pawn.color) ?? [];
-      list.push(pawn);
+      const list = nestPawnsByColor.get(pawn.color) ?? [undefined, undefined, undefined, undefined];
+      list[pawn.index] = pawn;
       nestPawnsByColor.set(pawn.color, list);
     } else if (pawn.state === "home_lane" && pawn.pathIndex !== null) {
       const key = `${pawn.color}-${pawn.pathIndex - PATH_INDEX.HOME_LANE_START}`;
@@ -420,8 +432,17 @@ function HoppingPawn({
   onSelectPawn: () => void;
   onDone: () => void;
 }) {
-  const lefts = waypoints.map((w) => `${(w.col / GRID_SIZE) * 100}%`);
-  const tops = waypoints.map((w) => `${(w.row / GRID_SIZE) * 100}%`);
+  // +0.5: waypoints are raw grid cell indices (the same ones gridRow/
+  // gridColumn use for static placement), but a static cell's pawn sits
+  // at that cell's CENTER — CSS Grid places the (row+1)-th 1fr track from
+  // row/GRID_SIZE to (row+1)/GRID_SIZE, and `items-center justify-center`
+  // centers within it, i.e. at (row+0.5)/GRID_SIZE. Without this offset
+  // every waypoint here landed a full half-cell up-and-left of where the
+  // cell actually is, so the hop visibly cut across the board off-track
+  // and then snapped half a cell over the instant onDone handed back to
+  // normal grid rendering (whose math this now matches exactly).
+  const lefts = waypoints.map((w) => `${((w.col + 0.5) / GRID_SIZE) * 100}%`);
+  const tops = waypoints.map((w) => `${((w.row + 0.5) / GRID_SIZE) * 100}%`);
   const hopCount = waypoints.length - 1;
 
   return (
@@ -436,7 +457,15 @@ function HoppingPawn({
       }}
       initial={{ left: lefts[0], top: tops[0] }}
       animate={{ left: lefts, top: tops }}
-      transition={{ duration: (hopCount * HOP_STEP_MS) / 1000, ease: "easeInOut" }}
+      // `ease` (given a single, non-array value) applies to EVERY segment
+      // of a keyframe array individually, not once across the whole
+      // sequence — an easeInOut here meant each individual ~170ms hop
+      // decelerated and reaccelerated, so a multi-cell move read as a
+      // rapid stutter instead of one fluid glide. `linear` per segment
+      // composes into one continuous constant-speed run across however
+      // many cells, which is what "hopping along the track" should
+      // actually look like.
+      transition={{ duration: (hopCount * HOP_STEP_MS) / 1000, ease: "linear" }}
       onAnimationComplete={onDone}
     >
       <PawnToken color={color} isLegal={isLegal} onClick={onSelectPawn} variant="track" />
@@ -460,7 +489,7 @@ function BaseQuadrantHitArea({
   onSelectPawn,
 }: {
   color: PlayerColor;
-  pawns: Pawn[];
+  pawns: (Pawn | undefined)[];
   legalPawnIds: ReadonlySet<string>;
   onSelectPawn: (pawnId: string) => void;
 }) {

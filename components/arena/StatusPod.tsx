@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { DicePipFace } from "./Dice";
 import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import type { GameRoomState, Player } from "@/lib/board/types";
@@ -85,6 +86,18 @@ export function StatusPod({
               strokeWidth={3}
               strokeLinecap="round"
               strokeDasharray={RING_CIRCUMFERENCE}
+              // Explicit `initial` (matching animate's own current value at
+              // mount) rather than none: strokeDashoffset is only ever set
+              // via `animate` here, never a static attribute, and unlike a
+              // CSS property, an SVG presentation attribute has no
+              // meaningful "current" value Motion can read off the DOM to
+              // animate from on first mount — hence "from undefined". Since
+              // this element mounts fresh every turn (AnimatePresence
+              // above), matching animate's value means the ring simply
+              // appears at the correct progress instead of sweeping in from
+              // nowhere; subsequent ticks (same mounted instance, target
+              // value changing) still animate normally.
+              initial={{ strokeDashoffset: RING_CIRCUMFERENCE * (1 - ringProgress) }}
               animate={{ strokeDashoffset: RING_CIRCUMFERENCE * (1 - ringProgress) }}
               // Matches useCountdown's own 250ms tick — a linear tween exactly
               // that long makes each tick's jump interpolate smoothly into the
@@ -126,18 +139,27 @@ export function StatusPod({
             card — before a player's first roll it just reads "Rolled –",
             matching Dice.tsx's own dash placeholder for "no value yet".
             Re-keyed by the value itself, so each new roll (dash included)
-            still gets its own little pop. */}
+            still gets its own little pop.
+            Carries its own mini pip face (DicePipFace) alongside the
+            text — per direct instruction, the roll-in-progress dice next
+            to the card disappears the moment a turn ends (or, for a
+            no-legal-move roll, can end in the very same broadcast that
+            would've shown it at all), so a pip pattern shown only there
+            was too easy to miss. This one is permanent, so it's always
+            there to glance at instead of having to read the number. */}
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
             key={lastRoll ?? "none"}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 whitespace-nowrap"
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
             transition={POP_TRANSITION}
+            aria-label={lastRoll != null ? `Rolled ${lastRoll}` : "No roll yet"}
           >
             <span aria-hidden>·</span>
-            <span>Rolled {lastRoll ?? "–"}</span>
+            {lastRoll != null && <DicePipFace value={lastRoll} />}
+            <span aria-hidden>{lastRoll ?? "–"}</span>
           </motion.span>
         </AnimatePresence>
       </div>

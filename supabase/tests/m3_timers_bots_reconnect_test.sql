@@ -125,15 +125,17 @@ select ok(
 );
 
 -- -------------------------------------------------------------------------
--- Deadline helper: bot-controlled -> immediate; human -> full 15s window.
+-- Deadline helper: bot-controlled -> a short pacing pause (2s, so a
+-- bot-vs-bot match is actually watchable — 20260915065556_slow_bot_turn_
+-- pacing.sql); human -> full 15s window.
 -- -------------------------------------------------------------------------
 
 update public.players set status = 'connected', is_bot = false, auto_roll_enabled = false
 where id = 'bbbbbbbb-0000-0000-0000-000000000001';
 
 select ok(
-  private.ludo_next_turn_deadline('bbbbbbbb-0000-0000-0000-000000000002') <= now() + interval '1 second',
-  'a bot-controlled player gets an immediate deadline'
+  private.ludo_next_turn_deadline('bbbbbbbb-0000-0000-0000-000000000002') between now() + interval '1 second' and now() + interval '3 seconds',
+  'a bot-controlled player gets a short pacing-pause deadline, not an immediate or human-length one'
 );
 select ok(
   private.ludo_next_turn_deadline('bbbbbbbb-0000-0000-0000-000000000001') > now() + interval '10 seconds',

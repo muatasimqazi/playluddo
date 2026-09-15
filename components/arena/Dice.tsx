@@ -7,7 +7,7 @@ import type { PlayerColor } from "@/lib/board/types";
 // DESIGN.md "The Dice Component": 56-64pt white body, 14px micro-radius,
 // hairline border, deep-black pips (not a numeral) — six-roll pulses the
 // active player's quadrant color.
-const PIP_LAYOUT: Record<number, [number, number][]> = {
+export const PIP_LAYOUT: Record<number, [number, number][]> = {
   1: [[1, 1]],
   2: [
     [0, 0],
@@ -176,5 +176,35 @@ export function Dice({ value, playerColor, size = 64, onRoll, disabled = false }
     >
       {body}
     </motion.div>
+  );
+}
+
+// A bare pip grid with no body/border/interactivity — for showing a
+// player's last roll permanently (StatusPod's "Rolled N" readout), where
+// the full Dice component's own box would be redundant. Per direct
+// instruction: the roll-in-progress dice box disappears the moment a
+// turn ends (and, for a no-legal-move roll, can end in the very same
+// broadcast that would have shown it at all — see MatchArena.tsx's
+// lastRollByPlayerId derivation), so pips shown only there are too easy
+// to miss. This gives every card its own permanent, glanceable pip
+// pattern alongside the text, matching a physical die at a glance rather
+// than requiring the number to be read.
+export function DicePipFace({ value, size = 14 }: { value: number; size?: number }) {
+  const pipSize = Math.max(2, Math.round(size * 0.15));
+  return (
+    <span
+      className="grid shrink-0 grid-cols-3 grid-rows-3 gap-px rounded-[3px] border border-hairline bg-white p-0.5"
+      style={{ width: size, height: size }}
+      aria-hidden
+    >
+      {Array.from({ length: 9 }, (_, i) => {
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        const active = PIP_LAYOUT[value]?.some(([r, c]) => r === row && c === col);
+        return (
+          <span key={i} className={`m-auto rounded-full ${active ? "bg-foreground" : ""}`} style={{ width: pipSize, height: pipSize }} />
+        );
+      })}
+    </span>
   );
 }

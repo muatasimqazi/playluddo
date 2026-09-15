@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Board } from "./Board";
 import { Dice } from "./Dice";
@@ -33,6 +33,14 @@ const QUADRANT_SLOTS: readonly { color: PlayerColor; corner: "tl" | "tr" | "bl" 
 // yellow left — exactly what QUADRANT_SLOTS' existing align already
 // encodes, so no separate per-color table is needed here.
 const INLINE_DICE_SIZE = 40;
+
+// A roll and the turn it belongs to can both resolve within the same
+// realtime broadcast (no bonus roll = move + next-turn happen together
+// server-side), so the pod dice could show a value for well under a
+// second, especially against a bot. Per direct instruction, hold the
+// most recent roll visible for at least this long before letting the
+// turn handoff hide it.
+const DICE_HOLD_MS = 2500;
 
 export function MatchArena({ client, roomId }: MatchArenaProps) {
   const roomState = useRoomStore((s) => s.roomState);
@@ -70,6 +78,59 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
     observer.observe(node);
     resizeObserverRef.current = observer;
   }, []);
+
+  // The match_events log (already fetched for the Activity Feed) turns out
+  // to be a far more reliable source for "what did each player roll" than
+  // roomState.activeDiceValue: per ludo_perform_roll's "No-move turn"
+  // branch (all pawns nested, non-six — no legal move exists), the server
+  // advances the turn in the SAME update that would have set
+  // active_dice_value, so the client can go straight from one player's
+  // awaiting_roll to the next player's awaiting_roll without
+  // activeDiceValue ever passing through that roll's value at all — "the
+  // dice roll doesn't show up" is that case exactly. A 'dice_rolled' event
+  // is appended unconditionally on every roll, though (see the SQL), so
+  // deriving from `events` instead can't miss one.
+  const lastRollByPlayerId = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const event of events) {
+      if (event.event_type !== "dice_rolled" || !event.player_id) continue;
+      const dieValue = event.payload?.dieValue;
+      if (typeof dieValue === "number") map[event.player_id] = dieValue;
+    }
+    return map;
+  }, [events]);
+
+  // The single most recent roll, if any — reference-stable across renders
+  // where it hasn't actually changed (same array element from `events`,
+  // not a fresh object), which is what lets the effect below key off it
+  // directly instead of needing its own separate "is this new" guard.
+  const latestRollEvent = useMemo(
+    () => events.findLast((event) => event.event_type === "dice_rolled") ?? null,
+    [events],
+  );
+
+  // dicePresence mirrors latestRollEvent but stays truthy for DICE_HOLD_MS
+  // after it — per direct instruction, the pod dice shouldn't just vanish
+  // the instant the turn moves on (a real risk against a bot, which can
+  // resolve a whole turn in well under a second). The effect only manages
+  // *when this roll's hold period has elapsed* (a genuine subscription to
+  // the clock, setState only inside the timer callback); dicePresence
+  // itself is a plain derived value, not something an effect assigns.
+  const [expiredRollEventId, setExpiredRollEventId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!latestRollEvent) return;
+    const timer = setTimeout(() => setExpiredRollEventId(latestRollEvent.id), DICE_HOLD_MS);
+    return () => clearTimeout(timer);
+  }, [latestRollEvent]);
+
+  const dicePresence = useMemo(() => {
+    if (!latestRollEvent || latestRollEvent.id === expiredRollEventId) return null;
+    const dieValue = latestRollEvent.payload?.dieValue;
+    const playerId = latestRollEvent.player_id;
+    if (typeof dieValue !== "number" || !playerId) return null;
+    return { playerId, value: dieValue };
+  }, [latestRollEvent, expiredRollEventId]);
 
   const myPlayer = roomState?.players.find((p) => p.id === myPlayerId) ?? null;
   const isMyTurn = roomState !== null && roomState.turnPlayerId === myPlayerId;
@@ -109,6 +170,10 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
     const player = playerByColor.get(color);
     if (!player) return <div />;
     const isCurrentTurn = room.turnPlayerId === player.id;
+    // The turn already moved on, but this player's roll is still within
+    // its DICE_HOLD_MS hold window — keep their dice box up a bit longer
+    // instead of it vanishing the instant isCurrentTurn goes false.
+    const isLingering = !isCurrentTurn && dicePresence?.playerId === player.id;
 
     const pod = (
       <StatusPod
@@ -118,22 +183,24 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         turnDeadlineAt={room.turnDeadlineAt}
         isYou={player.id === myPlayerId}
         align={align}
+        lastRoll={lastRollByPlayerId[player.id] ?? null}
       />
     );
 
-    // A standalone element next to (not inside) the card, appearing only
-    // on that player's own turn — see the const above for the exact
-    // left/right mapping this `align` produces.
-    const dice = isCurrentTurn && (
+    // A standalone element next to (not inside) the card, appearing on
+    // that player's own turn, plus the brief lingering window above — see
+    // the const above for the exact left/right mapping `align` produces.
+    const dice = (isCurrentTurn || isLingering) && (
       <Dice
-        value={room.activeDiceValue}
+        value={isCurrentTurn ? room.activeDiceValue : (dicePresence?.value ?? null)}
         playerColor={color}
         size={INLINE_DICE_SIZE}
         // Scoped to "it's genuinely my own turn, and the roll phase" —
         // safe to check here directly: only the pod that is both
         // isCurrentTurn AND mine can ever satisfy canRoll too, so a
-        // bot's or opponent's turn always renders a plain, non-clickable
-        // dice, never a control I could tap on their behalf.
+        // bot's or opponent's turn (lingering or not) always renders a
+        // plain, non-clickable dice, never a control I could tap on
+        // their behalf.
         onRoll={canRoll ? () => void handleAction(() => requestRoll(client, roomId, connectionToken)) : undefined}
         disabled={pending}
       />

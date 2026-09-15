@@ -12,6 +12,13 @@ interface StatusPodProps {
   isYou: boolean;
   /** Mirrors the pod for the board's right-side quadrants (green/yellow), matching the reference layout. */
   align?: "left" | "right";
+  /**
+   * This player's most recent roll, if any — per direct instruction, a
+   * permanent record on the card itself (unlike the separate dice next to
+   * the card, this never disappears: it just keeps updating). Answers
+   * "what did they roll" even long after their turn has passed.
+   */
+  lastRoll?: number | null;
 }
 
 const DECISION_WINDOW_SECONDS = 15;
@@ -23,7 +30,15 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 // border; active turn state is full opacity, a 1.5pt player-color border,
 // and a micro-scale of 1.03. The countdown ring depletes from the player's
 // quadrant color into warning red as time runs low.
-export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, isYou, align = "left" }: StatusPodProps) {
+export function StatusPod({
+  player,
+  pawnCount,
+  isCurrentTurn,
+  turnDeadlineAt,
+  isYou,
+  align = "left",
+  lastRoll,
+}: StatusPodProps) {
   const classes = QUADRANT_CLASSES[player.color];
   const secondsLeft = useCountdown(isCurrentTurn ? turnDeadlineAt : null);
   const isLow = secondsLeft !== null && secondsLeft <= 5;
@@ -88,6 +103,12 @@ export function StatusPod({ player, pawnCount, isCurrentTurn, turnDeadlineAt, is
         <span>
           {pawnCount.finished}/{pawnCount.total} home
         </span>
+        {lastRoll != null && (
+          <>
+            <span aria-hidden>·</span>
+            <span>Rolled {lastRoll}</span>
+          </>
+        )}
       </div>
     </div>
   );

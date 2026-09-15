@@ -116,6 +116,31 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
     [events],
   );
 
+  // Plays for every roll (mine, another player's, or a bot's — anyone
+  // this client is watching), not just the local tap-to-roll click:
+  // latestRollEvent already fires for a no-legal-move roll too, which
+  // never touches activeDiceValue at all. Guarded by "have I already
+  // played for this event," seeded to the CURRENT latestRollEvent on
+  // first render (undefined sentinel, not null — a room can genuinely
+  // have no rolls yet) so joining or reconnecting mid-match doesn't
+  // replay a sound for history that happened before this client was
+  // here — only a roll that arrives after mount should ever play.
+  const playedRollEventIdRef = useRef<number | null | undefined>(undefined);
+  useEffect(() => {
+    if (!latestRollEvent) return;
+    if (playedRollEventIdRef.current === undefined) {
+      playedRollEventIdRef.current = latestRollEvent.id;
+      return;
+    }
+    if (latestRollEvent.id === playedRollEventIdRef.current) return;
+    playedRollEventIdRef.current = latestRollEvent.id;
+    // A fresh Audio per play (not one shared/reused instance) so two
+    // rolls landing close together — easy with bots — overlap instead of
+    // the second cutting the first's tail off by restarting it.
+    const audio = new Audio("/sounds/dice-roll.wav");
+    void audio.play().catch(() => {});
+  }, [latestRollEvent]);
+
   // heldRoll mirrors latestRollEvent but stays truthy for DICE_HOLD_MS
   // after it, so the pod dice doesn't just vanish the instant the turn
   // moves on. Derived state (an expiry marker set by a timer effect, not

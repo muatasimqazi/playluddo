@@ -121,31 +121,39 @@ export function StatusPod({
         <span>
           {pawnCount.finished}/{pawnCount.total} home
         </span>
-        {/* Re-keyed by the value itself, not just presence — each new roll
-            gets its own little pop, not only the first one ever shown. */}
+        {/* Always mounted (unlike the old "only once they've rolled"
+            version) so this segment's presence never itself resizes the
+            card — before a player's first roll it just reads "Rolled –",
+            matching Dice.tsx's own dash placeholder for "no value yet".
+            Re-keyed by the value itself, so each new roll (dash included)
+            still gets its own little pop. */}
         <AnimatePresence mode="popLayout" initial={false}>
-          {lastRoll != null && (
-            <motion.span
-              key={lastRoll}
-              className="flex items-center gap-1"
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              transition={POP_TRANSITION}
-            >
-              <span aria-hidden>·</span>
-              <span>Rolled {lastRoll}</span>
-            </motion.span>
-          )}
+          <motion.span
+            key={lastRoll ?? "none"}
+            className="flex items-center gap-1"
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={POP_TRANSITION}
+          >
+            <span aria-hidden>·</span>
+            <span>Rolled {lastRoll ?? "–"}</span>
+          </motion.span>
         </AnimatePresence>
       </div>
     </div>
   );
 
+  // Fixed-width slot, always present, so the pill itself mounting/
+  // unmounting as a turn starts and ends never changes the card's own
+  // width — without this the whole card visibly grew and shrank every
+  // single turn as players rotated through.
   const timerPill = (
-    <AnimatePresence>
-      {isCurrentTurn && secondsLeft !== null && <TimerPill key="timer" isLow={isLow} secondsLeft={secondsLeft} />}
-    </AnimatePresence>
+    <div className="flex w-9 shrink-0 justify-center">
+      <AnimatePresence>
+        {isCurrentTurn && secondsLeft !== null && <TimerPill key="timer" isLow={isLow} secondsLeft={secondsLeft} />}
+      </AnimatePresence>
+    </div>
   );
 
   return (

@@ -65,7 +65,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-115 border border-outline/55 bg-surface p-2 shadow-elevation-2 sm:max-w-135 sm:p-4 md:max-w-160 xl:max-w-190">
+    <div className="mx-auto w-full max-w-115 border border-outline/55 bg-surface p-2 shadow-elevation-2 sm:max-w-135 sm:p-4 md:max-w-160 lg:max-w-200 xl:max-w-240">
       <div
         data-board-grid
         className="relative grid aspect-square w-full overflow-hidden bg-surface"

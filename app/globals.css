@@ -207,6 +207,25 @@ body {
   cursor: pointer;
 }
 
+/* The 3D token drawn by PawnScene3D (Board.tsx) is now the actual visible
+   piece — this voids .ludo-piece's own fill/gloss so the flat 2D circle
+   doesn't show behind/through it, while leaving .ludo-piece-legal's
+   pulsing box-shadow untouched: a CSS animation's keyframe values always
+   win over a static declaration on the same property while it's running,
+   so a legal pawn's glow ring still plays right here even though the
+   base box-shadow below is silenced. The button/span themselves stay in
+   the DOM unchanged — still exactly what PawnScene3D's own per-pawn
+   anchor registry reads the live position/size of every frame. */
+.ludo-piece-3d-hidden {
+  background: transparent;
+  box-shadow: none;
+}
+
+.ludo-piece-3d-hidden::before,
+.ludo-piece-3d-hidden::after {
+  display: none;
+}
+
 button:hover > .ludo-piece-legal {
   filter: brightness(1.08) saturate(1.08);
   transform: scale(1.08);

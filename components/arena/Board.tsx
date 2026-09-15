@@ -1,7 +1,7 @@
 "use client";
 
 import type { Ref } from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { LayoutGroup, MotionConfig, motion } from "framer-motion";
 import { PATH_INDEX, pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState, Pawn, PawnState, PlayerColor } from "@/lib/board/types";
@@ -13,7 +13,18 @@ import {
 } from "./boardLayout";
 import { BoardArtwork } from "./BoardArtwork";
 import { BoardBackdrop } from "./BoardBackdrop";
+import { PawnScene3D } from "./PawnScene3D";
 import { type GridPoint, trackHopWaypoints } from "./pawnMovePath";
+
+// Every pawn's OWN DOM element (a track cell's wrapper, a nest slot's
+// button, whatever's currently rendering it) registers itself here by
+// id — PawnScene3D reads this every frame to know where to draw that
+// pawn's 3D token, without this file needing to know anything about 3D
+// or that file needing to know anything about grid cells, hop paths, or
+// FLIP transitions. See the ref={registerPawnAnchor(pawn.id)} calls
+// below and PawnScene3D.tsx's own top-of-file comment.
+type PawnAnchorRegistry = Map<string, HTMLElement>;
+type RegisterPawnAnchor = (pawnId: string) => (el: HTMLElement | null) => void;
 
 interface BoardProps {
   roomState: GameRoomState;
@@ -55,6 +66,21 @@ function snapshotPawns(pawns: readonly Pawn[]): PawnSnapshot {
 }
 
 export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
+  // A plain ref (not state) — populated imperatively by DOM ref callbacks
+  // below and read imperatively by PawnScene3D every animation frame.
+  // Neither side needs a React re-render for this to work, which is the
+  // whole point: whatever's ALREADY moving a pawn's real DOM element
+  // (Framer Motion's own layoutId FLIP, the hop's keyframe animation)
+  // keeps doing exactly that, unaware anything is reading its position.
+  const pawnAnchorsRef = useRef<PawnAnchorRegistry>(new Map());
+  const boardGridRef = useRef<HTMLDivElement | null>(null);
+  function registerPawnAnchor(pawnId: string) {
+    return (el: HTMLElement | null) => {
+      if (el) pawnAnchorsRef.current.set(pawnId, el);
+      else pawnAnchorsRef.current.delete(pawnId);
+    };
+  }
+
   // Detects pawns that just started a multi-cell TRACK advance (previous
   // render's pathIndex to this one spans more than one step) so they can
   // hop through the intermediate cells (below) instead of the plain
@@ -187,6 +213,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
           {pawnsHere.map((pawn, i) => (
             <motion.div
               key={pawn.id}
+              ref={registerPawnAnchor(pawn.id)}
               layout
               layoutId={pawn.id}
               transition={PAWN_LAYOUT_TRANSITION}
@@ -221,6 +248,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
             {pawnsHere.map((pawn, i) => (
               <motion.div
                 key={pawn.id}
+                ref={registerPawnAnchor(pawn.id)}
                 layout
                 layoutId={pawn.id}
                 transition={PAWN_LAYOUT_TRANSITION}
@@ -253,6 +281,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
         <LayoutGroup>
           <div
             data-board-grid
+            ref={boardGridRef}
             className="relative grid aspect-square w-full max-w-full lg:h-full lg:w-auto overflow-hidden bg-surface"
             style={{
               gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
@@ -268,6 +297,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
                 pawns={nestPawnsByColor.get(color) ?? []}
                 legalPawnIds={legalPawnIds}
                 onSelectPawn={onSelectPawn}
+                registerPawnAnchor={registerPawnAnchor}
               />
             ))}
 
@@ -275,16 +305,23 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
             {homeLaneCells}
 
             {(Object.keys(FINISH_SLOT_POSITIONS) as PlayerColor[]).map((color) => (
-              <FinishedPawnCluster key={color} color={color} pawns={finishedPawnsByColor.get(color) ?? []} />
+              <FinishedPawnCluster
+                key={color}
+                color={color}
+                pawns={finishedPawnsByColor.get(color) ?? []}
+                registerPawnAnchor={registerPawnAnchor}
+              />
             ))}
 
             {[...hoppingPawns].map(([pawnId, { color, waypoints }]) => (
               <HoppingPawn
                 key={pawnId}
+                pawnId={pawnId}
                 color={color}
                 waypoints={waypoints}
                 isLegal={legalPawnIds.has(pawnId)}
                 onSelectPawn={() => onSelectPawn(pawnId)}
+                registerPawnAnchor={registerPawnAnchor}
                 onDone={() =>
                   setHoppingPawns((prev) => {
                     if (!prev.has(pawnId)) return prev;
@@ -295,6 +332,13 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
                 }
               />
             ))}
+
+            <PawnScene3D
+              pawns={roomState.pawns}
+              legalPawnIds={legalPawnIds}
+              anchorsRef={pawnAnchorsRef}
+              containerRef={boardGridRef}
+            />
           </div>
         </LayoutGroup>
       </MotionConfig>
@@ -373,7 +417,15 @@ const FINISH_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number, num
 // FINISH_SLOT_POSITIONS' coordinates don't land on integer grid lines, so
 // this converts them to percentages of the whole board instead of using
 // gridRow/gridColumn placement.
-function FinishedPawnCluster({ color, pawns }: { color: PlayerColor; pawns: Pawn[] }) {
+function FinishedPawnCluster({
+  color,
+  pawns,
+  registerPawnAnchor,
+}: {
+  color: PlayerColor;
+  pawns: Pawn[];
+  registerPawnAnchor: RegisterPawnAnchor;
+}) {
   return (
     <>
       {FINISH_SLOT_POSITIONS[color].map(([col, row], i) => {
@@ -382,6 +434,7 @@ function FinishedPawnCluster({ color, pawns }: { color: PlayerColor; pawns: Pawn
         return (
           <motion.div
             key={pawn.id}
+            ref={registerPawnAnchor(pawn.id)}
             layout
             layoutId={pawn.id}
             transition={PAWN_LAYOUT_TRANSITION}
@@ -422,16 +475,20 @@ function FinishedPawnCluster({ color, pawns }: { color: PlayerColor; pawns: Pawn
 // to normal grid rendering once `onDone` fires is seamless without needing
 // FLIP continuity.
 function HoppingPawn({
+  pawnId,
   color,
   waypoints,
   isLegal,
   onSelectPawn,
+  registerPawnAnchor,
   onDone,
 }: {
+  pawnId: string;
   color: PlayerColor;
   waypoints: GridPoint[];
   isLegal: boolean;
   onSelectPawn: () => void;
+  registerPawnAnchor: RegisterPawnAnchor;
   onDone: () => void;
 }) {
   // +0.5: waypoints are raw grid cell indices (the same ones gridRow/
@@ -449,6 +506,7 @@ function HoppingPawn({
 
   return (
     <motion.div
+      ref={registerPawnAnchor(pawnId)}
       className="absolute"
       style={{
         width: `${((1 / GRID_SIZE) * 100 * 0.78).toFixed(3)}%`,
@@ -489,11 +547,13 @@ function BaseQuadrantHitArea({
   pawns,
   legalPawnIds,
   onSelectPawn,
+  registerPawnAnchor,
 }: {
   color: PlayerColor;
   pawns: (Pawn | undefined)[];
   legalPawnIds: ReadonlySet<string>;
   onSelectPawn: (pawnId: string) => void;
+  registerPawnAnchor: RegisterPawnAnchor;
 }) {
   const area = BASE_AREA[color];
 
@@ -520,6 +580,7 @@ function BaseQuadrantHitArea({
               pawn={pawn}
               isLegal={pawn ? legalPawnIds.has(pawn.id) : false}
               onSelectPawn={onSelectPawn}
+              registerPawnAnchor={registerPawnAnchor}
             />
           </div>
         );
@@ -533,11 +594,13 @@ function NestSlot({
   pawn,
   isLegal,
   onSelectPawn,
+  registerPawnAnchor,
 }: {
   color: PlayerColor;
   pawn: Pawn | undefined;
   isLegal: boolean;
   onSelectPawn: (pawnId: string) => void;
+  registerPawnAnchor: RegisterPawnAnchor;
 }) {
   if (!pawn) {
     return (
@@ -547,6 +610,7 @@ function NestSlot({
 
   return (
     <motion.button
+      ref={registerPawnAnchor(pawn.id)}
       type="button"
       layout
       layoutId={pawn.id}
@@ -598,7 +662,7 @@ function PieceFace({
 }) {
   return (
     <span
-      className={`ludo-piece ludo-piece-${color} ${
+      className={`ludo-piece ludo-piece-3d-hidden ludo-piece-${color} ${
         variant === "nest" ? "ludo-piece-nest" : "ludo-piece-track"
       } ${isLegal ? "ludo-piece-legal" : ""}`}
       aria-hidden

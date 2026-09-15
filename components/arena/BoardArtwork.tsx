@@ -96,20 +96,19 @@ export function BoardArtwork() {
 // 3 decorative arrows per arm — a curved "entry flow" arrow near the top of
 // the near-base column, a straight "advance" arrow partway down the far
 // column, and a short diagonal arrow at the arm-to-center corner — matching
-// the density the reference board actually has beyond its star badges. Per
-// direct instruction, every arrow should point inward (toward the board's
-// true center / each color's home lane), not outward toward the rim: the
-// straight and diagonal arrows already did (their arrowhead end is closer
-// to (7.5, 7.5) than their tail), but the curved arrow's head sat farther
-// from center than its tail, i.e. it pointed outward — fixed by reversing
-// the path direction (same arc, head and tail swapped) below.
+// the density the reference board actually has beyond its star badges, and
+// matching its arrow directions exactly: the curved arrow's head points
+// outward (away from center), not inward — checked directly against
+// designs/board-design.png on two arms after an earlier pass here briefly
+// reversed it based on a misreading of "inward" (the straight/diagonal
+// arrows' directions were already correct and untouched).
 // Drawn once for the top arm in absolute grid coordinates, then rotated
 // 90/180/270° around the board's true center for the other 3 arms — the
 // same 4-fold rotation the rest of the board's geometry (CENTER_WEDGES,
 // HOME_LANE_CELLS, armColorForCell) already relies on, so no separate
 // per-arm coordinates to keep in sync. (This used to also draw an "extra"
 // star at this same spot — that cell turned out to be a real SAFE_CELLS
-// position (index 3 of the top arm) once pixel-checked against
+// position (index 8 of the top arm) once pixel-checked against
 // designs/board-design.png, so it's now drawn once, correctly, by the main
 // SAFE_CELLS loop above instead of a second time here.)
 const ARM_ROTATIONS: readonly { angle: number; color: PlayerColor }[] = [
@@ -161,7 +160,7 @@ function ArmDecorations() {
       {ARM_ROTATIONS.map(({ angle, color }) => (
         <g key={angle} transform={`rotate(${angle} 7.5 7.5)`}>
           <path
-            d="M7.3 0.65 Q6.55 0.55 6.35 1.75"
+            d="M6.35 1.75 Q6.55 0.55 7.3 0.65"
             fill="none"
             style={{ stroke: quadrant(color), strokeWidth: 0.06 }}
             markerStart={`url(#arrowtail-${color})`}
@@ -176,8 +175,8 @@ function ArmDecorations() {
             markerStart={`url(#arrowtail-${color})`}
             markerEnd={`url(#arrowhead-${color})`}
           />
-          {/* Middle of cell 12 to middle of cell 13 — the arm-to-arm
-              handoff at this corner (rotated per arm: 25→26, 38→39, 51→0). */}
+          {/* Middle of cell 17 to middle of cell 18 — the arm-to-arm
+              handoff at this corner (rotated per arm: 30→31, 43→44, 4→5). */}
           <line
             x1={8.5}
             y1={5.5}

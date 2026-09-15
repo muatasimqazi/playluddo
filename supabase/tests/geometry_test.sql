@@ -12,14 +12,14 @@ select is(private.ludo_entry_offset('green'), 13, 'green enters at 13');
 select is(private.ludo_entry_offset('yellow'), 26, 'yellow enters at 26');
 select is(private.ludo_entry_offset('blue'), 39, 'blue enters at 39');
 
-select ok(private.ludo_is_safe_cell(3), 'cell 3 is safe');
+select ok(private.ludo_is_safe_cell(0), 'the entry cell (0) is itself safe, now that the ring is rotated so entry sits in its own arm');
 select ok(private.ludo_is_safe_cell(8), 'cell 8 is safe');
-select ok(not private.ludo_is_safe_cell(0), 'the bare entry cell (0) is not itself safe');
+select ok(not private.ludo_is_safe_cell(3), 'cell 3 is not safe under the rotated ring');
 select ok(not private.ludo_is_safe_cell(10), 'cell 10 is not safe');
 select is(
-  (select count(*) from unnest(array[3, 8, 16, 21, 29, 34, 42, 47]) c where private.ludo_is_safe_cell(c)),
+  (select count(*) from unnest(array[0, 8, 13, 21, 26, 34, 39, 47]) c where private.ludo_is_safe_cell(c)),
   8::bigint,
-  'exactly 8 safe cells, per designs/board-design.png'
+  'exactly 8 safe cells, same physical cells as designs/board-design.png, relabeled for the rotated ring'
 );
 
 select is(private.ludo_path_index_to_tile_id('red', null), 'nest:red', 'nest tile id');

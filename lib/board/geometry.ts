@@ -25,15 +25,22 @@ export const ENTRY_OFFSET: Record<PlayerColor, number> = {
 };
 
 /**
- * Global shared-track indices that are capture-immune: for each color, the
- * star cells 3 and 8 steps after its entry (NOT the bare entry cell itself
- * — a common assumption this file got wrong until it was checked against
- * designs/board-design.png directly, star badge by star badge, cell by
- * cell: the reference marks 3/8/16/21/29/34/42/47, not 0/8/13/21/26/34/39/47).
- * 8 cells total.
+ * Global shared-track indices that are capture-immune: for each color, its
+ * own entry cell plus the star cell 8 steps after it. 8 cells total.
+ *
+ * These are pure index labels, not fixed physical cells — they follow
+ * ENTRY_OFFSET. When the board's 52-cell ring was rotated (per direct
+ * instruction, so each color's entry sits in its own arm rather than the
+ * next color's — see components/arena/boardLayout.ts's TRACK_POSITIONS
+ * comment) the *physical* safe cells stayed exactly where they were
+ * pixel-verified against designs/board-design.png; only the numbers
+ * labeling them changed, from {3,8,16,21,29,34,42,47} (entry+3/entry+8
+ * under the old ring orientation) back to entry+0/entry+8 below — which is
+ * also what docs/IMPLEMENTATION_HANDOFF.md Section 3 specified from the
+ * start.
  */
 export const SAFE_CELLS: ReadonlySet<number> = new Set([
-  3, 8, 16, 21, 29, 34, 42, 47,
+  0, 8, 13, 21, 26, 34, 39, 47,
 ]);
 
 /** pathIndex boundaries, per PRD 4.1 / Pawn.pathIndex (types.ts). */

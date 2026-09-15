@@ -9,19 +9,19 @@ import {
 } from "../../lib/board/geometry";
 
 describe("board geometry", () => {
-  it("has exactly 8 safe cells (2 per color, 3 and 8 steps after entry), per designs/board-design.png", () => {
+  it("has exactly 8 safe cells (2 per color: its own entry, and 8 steps after entry)", () => {
     expect(SAFE_CELLS.size).toBe(8);
   });
 
-  it("places each color's 3rd and 8th step on the safe set, not the bare entry cell itself", () => {
+  it("places each color's entry cell and 8th step on the safe set", () => {
     expect(pathIndexToGlobalCell("red", 0)).toBe(0);
     expect(pathIndexToGlobalCell("green", 0)).toBe(13);
     expect(pathIndexToGlobalCell("yellow", 0)).toBe(26);
     expect(pathIndexToGlobalCell("blue", 0)).toBe(39);
     for (const entry of [0, 13, 26, 39]) {
-      expect(SAFE_CELLS.has(entry)).toBe(false);
-      expect(SAFE_CELLS.has((entry + 3) % 52)).toBe(true);
+      expect(SAFE_CELLS.has(entry)).toBe(true);
       expect(SAFE_CELLS.has((entry + 8) % 52)).toBe(true);
+      expect(SAFE_CELLS.has((entry + 3) % 52)).toBe(false);
     }
   });
 

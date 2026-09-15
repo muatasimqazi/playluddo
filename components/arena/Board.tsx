@@ -1,5 +1,6 @@
 "use client";
 
+import type { Ref } from "react";
 import { pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState, Pawn, PlayerColor } from "@/lib/board/types";
 import {
@@ -13,9 +14,17 @@ interface BoardProps {
   roomState: GameRoomState;
   legalPawnIds: ReadonlySet<string>;
   onSelectPawn: (pawnId: string) => void;
+  /**
+   * The board's own root element — at lg+ its width is no longer a static
+   * Tailwind breakpoint (it's height-driven, see the className below), so
+   * the caller can't know it ahead of time. MatchArena measures this ref
+   * with a ResizeObserver to keep the status-pod rows the same width as
+   * whatever the board actually renders at.
+   */
+  boardRef?: Ref<HTMLDivElement>;
 }
 
-export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
+export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
   const trackPawnsByCell = new Map<number, Pawn[]>();
   const nestPawnsByColor = new Map<PlayerColor, Pawn[]>();
 
@@ -65,10 +74,13 @@ export function Board({ roomState, legalPawnIds, onSelectPawn }: BoardProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-115 border border-outline/55 bg-surface p-2 shadow-elevation-2 sm:max-w-135 sm:p-4 md:max-w-160 lg:max-w-200 xl:max-w-240">
+    <div
+      ref={boardRef}
+      className="mx-auto w-full max-w-115 border border-outline/55 bg-surface p-2 shadow-elevation-2 sm:max-w-135 sm:p-4 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
+    >
       <div
         data-board-grid
-        className="relative grid aspect-square w-full overflow-hidden bg-surface"
+        className="relative grid aspect-square w-full max-w-full lg:h-full lg:w-auto overflow-hidden bg-surface"
         style={{
           gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
           gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,

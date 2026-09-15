@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Board } from "./Board";
 import { Dice } from "./Dice";
@@ -44,6 +44,33 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  // The board's own rendered width is no longer a static breakpoint at
+  // lg+ (it's height-driven — see Board.tsx) so the pod rows/banner can't
+  // just share the same Tailwind max-w-* classes to stay visually aligned
+  // with it anymore. Measure the board directly and mirror its width onto
+  // them instead. A callback ref (not useRef+useEffect) because it needs
+  // to (re)attach the observer exactly when Board's root element itself
+  // mounts/unmounts — which, since Board is behind the `!roomState` early
+  // return below, doesn't necessarily happen on this component's own
+  // mount.
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const [boardWidth, setBoardWidth] = useState<number | null>(null);
+  const boardRef = useCallback((node: HTMLDivElement | null) => {
+    resizeObserverRef.current?.disconnect();
+    resizeObserverRef.current = null;
+    if (!node) return;
+    // entry.contentRect excludes padding/border — Board.tsx's root has
+    // both (p-2/p-4, a 1px border), so it under-measures the board's
+    // actual visible edge by ~30px and the pod rows would end up that
+    // much narrower than the board, not aligned with it. getBoundingClientRect
+    // reports the full border-box, matching what's actually on screen.
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setBoardWidth(Math.round(entry.target.getBoundingClientRect().width));
+    });
+    observer.observe(node);
+    resizeObserverRef.current = observer;
+  }, []);
+
   const myPlayer = roomState?.players.find((p) => p.id === myPlayerId) ?? null;
   const isMyTurn = roomState !== null && roomState.turnPlayerId === myPlayerId;
   const legalPawnIds = useMemo(
@@ -52,6 +79,11 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
   );
 
   if (!roomState) return null;
+
+  // Applied as an inline max-width alongside the same max-w-* classes
+  // Board.tsx itself falls back to below lg (so there's a sane cap before
+  // the first measurement lands) — inline style wins once boardWidth is set.
+  const matchBoardWidthStyle = boardWidth ? { maxWidth: boardWidth } : undefined;
 
   const canRoll = isMyTurn && roomState.turnPhase === "awaiting_roll" && !myPlayer?.autoRollEnabled;
   const canChoosePawn = isMyTurn && roomState.turnPhase === "awaiting_move";
@@ -148,30 +180,51 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         </aside>
 
         {/* CENTER: status pods + board — wider now that the right-side
-            Control Center column is gone (max-widths bumped accordingly,
-            kept in sync with Board.tsx's own). */}
+            Control Center column is gone. At lg+ the board's width is
+            height-driven (Board.tsx), so the pod rows/banner track its
+            actual measured width (matchBoardWidthStyle) rather than a
+            static breakpoint; the max-w-* classes are just the
+            pre-measurement fallback (and the permanent behavior below lg,
+            where the board stays width-driven). */}
         <section className="flex flex-1 flex-col items-center gap-3 overflow-y-auto">
           {sessionReplaced && (
             <div
               role="alert"
-              className="w-full max-w-115 sm:max-w-135 md:max-w-160 lg:max-w-200 xl:max-w-240 rounded-md border border-quadrant-red-border bg-quadrant-red-tint p-2 text-center text-body-sm text-quadrant-red"
+              style={matchBoardWidthStyle}
+              className="w-full max-w-115 sm:max-w-135 md:max-w-160 rounded-md border border-quadrant-red-border bg-quadrant-red-tint p-2 text-center text-body-sm text-quadrant-red"
             >
               This seat is now controlled from another tab or device.
             </div>
           )}
 
-          <div className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 lg:max-w-200 xl:max-w-240 items-center justify-between gap-2">
+          <div
+            style={matchBoardWidthStyle}
+            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 items-center justify-between gap-2"
+          >
             {podFor(roomState, QUADRANT_SLOTS[0].color, "left")}
             {podFor(roomState, QUADRANT_SLOTS[1].color, "right")}
           </div>
 
-          <Board
-            roomState={roomState}
-            legalPawnIds={legalPawnIds}
-            onSelectPawn={(pawnId) => void handleAction(() => requestMove(client, roomId, pawnId, connectionToken))}
-          />
+          {/* This wrapper is what actually fixes "the board needs scrolling
+              to see" — at lg+ (where the page height is fixed to the
+              viewport) it takes exactly the vertical space left over after
+              the pod rows, via flex-1/min-h-0, and Board.tsx sizes itself
+              to fit THIS box's shorter dimension instead of always going
+              by width. Below lg the page scrolls normally and this is just
+              a plain full-width row, unchanged from before. */}
+          <div className="flex w-full min-w-0 items-center justify-center lg:min-h-0 lg:flex-1">
+            <Board
+              boardRef={boardRef}
+              roomState={roomState}
+              legalPawnIds={legalPawnIds}
+              onSelectPawn={(pawnId) => void handleAction(() => requestMove(client, roomId, pawnId, connectionToken))}
+            />
+          </div>
 
-          <div className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 lg:max-w-200 xl:max-w-240 items-center justify-between gap-2">
+          <div
+            style={matchBoardWidthStyle}
+            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 items-center justify-between gap-2"
+          >
             {podFor(roomState, QUADRANT_SLOTS[2].color, "left")}
             {podFor(roomState, QUADRANT_SLOTS[3].color, "right")}
           </div>

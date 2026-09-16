@@ -6,6 +6,8 @@ The board surface uses `designs/board-design.png` through a static asset import.
 
 The printed surface uses a matte physical material with reduced reflections and bypasses filmic tone mapping, which otherwise desaturates the bright green and yellow inks. Its neutral albedo compensates for the room's light intensity; lighting and shadows still affect the board.
 
+Playing pieces are low, rounded glass discs inspired by the supplied counter reference. Their physical materials use transmission, refraction, colored absorption, and polished highlights rather than alpha-only transparency. Shared-square pieces form small vertical stacks; movement lifts from the current stack height and settles onto the destination stack. Selection rings and padded hit targets remain separate from the glass geometry.
+
 ## Run and play
 
 - `/`: apartment entrance, private-room creation, joining by code, and practice entry.
@@ -41,6 +43,7 @@ Camera, board orientation, graphics, sound, and action-camera preferences stay o
 
 - `components/simulator/Apartment.tsx`: modeled architecture, furniture, table, and decorative objects. Existing walnut texture plus a procedural fabric texture; no apartment photograph backdrop.
 - `components/simulator/SimulatorScene.tsx`: camera controller, independently rotating board group, physical die, pieces, lighting, projected player labels, and quality settings. Device pixel ratio reduces under sustained low frame rate.
+- `components/simulator/GlassPawn.tsx`: rounded disc geometry and four tinted glass materials, using the renderer's shared transmission pass.
 - `components/simulator/Simulator.tsx`: simulator HUD, settings, actions, reactions/chat, replay controls, and match completion.
 - `lib/presentation/board.ts`: maps canonical logical pawn positions to board-local coordinates and builds every movement waypoint, including home-lane transitions. World positions never enter game rules.
 - `lib/presentation/camera.ts`: screen-aware camera framing. Portrait layouts preserve a horizontal field of view that includes the board and physical die; presets stay inside the apartment.

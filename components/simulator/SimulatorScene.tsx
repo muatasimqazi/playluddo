@@ -41,6 +41,7 @@ import { cameraFraming } from "@/lib/presentation/camera";
 import boardArtwork from "@/designs/board-design.png";
 import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
+import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 
 export interface SceneProps {
   frame: PresentationFrame;
@@ -182,9 +183,9 @@ function Piece({
   const offset: Point =
     stack.length > 1
       ? [
-          ((stackIndex % 2) - 0.5) * 0.14,
-          Math.floor(stackIndex / 4) * 0.05,
-          ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.14,
+          ((stackIndex % 2) - 0.5) * 0.025,
+          stackIndex * (GLASS_PAWN_HEIGHT + 0.006),
+          ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.025,
         ]
       : [0, 0, 0];
   useEffect(() => {
@@ -199,7 +200,12 @@ function Piece({
       const movingSteps =
         start === null ? 1 : Math.max(1, (moved?.pathIndex ?? start) - start);
       motion.current = {
-        points: [pawnPoint(from), ...moveWaypoints(from, pawn)],
+        points: [
+          ref.current
+            ? (ref.current.position.toArray() as Point)
+            : pawnPoint(from),
+          ...moveWaypoints(from, pawn),
+        ],
         elapsed: 0,
         delay: isCapture ? (movingSteps * HOP_MS) / 1000 : 0,
       };
@@ -214,16 +220,27 @@ function Piece({
       const t = Math.max(0, m.elapsed - m.delay) / (HOP_MS / 1000),
         index = Math.floor(t);
       if (index >= m.points.length - 1) {
-        ref.current.position.set(...pawnPoint(pawn));
+        const p = pawnPoint(pawn);
+        ref.current.position.set(
+          p[0] + offset[0],
+          p[1] + offset[1],
+          p[2] + offset[2],
+        );
         motion.current = null;
       } else {
         const a = m.points[index],
-          b = m.points[index + 1],
+          destination = m.points[index + 1],
+          b =
+            index === m.points.length - 2
+              ? (destination.map(
+                  (value, axis) => value + offset[axis],
+                ) as Point)
+              : destination,
           f = t - index,
           e = f * f * (3 - 2 * f);
         ref.current.position.set(
           THREE.MathUtils.lerp(a[0], b[0], e),
-          BOARD_Y + Math.sin(f * Math.PI) * 0.1,
+          THREE.MathUtils.lerp(a[1], b[1], e) + Math.sin(f * Math.PI) * 0.1,
           THREE.MathUtils.lerp(a[2], b[2], e),
         );
       }
@@ -261,40 +278,7 @@ function Piece({
       }}
       onPointerOut={() => setHovered(false)}
     >
-      {/* Rounded, turned wooden playing pieces. */}
-      <mesh position={[0, 0.048, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.145, 0.17, 0.09, 24]} />
-        <meshPhysicalMaterial
-          color={COLORS[pawn.color]}
-          roughness={0.26}
-          clearcoat={0.9}
-          metalness={0.05}
-        />
-      </mesh>
-      <mesh position={[0, 0.16, 0]} castShadow>
-        <cylinderGeometry args={[0.073, 0.128, 0.2, 24]} />
-        <meshPhysicalMaterial
-          color={COLORS[pawn.color]}
-          roughness={0.24}
-          clearcoat={1}
-        />
-      </mesh>
-      <mesh position={[0, 0.305, 0]} castShadow>
-        <sphereGeometry args={[0.105, 24, 16]} />
-        <meshPhysicalMaterial
-          color={COLORS[pawn.color]}
-          roughness={0.22}
-          clearcoat={1}
-        />
-      </mesh>
-      <mesh position={[0, 0.087, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.135, 0.009, 8, 24]} />
-        <meshStandardMaterial
-          color="#dccb99"
-          metalness={0.65}
-          roughness={0.27}
-        />
-      </mesh>
+      <GlassPawn color={pawn.color} />
       <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.009, 0]}>
         <ringGeometry args={[0.195, 0.218, 32]} />
         <meshBasicMaterial
@@ -305,8 +289,8 @@ function Piece({
         />
       </mesh>
       {clickable && (
-        <mesh position={[0, 0.22, 0]} visible={false}>
-          <cylinderGeometry args={[0.24, 0.24, 0.5, 12]} />
+        <mesh position={[0, 0.12, 0]} visible={false}>
+          <cylinderGeometry args={[0.24, 0.24, 0.26, 12]} />
           <meshBasicMaterial />
         </mesh>
       )}

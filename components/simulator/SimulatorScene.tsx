@@ -531,11 +531,16 @@ function BoardObject(props: SceneProps) {
         <meshPhysicalMaterial
           map={texture}
           // Preserve printed ink hues; the room's filmic curve fades green/yellow.
+          // `color` multiplies the map, so it must stay white or it dulls the ink.
           toneMapped={false}
           color="#cccccc"
           roughness={0.68}
           clearcoat={0.1}
           clearcoatRoughness={0.65}
+          // Untonemapped means bright ink hard-clips to white instead of
+          // rolling off — yellow reflects the most across R+G, so it's the
+          // first to blow out. Keep the neutral (non-hue) specular/env
+          // layers thin so they don't push it over that clip point.
           specularIntensity={0.2}
           envMapIntensity={0.35}
         />

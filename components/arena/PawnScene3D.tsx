@@ -106,7 +106,27 @@ export function PawnScene3D({ pawns, legalPawnIds, anchorsRef, containerRef }: P
 
   return (
     <div className="pointer-events-none absolute inset-0" style={{ zIndex: 6 }} aria-hidden>
-      <Canvas orthographic camera={{ position: [0, 0, 10] }} gl={{ antialias: true, alpha: true }} dpr={[1, 2]}>
+      {/* `style={{ pointerEvents: "none" }}` here too, not just on the
+          wrapper div above: r3f's own <Canvas> unconditionally sets
+          `pointer-events: auto` as an inline style on the root div IT
+          creates around the actual <canvas> — so its own internal
+          raycasting event system keeps working regardless of anything
+          an ancestor does. An inline style set directly on an element
+          always overrides an inherited value, so the wrapper's own
+          pointer-events-none never actually reached this canvas: sitting
+          at zIndex 6 (above every pawn button), it silently swallowed
+          every click meant for the real DOM pawn underneath — no pawn,
+          in any color, was ever actually clickable through it. Passing
+          our OWN pointerEvents:none as a style prop here overrides r3f's
+          default the same inline-style way, since r3f merges this prop
+          into that same root div's style rather than replacing it. */}
+      <Canvas
+        orthographic
+        camera={{ position: [0, 0, 10] }}
+        gl={{ antialias: true, alpha: true }}
+        dpr={[1, 2]}
+        style={{ pointerEvents: "none" }}
+      >
         <ResponsiveZoom />
         <ambientLight intensity={1.5} />
         <directionalLight position={[-3, 4, 6]} intensity={1.9} />

@@ -27,6 +27,44 @@ const BOARD_SIZE = 10; // world units spanning the slab's top face
 const SLAB_DEPTH = 1.3;
 const RASTER_RESOLUTION = 1536;
 const HIGHLIGHT_Y = 0.015; // just above the slab's top face, avoids z-fighting
+// Where the room backdrop plane sits — far enough behind the slab (which
+// spans Z -5..5) to read as a real room the board is sitting in, not a
+// picture taped up right behind it. Sized/positioned so the apartment
+// photo's own coffee table lines up with the board's fixed position —
+// tuned visually, not derived from any exact measurement of the photo.
+const BACKDROP_Z = -14;
+const BACKDROP_WIDTH = 48;
+const BACKDROP_HEIGHT = 36;
+// The camera looks DOWN at a steep angle (position y=6.3 -> target y=0),
+// so its own view axis, extended all the way back to BACKDROP_Z, crosses
+// through a much LOWER y than either the camera or the board sit at —
+// computed from the actual camera position/target, not guessed: forward
+// direction (0,0,2.2)-(0,6.3,9) normalized ~= (0,-0.68,-0.73); traveling
+// along that ray from the camera until z=-14 lands at y~=-15. Centering
+// the backdrop plane there (not at the board's own y=0) is what actually
+// puts it in the middle of the visible frustum at that depth — an
+// earlier guess (y=3) put most of the plane above the frame entirely.
+const BACKDROP_Y = -15;
+// The apartment photo's own coffee table sits at roughly (46.5%, 69%)
+// across/down the square source image (pixel-measured) — cropped here via
+// the texture's own repeat/offset (not the plane's position/size, which
+// only controls where in WORLD space the backdrop sits) so a fixed 4:3
+// window of the image, centered on the table, maps onto the whole plane
+// without stretching (repeat.x/repeat.y kept at the same 4:3 ratio as
+// BACKDROP_WIDTH/BACKDROP_HEIGHT).
+const BACKDROP_CROP_CENTER_U = 0.508;
+const BACKDROP_CROP_CENTER_V = 1 - 0.732; // UV's V=0 is the image's own bottom edge
+const BACKDROP_CROP_HEIGHT = 0.62;
+const BACKDROP_CROP_WIDTH = BACKDROP_CROP_HEIGHT * (BACKDROP_WIDTH / BACKDROP_HEIGHT);
+// A distant vertical plane (RoomBackdrop) only ever covers the "far wall"
+// portion of the frustum — near the bottom of the frame the camera is
+// looking at what would be actual room FLOOR right around the table,
+// which a wall-like plane far in the distance geometrically can't reach
+// no matter how it's sized. A plain floor-colored ground plane (color
+// pixel-sampled from the photo's own floor) under the board bridges that
+// gap instead of leaving a harsh white void — not a textured match for
+// the photo's floor, just enough to read as "the same room continuing."
+const ROOM_FLOOR_COLOR = "#aca394";
 
 interface BoardScene3DProps {
   svgWrapperRef: RefObject<HTMLDivElement | null>;
@@ -49,6 +87,7 @@ export function BoardScene3D({
 }: BoardScene3DProps) {
   const boardTexture = useBoardTexture(svgWrapperRef);
   const woodTexture = useWoodTexture();
+  const apartmentTexture = useApartmentTexture();
   // Built once and shared by every pawn regardless of color — only the
   // material differs per pawn, never the shape.
   const bodyGeometry = useMemo(() => new THREE.LatheGeometry(buildBodyProfile(), 48), []);
@@ -93,6 +132,7 @@ export function BoardScene3D({
           minPolarAngle={THREE.MathUtils.degToRad(12)}
           maxPolarAngle={THREE.MathUtils.degToRad(82)}
         />
+        {apartmentTexture && <RoomBackdrop texture={apartmentTexture} />}
         <ambientLight intensity={0.85} />
         <directionalLight
           position={[4, 8, 3]}
@@ -109,6 +149,7 @@ export function BoardScene3D({
             and the underside of pawn bevels don't go fully black — real
             light bounces around a table, this is the cheap stand-in. */}
         <directionalLight position={[-4, 3, -3]} intensity={0.3} />
+        {apartmentTexture && <RoomFloor />}
         {boardTexture && <BoardSlab boardTexture={boardTexture} woodTexture={woodTexture} />}
         <ContactShadows
           position={[0, -SLAB_DEPTH - 0.001, 0]}
@@ -258,6 +299,103 @@ function useWoodTexture(): THREE.CanvasTexture | null {
   }, []);
 
   return texture;
+}
+
+// Per direct instruction: a real room render (public/location/
+// apartment-3d.jpeg — a photorealistic living room shot roughly head-on,
+// a large wooden coffee table dominating the foreground) as the board's
+// own backdrop, so the board reads as sitting on that table rather than
+// floating in a plain white void. Same Image()+canvas load pattern as
+// the other two textures in this file. (An earlier isometric-illustration
+// version of this image needed a separate RoomFloor patch below to cover
+// the near-camera gap a distant wall plane alone can't reach — kept here
+// since this photo's own foreground floor/rug doesn't fully solve that
+// same geometric issue either, a flat distant backdrop plane can't.)
+function useApartmentTexture(): THREE.CanvasTexture | null {
+  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(img, 0, 0);
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      // Crops a fixed 4:3 window centered on the photo's own coffee table
+      // (pixel-measured at ~46.5%/69% across/down the square source image)
+      // onto the whole backdrop plane, instead of showing the full square
+      // photo stretched or letterboxed — repeat.x/y kept at the same 4:3
+      // ratio as the plane itself (BACKDROP_WIDTH/HEIGHT) so nothing
+      // stretches. Set here, where the texture is created, rather than by
+      // mutating the `texture` prop in RoomBackdrop below.
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.repeat.set(BACKDROP_CROP_WIDTH, BACKDROP_CROP_HEIGHT);
+      tex.offset.set(BACKDROP_CROP_CENTER_U - BACKDROP_CROP_WIDTH / 2, BACKDROP_CROP_CENTER_V - BACKDROP_CROP_HEIGHT / 2);
+      tex.needsUpdate = true;
+      setTexture(tex);
+    };
+    img.onerror = (event) => {
+      console.error("BoardScene3D: failed to load the apartment backdrop", event);
+    };
+    img.src = "/location/apartment-3d.jpeg";
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return texture;
+}
+
+// A single flat plane standing upright far behind the slab, facing the
+// camera's default direction — not a true photographic environment (the
+// camera can rotate away via OrbitControls and reveal it's flat), but a
+// cheap, guaranteed-correct "photo backdrop" read that only needs to look
+// right from roughly the initial angle, the same tradeoff this file has
+// made before (e.g. GlassGlint in an earlier pass) in favor of something
+// simple that's actually verifiable over something physically exact that
+// isn't.
+function RoomBackdrop({ texture }: { texture: THREE.CanvasTexture }) {
+  return (
+    <mesh position={[0, BACKDROP_Y, BACKDROP_Z]}>
+      <planeGeometry args={[BACKDROP_WIDTH, BACKDROP_HEIGHT]} />
+      <meshBasicMaterial map={texture} />
+    </mesh>
+  );
+}
+
+// See ROOM_FLOOR_COLOR's own comment — a plain horizontal ground plane
+// under and around the slab, lying flat (rotated to face +Y, like the
+// slab's own top face) so the board doesn't appear to float over a white
+// void in the margin the distant wall backdrop can't reach. Sits below
+// ContactShadows' own catcher plane so that shadow still renders on top.
+// A previous version of this sized the floor to match the (much bigger,
+// far-away) wall backdrop — but an opaque floor extending that far back
+// sits IN FRONT of the wall along the camera's own downward-angled sight
+// lines, blocking almost all of it. Kept deliberately small and pulled
+// toward the camera (+Z) instead: just enough to cover the near margin
+// right around the board without reaching far enough back to compete
+// with the wall for the same screen space.
+const ROOM_FLOOR_WIDTH = 30;
+const ROOM_FLOOR_DEPTH = 16;
+const ROOM_FLOOR_CENTER_Z = 3;
+
+function RoomFloor() {
+  return (
+    <mesh
+      position={[0, -SLAB_DEPTH - 0.01, ROOM_FLOOR_CENTER_Z]}
+      rotation={[-Math.PI / 2, 0, 0]}
+    >
+      <planeGeometry args={[ROOM_FLOOR_WIDTH, ROOM_FLOOR_DEPTH]} />
+      <meshBasicMaterial color={ROOM_FLOOR_COLOR} />
+    </mesh>
+  );
 }
 
 // The board as a real slab with depth, top face at local/world y=0 (where

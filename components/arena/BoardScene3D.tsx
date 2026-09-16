@@ -70,7 +70,7 @@ export function BoardScene3D({
       <Canvas
         flat
         shadows
-        camera={{ fov: 53, position: [0, 6.3, 9] }}
+        camera={{ fov: 62, position: [0, 6.3, 9] }}
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 2]}
       >

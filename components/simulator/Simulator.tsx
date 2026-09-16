@@ -453,7 +453,7 @@ export default function Simulator({
             <i />
           </span>
           <span>
-            LUDDO<small>THE APARTMENT</small>
+            LUDDO<small>LET'S PLAY</small>
           </span>
         </div>
         <div className="sim-turn" role="status">
@@ -602,11 +602,10 @@ export default function Simulator({
       )}
       <footer className="sim-footer">
         <div className="sim-location">
-          <span className="eyebrow">A PLACE TO PLAY</span>
-          <strong>
-            The Apartment <span>01</span>
+          <span className="eyebrow">Let's Play </span>
+          <strong>LUDDO <span>01</span>
           </strong>
-          <small>Warm light. Good company.</small>
+          <small>In warm light. In great company.</small>
         </div>
         <div className="sim-action-area">
           <p aria-live="polite">{instruction}</p>
@@ -838,7 +837,7 @@ export default function Simulator({
                   <i />
                 </span>
                 <div>
-                  <strong>The Apartment</strong>
+                  <strong>Let's Play LUDDO</strong>
                   <small>
                     {practice
                       ? "Practice against three computers"

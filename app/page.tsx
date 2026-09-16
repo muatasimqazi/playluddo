@@ -193,8 +193,8 @@ export default function Home() {
         )}
       </section>
       <div className="entrance-room-label">
-        <span>YOUR FIRST DESTINATION</span>
-        <p>The Apartment</p>
+        <span>CLASSIC MEETS MODERN</span>
+        <p>Let's Play LUDDO</p>
       </div>
       <footer className="entrance-footer">
         <span>CLASSIC LUDO. SHARED MOMENTS.</span>

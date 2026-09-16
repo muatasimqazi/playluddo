@@ -96,7 +96,7 @@ export function RoomLobby({
             <i />
           </span>
           <span>
-            LUDDO<small>THE APARTMENT</small>
+            LUDDO<small>Let's Play</small>
           </span>
         </Link>
         <span>THE EVENING IS JUST BEGINNING.</span>

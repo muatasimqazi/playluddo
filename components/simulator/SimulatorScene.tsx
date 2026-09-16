@@ -38,6 +38,7 @@ import {
 } from "@/lib/presentation/board";
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
+import boardArtwork from "@/designs/board-design.png";
 import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
 
@@ -471,7 +472,8 @@ function PhysicalDie({
 function BoardObject(props: SceneProps) {
   const group = useRef<THREE.Group>(null);
   const [initialRotation] = useState(props.orientation);
-  const texture = useMemo(() => makeBoardTexture(), []);
+  const artwork = useTexture(boardArtwork.src);
+  const texture = useMemo(() => makeBoardTexture(artwork), [artwork]);
   const wood = useTexture("/textures/board-wood.jpg");
   const drag = useRef<{ x: number; angle: number; pointer: number } | null>(
     null,
@@ -540,9 +542,14 @@ function BoardObject(props: SceneProps) {
         <boxGeometry args={[BOARD_SIZE, 0.018, BOARD_SIZE]} />
         <meshPhysicalMaterial
           map={texture}
-          roughness={0.42}
-          clearcoat={0.45}
-          clearcoatRoughness={0.35}
+          // Preserve printed ink hues; the room's filmic curve fades green/yellow.
+          toneMapped={false}
+          color="#cccccc"
+          roughness={0.68}
+          clearcoat={0.1}
+          clearcoatRoughness={0.65}
+          specularIntensity={0.2}
+          envMapIntensity={0.35}
         />
       </mesh>
       {[-1, 1].flatMap((x) =>

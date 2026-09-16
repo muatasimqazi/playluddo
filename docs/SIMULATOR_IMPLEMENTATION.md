@@ -2,6 +2,10 @@
 
 The experience now uses one full-viewport React Three Fiber scene. The apartment, coffee table, board, pieces, and die share the same perspective camera and lighting. The old DOM-measured board is no longer on the match rendering path. Its files are retained so the earlier work remains available.
 
+The board surface uses `designs/board-design.png` through a static asset import. An sRGB canvas applies the source PNG's Adobe RGB ICC profile before GPU upload, preserving the intended ink hues. Texture UVs remove the image's 128px print margin without modifying the source, aligning its printed grid to the canonical 15×15 layout. Resting pieces sit on the four corner stars in each home area, leaving the central emblems visible.
+
+The printed surface uses a matte physical material with reduced reflections and bypasses filmic tone mapping, which otherwise desaturates the bright green and yellow inks. Its neutral albedo compensates for the room's light intensity; lighting and shadows still affect the board.
+
 ## Run and play
 
 - `/`: apartment entrance, private-room creation, joining by code, and practice entry.

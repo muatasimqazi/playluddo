@@ -5,6 +5,7 @@ import {
   globalCellToGridPosition,
   HOME_LANE_CELLS,
 } from "../../components/arena/boardLayout";
+import { NEST_SLOT_POSITIONS } from "../../components/arena/boardArtworkGeometry";
 
 export const BOARD_SIZE = 6;
 export const BOARD_Y = 0.19;
@@ -41,9 +42,11 @@ export function gridPoint(row: number, col: number): Point {
 export function pawnPoint(pawn: Pawn): Point {
   if (pawn.pathIndex === null) {
     const base = BASE_AREA[pawn.color];
+    // Corner star badges measured from the custom board artwork.
+    const [left, top] = NEST_SLOT_POSITIONS[pawn.color][pawn.index];
     return gridPoint(
-      base.rowStart + 1.5 + Math.floor(pawn.index / 2) * 2,
-      base.colStart + 1.5 + (pawn.index % 2) * 2,
+      base.rowStart + (top / 100) * 6 - 0.5,
+      base.colStart + (left / 100) * 6 - 0.5,
     );
   }
   if (pawn.pathIndex < PATH_INDEX.HOME_LANE_START) {

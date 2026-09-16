@@ -49,6 +49,11 @@ const INLINE_DICE_SIZE = 40;
 // second control.
 const DICE_HOLD_MS = 3800;
 
+// Sound is a purely local playback preference (unlike Auto-Roll, which is
+// per-player server state everyone else's client also needs to see) — so
+// it lives in this browser's localStorage, not the room's DB row.
+const SOUND_MUTED_STORAGE_KEY = "ludo-sound-muted";
+
 export function MatchArena({ client, roomId }: MatchArenaProps) {
   const roomState = useRoomStore((s) => s.roomState);
   const events = useRoomStore((s) => s.events);
@@ -58,6 +63,23 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
   const sessionReplaced = useRoomStore((s) => s.sessionReplaced);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // Lazy initializer (not a useEffect) so the very first render already
+  // reflects a previously-saved preference instead of flashing unmuted
+  // for one frame — window is absent during SSR, where "unmuted" is a
+  // harmless default since no audio plays there anyway.
+  const [soundMuted, setSoundMuted] = useState(
+    () => typeof window !== "undefined" && window.localStorage.getItem(SOUND_MUTED_STORAGE_KEY) === "1",
+  );
+
+  function handleToggleSound(muted: boolean) {
+    setSoundMuted(muted);
+    try {
+      window.localStorage.setItem(SOUND_MUTED_STORAGE_KEY, muted ? "1" : "0");
+    } catch {
+      // Private-browsing/storage-disabled: the toggle still works for this
+      // session, it just won't be remembered next visit.
+    }
+  }
 
   // The board's own rendered width is no longer a static breakpoint at
   // lg+ (it's height-driven — see Board.tsx) so the pod rows/banner can't
@@ -134,12 +156,13 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
     }
     if (latestRollEvent.id === playedRollEventIdRef.current) return;
     playedRollEventIdRef.current = latestRollEvent.id;
+    if (soundMuted) return;
     // A fresh Audio per play (not one shared/reused instance) so two
     // rolls landing close together — easy with bots — overlap instead of
     // the second cutting the first's tail off by restarting it.
     const audio = new Audio("/sounds/dice-roll.wav");
     void audio.play().catch(() => {});
-  }, [latestRollEvent]);
+  }, [latestRollEvent, soundMuted]);
 
   // heldRoll mirrors latestRollEvent but stays truthy for DICE_HOLD_MS
   // after it, so the pod dice doesn't just vanish the instant the turn
@@ -313,6 +336,8 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
         canChoosePawn={canChoosePawn}
         actionError={actionError}
         onToggleAutoRoll={(checked) => void handleAction(() => toggleAutoRoll(client, roomId, checked))}
+        soundMuted={soundMuted}
+        onToggleSound={handleToggleSound}
       />
 
       <div className="flex flex-1 flex-col gap-4 lg:min-h-0 lg:flex-row">
@@ -405,6 +430,8 @@ function TurnActionsBar({
   canChoosePawn,
   actionError,
   onToggleAutoRoll,
+  soundMuted,
+  onToggleSound,
 }: {
   roomState: GameRoomState;
   myPlayer: Player | null;
@@ -413,6 +440,8 @@ function TurnActionsBar({
   canChoosePawn: boolean;
   actionError: string | null;
   onToggleAutoRoll: (checked: boolean) => void;
+  soundMuted: boolean;
+  onToggleSound: (muted: boolean) => void;
 }) {
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-hairline bg-surface p-3 shadow-elevation-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -439,6 +468,21 @@ function TurnActionsBar({
             </label>
           </div>
         )}
+        {/* Local playback preference, not a per-player server setting like
+            Auto-Roll above — shown unconditionally (even watching a bot
+            seat) since it only ever affects sound in THIS browser. */}
+        <div className="flex items-center gap-2">
+          <span className="text-body-sm text-foreground">Sound</span>
+          <label className="ios-switch">
+            <input
+              type="checkbox"
+              checked={!soundMuted}
+              aria-label="Sound effects"
+              onChange={(e) => onToggleSound(!e.target.checked)}
+            />
+            <span className="ios-slider" />
+          </label>
+        </div>
       </div>
     </div>
   );

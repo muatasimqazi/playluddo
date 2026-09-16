@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { ContactShadows } from "@react-three/drei";
+import { Canvas, useFrame, type ThreeEvent } from "@react-three/fiber";
+import { ContactShadows, OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import type { Pawn, PlayerColor } from "@/lib/board/types";
 import { BASE_AREA, GRID_SIZE } from "./boardLayout";
@@ -74,7 +74,25 @@ export function BoardScene3D({
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 2]}
       >
-        <LookAtBoard />
+        {/* Per direct instruction: rotate/zoom camera controls. `target`
+            matches the fixed lookAt point this replaces — the same "aim
+            slightly toward the viewer, not the exact board center" framing
+            fix, just as OrbitControls' own orbit pivot instead of a
+            one-time camera.lookAt() call (which OrbitControls would fight
+            every frame otherwise, since it drives the camera transform
+            continuously once mounted). `enablePan={false}` keeps the board
+            centered in view — free panning would let a player scroll the
+            board out of frame entirely, with no way back short of a page
+            reload. Rotate/zoom bounds below keep the view from flipping
+            under the table or zooming through the slab. */}
+        <OrbitControls
+          target={[0, 0, 1.3]}
+          enablePan={false}
+          minDistance={5}
+          maxDistance={16}
+          minPolarAngle={THREE.MathUtils.degToRad(12)}
+          maxPolarAngle={THREE.MathUtils.degToRad(82)}
+        />
         <ambientLight intensity={0.85} />
         <directionalLight
           position={[4, 8, 3]}
@@ -119,33 +137,6 @@ export function BoardScene3D({
       </Canvas>
     </div>
   );
-}
-
-// Points the camera at the slab's center once — a fixed lookAt, not a
-// per-frame one, since nothing about the board itself ever moves; only
-// the container's aspect ratio changes on resize, and r3f's default
-// camera already updates `aspect`/`updateProjectionMatrix()` on its own
-// for a perspective camera (unlike the orthographic `zoom` factor other
-// canvases in this app need a manual ResponsiveZoom for — a perspective
-// camera's FOV-based framing is resolution-independent by construction,
-// it only needs aspect, which r3f already handles).
-function LookAtBoard() {
-  const { camera } = useThree();
-  useEffect(() => {
-    // Not the exact center (0,0,0): a symmetric FOV around the true
-    // center leaves the frame's "horizon" (where the tilted board plane
-    // vanishes into the distance) well above the board's own far edge,
-    // wasting a lot of the frame on empty space above the board with
-    // nothing to show there. Aiming slightly toward the near/viewer side
-    // instead pulls that horizon down into a much more natural framing.
-    // Kept modest (was tuned more aggressively once, then reported as
-    // clipping the board at the bottom edge in practice — a tight fit in
-    // one tested viewport isn't safe across every real browser/window
-    // size) — this and the wider FOV above both trade a little of that
-    // headroom-trimming back for margin on every edge.
-    camera.lookAt(0, 0, 1.3);
-  }, [camera]);
-  return null;
 }
 
 // Copies every element's ACTUAL resolved fill/stroke/color/opacity from

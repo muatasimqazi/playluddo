@@ -70,7 +70,7 @@ export function BoardScene3D({
       <Canvas
         flat
         shadows
-        camera={{ fov: 48, position: [0, 6.3, 9] }}
+        camera={{ fov: 53, position: [0, 6.3, 9] }}
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 2]}
       >
@@ -138,7 +138,12 @@ function LookAtBoard() {
     // wasting a lot of the frame on empty space above the board with
     // nothing to show there. Aiming slightly toward the near/viewer side
     // instead pulls that horizon down into a much more natural framing.
-    camera.lookAt(0, 0, 1.6);
+    // Kept modest (was tuned more aggressively once, then reported as
+    // clipping the board at the bottom edge in practice — a tight fit in
+    // one tested viewport isn't safe across every real browser/window
+    // size) — this and the wider FOV above both trade a little of that
+    // headroom-trimming back for margin on every edge.
+    camera.lookAt(0, 0, 0.8);
   }, [camera]);
   return null;
 }
@@ -541,10 +546,6 @@ function PawnMesh({
     // with no reorientation needed.
     <group ref={groupRef} onClick={handleClick} onPointerOver={handlePointerOver} onPointerOut={handlePointerOut}>
       <mesh geometry={bodyGeometry} castShadow>
-        {/* A slight glow, as if made of glass — `transmission` is what
-            actually makes it read as glass rather than plastic, kept
-            modest so it stays a "slight" glow. `emissive` adds a soft
-            self-lit warmth from within, echoing the piece's own color. */}
         {/* A slight glow, as if made of glass — `transmission` is what
             actually makes it read as glass rather than plastic, kept
             modest so it stays a "slight" glow. `emissive` adds a soft

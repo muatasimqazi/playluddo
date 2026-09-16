@@ -19,7 +19,7 @@ import {
   useTexture,
 } from "@react-three/drei";
 import * as THREE from "three";
-import type { Pawn, Player } from "@/lib/board/types";
+import type { Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
 import {
   BOARD_SIZE,
@@ -552,6 +552,7 @@ function BoardObject(props: SceneProps) {
           </mesh>
         )),
       )}
+      <Seats {...props} />
       {props.frame.pawns.map((pawn) => (
         <Piece
           key={`${props.frame.revision}:${pawn.id}`}
@@ -576,33 +577,28 @@ function Seats({
   preview,
 }: SceneProps) {
   if (preview) return null;
-  const local = players.find((p) => p.id === myPlayerId)?.seatIndex ?? 0;
-  const positions: Point[] = [
-    [-2.5, 0.5, 3.45],
-    [-4.65, 0.8, 0],
-    [2.4, 0.7, -3.7],
-    [4.65, 0.8, 0],
-  ];
+  // Board-local anchors follow the same rotation as the artwork and pawns.
+  const positions: Record<PlayerColor, Point> = {
+    red: [-1.8, BOARD_Y, -3.5],
+    green: [1.8, BOARD_Y, -3.5],
+    yellow: [1.8, BOARD_Y, 3.5],
+    blue: [-1.8, BOARD_Y, 3.5],
+  };
   return (
     <>
       {players.map((player) => {
-        const relative = (player.seatIndex - local + 4) % 4;
         const active = player.id === (frame.actorId ?? turnPlayerId);
         return (
           <Html
             key={player.id}
-            position={positions[relative]}
+            position={positions[player.color]}
             center
             calculatePosition={(object, camera, size) => {
               const point = new THREE.Vector3()
                 .setFromMatrixPosition(object.matrixWorld)
                 .project(camera);
               const portrait = size.width / size.height < 0.9;
-              const inset = portrait
-                ? relative === 0 || relative === 2
-                  ? 75
-                  : 28
-                : 120;
+              const inset = portrait ? 66 : 108;
               return [
                 THREE.MathUtils.clamp(
                   ((point.x + 1) * size.width) / 2,
@@ -611,8 +607,8 @@ function Seats({
                 ),
                 THREE.MathUtils.clamp(
                   ((1 - point.y) * size.height) / 2,
-                  portrait ? 165 : 95,
-                  size.height - (portrait ? 140 : 95),
+                  portrait ? 105 : 75,
+                  size.height - (portrait ? 115 : 75),
                 ),
               ];
             }}
@@ -620,7 +616,7 @@ function Seats({
             style={{ pointerEvents: "none" }}
           >
             <div
-              className={`sim-seat ${active ? "is-active" : ""} seat-${relative}`}
+              className={`sim-seat ${active ? "is-active" : ""}`}
               style={
                 { "--seat-color": COLORS[player.color] } as React.CSSProperties
               }
@@ -749,7 +745,6 @@ export default function SimulatorScene(props: SceneProps) {
               color="#332719"
             />
           )}
-          <Seats {...props} />
         </Suspense>
         <CameraRig {...props} />
         <PerformanceMonitor

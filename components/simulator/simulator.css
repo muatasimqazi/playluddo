@@ -1233,15 +1233,6 @@
   .seat-dot {
     display: none;
   }
-  .sim-seat.seat-1 .seat-copy,
-  .sim-seat.seat-3 .seat-copy {
-    display: none;
-  }
-  .sim-seat.seat-1,
-  .sim-seat.seat-3 {
-    min-width: 0;
-    padding: 5px;
-  }
   .sim-panel {
     inset: 60px 10px 110px;
     width: auto;
@@ -1490,8 +1481,5 @@
   }
   .lobby-seat {
     padding: 9px 11px;
-  }
-  .sim-seat.seat-0 {
-    transform: translateX(15px);
   }
 }

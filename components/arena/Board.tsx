@@ -12,7 +12,6 @@ import {
   globalCellToGridPosition,
 } from "./boardLayout";
 import { BoardArtwork } from "./BoardArtwork";
-import { BoardBackdrop } from "./BoardBackdrop";
 import { PawnScene3D } from "./PawnScene3D";
 import { type GridPoint, trackHopWaypoints } from "./pawnMovePath";
 
@@ -276,7 +275,6 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       ref={boardRef}
       className="relative mx-auto w-full max-w-115 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-135 sm:p-5 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
     >
-      <BoardBackdrop />
       <MotionConfig reducedMotion="user">
         <LayoutGroup>
           <div

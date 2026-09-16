@@ -12,16 +12,16 @@ import {
   globalCellToGridPosition,
 } from "./boardLayout";
 import { BoardArtwork } from "./BoardArtwork";
-import { PawnScene3D } from "./PawnScene3D";
+import { BoardScene3D } from "./BoardScene3D";
 import { type GridPoint, trackHopWaypoints } from "./pawnMovePath";
 
 // Every pawn's OWN DOM element (a track cell's wrapper, a nest slot's
 // button, whatever's currently rendering it) registers itself here by
-// id — PawnScene3D reads this every frame to know where to draw that
+// id — BoardScene3D reads this every frame to know where to draw that
 // pawn's 3D token, without this file needing to know anything about 3D
 // or that file needing to know anything about grid cells, hop paths, or
 // FLIP transitions. See the ref={registerPawnAnchor(pawn.id)} calls
-// below and PawnScene3D.tsx's own top-of-file comment.
+// below and BoardScene3D.tsx's own top-of-file comment.
 type PawnAnchorRegistry = Map<string, HTMLElement>;
 type RegisterPawnAnchor = (pawnId: string) => (el: HTMLElement | null) => void;
 
@@ -66,13 +66,17 @@ function snapshotPawns(pawns: readonly Pawn[]): PawnSnapshot {
 
 export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
   // A plain ref (not state) — populated imperatively by DOM ref callbacks
-  // below and read imperatively by PawnScene3D every animation frame.
+  // below and read imperatively by BoardScene3D every animation frame.
   // Neither side needs a React re-render for this to work, which is the
   // whole point: whatever's ALREADY moving a pawn's real DOM element
   // (Framer Motion's own layoutId FLIP, the hop's keyframe animation)
   // keeps doing exactly that, unaware anything is reading its position.
   const pawnAnchorsRef = useRef<PawnAnchorRegistry>(new Map());
   const boardGridRef = useRef<HTMLDivElement | null>(null);
+  // Wraps the (now visually hidden) BoardArtwork SVG — BoardScene3D reads
+  // that live DOM node through this ref once, to rasterize it into a
+  // texture. See BoardScene3D.tsx's own top-of-file comment for why.
+  const boardArtworkWrapperRef = useRef<HTMLDivElement | null>(null);
   function registerPawnAnchor(pawnId: string) {
     return (el: HTMLElement | null) => {
       if (el) pawnAnchorsRef.current.set(pawnId, el);
@@ -273,20 +277,47 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
   return (
     <div
       ref={boardRef}
-      className="relative mx-auto w-full max-w-115 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-135 sm:p-5 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
+      // aspect-[6/7]: BoardScene3D's angled camera needs more vertical
+      // room than a flat square to show the board receding into the
+      // distance without cropping — data-board-grid below no longer
+      // drives this wrapper's height (it's now absolutely positioned, an
+      // invisible logic layer only), so this wrapper needs its own
+      // explicit aspect ratio instead of inheriting one from a square
+      // in-flow child. Starting value, tuned visually.
+      className="relative mx-auto aspect-square w-full max-w-115 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-135 sm:p-5 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
     >
       <MotionConfig reducedMotion="user">
         <LayoutGroup>
           <div
             data-board-grid
             ref={boardGridRef}
-            className="relative grid aspect-square w-full max-w-full lg:h-full lg:w-auto overflow-hidden bg-surface"
+            // opacity-0 (not display:none, which would zero out every
+            // getBoundingClientRect() BoardScene3D reads): this grid is
+            // now a purely invisible logic substrate — real Framer Motion
+            // layoutId FLIP/hop animation, real click targets (rendered
+            // pointer-events-none, see NestSlot/PawnToken below), still
+            // fully live, just never seen. absolute inset-0 (not the old
+            // aspect-square + w-full sizing): its own on-screen shape no
+            // longer needs to visually match the 3D render at all, since
+            // BoardScene3D only ever reads FRACTIONAL (0..1) positions
+            // from it, which are meaningful regardless of this box's own
+            // aspect ratio.
+            className="absolute inset-0 grid overflow-hidden bg-surface opacity-0"
             style={{
               gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
               gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
             }}
           >
-            <BoardArtwork activeColor={roomState.players.find((p) => p.id === roomState.turnPlayerId)?.color ?? null} />
+            {/* Kept mounted, never visible — BoardScene3D rasterizes this
+                exact SVG once (see its own top comment) and maps it onto
+                the 3D slab's top face instead of this rendering directly.
+                Forced activeColor=null: this instance must stay a clean,
+                highlight-free snapshot, since a one-time raster can't
+                carry that pulsing animation — BoardScene3D rebuilds the
+                active-turn highlight itself as a live 3D overlay. */}
+            <div ref={boardArtworkWrapperRef}>
+              <BoardArtwork activeColor={null} />
+            </div>
 
             {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
               <BaseQuadrantHitArea
@@ -330,16 +361,23 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
                 }
               />
             ))}
-
-            <PawnScene3D
-              pawns={roomState.pawns}
-              legalPawnIds={legalPawnIds}
-              anchorsRef={pawnAnchorsRef}
-              containerRef={boardGridRef}
-            />
           </div>
         </LayoutGroup>
       </MotionConfig>
+
+      {/* A sibling of data-board-grid, not a child: data-board-grid has
+          overflow-hidden and a shape that no longer matches the outer
+          wrapper's own (BoardScene3D needs the full, taller wrapper box
+          to show its angled camera's view without clipping). */}
+      <BoardScene3D
+        svgWrapperRef={boardArtworkWrapperRef}
+        activeColor={roomState.players.find((p) => p.id === roomState.turnPlayerId)?.color ?? null}
+        pawns={roomState.pawns}
+        legalPawnIds={legalPawnIds}
+        anchorsRef={pawnAnchorsRef}
+        containerRef={boardGridRef}
+        onSelectPawn={onSelectPawn}
+      />
     </div>
   );
 }
@@ -616,7 +654,13 @@ function NestSlot({
       onClick={isLegal ? () => onSelectPawn(pawn.id) : undefined}
       disabled={!isLegal}
       aria-label={`${color} pawn in nest${isLegal ? " — legal move, tap to select" : ""}`}
-      className="relative flex h-full w-full items-center justify-center rounded-full"
+      // pointer-events-none: BoardScene3D's own meshes are the actual click
+      // surface now (raycasting under its angled camera) — this DOM button
+      // stays fully live for Framer Motion's layoutId FLIP/hop animation
+      // (which is what BoardScene3D reads positions from every frame) and
+      // for its onClick/disabled/aria-label, it just can't intercept a
+      // click meant for the 3D token sitting visually on top of it.
+      className="relative flex h-full w-full items-center justify-center rounded-full pointer-events-none"
     >
       <PieceFace color={color} isLegal={isLegal} variant="nest" />
     </motion.button>
@@ -642,7 +686,9 @@ function PawnToken({
       onClick={isLegal ? onClick : undefined}
       disabled={!isLegal}
       aria-label={`${color} pawn${isLegal ? " — legal move, tap to select" : ""}`}
-      className="relative flex h-full w-full shrink-0 items-center justify-center rounded-full"
+      // pointer-events-none: see the matching comment on NestSlot's button
+      // above — BoardScene3D's meshes are the click surface now.
+      className="relative flex h-full w-full shrink-0 items-center justify-center rounded-full pointer-events-none"
     >
       <PieceFace color={color} isLegal={isLegal} variant={variant} />
     </button>

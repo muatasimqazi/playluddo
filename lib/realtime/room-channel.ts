@@ -1,6 +1,7 @@
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import type { GameRoomState } from "../board/types";
 import { parseTableMessage, type TableMessage } from "./table-messages";
+import { parseWebRtcSignal, type WebRtcSignal } from "./webrtc-signal";
 
 /**
  * Per docs/PRD.md Section 6.3/7: subscribe with `private: true` — an
@@ -15,7 +16,11 @@ export function subscribeToRoom(
   client: SupabaseClient,
   roomId: string,
   onState: (state: GameRoomState) => void,
-  options?: { onStatus?: (status: string) => void; onMessage?: (message: TableMessage) => void },
+  options?: {
+    onStatus?: (status: string) => void;
+    onMessage?: (message: TableMessage) => void;
+    onSignal?: (signal: WebRtcSignal) => void;
+  },
 ): RealtimeChannel {
   const channel = client.channel(`room:${roomId}`, {
     config: { private: true },
@@ -28,6 +33,10 @@ export function subscribeToRoom(
   channel.on("broadcast", { event: "table_message" }, ({ payload }) => {
     const message = parseTableMessage(payload);
     if (message) options?.onMessage?.(message);
+  });
+  channel.on("broadcast", { event: "webrtc_signal" }, ({ payload }) => {
+    const signal = parseWebRtcSignal(payload);
+    if (signal) options?.onSignal?.(signal);
   });
   channel.subscribe(status => options?.onStatus?.(status));
 

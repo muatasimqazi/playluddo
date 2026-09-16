@@ -32,6 +32,7 @@ export function createPractice(): PracticeSession {
         testWalletBalance: 0,
         autoRollEnabled: false,
         rematchReady: false,
+        inVoice: false,
       })),
       pawns: colors.flatMap((color) =>
         Array.from({ length: 4 }, (_, index) => ({

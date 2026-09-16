@@ -42,6 +42,7 @@ import boardArtwork from "@/designs/board-design.png";
 import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
+import { Icon } from "./Icon";
 
 export interface SceneProps {
   frame: PresentationFrame;
@@ -60,6 +61,7 @@ export interface SceneProps {
   onRoll: () => void;
   onMove: (id: string) => void;
   reactions?: Record<string, string>;
+  speakingPlayerIds?: Set<string>;
   preview?: boolean;
 }
 
@@ -583,6 +585,7 @@ function Seats({
   turnPlayerId,
   frame,
   reactions,
+  speakingPlayerIds,
   preview,
 }: SceneProps) {
   if (preview) return null;
@@ -636,6 +639,13 @@ function Seats({
               <span className="seat-avatar">
                 {player.displayName.slice(0, 1).toUpperCase()}
               </span>
+              {player.inVoice && (
+                <span
+                  className={`seat-mic ${speakingPlayerIds?.has(player.id) ? "speaking" : ""}`}
+                >
+                  <Icon name="mic" size={11} />
+                </span>
+              )}
               <span className="seat-copy">
                 <strong>
                   {player.id === myPlayerId ? "You" : player.displayName}

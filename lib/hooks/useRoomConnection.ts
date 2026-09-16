@@ -97,6 +97,9 @@ export function useRoomConnection(roomId: string) {
             onMessage: (message) => {
               if (!cancelled) store().addMessage(message);
             },
+            onSignal: (signal) => {
+              if (!cancelled) store().addVoiceSignal(signal);
+            },
           },
         );
         // Also load if realtime is temporarily unavailable; the HUD remains read-only.

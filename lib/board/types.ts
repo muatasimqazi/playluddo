@@ -34,6 +34,8 @@ export interface Player {
   autoRollEnabled: boolean;
   /** PRD 5.3 rematch vote — added in M4. */
   rematchReady: boolean;
+  /** Room voice chat: has this seat joined the call. */
+  inVoice: boolean;
 }
 
 /**

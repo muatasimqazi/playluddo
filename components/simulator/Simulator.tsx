@@ -15,6 +15,7 @@ import type { GameRoomState } from "@/lib/board/types";
 import { rankPlayers } from "@/lib/board/rules";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
+import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import {
   COLORS,
@@ -55,6 +56,7 @@ export interface SimulatorProps {
   onRestart?: () => void;
   onRematch?: () => Promise<unknown>;
   onReclaim?: () => Promise<unknown>;
+  voice?: VoiceChat;
 }
 interface Preferences {
   quality: Quality;
@@ -170,6 +172,7 @@ export default function Simulator({
   onRestart,
   onRematch,
   onReclaim,
+  voice,
 }: SimulatorProps) {
   const me = state.players.find((p) => p.id === myPlayerId);
   const ranking = rankPlayers(
@@ -437,6 +440,7 @@ export default function Simulator({
           onRoll={() => void onRoll()}
           onMove={(id) => void onMove(id)}
           reactions={reactions}
+          speakingPlayerIds={voice?.speakingPlayerIds}
         />
       </SceneBoundary>
       <div className="sim-vignette" />
@@ -539,6 +543,25 @@ export default function Simulator({
           active={panel === "chat"}
           onClick={() => togglePanel("chat")}
         />
+        {voice && (
+          <>
+            <Tool
+              icon={voice.joined ? "mic" : "mic-off"}
+              label={voice.joined ? "Leave voice chat" : "Join voice chat"}
+              active={voice.joined}
+              disabled={voice.connecting}
+              onClick={() => (voice.joined ? voice.leave() : voice.join())}
+            />
+            {voice.joined && (
+              <Tool
+                icon={voice.muted ? "mic-off" : "mic"}
+                label={voice.muted ? "Unmute microphone" : "Mute microphone"}
+                active={voice.muted}
+                onClick={voice.toggleMute}
+              />
+            )}
+          </>
+        )}
         <Tool
           icon="settings"
           label="Settings"
@@ -642,9 +665,9 @@ export default function Simulator({
           <small>1 Play · 2 Overhead · 3 Table</small>
         </div>
       </footer>
-      {(error || localError) && (
+      {(error || localError || voice?.error) && (
         <div className="sim-error" role="alert">
-          {error || localError}
+          {error || localError || voice?.error}
           <button
             onClick={() => setLocalError(null)}
             aria-label="Dismiss notification"

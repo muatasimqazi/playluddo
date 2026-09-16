@@ -23,6 +23,7 @@ export type RpcErrorCode =
   | "SESSION_REPLACED"
   | "NOTHING_TO_RECLAIM"
   | "ROOM_NOT_IN_SUMMARY"
+  | "INVALID_SIGNAL_TARGET"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -40,6 +41,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "SESSION_REPLACED",
   "NOTHING_TO_RECLAIM",
   "ROOM_NOT_IN_SUMMARY",
+  "INVALID_SIGNAL_TARGET",
 ]);
 
 export class RpcError extends Error {
@@ -133,4 +135,25 @@ export function acceptRematch(client: SupabaseClient, roomId: string) {
 
 export function getRoomState(client: SupabaseClient, roomId: string) {
   return call<GameRoomState>(client, "get_room_state", { p_room_id: roomId });
+}
+
+export function joinVoice(client: SupabaseClient, roomId: string) {
+  return call<{ inVoice: boolean }>(client, "join_voice", { p_room_id: roomId });
+}
+
+export function leaveVoice(client: SupabaseClient, roomId: string) {
+  return call<{ inVoice: boolean }>(client, "leave_voice", { p_room_id: roomId });
+}
+
+export function sendWebrtcSignal(
+  client: SupabaseClient,
+  roomId: string,
+  toPlayerId: string,
+  signal: unknown,
+) {
+  return call<void>(client, "send_webrtc_signal", {
+    p_room_id: roomId,
+    p_to_player_id: toPlayerId,
+    p_signal: signal,
+  });
 }

@@ -10,6 +10,7 @@ import { COLORS } from "@/lib/presentation/board";
 import { createPractice } from "@/lib/presentation/practice";
 import { Icon } from "@/components/simulator/Icon";
 import type { PlayerColor } from "@/lib/board/types";
+import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
@@ -20,9 +21,11 @@ const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 export function RoomLobby({
   client,
   roomId,
+  voice,
 }: {
   client: SupabaseClient;
   roomId: string;
+  voice?: VoiceChat;
 }) {
   const state = useRoomStore((s) => s.roomState);
   const myPlayerId = useRoomStore((s) => s.myPlayerId);
@@ -119,6 +122,29 @@ export function RoomLobby({
             {copied ? "Copied" : "Copy code"}
           </button>
         </div>
+        {voice && (
+          <div className="lobby-voice">
+            <button
+              className={voice.joined ? "is-active" : ""}
+              disabled={voice.connecting}
+              onClick={() => (voice.joined ? voice.leave() : voice.join())}
+            >
+              <Icon name={voice.joined ? "mic" : "mic-off"} />
+              {voice.connecting
+                ? "Joining…"
+                : voice.joined
+                  ? "Leave audio"
+                  : "Join audio"}
+            </button>
+            {voice.joined && (
+              <button onClick={voice.toggleMute}>
+                <Icon name={voice.muted ? "mic-off" : "mic"} />
+                {voice.muted ? "Unmute" : "Mute"}
+              </button>
+            )}
+            {voice.error && <span className="lobby-voice-error">{voice.error}</span>}
+          </div>
+        )}
         <div className="lobby-seats">
           {SEAT_COLORS.map((color, seat) => {
             const player = state.players.find((p) => p.seatIndex === seat);
@@ -159,6 +185,13 @@ export function RoomLobby({
                   >
                     Add computer
                   </button>
+                )}
+                {player?.inVoice && (
+                  <span
+                    className={`lobby-seat-mic ${voice?.speakingPlayerIds.has(player.id) ? "speaking" : ""}`}
+                  >
+                    <Icon name="mic" size={12} />
+                  </span>
                 )}
                 {player && <Icon name="check" size={14} />}
               </div>

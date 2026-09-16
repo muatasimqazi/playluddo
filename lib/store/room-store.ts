@@ -2,6 +2,13 @@ import { create } from "zustand";
 import type { GameRoomState } from "../board/types";
 import type { MatchEventRow } from "../realtime/room-channel";
 import type { TableMessage } from "../realtime/table-messages";
+import type { WebRtcSignal } from "../realtime/webrtc-signal";
+
+let nextVoiceSignalId = 0;
+export interface QueuedVoiceSignal {
+  id: number;
+  signal: WebRtcSignal;
+}
 
 interface RoomStore {
   roomState: GameRoomState | null;
@@ -12,8 +19,11 @@ interface RoomStore {
   sessionReplaced: boolean;
   connection: "connected" | "connecting" | "reconnecting";
   messages: TableMessage[];
+  voiceSignals: QueuedVoiceSignal[];
   setConnection: (status: "connected" | "connecting" | "reconnecting") => void;
   addMessage: (message: TableMessage) => void;
+  addVoiceSignal: (signal: WebRtcSignal) => void;
+  consumeVoiceSignal: (id: number) => void;
   setRoomState: (state: GameRoomState) => void;
   setEvents: (events: MatchEventRow[]) => void;
   setIdentity: (playerId: string, connectionToken: string) => void;
@@ -29,6 +39,7 @@ export const useRoomStore = create<RoomStore>((set) => ({
   sessionReplaced: false,
   connection: "connecting",
   messages: [],
+  voiceSignals: [],
   setConnection: (connection) => set({ connection }),
   addMessage: (message) =>
     set((s) => ({
@@ -38,6 +49,12 @@ export const useRoomStore = create<RoomStore>((set) => ({
             .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))
             .slice(-60),
     })),
+  addVoiceSignal: (signal) =>
+    set((s) => ({
+      voiceSignals: [...s.voiceSignals, { id: nextVoiceSignalId++, signal }],
+    })),
+  consumeVoiceSignal: (id) =>
+    set((s) => ({ voiceSignals: s.voiceSignals.filter((q) => q.id !== id) })),
   setRoomState: (state) =>
     set((s) =>
       s.roomState &&
@@ -64,5 +81,6 @@ export const useRoomStore = create<RoomStore>((set) => ({
       sessionReplaced: false,
       connection: "connecting",
       messages: [],
+      voiceSignals: [],
     }),
 }));

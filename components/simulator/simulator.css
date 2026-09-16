@@ -329,6 +329,31 @@
   background: #e4d4a0;
   box-shadow: 0 0 8px #fff2bbaa;
 }
+.seat-mic {
+  position: absolute;
+  top: 3px;
+  left: 26px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--seat-color), #1c2b20 25%);
+  border: 1px solid #1e2720;
+  color: #f4f1e4;
+}
+.seat-mic.speaking {
+  animation: seat-mic-pulse 0.9s ease-in-out infinite;
+}
+@keyframes seat-mic-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 #e4d4a066;
+  }
+  50% {
+    box-shadow: 0 0 0 4px #e4d4a000;
+  }
+}
 .seat-reaction {
   position: absolute;
   bottom: calc(100% + 10px);
@@ -1382,6 +1407,44 @@
   gap: 7px;
   font-size: 9px;
   color: #c5ceb2;
+}
+.lobby-voice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+.lobby-voice button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  color: #c5ceb2;
+  padding: 8px 12px;
+  border: 1px solid #c5cba934;
+  border-radius: 7px;
+  background: #77804c20;
+}
+.lobby-voice button.is-active {
+  border-color: #d9be82ad;
+  color: #ebd9ab;
+}
+.lobby-voice-error {
+  font-size: 9px;
+  color: #f0bd9e;
+}
+.lobby-seat-mic {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #1e2720;
+  border: 1px solid #c8c59c30;
+  color: #d2c29b;
+}
+.lobby-seat-mic.speaking {
+  animation: seat-mic-pulse 0.9s ease-in-out infinite;
 }
 .lobby-seats {
   display: flex;

@@ -13,6 +13,7 @@ import {
   reclaimSeat,
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
+import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 
 const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
   ssr: false,
@@ -21,9 +22,11 @@ const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
 export function MatchArena({
   client,
   roomId,
+  voice,
 }: {
   client: SupabaseClient;
   roomId: string;
+  voice?: VoiceChat;
 }) {
   const state = useRoomStore((s) => s.roomState);
   const events = useRoomStore((s) => s.events);
@@ -93,6 +96,7 @@ export function MatchArena({
       onAutoRoll={(enabled) =>
         act(() => toggleAutoRoll(client, roomId, enabled))
       }
+      voice={voice}
     />
   );
 }

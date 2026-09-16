@@ -358,7 +358,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
             <div
               role="alert"
               style={matchBoardWidthStyle}
-              className="w-full max-w-115 sm:max-w-135 md:max-w-160 rounded-md border border-quadrant-red-border bg-quadrant-red-tint p-2 text-center text-body-sm text-quadrant-red"
+              className="w-full max-w-150 sm:max-w-180 md:max-w-220 rounded-md border border-quadrant-red-border bg-quadrant-red-tint p-2 text-center text-body-sm text-quadrant-red"
             >
               This seat is now controlled from another tab or device.
             </div>
@@ -380,7 +380,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
               resulting extra height below lg. */}
           <div
             style={matchBoardWidthStyle}
-            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+            className="flex w-full max-w-150 sm:max-w-180 md:max-w-220 flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
           >
             {podFor(roomState, QUADRANT_SLOTS[0].color, "left")}
             {podFor(roomState, QUADRANT_SLOTS[1].color, "right")}
@@ -404,7 +404,7 @@ export function MatchArena({ client, roomId }: MatchArenaProps) {
 
           <div
             style={matchBoardWidthStyle}
-            className="flex w-full max-w-115 sm:max-w-135 md:max-w-160 flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+            className="flex w-full max-w-150 sm:max-w-180 md:max-w-220 flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
           >
             {podFor(roomState, QUADRANT_SLOTS[2].color, "left")}
             {podFor(roomState, QUADRANT_SLOTS[3].color, "right")}

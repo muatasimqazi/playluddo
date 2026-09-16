@@ -287,7 +287,7 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       // just to avoid cropping the near corners, which read as "the board
       // looks too small" — a genuinely taller container gives the same
       // full, uncropped view at a much less extreme FOV instead.
-      className="relative mx-auto aspect-4/5 w-full max-w-115 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-135 sm:p-5 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
+      className="relative mx-auto aspect-4/5 w-full max-w-150 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-180 sm:p-5 md:max-w-220 lg:h-full lg:w-auto lg:max-w-full"
     >
       <MotionConfig reducedMotion="user">
         <LayoutGroup>

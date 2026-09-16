@@ -86,7 +86,7 @@ export function BoardScene3D({
             reload. Rotate/zoom bounds below keep the view from flipping
             under the table or zooming through the slab. */}
         <OrbitControls
-          target={[0, 0, 1.3]}
+          target={[0, 0, 2.2]}
           enablePan={false}
           minDistance={5}
           maxDistance={16}

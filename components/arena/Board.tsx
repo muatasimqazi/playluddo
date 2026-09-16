@@ -29,6 +29,15 @@ interface BoardProps {
   roomState: GameRoomState;
   legalPawnIds: ReadonlySet<string>;
   onSelectPawn: (pawnId: string) => void;
+  /** The local viewer's own player id — drives BoardScene3D's one-time
+   * default board orientation (their own color faces them). Not used for
+   * anything else here; the actual game logic never reads it. */
+  myPlayerId: string | null;
+  /** "Follow Turn" toggle state and its disable-on-manual-drag callback —
+   * both owned by MatchArena.tsx (same place Sound/Auto-Roll already
+   * live), just passed through here to BoardScene3D. */
+  followTurn: boolean;
+  onDragBoard: () => void;
   /**
    * The board's own root element — at lg+ its width is no longer a static
    * Tailwind breakpoint (it's height-driven, see the className below), so
@@ -64,7 +73,15 @@ function snapshotPawns(pawns: readonly Pawn[]): PawnSnapshot {
   return new Map(pawns.map((p) => [p.id, { state: p.state, pathIndex: p.pathIndex }]));
 }
 
-export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: BoardProps) {
+export function Board({
+  roomState,
+  legalPawnIds,
+  onSelectPawn,
+  myPlayerId,
+  followTurn,
+  onDragBoard,
+  boardRef,
+}: BoardProps) {
   // A plain ref (not state) — populated imperatively by DOM ref callbacks
   // below and read imperatively by BoardScene3D every animation frame.
   // Neither side needs a React re-render for this to work, which is the
@@ -375,6 +392,9 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
       <BoardScene3D
         svgWrapperRef={boardArtworkWrapperRef}
         activeColor={roomState.players.find((p) => p.id === roomState.turnPlayerId)?.color ?? null}
+        myColor={roomState.players.find((p) => p.id === myPlayerId)?.color ?? null}
+        followTurn={followTurn}
+        onDragBoard={onDragBoard}
         pawns={roomState.pawns}
         legalPawnIds={legalPawnIds}
         anchorsRef={pawnAnchorsRef}

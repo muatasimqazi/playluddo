@@ -1,151 +1,199 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
 import { fillBot, startMatch } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
-import type { Player, PlayerColor } from "@/lib/board/types";
+import { COLORS } from "@/lib/presentation/board";
+import { createPractice } from "@/lib/presentation/practice";
+import { Icon } from "@/components/simulator/Icon";
+import type { PlayerColor } from "@/lib/board/types";
+import "@/components/simulator/simulator.css";
 
-interface RoomLobbyProps {
-  client: SupabaseClient;
-  roomId: string;
-}
-
+const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
+  ssr: false,
+});
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 
-export function RoomLobby({ client, roomId }: RoomLobbyProps) {
-  const roomState = useRoomStore((s) => s.roomState);
+export function RoomLobby({
+  client,
+  roomId,
+}: {
+  client: SupabaseClient;
+  roomId: string;
+}) {
+  const state = useRoomStore((s) => s.roomState);
   const myPlayerId = useRoomStore((s) => s.myPlayerId);
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  if (!roomState) return null;
-
-  const host = roomState.players.find((p) => p.seatIndex === 0) ?? null;
-  const isHost = host?.id === myPlayerId;
-  const seatedCount = roomState.players.length;
-  const canStart = isHost && seatedCount >= 2;
-
+  const pawns = useMemo(() => createPractice().state.pawns, []);
+  if (!state) return null;
+  const host = state.players.find((p) => p.seatIndex === 0)?.id === myPlayerId;
   async function run(fn: () => Promise<unknown>) {
     setPending(true);
     setError(null);
     try {
       await fn();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setPending(false);
     }
   }
-
-  async function copyCode() {
+  async function copy() {
     try {
-      await navigator.clipboard.writeText(roomState!.code);
+      await navigator.clipboard.writeText(state!.code);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard access can be denied — the code is still visible on screen.
+      setError("Copy the six-letter code above to invite your friends.");
     }
   }
-
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <div className="flex items-center justify-between rounded-lg border border-hairline bg-surface p-3 shadow-elevation-1">
-        <div>
-          <p className="text-label-sm text-text-secondary">Room code</p>
-          <p className="text-headline-sm tracking-tight text-foreground">{roomState.code}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void copyCode()}
-          className="rounded-md border border-hairline bg-white px-3 py-1.5 text-label-md text-action"
-        >
-          {copied ? "Copied" : "Copy"}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        {SEAT_COLORS.map((color, seatIndex) => {
-          const player = roomState!.players.find((p) => p.seatIndex === seatIndex) ?? null;
-          return (
-            <SeatSlot
-              key={color}
-              color={color}
-              player={player}
-              isHost={isHost}
-              pending={pending}
-              onFillBot={() => void run(() => fillBot(client, roomId, seatIndex))}
-            />
-          );
-        })}
-      </div>
-
-      {isHost ? (
-        <button
-          type="button"
-          disabled={!canStart || pending}
-          onClick={() => void run(() => startMatch(client, roomId))}
-          className="h-12.5 rounded-md bg-action text-label-lg text-white shadow-elevation-2 transition-transform active:scale-97 disabled:opacity-40"
-        >
-          {seatedCount < 2 ? "Waiting for at least 2 players…" : "Start Match"}
-        </button>
-      ) : (
-        <p className="text-center text-body-sm text-text-secondary">Waiting for the host to start the match…</p>
-      )}
-
-      {error && (
-        <p role="alert" className="text-body-sm text-quadrant-red">
-          {error}
+    <main className="sim-entrance">
+      <Scene
+        frame={{
+          pawns,
+          dice: 1,
+          rollId: 0,
+          actorId: null,
+          busy: false,
+          replaying: false,
+          phase: "idle",
+          move: null,
+          canReplay: false,
+          revision: 0,
+        }}
+        players={state.players}
+        myPlayerId={myPlayerId}
+        turnPlayerId={null}
+        legalPawnIds={[]}
+        canRoll={false}
+        view="table"
+        mode="play"
+        orientation={0}
+        quality="medium"
+        actionCamera="off"
+        resetKey={0}
+        onRotate={() => {}}
+        onRoll={() => {}}
+        onMove={() => {}}
+        preview
+      />
+      <div className="entrance-shade" />
+      <header className="entrance-header">
+        <Link href="/" className="sim-brand">
+          <span className="brand-mark">
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
+          <span>
+            LUDDO<small>THE APARTMENT</small>
+          </span>
+        </Link>
+        <span>THE EVENING IS JUST BEGINNING.</span>
+      </header>
+      <section className="entrance-content room-lobby">
+        <span className="eyebrow">YOUR PRIVATE TABLE</span>
+        <h1>
+          Good company.
+          <br />
+          <em>Great game.</em>
+        </h1>
+        <p>
+          Share your room code and bring everyone together. There’s a seat
+          waiting.
         </p>
-      )}
-    </div>
-  );
-}
-
-function SeatSlot({
-  color,
-  player,
-  isHost,
-  pending,
-  onFillBot,
-}: {
-  color: PlayerColor;
-  player: Player | null;
-  isHost: boolean;
-  pending: boolean;
-  onFillBot: () => void;
-}) {
-  const classes = QUADRANT_CLASSES[color];
-
-  if (!player) {
-    return (
-      <div className={`flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-4 ${classes.border}`}>
-        <span className={`text-label-sm uppercase ${classes.text}`}>{color} — empty</span>
-        {isHost && (
-          <button
-            type="button"
-            disabled={pending}
-            onClick={onFillBot}
-            className="rounded-md border border-hairline bg-white px-2 py-1 text-label-sm text-text-secondary disabled:opacity-40"
-          >
-            Fill with Bot
+        <div className="lobby-code">
+          <div>
+            <span className="eyebrow">INVITE YOUR FRIENDS</span>
+            <strong>{state.code}</strong>
+          </div>
+          <button onClick={() => void copy()} title="Copy room code">
+            <Icon name={copied ? "check" : "users"} />
+            {copied ? "Copied" : "Copy code"}
           </button>
+        </div>
+        <div className="lobby-seats">
+          {SEAT_COLORS.map((color, seat) => {
+            const player = state.players.find((p) => p.seatIndex === seat);
+            return (
+              <div
+                key={color}
+                className={`lobby-seat ${player ? "occupied" : ""}`}
+              >
+                <span
+                  className="lobby-avatar"
+                  style={{
+                    background: player ? COLORS[color] : undefined,
+                    borderColor: COLORS[color],
+                  }}
+                >
+                  {player ? player.displayName.slice(0, 1) : "+"}
+                </span>
+                <span>
+                  <strong>
+                    {player
+                      ? `${player.displayName}${player.id === myPlayerId ? " · You" : ""}`
+                      : "An open seat"}
+                  </strong>
+                  <small>
+                    {player
+                      ? player.isBot
+                        ? "Computer is ready"
+                        : "Ready at the table"
+                      : `${color} pieces`}
+                  </small>
+                </span>
+                {!player && host && (
+                  <button
+                    disabled={pending}
+                    onClick={() =>
+                      void run(() => fillBot(client, roomId, seat))
+                    }
+                  >
+                    Add computer
+                  </button>
+                )}
+                {player && <Icon name="check" size={14} />}
+              </div>
+            );
+          })}
+        </div>
+        {host ? (
+          <button
+            className="sim-primary"
+            disabled={pending || state.players.length < 2}
+            onClick={() => void run(() => startMatch(client, roomId))}
+          >
+            {pending
+              ? "Preparing the table…"
+              : state.players.length < 2
+                ? "Invite a friend or add a computer"
+                : "Everyone’s here. Let’s play."}
+            <Icon name="arrow" />
+          </button>
+        ) : (
+          <p className="lobby-wait">Your host will start the match shortly.</p>
         )}
-      </div>
-    );
-  }
-
-  return (
-    <div className={`flex items-center gap-2 rounded-lg border p-3 shadow-elevation-1 ${classes.border} ${classes.tint}`}>
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-label-md text-white shadow-elevation-3 ${classes.bg}`}>
-        {QUADRANT_INITIAL[color]}
-      </div>
-      <div className="min-w-0">
-        <p className="truncate text-body-sm font-medium text-foreground">{player.displayName}</p>
-        <p className="text-label-sm text-text-secondary">{player.isBot ? "Bot" : "Ready"}</p>
-      </div>
-    </div>
+        {error && (
+          <p className="lobby-error" role="alert">
+            {error}
+          </p>
+        )}
+      </section>
+      <footer className="entrance-footer">
+        <Link href="/">← BACK TO THE ENTRANCE</Link>
+        <span>
+          <i className="connection-dot" />
+          {state.players.length} OF 4 SEATS TAKEN
+        </span>
+      </footer>
+    </main>
   );
 }

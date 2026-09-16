@@ -1,5 +1,6 @@
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import type { GameRoomState } from "../board/types";
+import { parseTableMessage, type TableMessage } from "./table-messages";
 
 /**
  * Per docs/PRD.md Section 6.3/7: subscribe with `private: true` — an
@@ -14,6 +15,7 @@ export function subscribeToRoom(
   client: SupabaseClient,
   roomId: string,
   onState: (state: GameRoomState) => void,
+  options?: { onStatus?: (status: string) => void; onMessage?: (message: TableMessage) => void },
 ): RealtimeChannel {
   const channel = client.channel(`room:${roomId}`, {
     config: { private: true },
@@ -23,7 +25,11 @@ export function subscribeToRoom(
     onState(payload as GameRoomState);
   });
 
-  channel.subscribe();
+  channel.on("broadcast", { event: "table_message" }, ({ payload }) => {
+    const message = parseTableMessage(payload);
+    if (message) options?.onMessage?.(message);
+  });
+  channel.subscribe(status => options?.onStatus?.(status));
 
   return channel;
 }
@@ -46,7 +52,7 @@ export interface MatchEventRow {
 export async function fetchRecentEvents(
   client: SupabaseClient,
   roomId: string,
-  limit = 30,
+  limit = 100,
 ): Promise<MatchEventRow[]> {
   const { data, error } = await client
     .from("match_events")

@@ -27,62 +27,118 @@ const BOARD_SIZE = 10; // world units spanning the slab's top face
 const SLAB_DEPTH = 1.3;
 const RASTER_RESOLUTION = 1536;
 const HIGHLIGHT_Y = 0.015; // just above the slab's top face, avoids z-fighting
-// Where the room backdrop plane sits — far enough behind the slab (which
-// spans Z -5..5) to read as a real room the board is sitting in, not a
-// picture taped up right behind it. Sized/positioned so the apartment
-// photo's own coffee table lines up with the board's fixed position —
-// tuned visually, not derived from any exact measurement of the photo.
-// Z=-14 (a first pass) put the backdrop so far behind the board that even
-// a tight crop on the photo's own coffee table rendered it much smaller
-// on screen than the (much closer) board — reading as "board floating
-// over a plain floor" since the table itself was too small to visibly
-// extend past the board's own edges. Pulled to just behind the board's
-// own far edge (board spans z -5..5) instead, so the SAME real table,
-// now much closer to the camera, appears comparably sized to the board.
-const BACKDROP_Z = -8;
-const BACKDROP_WIDTH = 30;
-const BACKDROP_HEIGHT = 22.5;
-// The camera looks DOWN at a steep angle (position y=6.3 -> target y=0),
-// so its own view axis, extended back to BACKDROP_Z, crosses through a
-// much LOWER y than either the camera or the board sit at — computed
-// from the actual camera position/target (not guessed): forward
-// direction (0,0,2.2)-(0,6.3,9) normalized ~= (0,-0.68,-0.73); traveling
-// along that ray from the camera until z=-8 lands at y~=-9.45. Centering
-// the backdrop plane there (not at the board's own y=0) is what actually
-// puts it in the middle of the visible frustum at that depth — an
-// earlier guess (y=3) put most of the plane above the frame entirely.
-const BACKDROP_Y = -9.45;
-// The apartment photo's own coffee table sits at roughly (46.5%, 69%)
-// across/down the square source image (pixel-measured) — cropped here via
-// the texture's own repeat/offset (not the plane's position/size, which
-// only controls where in WORLD space the backdrop sits) so a fixed 4:3
-// window of the image, centered on the table, maps onto the whole plane
-// without stretching (repeat.x/repeat.y kept at the same 4:3 ratio as
-// BACKDROP_WIDTH/BACKDROP_HEIGHT).
-const BACKDROP_CROP_CENTER_U = 0.51;
-const BACKDROP_CROP_CENTER_V = 1 - 0.735; // UV's V=0 is the image's own bottom edge
-// Tight enough that the crop WIDTH matches the table's own measured width
-// fraction (pixel-measured against a 10% grid overlay: table spans
-// roughly x 0.22-0.80, y 0.60-0.87) — a looser crop (an earlier pass used
-// 0.62) shows so much surrounding room that the table itself shrinks to
-// a sliver behind the board instead of visibly extending past its edges,
-// which read as "board floating over a plain floor," not "board sitting
-// on this table."
-const BACKDROP_CROP_HEIGHT = 0.435;
-const BACKDROP_CROP_WIDTH = BACKDROP_CROP_HEIGHT * (BACKDROP_WIDTH / BACKDROP_HEIGHT);
-// A distant vertical plane (RoomBackdrop) only ever covers the "far wall"
-// portion of the frustum — near the bottom of the frame the camera is
-// looking at what would be actual room FLOOR right around the table,
-// which a wall-like plane far in the distance geometrically can't reach
-// no matter how it's sized. A plain floor-colored ground plane (color
-// pixel-sampled from the photo's own floor) under the board bridges that
-// gap instead of leaving a harsh white void — not a textured match for
-// the photo's floor, just enough to read as "the same room continuing."
-const ROOM_FLOOR_COLOR = "#aca394";
+// A flat photo backdrop plane was tried first (and, before that, a photo
+// plane + a separate flat-color floor plane in front of it) — but
+// OrbitControls lets the camera orbit a full 360° around the board with
+// no azimuth limit, and a flat plane (or any room missing even one wall)
+// necessarily runs out at some angle: past its own forward-facing arc,
+// orbiting shows it edge-on or from behind, reading as the image being
+// "cut off." The only fix that actually holds at every orbit angle is a
+// genuinely ENCLOSED room — floor, ceiling, and all 4 walls — sized well
+// past the camera's own max orbit distance so nothing can ever clip a
+// wall. Built as one inside-out box (ROOM_SIZE below) rather than 5
+// separate planes: a single box with a 6-entry material array (same
+// per-face-materials pattern BoardSlab already uses) can't accidentally
+// leave a gap at a seam or get one wall's rotation sign wrong the way 5
+// independently-placed/rotated planes could.
+// Coffee table the board actually sits on. Previously "the table" was
+// only ever the flat backdrop photo's own table, coincidentally visible
+// behind the board — removing that photo means the board needs a real
+// table under it now. Sized to visibly extend past the board's own
+// footprint (BOARD_SIZE) on every side, like an actual table a board
+// would be placed on rather than one sized to exactly match it.
+const TABLE_TOP_WIDTH = BOARD_SIZE + 3.5;
+const TABLE_TOP_DEPTH = BOARD_SIZE + 3.5;
+const TABLE_TOP_THICKNESS = 0.5;
+// Board slab's own top face is at world y=0 (BoardSlab positions itself
+// at -SLAB_DEPTH/2, spanning -SLAB_DEPTH..0) — the table top sits flush
+// just under that, and the legs continue down to the room's floor.
+const TABLE_LEG_HEIGHT = 3.4;
+const TABLE_TOP_Y = -SLAB_DEPTH - TABLE_TOP_THICKNESS / 2;
+const TABLE_FLOOR_Y = TABLE_TOP_Y - TABLE_TOP_THICKNESS / 2 - TABLE_LEG_HEIGHT;
+
+const ROOM_HALF_WIDTH = 22; // comfortably past OrbitControls' maxDistance (16)
+const ROOM_HALF_DEPTH = 22;
+// Ceiling height is derived from OrbitControls' own envelope, not
+// guessed: the highest the camera can ever sit above its target is
+// maxDistance * cos(minPolarAngle) = 16 * cos(12°) ≈ 15.65 (target y=0,
+// so that's an absolute world Y too) — the camera briefly clipping
+// through/above too-low a ceiling at max zoom-out + steep overhead angle
+// was caught by checking this arithmetic BEFORE building, the same
+// "verify the geometry, don't eyeball it" approach BACKDROP_Y/HIGHLIGHT_Y
+// used earlier this session, rather than discovering it via a broken
+// screenshot after the fact. 20 leaves several units of margin above that
+// 15.65 ceiling.
+const ROOM_CEILING_Y = 20;
+const ROOM_HEIGHT = ROOM_CEILING_Y - TABLE_FLOOR_Y;
+// `side: THREE.DoubleSide` on every room-shell material (not BackSide):
+// this file already hit the "wrong side invisible" bug once this session
+// (PawnMesh's LatheGeometry body reading as hollow under the angled
+// camera) and fixed it with DoubleSide rather than by reasoning out the
+// correct winding/normal direction by hand — same call here, since an
+// inside-out box's inward faces are exactly the class of geometry that
+// mistake hits, and DoubleSide costs nothing meaningful for a handful of
+// large low-poly box faces.
+const WALL_COLOR = "#d8d2c4"; // matches the reference scene's own wall tone
+const CEILING_COLOR = "#e4dfd2";
+const ROOM_FLOOR_COLOR = "#8f887e";
+
+// Per direct instruction: each player's own color faces them locally by
+// default, and dragging the board rotates it independently of the
+// camera, snapping to 0/90/180/270. Y-rotation (radians) that brings
+// each color's own base quadrant to the "near" side of the screen
+// (closest to the default camera — BLUE's own quadrant already sits
+// there at zero rotation, per BASE_AREA's world-space mapping in
+// PawnMesh/ActiveHighlightFrame below). Starting values — like every
+// other 3D orientation constant in this file, verified live via
+// screenshot once built, not trusted from hand-derived trig alone (a
+// wrong sign here puts a color exactly opposite where intended).
+const HOME_ROTATION: Record<PlayerColor, number> = {
+  blue: 0,
+  yellow: Math.PI / 2,
+  red: Math.PI,
+  green: -Math.PI / 2,
+};
+
+// Eases `current` toward `target` by `factor` each call, always going the
+// SHORT way around the circle (350°->0° moves +10°, not the long way
+// through 180°) — plain linear interpolation on raw radians doesn't have
+// this property and would occasionally spin the board the long way
+// around after a Follow Turn jump.
+function lerpAngle(current: number, target: number, factor: number): number {
+  const twoPi = Math.PI * 2;
+  let delta = (target - current) % twoPi;
+  if (delta > Math.PI) delta -= twoPi;
+  if (delta < -Math.PI) delta += twoPi;
+  return current + delta * factor;
+}
+
+function nearestQuarterTurn(angle: number): number {
+  const quarter = Math.PI / 2;
+  return Math.round(angle / quarter) * quarter;
+}
+
+// Radians of board rotation per pixel of horizontal drag — tuned so a
+// natural swipe across the board rotates it roughly a quarter turn, not
+// a barely-perceptible nudge or a dizzying multi-spin. Starting value,
+// tuned visually like the rest of this file's constants.
+const DRAG_ROTATION_SENSITIVITY = 0.004;
 
 interface BoardScene3DProps {
   svgWrapperRef: RefObject<HTMLDivElement | null>;
   activeColor: PlayerColor | null;
+  // The LOCAL viewer's own color — drives the one-time default board
+  // orientation (their own base faces them) — deliberately NOT read by
+  // any game-logic path; this file is the only place it's ever used for
+  // anything besides rotating a purely visual group.
+  myColor: PlayerColor | null;
+  // "Follow Turn" and the drag-disables-it interaction both live as
+  // ordinary React state one level up (MatchArena.tsx, alongside the
+  // existing Sound/Auto-Roll toggles) — this component only reads the
+  // current value and reports drags back up via onDragBoard, it doesn't
+  // own the toggle itself.
+  followTurn: boolean;
+  onDragBoard: () => void;
   pawns: readonly Pawn[];
   legalPawnIds: ReadonlySet<string>;
   anchorsRef: RefObject<Map<string, HTMLElement>>;
@@ -93,6 +149,9 @@ interface BoardScene3DProps {
 export function BoardScene3D({
   svgWrapperRef,
   activeColor,
+  myColor,
+  followTurn,
+  onDragBoard,
   pawns,
   legalPawnIds,
   anchorsRef,
@@ -101,11 +160,99 @@ export function BoardScene3D({
 }: BoardScene3DProps) {
   const boardTexture = useBoardTexture(svgWrapperRef);
   const woodTexture = useWoodTexture();
-  const apartmentTexture = useApartmentTexture();
+  const floorTexture = useFloorTexture();
   // Built once and shared by every pawn regardless of color — only the
   // material differs per pawn, never the shape.
   const bodyGeometry = useMemo(() => new THREE.LatheGeometry(buildBodyProfile(), 48), []);
   const ringGeometry = useMemo(() => new THREE.TorusGeometry(RING_RADIUS, RING_TUBE_RADIUS, 12, 48), []);
+
+  // The board's own rotation group — wraps the slab, active-turn
+  // highlights, and every pawn (NOT the room/table/lights/camera, which
+  // must never rotate). Driven imperatively every frame from refs, the
+  // same convention this file already uses for ActiveHighlightFrame's
+  // pulse and PawnMesh's position — never via setState per frame.
+  const boardGroupRef = useRef<THREE.Group>(null);
+  const liveRotationRef = useRef(0);
+  const snapTargetRef = useRef(0);
+  const hasSetDefaultRotationRef = useRef(false);
+  const dragStateRef = useRef<{ startClientX: number; startRotation: number } | null>(null);
+  // The one piece of this that IS React state: it also flips
+  // OrbitControls' own `enabled` prop off for the duration of a board
+  // drag (per direct instruction — camera and board rotation must never
+  // fight over the same gesture), which needs a real render to take
+  // effect. Everything else about a drag is ref-only.
+  const [isDraggingBoard, setIsDraggingBoard] = useState(false);
+
+  // Each player's own color faces them by default — set once, the first
+  // time myColor is actually known (a ref guard, not a [myColor] value
+  // check alone, so this can never re-fire and silently overwrite a
+  // later manual drag or Follow Turn rotation).
+  useEffect(() => {
+    if (hasSetDefaultRotationRef.current || !myColor) return;
+    hasSetDefaultRotationRef.current = true;
+    const home = HOME_ROTATION[myColor];
+    liveRotationRef.current = home;
+    snapTargetRef.current = home;
+    if (boardGroupRef.current) boardGroupRef.current.rotation.y = home;
+  }, [myColor]);
+
+  // Follow Turn: ease toward whoever's turn it currently is, only while
+  // the toggle is on. A null activeColor (lobby/summary states) leaves
+  // the board wherever it already was instead of snapping to anything.
+  useEffect(() => {
+    if (!followTurn || !activeColor) return;
+    snapTargetRef.current = HOME_ROTATION[activeColor];
+  }, [followTurn, activeColor]);
+
+  // Attached to BoardSlab's own mesh below (its wood-framed edges AND
+  // its printed top face — the board's whole physical surface counts as
+  // "the board" for this gesture, not just a thin edge ring) — per
+  // direct instruction, dragging the board rotates it, independent of
+  // the camera, disabling OrbitControls for the duration. Deliberately a
+  // plain `window` pointermove/pointerup pair (added on pointerdown,
+  // removed on pointerup) rather than routing through r3f's own pointer
+  // events for the move/up phase: r3f's synthetic event system and
+  // OrbitControls' native DOM listeners are two separate systems this
+  // file has already hit a real conflict between once (PawnScene3D's
+  // pointer-events bug, earlier this session) — a plain window listener
+  // sidesteps that class of bug entirely instead of risking it again.
+  //
+  // No new hit-target geometry needed for the "Game Piece > Board
+  // Controls > Environment" priority the spec asks for: pawns are
+  // separate meshes sitting closer to the camera than the slab, so r3f's
+  // own closest-hit-first raycasting already resolves a pawn click
+  // before it ever reaches this handler, and anything that misses the
+  // slab's footprint entirely falls through to OrbitControls untouched
+  // — both for free, from normal 3D depth ordering.
+  function handleBoardPointerDown(event: ThreeEvent<PointerEvent>) {
+    event.stopPropagation();
+    onDragBoard();
+    setIsDraggingBoard(true);
+    dragStateRef.current = { startClientX: event.clientX, startRotation: liveRotationRef.current };
+
+    function handlePointerMove(moveEvent: PointerEvent) {
+      const drag = dragStateRef.current;
+      if (!drag) return;
+      liveRotationRef.current = drag.startRotation + (moveEvent.clientX - drag.startClientX) * DRAG_ROTATION_SENSITIVITY;
+    }
+    function handlePointerUp() {
+      dragStateRef.current = null;
+      snapTargetRef.current = nearestQuarterTurn(liveRotationRef.current);
+      setIsDraggingBoard(false);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    }
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+  }
+
+  function handleBoardPointerOver() {
+    document.body.style.cursor = "grab";
+  }
+
+  function handleBoardPointerOut() {
+    if (!dragStateRef.current) document.body.style.cursor = "auto";
+  }
 
   return (
     // No pointer-events-none here, and none passed to <Canvas> either —
@@ -139,6 +286,7 @@ export function BoardScene3D({
             reload. Rotate/zoom bounds below keep the view from flipping
             under the table or zooming through the slab. */}
         <OrbitControls
+          enabled={!isDraggingBoard}
           target={[0, 0, 2.2]}
           enablePan={false}
           minDistance={5}
@@ -146,8 +294,14 @@ export function BoardScene3D({
           minPolarAngle={THREE.MathUtils.degToRad(12)}
           maxPolarAngle={THREE.MathUtils.degToRad(82)}
         />
-        {apartmentTexture && <RoomBackdrop texture={apartmentTexture} />}
         <ambientLight intensity={0.85} />
+        {/* Cheap sky/ground gradient fill across the room's now much
+            larger walls/floor — standard, inexpensive, and (unlike the
+            reference file's PMREMGenerator environment) not implicated in
+            any known rendering bug. Kept alongside, not instead of, the
+            existing ambient/directional lights below, which already read
+            correctly on the board/pawns. */}
+        <hemisphereLight args={["#fdf3e2", "#3a332a", 0.5]} />
         <directionalLight
           position={[4, 8, 3]}
           intensity={1.7}
@@ -163,8 +317,11 @@ export function BoardScene3D({
             and the underside of pawn bevels don't go fully black — real
             light bounces around a table, this is the cheap stand-in. */}
         <directionalLight position={[-4, 3, -3]} intensity={0.3} />
-        {apartmentTexture && <RoomFloor />}
-        {boardTexture && <BoardSlab boardTexture={boardTexture} woodTexture={woodTexture} />}
+        <RoomShell floorTexture={floorTexture} />
+        <CoffeeTable woodTexture={woodTexture} />
+        <Rug />
+        <Sofa />
+        <FloorLamp />
         <ContactShadows
           position={[0, -SLAB_DEPTH - 0.001, 0]}
           opacity={0.5}
@@ -174,24 +331,76 @@ export function BoardScene3D({
           resolution={512}
           color="#1a140d"
         />
-        {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
-          <ActiveHighlightFrame key={color} color={color} isActive={color === activeColor} />
-        ))}
-        {pawns.map((pawn) => (
-          <PawnMesh
-            key={pawn.id}
-            pawn={pawn}
-            isLegal={legalPawnIds.has(pawn.id)}
-            anchorsRef={anchorsRef}
-            containerRef={containerRef}
-            bodyGeometry={bodyGeometry}
-            ringGeometry={ringGeometry}
-            onSelectPawn={onSelectPawn}
-          />
-        ))}
+        {/* useFrame only works on a descendant of <Canvas> — BoardScene3D
+            itself (the component that RENDERS this <Canvas>) is not one,
+            so the per-frame lerp lives in this tiny renderless child
+            instead of inline above. */}
+        <BoardRotationDriver
+          boardGroupRef={boardGroupRef}
+          liveRotationRef={liveRotationRef}
+          snapTargetRef={snapTargetRef}
+          isDraggingBoard={isDraggingBoard}
+        />
+        {/* Everything that's part of "the board" (slab, active-turn
+            highlights, pawns) lives inside this one rotating group — the
+            room, table backdrop, lights, shadow catcher, and camera all
+            stay outside it and never rotate. */}
+        <group ref={boardGroupRef}>
+          {boardTexture && (
+            <BoardSlab
+              boardTexture={boardTexture}
+              woodTexture={woodTexture}
+              onPointerDown={handleBoardPointerDown}
+              onPointerOver={handleBoardPointerOver}
+              onPointerOut={handleBoardPointerOut}
+            />
+          )}
+          {(Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
+            <ActiveHighlightFrame key={color} color={color} isActive={color === activeColor} />
+          ))}
+          {pawns.map((pawn) => (
+            <PawnMesh
+              key={pawn.id}
+              pawn={pawn}
+              isLegal={legalPawnIds.has(pawn.id)}
+              anchorsRef={anchorsRef}
+              containerRef={containerRef}
+              bodyGeometry={bodyGeometry}
+              ringGeometry={ringGeometry}
+              onSelectPawn={onSelectPawn}
+            />
+          ))}
+        </group>
       </Canvas>
     </div>
   );
+}
+
+// Renderless — exists purely so the per-frame rotation lerp can call
+// useFrame from inside the <Canvas> tree (see the comment at its call
+// site above). Mutates the same refs BoardScene3D owns; isDraggingBoard
+// is read fresh each render since r3f re-subscribes the callback whenever
+// this component re-renders.
+function BoardRotationDriver({
+  boardGroupRef,
+  liveRotationRef,
+  snapTargetRef,
+  isDraggingBoard,
+}: {
+  boardGroupRef: RefObject<THREE.Group | null>;
+  liveRotationRef: RefObject<number>;
+  snapTargetRef: RefObject<number>;
+  isDraggingBoard: boolean;
+}) {
+  useFrame(() => {
+    const group = boardGroupRef.current;
+    if (!group) return;
+    if (!isDraggingBoard) {
+      liveRotationRef.current = lerpAngle(liveRotationRef.current, snapTargetRef.current, 0.18);
+    }
+    group.rotation.y = liveRotationRef.current;
+  });
+  return null;
 }
 
 // Copies every element's ACTUAL resolved fill/stroke/color/opacity from
@@ -315,105 +524,264 @@ function useWoodTexture(): THREE.CanvasTexture | null {
   return texture;
 }
 
-// Per direct instruction: a real room render (public/location/
-// apartment-3d.jpeg — a photorealistic living room shot roughly head-on,
-// a large wooden coffee table dominating the foreground) as the board's
-// own backdrop, so the board reads as sitting on that table rather than
-// floating in a plain white void. Same Image()+canvas load pattern as
-// the other two textures in this file. (An earlier isometric-illustration
-// version of this image needed a separate RoomFloor patch below to cover
-// the near-camera gap a distant wall plane alone can't reach — kept here
-// since this photo's own foreground floor/rug doesn't fully solve that
-// same geometric issue either, a flat distant backdrop plane can't.)
-function useApartmentTexture(): THREE.CanvasTexture | null {
+// A tileable speckled floor texture, canvas-generated (same technique as
+// the reference file's makeConcreteFloorTexture: fill + scattered soft
+// radial blotches + fine speckle noise, rasterized once to a canvas and
+// wrapped as a RepeatWrapping CanvasTexture) rather than a flat color —
+// cheap, no new image asset, and reads far better than a flat plane across
+// a floor this large. Built inside a useEffect (not useMemo): the
+// react-hooks/purity lint rule this project runs flags Math.random calls
+// reached during render, including inside a useMemo callback (useMemo's
+// callback still runs synchronously DURING render) — an effect runs after
+// render as an intentional side effect, which the rule doesn't flag, so
+// this follows the same useEffect+useState shape as useBoardTexture/
+// useWoodTexture above rather than fighting the linter over it. The
+// `setTexture` call is wrapped in `queueMicrotask` rather than called
+// synchronously at the end of the effect body — this project's
+// react-hooks/set-state-in-effect rule flags a same-tick setState inside
+// an effect (cascading-render risk) and only allows it from an async
+// callback, exactly like the image `onload` callbacks useBoardTexture/
+// useWoodTexture already defer through; a microtask is the equivalent
+// deferral for this synchronous canvas computation, which has no image
+// load of its own to await.
+function useFloorTexture(): THREE.CanvasTexture | null {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    const img = new Image();
-    img.onload = () => {
-      if (cancelled) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext("2d");
-      ctx?.drawImage(img, 0, 0);
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      // Crops a fixed 4:3 window centered on the photo's own coffee table
-      // (pixel-measured at ~46.5%/69% across/down the square source image)
-      // onto the whole backdrop plane, instead of showing the full square
-      // photo stretched or letterboxed — repeat.x/y kept at the same 4:3
-      // ratio as the plane itself (BACKDROP_WIDTH/HEIGHT) so nothing
-      // stretches. Set here, where the texture is created, rather than by
-      // mutating the `texture` prop in RoomBackdrop below.
-      tex.wrapS = THREE.ClampToEdgeWrapping;
-      tex.wrapT = THREE.ClampToEdgeWrapping;
-      tex.repeat.set(BACKDROP_CROP_WIDTH, BACKDROP_CROP_HEIGHT);
-      tex.offset.set(BACKDROP_CROP_CENTER_U - BACKDROP_CROP_WIDTH / 2, BACKDROP_CROP_CENTER_V - BACKDROP_CROP_HEIGHT / 2);
-      tex.needsUpdate = true;
-      setTexture(tex);
-    };
-    img.onerror = (event) => {
-      console.error("BoardScene3D: failed to load the apartment backdrop", event);
-    };
-    img.src = "/location/apartment-3d.jpeg";
-
-    return () => {
-      cancelled = true;
-    };
+    const size = 1024;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = ROOM_FLOOR_COLOR;
+      ctx.fillRect(0, 0, size, size);
+      for (let i = 0; i < 260; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const r = 14 + Math.random() * 70;
+        const shade = 90 + Math.random() * 70;
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+        grad.addColorStop(0, `rgba(${shade},${shade - 8},${shade - 16},${0.08 + Math.random() * 0.1})`);
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      const imgData = ctx.getImageData(0, 0, size, size);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const n = (Math.random() - 0.5) * 10;
+        d[i] += n;
+        d[i + 1] += n;
+        d[i + 2] += n;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(9, 9);
+    tex.needsUpdate = true;
+    queueMicrotask(() => setTexture(tex));
   }, []);
 
   return texture;
 }
 
-// A single flat plane standing upright far behind the slab, facing the
-// camera's default direction — not a true photographic environment (the
-// camera can rotate away via OrbitControls and reveal it's flat), but a
-// cheap, guaranteed-correct "photo backdrop" read that only needs to look
-// right from roughly the initial angle, the same tradeoff this file has
-// made before (e.g. GlassGlint in an earlier pass) in favor of something
-// simple that's actually verifiable over something physically exact that
-// isn't.
-function RoomBackdrop({ texture }: { texture: THREE.CanvasTexture }) {
+// The enclosed room itself — one inside-out box (see the constants' own
+// comment for why a single box beats 5 separate planes) spanning well
+// past OrbitControls' own orbit/zoom envelope, so no camera angle at full
+// 360° orbit ever shows a gap, edge, or void the way the old flat photo
+// backdrop eventually did. Box face order is [+x, -x, +y, -y, +z, -z] —
+// same convention BoardSlab already uses below (index 2 = ceiling, index
+// 3 = floor).
+function RoomShell({ floorTexture }: { floorTexture: THREE.CanvasTexture | null }) {
+  const wallMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: WALL_COLOR, roughness: 0.92, side: THREE.DoubleSide }),
+    [],
+  );
+  const ceilingMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: CEILING_COLOR, roughness: 0.85, side: THREE.DoubleSide }),
+    [],
+  );
+  // Plain color fallback for the one frame (if any) before the floor
+  // texture's effect has run — same "never render with a null map" care
+  // BoardSlab's own edgeMaterial takes for woodTexture below.
+  const floorMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: floorTexture ? "#ffffff" : ROOM_FLOOR_COLOR,
+        map: floorTexture,
+        roughness: 0.85,
+        side: THREE.DoubleSide,
+      }),
+    [floorTexture],
+  );
+  const materials = useMemo(
+    () => [wallMaterial, wallMaterial, ceilingMaterial, floorMaterial, wallMaterial, wallMaterial],
+    [wallMaterial, ceilingMaterial, floorMaterial],
+  );
+
   return (
-    <mesh position={[0, BACKDROP_Y, BACKDROP_Z]}>
-      <planeGeometry args={[BACKDROP_WIDTH, BACKDROP_HEIGHT]} />
-      <meshBasicMaterial map={texture} />
+    // key: same material-recompile fix BoardSlab already relies on — a
+    // material first compiled with `map: null` (the one frame before the
+    // floor texture's effect resolves) never picks up a later-assigned
+    // texture without a fresh mount, so swap key once the real texture
+    // exists rather than trust an in-place `.map` update in a WebGL
+    // fallback path this file hasn't otherwise needed to trust.
+    <mesh
+      key={floorTexture ? "floor-photo" : "floor-fallback"}
+      position={[0, (ROOM_CEILING_Y + TABLE_FLOOR_Y) / 2, 0]}
+      material={materials}
+      receiveShadow
+    >
+      <boxGeometry args={[ROOM_HALF_WIDTH * 2, ROOM_HEIGHT, ROOM_HALF_DEPTH * 2]} />
     </mesh>
   );
 }
 
-// See ROOM_FLOOR_COLOR's own comment — a plain horizontal ground plane
-// under and around the slab, lying flat (rotated to face +Y, like the
-// slab's own top face) so the board doesn't appear to float over a white
-// void in the margin the distant wall backdrop can't reach. Sits below
-// ContactShadows' own catcher plane so that shadow still renders on top.
-// Two prior sizes both extended this floor's far edge BEHIND the board's
-// own near edge (z=5) — first out to the old, far-away backdrop, then
-// (after moving the backdrop much closer, see BACKDROP_Z) still back to
-// z=-5, which is well behind where the camera's own downward-angled
-// sight lines already dip below floor level (worked out from the same
-// forward-direction math as BACKDROP_Y: the central ray crosses y=-1.31
-// at z~=0.79, itself inside the board's own footprint) — so any floor
-// reaching further back than that was needlessly intercepting rays meant
-// for the now-close backdrop's own coffee-table image instead of the
-// board. Kept strictly in FRONT of the board's near edge instead (z=5 to
-// 15): still covers the near-camera gap a flat wall backdrop can't
-// reach, without competing with it for the same screen space at all.
-const ROOM_FLOOR_WIDTH = 30;
-const ROOM_FLOOR_DEPTH = 10;
-const ROOM_FLOOR_CENTER_Z = 10;
+// The table the board actually sits on — replaces the old backdrop
+// photo's own (now-gone) table. Reuses the SAME wood photo already loaded
+// for the board's own frame (useWoodTexture) rather than a new asset, for
+// a consistent wood tone between board and table.
+function CoffeeTable({ woodTexture }: { woodTexture: THREE.CanvasTexture | null }) {
+  const topMaterial = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: woodTexture ? "#ffffff" : "#6b4a2e",
+        map: woodTexture,
+        roughness: 0.45,
+        metalness: 0.04,
+      }),
+    [woodTexture],
+  );
+  const legMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: "#241f1a", roughness: 0.5 }), []);
+  const legInset = 0.5;
+  const legPositions: Array<[number, number]> = [
+    [TABLE_TOP_WIDTH / 2 - legInset, TABLE_TOP_DEPTH / 2 - legInset],
+    [-(TABLE_TOP_WIDTH / 2 - legInset), TABLE_TOP_DEPTH / 2 - legInset],
+    [TABLE_TOP_WIDTH / 2 - legInset, -(TABLE_TOP_DEPTH / 2 - legInset)],
+    [-(TABLE_TOP_WIDTH / 2 - legInset), -(TABLE_TOP_DEPTH / 2 - legInset)],
+  ];
 
-function RoomFloor() {
   return (
-    <mesh
-      position={[0, -SLAB_DEPTH - 0.01, ROOM_FLOOR_CENTER_Z]}
-      rotation={[-Math.PI / 2, 0, 0]}
-    >
-      <planeGeometry args={[ROOM_FLOOR_WIDTH, ROOM_FLOOR_DEPTH]} />
-      <meshBasicMaterial color={ROOM_FLOOR_COLOR} />
+    <group>
+      <mesh key={woodTexture ? "wood-photo" : "wood-fallback"} position={[0, TABLE_TOP_Y, 0]} material={topMaterial} castShadow receiveShadow>
+        <boxGeometry args={[TABLE_TOP_WIDTH, TABLE_TOP_THICKNESS, TABLE_TOP_DEPTH]} />
+      </mesh>
+      {legPositions.map(([x, z]) => (
+        <mesh
+          key={`${x}-${z}`}
+          position={[x, TABLE_TOP_Y - TABLE_TOP_THICKNESS / 2 - TABLE_LEG_HEIGHT / 2, z]}
+          material={legMaterial}
+          castShadow
+        >
+          <boxGeometry args={[0.28, TABLE_LEG_HEIGHT, 0.28]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// A low oval rug under the table, same cheap-speckle canvas-texture
+// technique as the floor — mostly there so the floor immediately around
+// the table doesn't read as one uniform material out to the walls.
+function Rug() {
+  // useEffect, not useMemo — see useFloorTexture's own comment on why
+  // Math.random can't run during render under this project's
+  // react-hooks/purity rule.
+  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+
+  useEffect(() => {
+    const size = 512;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#c7c2b6";
+      ctx.fillRect(0, 0, size, size);
+      for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * size;
+        const y = Math.random() * size;
+        const shade = 190 + Math.random() * 50;
+        ctx.strokeStyle = `rgba(${shade},${shade - 4},${shade - 10},${0.08 + Math.random() * 0.12})`;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + (Math.random() - 0.5) * 5, y + (Math.random() - 0.5) * 5);
+        ctx.stroke();
+      }
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    // See useFloorTexture's own comment on why this is deferred to a
+    // microtask rather than called synchronously at the end of the effect.
+    queueMicrotask(() => setTexture(tex));
+  }, []);
+
+  if (!texture) return null;
+
+  return <RugMesh texture={texture} />;
+}
+
+function RugMesh({ texture }: { texture: THREE.CanvasTexture }) {
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ map: texture, roughness: 1 }), [texture]);
+
+  return (
+    <mesh position={[0, TABLE_FLOOR_Y + 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} material={material} receiveShadow>
+      <circleGeometry args={[TABLE_TOP_WIDTH * 1.6, 48]} />
     </mesh>
+  );
+}
+
+// A low, simple stacked-box sofa (same construction technique as the
+// reference scene's makeSofa, trimmed to a single straight bench rather
+// than its full L-shaped sectional) — placed behind the table purely for
+// atmosphere/scale, well outside the board's own play area.
+function Sofa() {
+  const fabricMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: "#e7ddc9", roughness: 0.9 }), []);
+  const seatHeight = 0.9;
+  const backHeight = 1.1;
+  const sofaZ = -(ROOM_HALF_DEPTH - 3.5);
+
+  return (
+    <group position={[0, TABLE_FLOOR_Y, sofaZ]}>
+      <mesh position={[0, seatHeight / 2, 0]} material={fabricMaterial} castShadow receiveShadow>
+        <boxGeometry args={[6.5, seatHeight, 2.2]} />
+      </mesh>
+      <mesh position={[0, (seatHeight + backHeight) / 2, -1.1]} material={fabricMaterial} castShadow>
+        <boxGeometry args={[6.5, seatHeight + backHeight, 0.5]} />
+      </mesh>
+    </group>
+  );
+}
+
+// A single floor lamp with its own small warm point light — the only new
+// light source this pass adds beyond the existing proven ambient/
+// directional/hemisphere combo, kept modest (short range, low intensity)
+// so it reads as a secondary accent rather than competing with the key
+// light already lighting the board itself.
+function FloorLamp() {
+  const poleMaterial = useMemo(() => new THREE.MeshStandardMaterial({ color: "#241f1a", roughness: 0.4 }), []);
+  const shadeMaterial = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: "#f3e6c9", roughness: 0.8, emissive: "#ffdca0", emissiveIntensity: 0.3 }),
+    [],
+  );
+  const x = ROOM_HALF_WIDTH - 4;
+  const z = -1.5;
+
+  return (
+    <group position={[x, TABLE_FLOOR_Y, z]}>
+      <mesh position={[0, 1.6, 0]} material={poleMaterial} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 3.2, 10]} />
+      </mesh>
+      <mesh position={[0, 3.3, 0]} material={shadeMaterial}>
+        <cylinderGeometry args={[0.35, 0.45, 0.6, 20, 1, true]} />
+      </mesh>
+      <pointLight position={[0, 3.2, 0]} color="#ffcf8a" intensity={0.6} distance={7} decay={2} />
+    </group>
   );
 }
 
@@ -422,9 +790,15 @@ function RoomFloor() {
 function BoardSlab({
   boardTexture,
   woodTexture,
+  onPointerDown,
+  onPointerOver,
+  onPointerOut,
 }: {
   boardTexture: THREE.CanvasTexture;
   woodTexture: THREE.CanvasTexture | null;
+  onPointerDown: (event: ThreeEvent<PointerEvent>) => void;
+  onPointerOver: () => void;
+  onPointerOut: () => void;
 }) {
   // `key`: r3f reuses the same material instance across re-renders and
   // just mutates its properties, but three.js decides at COMPILE time
@@ -458,7 +832,15 @@ function BoardSlab({
   );
 
   return (
-    <mesh key={woodTexture ? "wood-photo" : "wood-fallback"} position={[0, -SLAB_DEPTH / 2, 0]} material={materials} receiveShadow>
+    <mesh
+      key={woodTexture ? "wood-photo" : "wood-fallback"}
+      position={[0, -SLAB_DEPTH / 2, 0]}
+      material={materials}
+      receiveShadow
+      onPointerDown={onPointerDown}
+      onPointerOver={onPointerOver}
+      onPointerOut={onPointerOut}
+    >
       <boxGeometry args={[BOARD_SIZE, SLAB_DEPTH, BOARD_SIZE]} />
     </mesh>
   );

@@ -5,7 +5,6 @@ import { useRoomConnection } from "@/lib/hooks/useRoomConnection";
 import { useRoomStore } from "@/lib/store/room-store";
 import { RoomLobby } from "@/components/lobby/RoomLobby";
 import { MatchArena } from "@/components/arena/MatchArena";
-import { MatchSummary } from "@/components/summary/MatchSummary";
 
 export default function RoomPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
@@ -23,7 +22,7 @@ export default function RoomPage({ params }: { params: Promise<{ roomId: string 
       return <MatchArena client={client} roomId={roomId} />;
     case "summary":
     case "abandoned":
-      return <MatchSummary client={client} roomId={roomId} />;
+      return <MatchArena client={client} roomId={roomId} />;
     default:
       return null;
   }

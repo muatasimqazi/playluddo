@@ -1,0 +1,261 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { PerspectiveCamera, Vector3 } from "three";
+import { cameraFraming } from "../../lib/presentation/camera";
+import {
+  BOARD_Y,
+  HOME_ROTATION,
+  moveWaypoints,
+  pawnPoint,
+  shortestAngle,
+} from "../../lib/presentation/board";
+import {
+  createPractice,
+  practiceReducer,
+} from "../../lib/presentation/practice";
+import { PresentationTimeline } from "../../lib/presentation/timeline";
+import { deriveStateFromPathIndex } from "../../lib/board/geometry";
+import type { Pawn, PlayerColor } from "../../lib/board/types";
+
+function pawn(color: PlayerColor, pathIndex: number | null): Pawn {
+  return {
+    id: color + "-0",
+    color,
+    index: 0,
+    pathIndex,
+    state: deriveStateFromPathIndex(pathIndex),
+  };
+}
+afterEach(() => vi.useRealTimers());
+
+describe("responsive camera framing", () => {
+  it("keeps the board inside all three main views on phones and desktops", () => {
+    for (const aspect of [390 / 844, 393 / 852, 768 / 1024, 1440 / 900]) {
+      for (const view of ["play", "overhead", "table"] as const) {
+        const { eye, target, fov } = cameraFraming(view, aspect);
+        const camera = new PerspectiveCamera(fov, aspect, 0.1, 120);
+        camera.position.set(...eye);
+        camera.lookAt(...target);
+        camera.updateMatrixWorld();
+        for (const x of [-3.18, 3.18]) {
+          for (const z of [-3.18, 3.18]) {
+            const projected = new Vector3(x, BOARD_Y, z).project(camera);
+            expect(
+              Math.abs(projected.x),
+              `${view} at aspect ${aspect}`,
+            ).toBeLessThan(1);
+            expect(
+              Math.abs(projected.y),
+              `${view} at aspect ${aspect}`,
+            ).toBeLessThan(1);
+          }
+        }
+        const dieEdge = new Vector3(3.9, 0.5, 1.35).project(camera);
+        expect(
+          Math.abs(dieEdge.x),
+          `die in ${view} at aspect ${aspect}`,
+        ).toBeLessThan(1);
+        expect(eye[1]).toBeLessThan(14.3);
+        expect(Math.abs(eye[0])).toBeLessThan(13.3);
+        expect(Math.abs(eye[2])).toBeLessThan(13.5);
+      }
+    }
+  });
+});
+
+describe("logical positions independent of the view", () => {
+  it("traverses every cell across the shared-track and home-lane boundary", () => {
+    for (const color of ["red", "green", "yellow", "blue"] as const) {
+      const path = moveWaypoints(pawn(color, 48), pawn(color, 54));
+      expect(path).toHaveLength(6);
+      path.forEach((point, i) =>
+        expect(point).toEqual(pawnPoint(pawn(color, 49 + i))),
+      );
+      expect(path.every((p) => p[1] === BOARD_Y)).toBe(true);
+    }
+  });
+  it("finishes in its own center zone and captures return to the correct nest", () => {
+    expect(moveWaypoints(pawn("red", 55), pawn("red", 56))).toEqual([
+      pawnPoint(pawn("red", 56)),
+    ]);
+    expect(moveWaypoints(pawn("green", 18), pawn("green", null))).toEqual([
+      pawnPoint(pawn("green", null)),
+    ]);
+  });
+  it("all four local orientations put that color's home lane at the near edge", () => {
+    for (const color of ["red", "green", "yellow", "blue"] as const) {
+      const [x, , z] = pawnPoint(pawn(color, 51));
+      const angle = HOME_ROTATION[color];
+      expect(-x * Math.sin(angle) + z * Math.cos(angle)).toBeGreaterThan(2);
+    }
+  });
+  it("quarter-turn transitions take the shortest route across zero", () => {
+    expect(shortestAngle(Math.PI * 1.5, 0)).toBeCloseTo(Math.PI / 2);
+    expect(shortestAngle(0, Math.PI * 1.5)).toBeCloseTo(-Math.PI / 2);
+  });
+});
+
+describe("event playback and replay isolation", () => {
+  it("plays a no-move roll even when the snapshot already advanced the turn", () => {
+    vi.useFakeTimers();
+    const session = createPractice(),
+      timeline = new PresentationTimeline(session.state);
+    const next = practiceReducer(session, { type: "roll", value: 3 });
+    expect(next.state.activeDiceValue).toBeNull();
+    timeline.receive(next.events, next.state);
+    expect(timeline.getSnapshot()).toMatchObject({
+      dice: 3,
+      actorId: "practice-0",
+      busy: true,
+      phase: "roll",
+    });
+    vi.runAllTimers();
+    expect(timeline.getSnapshot().busy).toBe(false);
+    timeline.dispose();
+  });
+  it("deduplicates events and queues movement behind the dice animation", () => {
+    vi.useFakeTimers();
+    const initial = createPractice(),
+      timeline = new PresentationTimeline(initial.state);
+    const roll = practiceReducer(initial, { type: "roll", value: 6 });
+    const move = practiceReducer(roll, { type: "move", pawnId: "blue-0" });
+    timeline.receive(move.events, move.state);
+    timeline.receive(move.events, move.state);
+    expect(timeline.getSnapshot().pawns[0].pathIndex).toBeNull();
+    expect(timeline.getSnapshot().rollId).toBe(1);
+    vi.advanceTimersByTime(1180);
+    expect(timeline.getSnapshot().phase).toBe("move");
+    expect(timeline.getSnapshot().pawns[0].pathIndex).toBe(0);
+    vi.runAllTimers();
+    expect(timeline.getSnapshot().busy).toBe(false);
+    timeline.dispose();
+  });
+  it("replays the prior roll and movement without mutating authoritative state", () => {
+    vi.useFakeTimers();
+    const initial = createPractice(),
+      timeline = new PresentationTimeline(initial.state);
+    const move = practiceReducer(
+      practiceReducer(initial, { type: "roll", value: 6 }),
+      { type: "move", pawnId: "blue-0" },
+    );
+    const serialized = JSON.stringify(move.state);
+    timeline.receive(move.events, move.state);
+    vi.runAllTimers();
+    timeline.replay();
+    expect(timeline.getSnapshot().replaying).toBe(true);
+    expect(timeline.getSnapshot().pawns[0].pathIndex).toBeNull();
+    vi.runAllTimers();
+    expect(timeline.getSnapshot().pawns).toEqual(move.state.pawns);
+    expect(timeline.getSnapshot().replaying).toBe(false);
+    expect(JSON.stringify(move.state)).toBe(serialized);
+    timeline.dispose();
+  });
+  it("keeps live events received during a replay and plays them after returning", () => {
+    vi.useFakeTimers();
+    const initial = createPractice(),
+      timeline = new PresentationTimeline(initial.state);
+    const move = practiceReducer(
+      practiceReducer(initial, { type: "roll", value: 6 }),
+      { type: "move", pawnId: "blue-0" },
+    );
+    timeline.receive(move.events, move.state);
+    vi.runAllTimers();
+    timeline.replay();
+    const next = practiceReducer(move, { type: "roll", value: 4 });
+    timeline.receive(next.events, next.state);
+    vi.runAllTimers();
+    expect(timeline.getSnapshot()).toMatchObject({
+      dice: 4,
+      busy: false,
+      replaying: false,
+    });
+    timeline.dispose();
+  });
+  it("joins a current snapshot without playing historical actions", () => {
+    const rolled = practiceReducer(createPractice(), {
+      type: "roll",
+      value: 6,
+    });
+    const timeline = new PresentationTimeline(rolled.state);
+    timeline.receive(rolled.events, rolled.state);
+    expect(timeline.getSnapshot()).toMatchObject({
+      rollId: 0,
+      busy: false,
+      dice: 6,
+    });
+    timeline.dispose();
+  });
+  it("rejoining cancels an in-flight animation and ignores old event history", () => {
+    vi.useFakeTimers();
+    const initial = createPractice();
+    const timeline = new PresentationTimeline(initial.state);
+    const roll = practiceReducer(initial, { type: "roll", value: 6 });
+    timeline.receive(roll.events, roll.state);
+    expect(timeline.getSnapshot().busy).toBe(true);
+    const move = practiceReducer(roll, { type: "move", pawnId: "blue-0" });
+    timeline.reconcileSnapshot(move.state);
+    timeline.receive(move.events, move.state);
+    vi.runAllTimers();
+    expect(timeline.getSnapshot()).toMatchObject({
+      pawns: move.state.pawns,
+      actorId: null,
+      busy: false,
+      phase: "idle",
+      canReplay: false,
+    });
+    timeline.dispose();
+  });
+  it("snaps to the authoritative snapshot if the event history has a gap", () => {
+    const initial = createPractice(),
+      timeline = new PresentationTimeline(initial.state);
+    const move = practiceReducer(
+      practiceReducer(initial, { type: "roll", value: 6 }),
+      { type: "move", pawnId: "blue-0" },
+    );
+    timeline.receive(move.events.slice(1), move.state);
+    expect(timeline.getSnapshot().pawns).toEqual(move.state.pawns);
+    expect(timeline.getSnapshot().revision).toBe(1);
+    timeline.dispose();
+  });
+  it("recovers if event reads fail but authoritative snapshots arrive", () => {
+    vi.useFakeTimers();
+    const initial = createPractice(),
+      timeline = new PresentationTimeline(initial.state);
+    const move = practiceReducer(
+      practiceReducer(initial, { type: "roll", value: 6 }),
+      { type: "move", pawnId: "blue-0" },
+    );
+    timeline.receive([], move.state);
+    vi.advanceTimersByTime(4501);
+    expect(timeline.getSnapshot().pawns).toEqual(move.state.pawns);
+    timeline.dispose();
+  });
+});
+
+describe("offline practice uses the established rules", () => {
+  it("needs six to leave the nest, grants a bonus roll, and rejects illegal intents", () => {
+    const initial = createPractice();
+    expect(practiceReducer(initial, { type: "move", pawnId: "blue-0" })).toBe(
+      initial,
+    );
+    const noMove = practiceReducer(initial, { type: "roll", value: 5 });
+    expect(noMove.state.turnPlayerId).toBe("practice-1");
+    const six = practiceReducer(initial, { type: "roll", value: 6 });
+    expect(six.state.legalMoves).toHaveLength(4);
+    expect(practiceReducer(six, { type: "move", pawnId: "red-0" })).toBe(six);
+    const moved = practiceReducer(six, { type: "move", pawnId: "blue-0" });
+    expect(moved.state.turnPlayerId).toBe("practice-0");
+    expect(moved.state.pawns[0].pathIndex).toBe(0);
+  });
+  it("cancels the third six without moving a piece", () => {
+    let game = createPractice();
+    for (let i = 0; i < 2; i++) {
+      game = practiceReducer(game, { type: "roll", value: 6 });
+      game = practiceReducer(game, { type: "move", pawnId: "blue-0" });
+    }
+    const before = game.state.pawns;
+    game = practiceReducer(game, { type: "roll", value: 6 });
+    expect(game.state.turnPlayerId).toBe("practice-1");
+    expect(game.state.pawns).toBe(before);
+    expect(game.events.at(-1)?.payload.cancelledByThirdSix).toBe(true);
+  });
+});

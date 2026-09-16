@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run tests/rules-engine-ts",
+    "test": "vitest run tests/rules-engine-ts tests/presentation",
     "test:watch": "vitest tests/rules-engine-ts",
-    "test:parity": "vitest run tests/parity"
+    "test:parity": "vitest run tests/parity",
+    "test:multiplayer": "vitest run tests/integration"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

@@ -11,8 +11,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Let's Play Luddo",
-  description: "Fast online Ludo matches with friends and rivals.",
+  title: "Luddo — A place to play",
+  description: "Pull up a chair. Play classic Ludo with friends around a shared 3D table in a warm, modern apartment.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

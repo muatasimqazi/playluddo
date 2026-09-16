@@ -70,7 +70,7 @@ export function BoardScene3D({
       <Canvas
         flat
         shadows
-        camera={{ fov: 62, position: [0, 6.3, 9] }}
+        camera={{ fov: 52, position: [0, 6.3, 9] }}
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 2]}
       >
@@ -143,7 +143,7 @@ function LookAtBoard() {
     // one tested viewport isn't safe across every real browser/window
     // size) — this and the wider FOV above both trade a little of that
     // headroom-trimming back for margin on every edge.
-    camera.lookAt(0, 0, 0.8);
+    camera.lookAt(0, 0, 1.3);
   }, [camera]);
   return null;
 }

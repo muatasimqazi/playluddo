@@ -277,14 +277,17 @@ export function Board({ roomState, legalPawnIds, onSelectPawn, boardRef }: Board
   return (
     <div
       ref={boardRef}
-      // aspect-[6/7]: BoardScene3D's angled camera needs more vertical
-      // room than a flat square to show the board receding into the
-      // distance without cropping — data-board-grid below no longer
-      // drives this wrapper's height (it's now absolutely positioned, an
-      // invisible logic layer only), so this wrapper needs its own
-      // explicit aspect ratio instead of inheriting one from a square
-      // in-flow child. Starting value, tuned visually.
-      className="relative mx-auto aspect-square w-full max-w-115 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-135 sm:p-5 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
+      // aspect-4/5: BoardScene3D's angled camera needs more vertical room
+      // than a flat square to show the board receding into the distance
+      // without cropping — data-board-grid below no longer drives this
+      // wrapper's height (it's now absolutely positioned, an invisible
+      // logic layer only), so this wrapper needs its own explicit aspect
+      // ratio instead of inheriting one from a square in-flow child. A
+      // plain aspect-square forced the camera into a wide, zoomed-out FOV
+      // just to avoid cropping the near corners, which read as "the board
+      // looks too small" — a genuinely taller container gives the same
+      // full, uncropped view at a much less extreme FOV instead.
+      className="relative mx-auto aspect-4/5 w-full max-w-115 border border-outline/55 bg-surface p-3 shadow-elevation-2 sm:max-w-135 sm:p-5 md:max-w-160 lg:h-full lg:w-auto lg:max-w-full"
     >
       <MotionConfig reducedMotion="user">
         <LayoutGroup>

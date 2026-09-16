@@ -32,19 +32,26 @@ const HIGHLIGHT_Y = 0.015; // just above the slab's top face, avoids z-fighting
 // picture taped up right behind it. Sized/positioned so the apartment
 // photo's own coffee table lines up with the board's fixed position —
 // tuned visually, not derived from any exact measurement of the photo.
-const BACKDROP_Z = -14;
-const BACKDROP_WIDTH = 48;
-const BACKDROP_HEIGHT = 36;
+// Z=-14 (a first pass) put the backdrop so far behind the board that even
+// a tight crop on the photo's own coffee table rendered it much smaller
+// on screen than the (much closer) board — reading as "board floating
+// over a plain floor" since the table itself was too small to visibly
+// extend past the board's own edges. Pulled to just behind the board's
+// own far edge (board spans z -5..5) instead, so the SAME real table,
+// now much closer to the camera, appears comparably sized to the board.
+const BACKDROP_Z = -8;
+const BACKDROP_WIDTH = 30;
+const BACKDROP_HEIGHT = 22.5;
 // The camera looks DOWN at a steep angle (position y=6.3 -> target y=0),
-// so its own view axis, extended all the way back to BACKDROP_Z, crosses
-// through a much LOWER y than either the camera or the board sit at —
-// computed from the actual camera position/target, not guessed: forward
+// so its own view axis, extended back to BACKDROP_Z, crosses through a
+// much LOWER y than either the camera or the board sit at — computed
+// from the actual camera position/target (not guessed): forward
 // direction (0,0,2.2)-(0,6.3,9) normalized ~= (0,-0.68,-0.73); traveling
-// along that ray from the camera until z=-14 lands at y~=-15. Centering
+// along that ray from the camera until z=-8 lands at y~=-9.45. Centering
 // the backdrop plane there (not at the board's own y=0) is what actually
 // puts it in the middle of the visible frustum at that depth — an
 // earlier guess (y=3) put most of the plane above the frame entirely.
-const BACKDROP_Y = -15;
+const BACKDROP_Y = -9.45;
 // The apartment photo's own coffee table sits at roughly (46.5%, 69%)
 // across/down the square source image (pixel-measured) — cropped here via
 // the texture's own repeat/offset (not the plane's position/size, which
@@ -52,9 +59,16 @@ const BACKDROP_Y = -15;
 // window of the image, centered on the table, maps onto the whole plane
 // without stretching (repeat.x/repeat.y kept at the same 4:3 ratio as
 // BACKDROP_WIDTH/BACKDROP_HEIGHT).
-const BACKDROP_CROP_CENTER_U = 0.508;
-const BACKDROP_CROP_CENTER_V = 1 - 0.732; // UV's V=0 is the image's own bottom edge
-const BACKDROP_CROP_HEIGHT = 0.62;
+const BACKDROP_CROP_CENTER_U = 0.51;
+const BACKDROP_CROP_CENTER_V = 1 - 0.735; // UV's V=0 is the image's own bottom edge
+// Tight enough that the crop WIDTH matches the table's own measured width
+// fraction (pixel-measured against a 10% grid overlay: table spans
+// roughly x 0.22-0.80, y 0.60-0.87) — a looser crop (an earlier pass used
+// 0.62) shows so much surrounding room that the table itself shrinks to
+// a sliver behind the board instead of visibly extending past its edges,
+// which read as "board floating over a plain floor," not "board sitting
+// on this table."
+const BACKDROP_CROP_HEIGHT = 0.435;
 const BACKDROP_CROP_WIDTH = BACKDROP_CROP_HEIGHT * (BACKDROP_WIDTH / BACKDROP_HEIGHT);
 // A distant vertical plane (RoomBackdrop) only ever covers the "far wall"
 // portion of the frustum — near the bottom of the frame the camera is
@@ -375,16 +389,21 @@ function RoomBackdrop({ texture }: { texture: THREE.CanvasTexture }) {
 // slab's own top face) so the board doesn't appear to float over a white
 // void in the margin the distant wall backdrop can't reach. Sits below
 // ContactShadows' own catcher plane so that shadow still renders on top.
-// A previous version of this sized the floor to match the (much bigger,
-// far-away) wall backdrop — but an opaque floor extending that far back
-// sits IN FRONT of the wall along the camera's own downward-angled sight
-// lines, blocking almost all of it. Kept deliberately small and pulled
-// toward the camera (+Z) instead: just enough to cover the near margin
-// right around the board without reaching far enough back to compete
-// with the wall for the same screen space.
+// Two prior sizes both extended this floor's far edge BEHIND the board's
+// own near edge (z=5) — first out to the old, far-away backdrop, then
+// (after moving the backdrop much closer, see BACKDROP_Z) still back to
+// z=-5, which is well behind where the camera's own downward-angled
+// sight lines already dip below floor level (worked out from the same
+// forward-direction math as BACKDROP_Y: the central ray crosses y=-1.31
+// at z~=0.79, itself inside the board's own footprint) — so any floor
+// reaching further back than that was needlessly intercepting rays meant
+// for the now-close backdrop's own coffee-table image instead of the
+// board. Kept strictly in FRONT of the board's near edge instead (z=5 to
+// 15): still covers the near-camera gap a flat wall backdrop can't
+// reach, without competing with it for the same screen space at all.
 const ROOM_FLOOR_WIDTH = 30;
-const ROOM_FLOOR_DEPTH = 16;
-const ROOM_FLOOR_CENTER_Z = 3;
+const ROOM_FLOOR_DEPTH = 10;
+const ROOM_FLOOR_CENTER_Z = 10;
 
 function RoomFloor() {
   return (

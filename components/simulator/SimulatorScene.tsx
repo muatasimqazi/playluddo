@@ -245,11 +245,15 @@ function Piece({
         );
       }
     } else {
+      // Not this pawn's turn to hop, but its stack offset can still shift
+      // when another pawn joins/leaves the same cell — ease into that
+      // instead of snapping, so a stationary piece never visibly teleports.
       const p = pawnPoint(pawn);
+      const damp = 1 - Math.exp(-delta * 10);
       ref.current.position.set(
-        p[0] + offset[0],
-        p[1] + offset[1],
-        p[2] + offset[2],
+        THREE.MathUtils.lerp(ref.current.position.x, p[0] + offset[0], damp),
+        THREE.MathUtils.lerp(ref.current.position.y, p[1] + offset[1], damp),
+        THREE.MathUtils.lerp(ref.current.position.z, p[2] + offset[2], damp),
       );
     }
     ref.current.scale.setScalar(hovered && legal ? 1.12 : 1);

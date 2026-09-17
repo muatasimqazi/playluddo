@@ -27,21 +27,3 @@ export function makeBoardTexture(source: THREE.Texture) {
   map.repeat.set(1 - inset * 2, 1 - inset * 2);
   return map;
 }
-
-export function makeFabricTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "#bdbab0";
-  ctx.fillRect(0, 0, 128, 128);
-  for (let i = 0; i < 128; i += 2) {
-    ctx.fillStyle = i % 4 ? "#aaa79e" : "#d7d4ca";
-    ctx.fillRect(i, 0, 1, 128);
-    ctx.fillStyle = "#ffffff35";
-    ctx.fillRect(0, i, 128, 1);
-  }
-  const map = texture(canvas);
-  map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  map.repeat.set(5, 5);
-  return map;
-}

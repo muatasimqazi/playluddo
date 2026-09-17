@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import { RoundedBox, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import type { Point, Quality } from "@/lib/presentation/board";
-import { makeFabricTexture } from "./textures";
 
 function Box({
   position,
@@ -248,7 +247,12 @@ function Kitchen({ wood }: { wood: THREE.Texture }) {
 }
 
 export function Apartment({ quality }: { quality: Quality }) {
-  const originalWood = useTexture("/textures/board-wood.jpg");
+  // Real material crops from designs/public/location reference photos, not
+  // procedural canvases — closes the fidelity gap on the room's biggest
+  // surfaces (furniture wood, upholstery, rug) while the geometry itself
+  // stays fully modeled (see the windows note below on why this apartment
+  // never falls back to a flat background photo).
+  const originalWood = useTexture("/textures/room-walnut.jpg");
   const wood = useMemo(() => {
     const t = originalWood.clone();
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -256,13 +260,29 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }, [originalWood]);
-  const fabric = useMemo(() => makeFabricTexture(), []);
+  const originalFabric = useTexture("/textures/room-sofa-fabric.jpg");
+  const fabric = useMemo(() => {
+    const t = originalFabric.clone();
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(5, 5);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }, [originalFabric]);
+  const originalRug = useTexture("/textures/room-rug.jpg");
+  const rug = useMemo(() => {
+    const t = originalRug.clone();
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(5, 5);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }, [originalRug]);
   useEffect(
     () => () => {
       wood.dispose();
       fabric.dispose();
+      rug.dispose();
     },
-    [wood, fabric],
+    [wood, fabric, rug],
   );
   return (
     <group>
@@ -291,13 +311,14 @@ export function Apartment({ quality }: { quality: Quality }) {
         position={[0, -2.57, 0]}
         size={[13, 0.065, 11.5]}
         color="#8b8d83"
-        map={fabric}
+        map={rug}
         round={0.025}
       />
-      <Box position={[0, 6, -13.7]} size={[27, 17.2, 0.3]} color="#d1cabb" />
-      <Box position={[13.5, 6, 0]} size={[0.3, 17.2, 28]} color="#d6d0c2" />
-      <Box position={[0, 6, 13.7]} size={[27, 17.2, 0.3]} color="#c9c2b3" />
-      <Box position={[0, 14.65, 0]} size={[27, 0.25, 28]} color="#eee7d8" />
+      {/* Wall tone colour-matched to designs/public/location's flat wall paint. */}
+      <Box position={[0, 6, -13.7]} size={[27, 17.2, 0.3]} color="#d8d3c8" />
+      <Box position={[13.5, 6, 0]} size={[0.3, 17.2, 28]} color="#ddd9cf" />
+      <Box position={[0, 6, 13.7]} size={[27, 17.2, 0.3]} color="#d0cbc0" />
+      <Box position={[0, 14.65, 0]} size={[27, 0.25, 28]} color="#f1ece0" />
       {/* Curved inset ceiling and warm cove lighting. */}
       <RoundedBox
         position={[0, 14.46, 0]}

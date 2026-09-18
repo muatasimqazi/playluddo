@@ -1,7 +1,7 @@
 import type { PlayerColor } from "@/lib/board/types";
 
 /**
- * The traditional 15x15 cross-shaped Ludo board, computed rather than
+ * The traditional 15x15 cross-shaped Luddo board, computed rather than
  * hand-derived from memory or copied from the (too-stylized-to-measure)
  * mockup. Two prior attempts at this from manual reasoning both produced
  * non-adjacent cell transitions; this one was built with a script that

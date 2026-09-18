@@ -1,10 +1,10 @@
-# Product Requirement Document (PRD): Ludo Rivals
+# Product Requirement Document (PRD): Luddo Rivals
 
 **Document Version:** 1.2.0
 **Author:** Product & Design Core Team
 **Status:** MVP Scope Approved, Engineering Spec Ready for Implementation
 **Target MVP Platform:** Responsive Web App for desktop and mobile browsers
-**Primary MVP Game:** Ludo Rivals
+**Primary MVP Game:** Luddo Rivals
 
 **Changelog (1.1.0 → 1.2.0):** Precision pass on game rules (board geometry, blockades, stacked captures, overshoot, match-end timing), server-authoritative state machine detail, reconnect/duplicate-session mechanics, bot takeover semantics, mobile/accessibility specifics, expanded analytics and test coverage, and a new Open Questions section. See inline **[DECISION NEEDED]** flags for items requiring product sign-off before implementation.
 
@@ -13,12 +13,12 @@
 ## 1. Executive Summary & Vision
 
 ### 1.1 Product Vision
-**Ludo Rivals** is a premium, online casual board game built around fast, competitive Ludo matches with friends and rivals. It combines familiar physical board-game nostalgia with a clean, modern interface designed for synchronous 2-to-4 player play.
+**Luddo Rivals** is a premium, online casual board game built around fast, competitive Luddo matches with friends and rivals. It combines familiar physical board-game nostalgia with a clean, modern interface designed for synchronous 2-to-4 player play.
 
-The MVP proves the core online Ludo experience: reliable rooms, server-authoritative turns, readable board play, bot fill/replacement, and a complete match loop from lobby to victory summary.
+The MVP proves the core online Luddo experience: reliable rooms, server-authoritative turns, readable board play, bot fill/replacement, and a complete match loop from lobby to victory summary.
 
 ### 1.2 MVP Objectives
-- **Prove the Core Loop:** Players can create or join a room, start a Ludo match, take turns, finish the game, and rematch without manual support.
+- **Prove the Core Loop:** Players can create or join a room, start a Luddo match, take turns, finish the game, and rematch without manual support.
 - **Keep Matches Moving:** 15-second decision timers, auto-roll/auto-move behavior, and bot support reduce idle time while preserving fairness.
 - **Build Trust:** Dice rolls and move validation are server-authoritative. Clients render state and request actions; they never decide outcomes.
 - **Work Across Screens:** The same game rules run on desktop and mobile web, with layouts adapted for each form factor.
@@ -46,7 +46,7 @@ The MVP proves the core online Ludo experience: reliable rooms, server-authorita
 ## 3. MVP Product Scope
 
 ### 3.1 Included in MVP
-- Ludo Rivals game mode only.
+- Luddo Rivals game mode only.
 - Private rooms with shareable room links.
 - 2-to-4 players per room.
 - Bot fill when the host starts a room with empty seats.
@@ -157,7 +157,7 @@ This mode should not influence MVP architecture except where shared room, timer,
 ### 5.2 Flow 2: Live Match Arena
 
 #### Board Area
-- Square Ludo board preserves 1:1 aspect ratio.
+- Square Luddo board preserves 1:1 aspect ratio.
 - Board remains the visual priority on both desktop and mobile.
 - Legal pawns are highlighted after a dice roll.
 - Captures, home entry, and finish events use clear motion and event messages.
@@ -387,7 +387,7 @@ Every analytics event carries: `eventType`, `roomId`, `matchId`, `playerId` (pse
 
 ### 8.3 MVP Success Metrics
 - At least 90% of started matches reach `completed` status (matches ending `abandoned` are tracked separately, not counted as failures against this target, but reported alongside it — a rising abandonment rate is itself a health signal).
-- Median Ludo match duration is under 15 minutes.
+- Median Luddo match duration is under 15 minutes.
 - 95% of turns resolve within the server-defined timer plus 2 seconds.
 - Reconnect success rate is at least 80% for players returning within 45 seconds.
 - At least 30% of completed private-room matches trigger a rematch request.
@@ -398,8 +398,8 @@ Every analytics event carries: `eventType`, `roomId`, `matchId`, `playerId` (pse
 
 ## 9. Release Milestones & Roadmap
 
-### Phase 1: MVP - Ludo Online Core
-- Core Ludo rules engine.
+### Phase 1: MVP - Luddo Online Core
+- Core Luddo rules engine.
 - Server-authoritative dice and legal moves.
 - Private rooms and shareable room links.
 - Desktop and mobile responsive match arena.
@@ -452,7 +452,7 @@ Findings from comparing `designs/` against this PRD (2026-09-13). None of these 
 | 3 | Lobby (bottom nav) | "Rankings" tab | Remove from MVP nav; leaderboards are deferred (1.3, 3.2). |
 | 4 | Match Summary | Full XP/leveling system ("Player Mastery XP," level-up progress bar, player title, "First Win of the Day Bonus") | Remove from MVP summary; progression and daily bonuses are Phase 2 (Section 9). |
 | 5 | Live Arena (mobile + desktop) | Open free-text chat input ("iMessage...") alongside preset reaction chips | Remove the free-text input for MVP; preset chips only (3.2, 5.2). |
-| 6 | All screens | Product named "Ludo Royale" / room codes `#LUDO-xxxx` | Reconcile with PRD product name "Ludo Rivals" before it's hardcoded further. |
+| 6 | All screens | Product named "Luddo Royale" / room codes `#LUDDO-xxxx` | Reconcile with PRD product name "Luddo Rivals" before it's hardcoded further. |
 | 7 | `modern_boardroom/DESIGN.md` vs PRD 7.1 | Palette values differ per color (e.g., Red `#E02424` vs `#EF4444`) | Pick one source of truth for color tokens — recommend DESIGN.md as canonical since it's more complete, and update PRD 7.1 to match. |
 | 8 | `apple_inspired_ludo_arena_with_translucent_glass_pieces` vs DESIGN.md | Two unreconciled pawn material directions: "translucent glass" mockup vs documented "ceramic disk" tokens | Pick one pawn treatment as canonical before component build. |
 | 9 | Live Arena mockups | Pawns are plain colored circles with no per-owner symbol/initial | Needed to satisfy the non-color-identity accessibility requirement in 7.2. |
@@ -463,7 +463,7 @@ Findings from comparing `designs/` against this PRD (2026-09-13). None of these 
 
 The MVP is considered shippable when:
 - A player can create a private room and share a join link, with room codes resistant to casual brute-forcing.
-- 2-to-4 humans and/or bots can complete a Ludo match under the rules in Section 4, including blockade-free stacking, stacked captures, exact-roll home entry, and continued placement play after the first finisher.
+- 2-to-4 humans and/or bots can complete a Luddo match under the rules in Section 4, including blockade-free stacking, stacked captures, exact-roll home entry, and continued placement play after the first finisher.
 - Dice rolls and legal moves are generated and validated entirely server-side; no client can submit a final outcome.
 - Every intent is rejected unless it comes from the session that authenticates for the targeted seat (duplicate-session and spoofing protection verified).
 - A player can refresh or briefly disconnect and reclaim their seat without corrupting turn order or in-flight rolls.

@@ -1,18 +1,18 @@
-# Immersive 3D Multiplayer Ludo Simulator
+# Immersive 3D Multiplayer Luddo Simulator
 
 ## Product Vision
 
-Build a browser-based **3D multiplayer Ludo simulator** inspired by the immersive tabletop philosophy of games such as Snooker Sim.
+Build a browser-based **3D multiplayer Luddo simulator** inspired by the immersive tabletop philosophy of games such as Snooker Sim.
 
-This should **not feel like a conventional Ludo website or mobile game placed on top of a decorative 3D background**.
+This should **not feel like a conventional Luddo website or mobile game placed on top of a decorative 3D background**.
 
-Instead, treat Ludo as a physical tabletop game being played inside a believable 3D environment.
+Instead, treat Luddo as a physical tabletop game being played inside a believable 3D environment.
 
 The fundamental experience should feel like:
 
-> **"I'm sitting in a beautiful apartment around a real table, playing a physical game of Ludo with other people online."**
+> **"I'm sitting in a beautiful apartment around a real table, playing a physical game of Luddo with other people online."**
 
-The Ludo board, pieces, dice, coffee table, camera, lighting, room, animations, multiplayer presence, and UI should work together as one coherent experience.
+The Luddo board, pieces, dice, coffee table, camera, lighting, room, animations, multiplayer presence, and UI should work together as one coherent experience.
 
 The 3D scene is **the game itself**, not decoration behind the game.
 
@@ -20,19 +20,19 @@ The 3D scene is **the game itself**, not decoration behind the game.
 
 # 1. Core Experience Model
 
-Think of the application as a **tabletop simulator built specifically for multiplayer Ludo**.
+Think of the application as a **tabletop simulator built specifically for multiplayer Luddo**.
 
 The spatial hierarchy is:
 
 Apartment Environment  
 → Coffee Table  
-→ Physical Ludo Board  
+→ Physical Luddo Board
 → Physical Pieces & Dice  
 → Multiplayer Game State
 
 The priorities are:
 
-1. The **Ludo board** is the primary interactive surface.
+1. The **Luddo board** is the primary interactive surface.
 2. The **coffee table** physically anchors the game.
 3. The **apartment** creates immersion and spatial presence.
 4. The **camera** represents the player's position at the table.
@@ -40,11 +40,11 @@ The priorities are:
 
 At normal gameplay distance, the user should immediately perceive:
 
-> **"I'm sitting at this table playing Ludo."**
+> **"I'm sitting at this table playing Luddo."**
 
 Not:
 
-> **"I'm looking at a Ludo app inside a 3D scene."**
+> **"I'm looking at a Luddo app inside a 3D scene."**
 
 ---
 
@@ -78,13 +78,13 @@ The room should provide atmosphere and depth without competing visually with the
 
 # 3. The Board Is the Hero
 
-The Ludo board should dominate the gameplay composition in the same way that the playable table dominates an immersive billiards/snooker simulator.
+The Luddo board should dominate the gameplay composition in the same way that the playable table dominates an immersive billiards/snooker simulator.
 
 During normal gameplay, the board should occupy approximately **65–80% of the useful gameplay viewport**.
 
 The apartment should remain visible around and beyond the table to establish depth and presence.
 
-Do **not** create a small Ludo board sitting far away inside a large apartment.
+Do **not** create a small Luddo board sitting far away inside a large apartment.
 
 The physical board should include:
 
@@ -96,12 +96,12 @@ The physical board should include:
 - realistic contact shadows
 - ambient occlusion
 - interaction with room lighting
-- individually modeled Ludo pieces
+- individually modeled Luddo pieces
 - physical 3D dice
 
 Optionally use a subtle glass/acrylic protective surface if it complements the design.
 
-The traditional Ludo paths, home areas, colors, and squares must remain extremely readable despite the perspective camera.
+The traditional Luddo paths, home areas, colors, and squares must remain extremely readable despite the perspective camera.
 
 ---
 
@@ -122,7 +122,7 @@ The perspective should create the feeling of sitting or leaning toward a real ta
 
 Use a **PerspectiveCamera**.
 
-Do not use a conventional orthographic or perfectly vertical top-down Ludo camera as the default experience.
+Do not use a conventional orthographic or perfectly vertical top-down Luddo camera as the default experience.
 
 ---
 
@@ -171,7 +171,7 @@ The user should always be able to smoothly return to Play View.
 
 ## Overhead View
 
-Provide a camera approximately above the Ludo board.
+Provide a camera approximately above the Luddo board.
 
 This gives players maximum tactical clarity when desired.
 
@@ -221,7 +221,7 @@ Cinematic camera behavior should never interfere with the player's ability to un
 
 # 6. Independent Physical Board Rotation
 
-The Ludo board must exist as its **own independent 3D object/group**.
+The Luddo board must exist as its **own independent 3D object/group**.
 
 It should be possible to rotate the board around its center vertical axis while it remains physically positioned on the coffee table.
 
@@ -266,7 +266,7 @@ For example:
 
 All four clients are still viewing the exact same authoritative game state.
 
-Never encode Ludo logic using Three.js world coordinates.
+Never encode Luddo logic using Three.js world coordinates.
 
 Maintain canonical logical coordinates for every board position and transform them into visual coordinates according to the local client's board orientation.
 
@@ -300,7 +300,7 @@ Display information such as:
 
 - avatar
 - username
-- Ludo color
+- Luddo color
 - turn status
 - turn timer
 - connection state
@@ -369,14 +369,14 @@ All multiplayer clients should observe the same authoritative roll result.
 
 # 11. Physical Piece Movement
 
-Every Ludo piece should be an independent 3D object.
+Every Luddo piece should be an independent 3D object.
 
 After a valid dice roll:
 
 - highlight only legal pieces
 - provide hover/touch feedback
 - allow the player to select a valid piece
-- animate movement along the real Ludo path
+- animate movement along the real Luddo path
 - move one square at a time
 - maintain contact with the board
 - use subtle easing/bounce between spaces
@@ -734,7 +734,7 @@ Never sacrifice gameplay responsiveness for decorative visual effects.
 
 Use cinematic but physically believable lighting.
 
-The coffee-table area and Ludo board should be subtly emphasized by the apartment lighting.
+The coffee-table area and Luddo board should be subtly emphasized by the apartment lighting.
 
 Use:
 
@@ -755,7 +755,7 @@ Depth of field may be used for cinematic moments but must **never blur gameplay-
 
 Mobile must remain a genuine 3D tabletop experience.
 
-Do not replace the experience with a conventional flat 2D Ludo board.
+Do not replace the experience with a conventional flat 2D Luddo board.
 
 For smaller screens:
 
@@ -792,7 +792,7 @@ Do not allow unrestricted walking through the apartment unless that becomes a se
 
 The room exists to create presence.
 
-Ludo remains the purpose of the experience.
+Luddo remains the purpose of the experience.
 
 ---
 
@@ -804,7 +804,7 @@ Apartment establishing view
 ↓  
 Camera approaches coffee table  
 ↓  
-Ludo board becomes prominent  
+Luddo board becomes prominent
 ↓  
 Player positions appear  
 ↓  
@@ -885,7 +885,7 @@ Maintain a strict separation between:
 
 Contains:
 
-- Ludo rules
+- Luddo rules
 - dice values
 - player turns
 - piece positions
@@ -942,7 +942,7 @@ Roll dice and move pieces.
 
 ### The Board
 
-Physically rotate the Ludo board independently.
+Physically rotate the Luddo board independently.
 
 ### Their View
 
@@ -960,11 +960,11 @@ Interaction feedback and modes should make the current action immediately obviou
 
 # 28. Critical Visual Principle
 
-The physical Ludo board is the **hero of the scene**.
+The physical Luddo board is the **hero of the scene**.
 
 Do NOT build:
 
-`2D Ludo Game + Decorative 3D Apartment`
+`2D Luddo Game + Decorative 3D Apartment`
 
 Build:
 
@@ -972,7 +972,7 @@ Build:
 ↓
 `Physical Coffee Table`
 ↓
-`Physical Ludo Board`
+`Physical Luddo Board`
 ↓
 `Physical Pieces + Dice`
 ↓
@@ -992,7 +992,7 @@ The HUD supports the interaction.
 
 The final product should evoke:
 
-> "I'm sitting around a table playing Ludo with friends."
+> "I'm sitting around a table playing Luddo with friends."
 
 Other players should feel like they occupy positions around the same physical board even without full human avatars.
 
@@ -1008,7 +1008,7 @@ When I want to appreciate the environment, I can enter Look Mode.
 
 When I return to Play View, I am once again seated at my side of the table.
 
-This combination of **simulation, spatial presence, multiplayer synchronization, physical animation, camera control, and minimal HUD** should distinguish the experience from conventional online Ludo games.
+This combination of **simulation, spatial presence, multiplayer synchronization, physical animation, camera control, and minimal HUD** should distinguish the experience from conventional online Luddo games.
 
 ---
 
@@ -1027,8 +1027,8 @@ Use Snooker Sim as **interaction and simulation inspiration**, particularly the 
 
 Do not copy its branding, visual assets, room design, UI graphics, or exact interface.
 
-Translate those concepts into an **original multiplayer Ludo simulator set inside our modern apartment environment**.
+Translate those concepts into an **original multiplayer Luddo simulator set inside our modern apartment environment**.
 
 The guiding principle for every design decision should be:
 
-> **If four people were actually sitting around this coffee table playing a physical Ludo board, how can the digital experience reproduce that feeling while taking advantage of what a 3D multiplayer game can do?**
+> **If four people were actually sitting around this coffee table playing a physical Luddo board, how can the digital experience reproduce that feeling while taking advantage of what a 3D multiplayer game can do?**

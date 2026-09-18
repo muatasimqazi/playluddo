@@ -1,6 +1,6 @@
 # Let's Play Luddo
 
-An immersive 3D Ludo table in a modern apartment, with server-authoritative private multiplayer rooms and offline practice against computers.
+An immersive 3D Luddo table in a modern apartment, with server-authoritative private multiplayer rooms and offline practice against computers.
 
 - **Product spec:** [`docs/PRD.md`](docs/PRD.md)
 - **Engineering handoff (schema, RPC contracts, build sequence):** [`docs/IMPLEMENTATION_HANDOFF.md`](docs/IMPLEMENTATION_HANDOFF.md)

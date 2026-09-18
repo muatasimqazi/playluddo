@@ -13,7 +13,7 @@ Practice saves both games independently on the device. Flipping pauses the curre
 - An exact roll is required to reach 100; overshooting leaves the piece where it is and ends the turn.
 - Finishers are recorded in order and skipped. Everyone continues until all places are decided.
 
-The board artwork lives at `designs/snake-and-ladder/board.svg`. Its checkerboard and numbers are vector SVG, with the snake and ladder artwork embedded as image elements. The SVG is the source of truth for the placements. Like the Ludo print, both faces use an unlit material to preserve their colors.
+The board artwork lives at `designs/snake-and-ladder/board.svg`. Its checkerboard and numbers are vector SVG, with the snake and ladder artwork embedded as image elements. The SVG is the source of truth for the placements. Like the Luddo print, both faces use an unlit material to preserve their colors.
 
 Ladders: 4→16, 9→30, 18→44, 28→54, 50→73, 71→91.
 
@@ -21,7 +21,7 @@ Snakes: 14→6, 59→40, 87→45, 93→72, 95→75, 98→38.
 
 ## Multiplayer and deployment
 
-Apply `supabase/migrations/20260918020000_snakes_and_ladders.sql` and `supabase/migrations/20260918030000_svg_snakes_board.sql` before deploying the client. The first adds `rooms.game_type` (default `ludo`) and the authenticated, host-only `set_room_game` RPC. The second aligns server movement with the custom SVG artwork. Existing rooms remain Ludo.
+Apply `supabase/migrations/20260918020000_snakes_and_ladders.sql` and `supabase/migrations/20260918030000_svg_snakes_board.sql` before deploying the client. The first adds `rooms.game_type` (default `ludo`) and the authenticated, host-only `set_room_game` RPC. The second aligns server movement with the custom SVG artwork. Existing rooms remain Luddo.
 
 Private games use the existing locked roll RPC, server-generated dice, connection tokens, bot/timeout handling, durable events, and private realtime snapshots. A Snakes & Ladders roll emits both its roll and move in one transaction. The presentation timeline animates them in order and can replay the action. Bot turns allow enough time for the full roll and slide animation.
 

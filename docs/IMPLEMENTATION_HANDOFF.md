@@ -1,4 +1,4 @@
-# Ludo Rivals — Engineering Implementation Handoff
+# Luddo Rivals — Engineering Implementation Handoff
 
 **Companion to:** `docs/PRD.md` (v1.2.0). This doc doesn't restate product rationale — it translates the PRD's resolved decisions into schema, contracts, and a build order. If something here conflicts with the PRD, the PRD wins; flag it and fix this doc.
 

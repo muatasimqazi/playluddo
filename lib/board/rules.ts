@@ -10,7 +10,7 @@ import {
 import type { LegalMove, PawnState, PlayerColor } from "./types";
 
 /**
- * Authoritative-equivalent Ludo rules, per docs/PRD.md Section 4. This is
+ * Authoritative-equivalent Luddo rules, per docs/PRD.md Section 4. This is
  * the CLIENT-SIDE copy (display/highlighting only) — the plpgsql functions
  * in supabase/migrations are what the server actually trusts. Keep this
  * file's logic byte-for-byte equivalent to that migration; tests/parity

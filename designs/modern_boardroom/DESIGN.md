@@ -203,7 +203,7 @@ The design system employs consistent iOS continuous-curve corner radii (`rounded
 ### 3. Ceramic Disk Tokens (Pawns)
 - Flat, modern disk profile rendered top-down.
 - Fill: Solid quadrant color with an outer 1.5pt `#FFFFFF` perimeter ring to ensure high contrast against any cell surface.
-- Inner motif: Subtle engraved circle representing tournament-grade ceramic carrom/ludo tokens.
+- Inner motif: Subtle engraved circle representing tournament-grade ceramic carrom/Luddo tokens.
 - Multi-token stacking: Offsets by 3pt with micro-badges indicating token count (e.g., `x2`, `x3`).
 
 ### 4. Player Status Pod

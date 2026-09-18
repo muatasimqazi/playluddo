@@ -52,7 +52,7 @@ export interface Pawn {
   /** Stable 0-3 ordering, mirrors the DB's pawn_index column. */
   index: number;
   state: PawnState;
-  /** Ludo: color-relative 0–56. Snakes & Ladders: square 1–100. Null is off-board. */
+  /** Luddo: color-relative 0–56. Snakes & Ladders: square 1–100. Null is off-board. */
   pathIndex: number | null;
 }
 

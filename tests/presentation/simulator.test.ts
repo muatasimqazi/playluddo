@@ -246,7 +246,7 @@ describe("event playback and replay isolation", () => {
 });
 
 describe("offline practice uses the established rules", () => {
-  it("lets the last unfinished Ludo player keep rolling", () => {
+  it("lets the last unfinished Luddo player keep rolling", () => {
     const initial = createPractice();
     initial.state.winnerIds = ["practice-1", "practice-2", "practice-3"];
     initial.state.pawns = initial.state.pawns.map((piece) =>

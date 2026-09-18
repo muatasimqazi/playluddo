@@ -251,7 +251,7 @@ export default function Home() {
         <p>Let&apos;s Play LUDDO</p>
       </div>
       <footer className="entrance-footer">
-        <span>CLASSIC LUDO. SHARED MOMENTS.</span>
+        <span>CLASSIC LUDDO. SHARED MOMENTS.</span>
         <span>
           <i className="connection-dot" />
           TAKE YOUR TIME. STAY A WHILE.

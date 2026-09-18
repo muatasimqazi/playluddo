@@ -258,4 +258,37 @@ describe("offline practice uses the established rules", () => {
     expect(game.state.pawns).toBe(before);
     expect(game.events.at(-1)?.payload.cancelledByThirdSix).toBe(true);
   });
+  it("records the first finisher and continues with the next color", () => {
+    const initial = createPractice();
+    const ready = {
+      ...initial,
+      state: {
+        ...initial.state,
+        turnPhase: "awaiting_move" as const,
+        activeDiceValue: 1,
+        legalMoves: [
+          {
+            pawnId: "blue-3",
+            fromTileId: "home:blue:4",
+            toTileId: "home:blue:5",
+            capturesPawnIds: [],
+            finishesPawn: true,
+          },
+        ],
+        pawns: initial.state.pawns.map((piece) =>
+          piece.color === "blue"
+            ? piece.index === 3
+              ? { ...piece, state: "home_lane" as const, pathIndex: 55 }
+              : { ...piece, state: "finished" as const, pathIndex: 56 }
+            : piece,
+        ),
+      },
+    };
+
+    const continued = practiceReducer(ready, { type: "move", pawnId: "blue-3" });
+    expect(continued.state.status).toBe("in_game");
+    expect(continued.state.winnerIds).toEqual(["practice-0"]);
+    expect(continued.state.turnPlayerId).toBe("practice-1");
+    expect(continued.state.turnPhase).toBe("awaiting_roll");
+  });
 });

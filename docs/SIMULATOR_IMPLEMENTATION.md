@@ -53,6 +53,8 @@ Camera, board orientation, graphics, sound, and action-camera preferences stay o
 
 Event gaps or failed event reads recover by snapping to an authoritative snapshot. Rejoining restores the current board instead of replaying an extended backlog. A human whose seat is being covered can reclaim it through the existing server RPC. Match completion keeps the scene mounted so the final movement can finish before the result appears.
 
+Finishing four pawns records that player's placement and removes their color from turn rotation. Remaining players continue until everyone has finished; the summary uses the resulting ordered `winnerIds` list.
+
 ## Verification
 
 ```sh

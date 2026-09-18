@@ -103,8 +103,8 @@ This is the concrete ruleset engineering should implement. Flagged items need a 
 - If **no** pawn has a legal move for a given roll, the turn resolves as a no-move turn (see 4.2).
 
 ### 4.4 Win Condition & Ranking
-- The match **ends immediately** when the first player finishes all 4 pawns — they are declared the winner. Play does **not** continue to play out 2nd/3rd/4th place.
-- Remaining players are ranked at that instant by: (1) pawns finished, (2) total forward progress summed across all pawns (cells traveled from nest), (3) earlier turn order as the final tiebreaker.
+- The first player to finish all 4 pawns is declared the winner. Finished players leave the turn rotation while the remaining players continue playing for placement.
+- The match ends after every seated player has finished. `winnerIds` records players in the order they finish.
 - This keeps matches bounded and supports the < 15-minute median duration target in Section 8.
 
 ### 4.5 Board Definition Requirements (Engineering)
@@ -463,7 +463,7 @@ Findings from comparing `designs/` against this PRD (2026-09-13). None of these 
 
 The MVP is considered shippable when:
 - A player can create a private room and share a join link, with room codes resistant to casual brute-forcing.
-- 2-to-4 humans and/or bots can complete a Ludo match under the rules in Section 4, including blockade-free stacking, stacked captures, exact-roll home entry, and immediate match-end on first finish.
+- 2-to-4 humans and/or bots can complete a Ludo match under the rules in Section 4, including blockade-free stacking, stacked captures, exact-roll home entry, and continued placement play after the first finisher.
 - Dice rolls and legal moves are generated and validated entirely server-side; no client can submit a final outcome.
 - Every intent is rejected unless it comes from the session that authenticates for the targeted seat (duplicate-session and spoofing protection verified).
 - A player can refresh or briefly disconnect and reclaim their seat without corrupting turn order or in-flight rolls.
@@ -490,7 +490,7 @@ The MVP is considered shippable when:
 - [ ] Safe-tile capture immunity.
 - [ ] Own-pawn co-occupancy with no blockade effect (confirmed, 4.3).
 - [ ] Exact-roll-only movement in/through home lane; overshoot excluded from `legalMoves`, not silently discarded after selection.
-- [ ] Immediate match-end on first finish; ranking by pawns finished → progress → turn order.
+- [ ] Continue after the first finisher, skip completed colors, and preserve finish order in `winnerIds`.
 - [ ] Full event-log replay produces identical final state.
 
 ### Realtime / Server Authority (Supabase)

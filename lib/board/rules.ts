@@ -137,7 +137,7 @@ export function evaluateSixRoll(
   return { consecutiveSixesAfter: after, cancelMove: after === 3 };
 }
 
-/** PRD 4.4: a color wins the instant all 4 of its pawns are finished. */
+/** A color earns its placement once all 4 of its pawns are finished. */
 export function isMatchWon(pawns: EnginePawn[], color: PlayerColor): boolean {
   return pawns.filter((p) => p.color === color && p.state === "finished").length === 4;
 }

@@ -71,10 +71,13 @@ export function practiceReducer(
   const { state } = session;
   if (state.status !== "in_game") return session;
   const player = state.players.find((p) => p.id === state.turnPlayerId)!;
-  const nextPlayer = state.players[(player.seatIndex + 1) % 4];
   let next = { ...state };
   let event: MatchEventRow;
   const advance = () => {
+    const nextPlayer = Array.from({ length: state.players.length - 1 }, (_, i) =>
+      state.players[(player.seatIndex + i + 1) % state.players.length],
+    ).find((candidate) => !isMatchWon(next.pawns, candidate.color));
+    if (!nextPlayer) return;
     next = {
       ...next,
       turnPlayerId: nextPlayer.id,
@@ -132,15 +135,24 @@ export function practiceReducer(
       payload: { ...move },
       created_at: new Date().toISOString(),
     };
-    if (isMatchWon(next.pawns, player.color))
+    if (isMatchWon(next.pawns, player.color)) {
+      const winnerIds = state.winnerIds.includes(player.id)
+        ? state.winnerIds
+        : [...state.winnerIds, player.id];
+      const complete = winnerIds.length === state.players.length;
       next = {
         ...next,
-        status: "summary",
-        turnPhase: "complete",
-        winnerIds: [player.id],
-        matchEndReason: "completed",
+        winnerIds,
+        ...(complete
+          ? {
+              status: "summary" as const,
+              turnPhase: "complete" as const,
+              matchEndReason: "completed" as const,
+            }
+          : {}),
       };
-    else if (earnsBonusRoll(state.activeDiceValue!, move))
+      if (!complete) advance();
+    } else if (earnsBonusRoll(state.activeDiceValue!, move))
       next.turnPhase = "awaiting_roll";
     else advance();
   }

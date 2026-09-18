@@ -22,6 +22,11 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
 
   const ranking = useMemo(() => {
     if (!roomState) return [];
+    if (
+      roomState.status === "summary" &&
+      roomState.winnerIds.length === roomState.players.length
+    )
+      return roomState.winnerIds;
     const progress: PlayerProgress[] = roomState.players.map((player) => {
       const pawns = roomState.pawns.filter((p) => p.color === player.color);
       return {

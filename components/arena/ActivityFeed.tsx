@@ -101,6 +101,8 @@ function describeEvent(event: MatchEventRow): string {
       return "match started";
     case "match_completed":
       return "won the match!";
+    case "player_finished":
+      return `finished in place ${event.payload?.place ?? ""}`.trim();
     case "match_abandoned":
       return "match ended — no active players remained";
     case "player_reconnected":

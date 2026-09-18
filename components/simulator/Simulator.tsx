@@ -175,7 +175,7 @@ export default function Simulator({
   voice,
 }: SimulatorProps) {
   const me = state.players.find((p) => p.id === myPlayerId);
-  const ranking = rankPlayers(
+  const progressRanking = rankPlayers(
     state.players.map((player) => {
       const pawns = state.pawns.filter((p) => p.color === player.color);
       return {
@@ -189,6 +189,10 @@ export default function Simulator({
       };
     }),
   );
+  const ranking =
+    state.status === "summary" && state.winnerIds.length === state.players.length
+      ? state.winnerIds
+      : progressRanking;
   const [prefs, setPrefs] = useState(() =>
     loadPreferences(me?.color ?? "blue"),
   );

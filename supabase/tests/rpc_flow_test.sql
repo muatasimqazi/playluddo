@@ -15,7 +15,7 @@
 -- rather than looping for a specific roll outcome.
 
 begin;
-select plan(19);
+select plan(20);
 
 create temporary table test_state (key text primary key, value jsonb);
 -- Created by this session's role (postgres); `authenticated` needs an
@@ -241,10 +241,22 @@ select public.request_move(
 );
 
 select results_eq(
-  $$select status, match_end_reason, winner_ids from public.rooms
+  $$select status, match_end_reason, winner_ids, turn_player_id from public.rooms
     where id = ((select value->>'roomId' from test_state where key = 'room'))::uuid$$,
-  $$values ('summary'::text, 'completed'::text, array[(select value->>'playerId' from test_state where key = 'room')::uuid])$$,
-  'finishing the 4th pawn ends the match immediately with the mover as winner'
+  $$values ('in_game'::text, null::text,
+      array[(select value->>'playerId' from test_state where key = 'room')::uuid],
+      (select value->>'playerId' from test_state where key = 'join')::uuid)$$,
+  'the first finisher is recorded and play continues with the next unfinished player'
+);
+
+reset role;
+select private.ludo_advance_to_next_player(
+  ((select value->>'roomId' from test_state where key = 'room'))::uuid
+);
+select isnt(
+  (select turn_player_id from public.rooms where id = ((select value->>'roomId' from test_state where key = 'room'))::uuid),
+  (select value->>'playerId' from test_state where key = 'room')::uuid,
+  'turn rotation skips a player who has already finished'
 );
 
 select * from finish();

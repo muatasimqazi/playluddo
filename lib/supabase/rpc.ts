@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GameRoomState, GameType } from "../board/types";
+import type { GameRoomState, GameType, PlayerColor } from "../board/types";
 
 /**
  * Typed wrappers around the RPC surface in docs/IMPLEMENTATION_HANDOFF.md
@@ -15,6 +15,7 @@ export type RpcErrorCode =
   | "ROOM_FULL"
   | "NOT_HOST"
   | "SEAT_TAKEN"
+  | "COLOR_TAKEN"
   | "NOT_ENOUGH_PLAYERS"
   | "NOT_YOUR_TURN"
   | "INVALID_PHASE"
@@ -33,6 +34,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "ROOM_FULL",
   "NOT_HOST",
   "SEAT_TAKEN",
+  "COLOR_TAKEN",
   "NOT_ENOUGH_PLAYERS",
   "NOT_YOUR_TURN",
   "INVALID_PHASE",
@@ -95,6 +97,17 @@ export function setRoomGame(
   return call<GameRoomState>(client, "set_room_game", {
     p_room_id: roomId,
     p_game_type: gameType,
+  });
+}
+
+export function setPlayerColor(
+  client: SupabaseClient,
+  roomId: string,
+  color: PlayerColor,
+) {
+  return call<GameRoomState>(client, "set_player_color", {
+    p_room_id: roomId,
+    p_color: color,
   });
 }
 

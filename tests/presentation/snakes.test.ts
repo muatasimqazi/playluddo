@@ -19,6 +19,33 @@ import { PresentationTimeline } from "../../lib/presentation/timeline";
 
 afterEach(() => vi.useRealTimers());
 
+it.each([2, 3, 4] as const)(
+  "creates a %s-player game with only the selected computers",
+  (playerCount) => {
+    const session = createPractice("snakes_and_ladders", playerCount);
+    expect(session.state.players).toHaveLength(playerCount);
+    expect(session.state.players.filter((player) => player.isBot)).toHaveLength(
+      playerCount - 1,
+    );
+    expect(session.state.pawns).toHaveLength(playerCount);
+    expect(
+      practiceReducer(session, { type: "reset" }).state.players,
+    ).toHaveLength(playerCount);
+    const ludo = createPractice("ludo", playerCount);
+    expect(ludo.state.players).toHaveLength(playerCount);
+    expect(ludo.state.pawns).toHaveLength(playerCount * 4);
+    const yellow = createPractice("ludo", playerCount, "yellow");
+    expect(yellow.state.players[0]).toMatchObject({
+      displayName: "You",
+      color: "yellow",
+      isBot: false,
+    });
+    expect(
+      yellow.state.players.slice(1).some((player) => player.color === "yellow"),
+    ).toBe(false);
+  },
+);
+
 it("maps all 100 printed squares in alternating rows without overlaps", () => {
   const squares = Array.from({ length: 100 }, (_, i) =>
     snakeSquarePoint(i + 1),
@@ -36,7 +63,7 @@ it("maps all 100 printed squares in alternating rows without overlaps", () => {
 });
 
 it.each(Object.entries({ ...LADDERS, ...SNAKES }))(
-  "follows the artwork from %s to %s",
+  "follows the SVG artwork from %s to %s",
   (start, end) => {
     const pawn = {
       ...createPractice("snakes_and_ladders").state.pawns[0],
@@ -57,12 +84,12 @@ it.each(Object.entries({ ...LADDERS, ...SNAKES }))(
   },
 );
 
-it("enters on any die, moves automatically and does not grant a bonus six", () => {
+it("enters on any die, moves automatically and grants another roll on six", () => {
   const session = createPractice("snakes_and_ladders");
   const next = practiceReducer(session, { type: "roll", value: 6 });
   expect(next.state.pawns).toHaveLength(4);
   expect(next.state.pawns[0].pathIndex).toBe(6);
-  expect(next.state.turnPlayerId).toBe("practice-1");
+  expect(next.state.turnPlayerId).toBe("practice-0");
   expect(next.state.turnPhase).toBe("awaiting_roll");
   expect(next.events.map((e) => e.event_type)).toEqual([
     "dice_rolled",
@@ -124,15 +151,15 @@ it("queues automatic movement behind the roll and replays the full action", () =
   timeline.dispose();
 });
 
-it("animates a snake that returns to the square the player started on", () => {
+it("animates the full slide from a snake head to its tail", () => {
   const pawn = {
     ...createPractice("snakes_and_ladders").state.pawns[0],
-    pathIndex: 88,
+    pathIndex: 89,
     state: "track" as const,
   };
   const move = snakeMove([pawn], pawn.color, 6)!;
   const next = applySnakeMove([pawn], move);
-  expect(next[0].pathIndex).toBe(88);
+  expect(next[0].pathIndex).toBe(75);
   expect(moveWaypoints(pawn, next[0], "snakes_and_ladders", move)).toHaveLength(
     18,
   );

@@ -68,6 +68,8 @@ export interface LegalMove {
 
 export interface GameRoomState {
   roomId: string;
+  /** Present for server rooms; practice identifies its host by seat zero. */
+  hostPlayerId?: string | null;
   /** Join code shown/shared in the lobby. Added to the wire shape in M4 — the initial PRD 6.7 shape omitted it. */
   code: string;
   gameType: GameType;

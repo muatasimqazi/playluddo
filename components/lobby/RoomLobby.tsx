@@ -4,7 +4,12 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fillBot, setRoomGame, startMatch } from "@/lib/supabase/rpc";
+import {
+  fillBot,
+  setPlayerColor,
+  setRoomGame,
+  startMatch,
+} from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { createPractice } from "@/lib/presentation/practice";
@@ -32,12 +37,24 @@ export function RoomLobby({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(() => {
+    if (typeof window === "undefined") return 2;
+    const value = Number(
+      new URLSearchParams(window.location.search).get("players"),
+    );
+    return value === 2 || value === 3 || value === 4 ? value : 2;
+  });
   const pawns = useMemo(
     () => createPractice(state?.gameType).state.pawns,
     [state?.gameType],
   );
+  const occupiedCount = state?.players.length ?? 1;
+  const effectivePlayerCount = Math.max(playerCount, occupiedCount) as 2 | 3 | 4;
   if (!state) return null;
-  const host = state.players.find((p) => p.seatIndex === 0)?.id === myPlayerId;
+  const me = state.players.find((player) => player.id === myPlayerId);
+  const host = state.hostPlayerId
+    ? state.hostPlayerId === myPlayerId
+    : state.players.find((p) => p.seatIndex === 0)?.id === myPlayerId;
   async function run(fn: () => Promise<unknown>) {
     setPending(true);
     setError(null);
@@ -130,7 +147,7 @@ export function RoomLobby({
           <div>
             <span className="eyebrow">ON THE TABLE</span>
             <strong>
-              {state.gameType === "ludo" ? "Ludo" : "Snakes & Ladders"}
+              {state.gameType === "ludo" ? "Luddo" : "Snakes & Ladders"}
             </strong>
           </div>
           {host ? (
@@ -158,6 +175,71 @@ export function RoomLobby({
             ? "Four pieces each. Bring your color home."
             : "One piece each. Climb ladders, slide down snakes. Reach 100 with an exact roll."}
         </p>
+        {me && !me.isBot && (
+          <div className="lobby-color-choice">
+            <span>
+              <span className="eyebrow">YOUR BASE</span>
+              <strong>Choose your color</strong>
+            </span>
+            <div>
+              {SEAT_COLORS.map((color) => {
+                const occupant = state.players.find(
+                  (player) => player.color === color,
+                );
+                const selected = me.color === color;
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    className={selected ? "is-selected" : ""}
+                    disabled={pending || (!!occupant && !selected)}
+                    aria-label={
+                      occupant && !selected
+                        ? `${color} base taken by ${occupant.displayName}`
+                        : `Choose ${color} base`
+                    }
+                    aria-pressed={selected}
+                    title={
+                      occupant && !selected
+                        ? `Taken by ${occupant.displayName}`
+                        : `${color} base`
+                    }
+                    onClick={() =>
+                      void run(async () => {
+                        const next = await setPlayerColor(client, roomId, color);
+                        useRoomStore.getState().setRoomState(next);
+                      })
+                    }
+                  >
+                    <i style={{ background: COLORS[color] }} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {host && (
+          <label className="lobby-player-count">
+            <span>
+              <span className="eyebrow">TABLE SIZE</span>
+              <strong>How many players?</strong>
+              <small>Empty selected seats become computers</small>
+            </span>
+            <select
+              value={effectivePlayerCount}
+              disabled={pending}
+              onChange={(event) =>
+                setPlayerCount(Number(event.target.value) as 2 | 3 | 4)
+              }
+            >
+              {[2, 3, 4].map((count) => (
+                <option key={count} value={count} disabled={count < occupiedCount}>
+                  {count} players
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         {voice && (
           <div className="lobby-voice">
             <button
@@ -242,13 +324,26 @@ export function RoomLobby({
           <button
             className="sim-primary"
             disabled={pending || state.players.length < 2}
-            onClick={() => void run(() => startMatch(client, roomId))}
+            onClick={() =>
+              void run(async () => {
+                const openSeats = SEAT_COLORS.map((_, seat) => seat).filter(
+                  (seat) => !state.players.some((p) => p.seatIndex === seat),
+                );
+                const computersNeeded =
+                  effectivePlayerCount - state.players.length;
+                for (const seat of openSeats.slice(0, computersNeeded))
+                  await fillBot(client, roomId, seat);
+                await startMatch(client, roomId);
+              })
+            }
           >
             {pending
               ? "Preparing the table…"
               : state.players.length < 2
                 ? "Invite a friend or add a computer"
-                : "Everyone’s here. Let’s play."}
+                : state.players.length < effectivePlayerCount
+                  ? `Add ${effectivePlayerCount - state.players.length} computer${effectivePlayerCount - state.players.length === 1 ? "" : "s"} & play`
+                  : "Everyone’s here. Let’s play."}
             <Icon name="arrow" />
           </button>
         ) : (

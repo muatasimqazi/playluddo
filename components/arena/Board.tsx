@@ -440,7 +440,7 @@ const NEST_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number, numbe
 // computed but never actually rendered anywhere before, so a pawn that
 // completed the board just vanished. Two rows of two, straddling that
 // wedge's own star badge (CENTER_WEDGES in BoardArtwork.tsx) — some
-// visual overlap with the star is expected/fine (real Ludo boards pile
+// visual overlap with the star is expected/fine (real Luddo boards pile
 // finished pawns right on top of the home decoration), spaced roughly a
 // pawn-diameter apart so up to 4 in the same wedge don't overlap each
 // other. Board-grid units (0-15), same space as everything else on this

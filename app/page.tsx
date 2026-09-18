@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
-import { createRoom, joinRoom } from "@/lib/supabase/rpc";
+import { createRoom, joinRoom, setPlayerColor } from "@/lib/supabase/rpc";
 import { createPractice } from "@/lib/presentation/practice";
+import type { PlayerColor } from "@/lib/board/types";
+import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
 import "@/components/simulator/simulator.css";
 
@@ -20,9 +22,14 @@ export default function Home() {
   const [friends, setFriends] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(2);
+  const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("blue");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const preview = useMemo(() => createPractice().state, []);
+  const preview = useMemo(
+    () => createPractice("ludo", playerCount, playerColor).state,
+    [playerCount, playerColor],
+  );
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
       setError("What should we call you at the table?");
@@ -41,7 +48,13 @@ export default function Home() {
         kind === "create"
           ? await createRoom(client, name.trim())
           : await joinRoom(client, code.trim(), name.trim());
-      router.push(`/room/${room.roomId}`);
+      if (kind === "create" && playerColor !== "red")
+        await setPlayerColor(client, room.roomId, playerColor);
+      router.push(
+        kind === "create"
+          ? `/room/${room.roomId}?players=${playerCount}`
+          : `/room/${room.roomId}`,
+      );
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not connect. Please try again.",
@@ -109,12 +122,53 @@ export default function Home() {
               Pull up a chair. Roll the dice. Share a table with friends,
               wherever the evening finds you.
             </p>
+            <fieldset className="entrance-player-count">
+              <legend>How many players?</legend>
+              <div>
+                {([2, 3, 4] as const).map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    className={playerCount === count ? "is-selected" : ""}
+                    aria-pressed={playerCount === count}
+                    onClick={() => setPlayerCount(count)}
+                  >
+                    <strong>{count}</strong>
+                    <span>{count === 2 ? "You + 1" : `You + ${count - 1}`}</span>
+                  </button>
+                ))}
+              </div>
+              <small>Open seats can be friends or computer players.</small>
+            </fieldset>
+            <fieldset className="entrance-color-choice">
+              <legend>Choose your base</legend>
+              <div>
+                {(["red", "green", "yellow", "blue"] as const).map(
+                  (color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={playerColor === color ? "is-selected" : ""}
+                      aria-label={`${color} base`}
+                      aria-pressed={playerColor === color}
+                      onClick={() => setPlayerColorChoice(color)}
+                    >
+                      <i style={{ background: COLORS[color] }} />
+                      {color}
+                    </button>
+                  ),
+                )}
+              </div>
+            </fieldset>
             <div className="entrance-buttons">
               <button className="sim-primary" onClick={() => setFriends(true)}>
                 <span>Play with friends</span>
                 <Icon name="arrow" />
               </button>
-              <Link className="entrance-secondary" href="/practice">
+              <Link
+                className="entrance-secondary"
+                href={`/practice?players=${playerCount}&color=${playerColor}`}
+              >
                 <span>Settle in with a practice game</span>
                 <Icon name="dice" />
               </Link>
@@ -194,7 +248,7 @@ export default function Home() {
       </section>
       <div className="entrance-room-label">
         <span>CLASSIC MEETS MODERN</span>
-        <p>Let's Play LUDDO</p>
+        <p>Let&apos;s Play LUDDO</p>
       </div>
       <footer className="entrance-footer">
         <span>CLASSIC LUDO. SHARED MOMENTS.</span>

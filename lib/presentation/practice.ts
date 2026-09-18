@@ -13,8 +13,17 @@ export interface PracticeSession {
   state: GameRoomState;
   events: MatchEventRow[];
 }
-export function createPractice(gameType: GameType = "ludo"): PracticeSession {
-  const colors: PlayerColor[] = ["blue", "red", "green", "yellow"];
+export function createPractice(
+  gameType: GameType = "ludo",
+  playerCount: 2 | 3 | 4 = 4,
+  playerColor: PlayerColor = "blue",
+): PracticeSession {
+  const colors = [
+    playerColor,
+    ...(["blue", "red", "green", "yellow"] as PlayerColor[]).filter(
+      (color) => color !== playerColor,
+    ),
+  ].slice(0, playerCount);
   return {
     state: {
       roomId: "practice",
@@ -68,7 +77,12 @@ export function practiceReducer(
   session: PracticeSession,
   action: PracticeAction,
 ): PracticeSession {
-  if (action.type === "reset") return createPractice(session.state.gameType);
+  if (action.type === "reset")
+    return createPractice(
+      session.state.gameType,
+      session.state.players.length as 2 | 3 | 4,
+      session.state.players[0].color,
+    );
   const { state } = session;
   if (state.status !== "in_game") return session;
   if (state.gameType === "snakes_and_ladders")
@@ -185,6 +199,7 @@ function snakePracticeReducer(
     ? [...state.winnerIds, player.id]
     : state.winnerIds;
   const complete = winnerIds.length === state.players.length;
+  const earnsAnotherRoll = action.value === 6 && !move?.finishesPawn;
   const nextPlayer = Array.from(
     { length: state.players.length },
     (_, i) => state.players[(player.seatIndex + i + 1) % state.players.length],
@@ -220,7 +235,11 @@ function snakePracticeReducer(
       pawns,
       winnerIds,
       status: complete ? "summary" : "in_game",
-      turnPlayerId: nextPlayer?.id ?? null,
+      turnPlayerId: complete
+        ? null
+        : earnsAnotherRoll
+          ? player.id
+          : (nextPlayer?.id ?? null),
       turnPhase: complete ? "complete" : "awaiting_roll",
       activeDiceValue: null,
       legalMoves: [],

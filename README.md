@@ -5,7 +5,7 @@ An immersive 3D Ludo table in a modern apartment, with server-authoritative priv
 - **Product spec:** [`docs/PRD.md`](docs/PRD.md)
 - **Engineering handoff (schema, RPC contracts, build sequence):** [`docs/IMPLEMENTATION_HANDOFF.md`](docs/IMPLEMENTATION_HANDOFF.md)
 - **Design references:** [`designs/`](designs/)
-- **Simulator brief:** [`docs/Immersive 3D Multiplayer Ludo Simulator.md`](docs/Immersive%203D%20Multiplayer%20Ludo%20Simulator.md)
+- **Simulator brief:** [`docs/Immersive 3D Multiplayer Luddo Simulator.md`](docs/Immersive%203D%20Multiplayer%20Ludo%20Simulator.md)
 - **Simulator implementation and controls:** [`docs/SIMULATOR_IMPLEMENTATION.md`](docs/SIMULATOR_IMPLEMENTATION.md)
 
 ## Stack

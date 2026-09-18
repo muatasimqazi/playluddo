@@ -3,9 +3,9 @@ select plan(20);
 
 select results_eq(
   $$select (private.snakes_move(jsonb_build_array(jsonb_build_object('id','piece','color','red','state','track','pathIndex',a-1)), 'red', 1)->>'toTileId')
-    from (values (4),(9),(21),(50),(63),(71),(14),(36),(54),(64),(94),(98)) v(a)$$,
-  $$values ('snakes:16'),('snakes:30'),('snakes:42'),('snakes:68'),('snakes:81'),('snakes:91'),
-    ('snakes:6'),('snakes:24'),('snakes:46'),('snakes:59'),('snakes:88'),('snakes:78')$$,
+    from (values (4),(9),(18),(28),(50),(71),(14),(59),(87),(93),(95),(98)) v(a)$$,
+  $$values ('snakes:16'),('snakes:30'),('snakes:44'),('snakes:54'),('snakes:73'),('snakes:91'),
+    ('snakes:6'),('snakes:40'),('snakes:45'),('snakes:72'),('snakes:75'),('snakes:38')$$,
   'all six ladders and six snakes match the artwork');
 select is(private.snakes_move('[{"id":"piece","color":"red","state":"nest","pathIndex":null}]', 'red', 0), null::jsonb, 'invalid die is rejected');
 select is(private.snakes_move('[{"id":"piece","color":"red","state":"track","pathIndex":99}]', 'red', 2), null::jsonb, 'exact 100 is required');
@@ -29,7 +29,8 @@ select is((select turn_player_id from public.rooms where code = 'SNAKEQ'), 'bbbb
 update public.pawns set path_index = 3 where player_id = 'bbbbbbbb-0000-0000-0000-000000000091';
 select private.snakes_apply_roll('aaaaaaaa-0000-0000-0000-000000000099', 'bbbbbbbb-0000-0000-0000-000000000091', 6);
 select is((select path_index from public.pawns where player_id = 'bbbbbbbb-0000-0000-0000-000000000091'), 30, 'roll lands on 9 then climbs to 30');
-select is((select turn_player_id from public.rooms where code = 'SNAKEQ'), 'bbbbbbbb-0000-0000-0000-000000000090'::uuid, 'six has no bonus roll');
+select is((select turn_player_id from public.rooms where code = 'SNAKEQ'), 'bbbbbbbb-0000-0000-0000-000000000091'::uuid, 'six grants another roll');
+select private.snakes_apply_roll('aaaaaaaa-0000-0000-0000-000000000099', 'bbbbbbbb-0000-0000-0000-000000000091', 1);
 update public.pawns set path_index = 13 where player_id = 'bbbbbbbb-0000-0000-0000-000000000090';
 select private.snakes_apply_roll('aaaaaaaa-0000-0000-0000-000000000099', 'bbbbbbbb-0000-0000-0000-000000000090', 1);
 select is((select path_index from public.pawns where player_id = 'bbbbbbbb-0000-0000-0000-000000000090'), 6, 'snake slides from 14 to 6');

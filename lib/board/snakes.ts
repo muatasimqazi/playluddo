@@ -1,21 +1,21 @@
 import type { LegalMove, Pawn, PlayerColor } from "./types";
 
-// Endpoints on designs/snake-and-ladder.png. Keep the SQL engine in sync.
+// Endpoints printed on designs/snake-and-ladder/board.svg. Keep SQL in sync.
 export const LADDERS: Readonly<Record<number, number>> = {
   4: 16,
   9: 30,
-  21: 42,
-  50: 68,
-  63: 81,
+  18: 44,
+  28: 54,
+  50: 73,
   71: 91,
 };
 export const SNAKES: Readonly<Record<number, number>> = {
   14: 6,
-  36: 24,
-  54: 46,
-  64: 59,
-  94: 88,
-  98: 78,
+  59: 40,
+  87: 45,
+  93: 72,
+  95: 75,
+  98: 38,
 };
 
 /** One piece each; any roll enters, exact 100, no captures or bonus rolls. */

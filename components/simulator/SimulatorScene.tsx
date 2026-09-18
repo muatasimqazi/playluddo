@@ -39,7 +39,7 @@ import {
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
 import boardArtwork from "@/designs/board-design.png";
-import snakeArtwork from "@/designs/snake-and-ladder.png";
+import snakeArtwork from "@/designs/snake-and-ladder/board.svg";
 import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
@@ -491,11 +491,8 @@ function BoardObject(props: SceneProps) {
   const [initialRotation] = useState(props.orientation);
   const artwork = useTexture(boardArtwork.src);
   const texture = useMemo(() => makeBoardTexture(artwork), [artwork]);
-  const snakeSource = useTexture(snakeArtwork.src);
-  const snakeTexture = useMemo(
-    () => makeBoardTexture(snakeSource, true),
-    [snakeSource],
-  );
+  const snakeSource = useTexture(snakeArtwork.src as string);
+  const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);
   const wood = useTexture("/textures/board-wood.jpg");
   const drag = useRef<{ x: number; angle: number; pointer: number } | null>(
     null,

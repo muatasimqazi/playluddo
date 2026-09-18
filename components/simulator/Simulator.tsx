@@ -51,6 +51,8 @@ export interface SimulatorProps {
   readOnly?: boolean;
   connection?: "connected" | "connecting" | "reconnecting";
   practice?: boolean;
+  playerCount?: 2 | 3 | 4;
+  onPlayerCountChange?: (count: 2 | 3 | 4) => void;
   messages?: TableMessage[];
   onMessage?: (text: string, kind: "chat" | "reaction") => Promise<unknown>;
   onRestart?: () => void;
@@ -62,12 +64,22 @@ export interface SimulatorProps {
 interface Preferences {
   quality: Quality;
   sound: boolean;
+  music: boolean;
+  musicVolume: number;
   actionCamera: ActionCamera;
   orientation: number;
   snakeOrientation: number;
   view: CameraView;
 }
 const PREF_KEY = "luddo-simulator-v1";
+const CAMERA_VIEW_LABELS: Record<CameraView, string> = {
+  play: "Seated",
+  overhead: "Overhead",
+  table: "Full table",
+  north: "Across from you",
+  west: "Seat to your left",
+  east: "Seat to your right",
+};
 function loadPreferences(color: keyof typeof COLORS): Preferences {
   const defaults: Preferences = {
     quality:
@@ -75,6 +87,8 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
         ? "medium"
         : "high",
     sound: true,
+    music: true,
+    musicVolume: 0.3,
     actionCamera: "off",
     orientation: HOME_ROTATION[color],
     snakeOrientation: 0,
@@ -89,6 +103,13 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
         ? value.quality
         : defaults.quality,
       sound: typeof value.sound === "boolean" ? value.sound : true,
+      music: typeof value.music === "boolean" ? value.music : true,
+      musicVolume:
+        typeof value.musicVolume === "number" &&
+        value.musicVolume >= 0 &&
+        value.musicVolume <= 1
+          ? value.musicVolume
+          : 0.3,
       actionCamera: ["off", "subtle", "cinematic"].includes(value.actionCamera)
         ? value.actionCamera
         : "off",
@@ -171,6 +192,8 @@ export default function Simulator({
   readOnly = false,
   connection = "connected",
   practice = false,
+  playerCount,
+  onPlayerCountChange,
   messages = [],
   onMessage,
   onRestart,
@@ -180,7 +203,7 @@ export default function Simulator({
   voice,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
-  const gameName = snakes ? "Snakes & Ladders" : "Ludo";
+  const gameName = snakes ? "Snakes & Ladders" : "Let's Play";
   const [flipping, setFlipping] = useState(false);
   const flipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -226,6 +249,7 @@ export default function Simulator({
   const [now, setNow] = useState(() => Date.now());
   const [fullscreen, setFullscreen] = useState(false);
   const root = useRef<HTMLElement>(null);
+  const backgroundMusic = useRef<HTMLAudioElement>(null);
   const seconds = useCountdown(state.turnDeadlineAt);
   const activePlayer = state.players.find(
     (p) => p.id === (frame.actorId ?? state.turnPlayerId),
@@ -277,13 +301,50 @@ export default function Simulator({
         JSON.stringify({
           quality: prefs.quality,
           sound: prefs.sound,
+          music: prefs.music,
+          musicVolume: prefs.musicVolume,
           actionCamera: prefs.actionCamera,
           orientation: prefs.orientation,
+          snakeOrientation: prefs.snakeOrientation,
           localColor: me?.color ?? "blue",
         }),
       );
     } catch {}
   }, [prefs, me?.color]);
+  useEffect(() => {
+    const audio = new Audio("/audio/background_01.wav");
+    audio.loop = true;
+    audio.preload = "auto";
+    backgroundMusic.current = audio;
+
+    const removeUnlockListeners = () => {
+      window.removeEventListener("pointerdown", unlockPlayback);
+      window.removeEventListener("keydown", unlockPlayback);
+    };
+    const play = () => {
+      if (audio.muted) return;
+      void audio.play().then(removeUnlockListeners).catch(() => {});
+    };
+    const unlockPlayback = () => play();
+
+    window.addEventListener("pointerdown", unlockPlayback);
+    window.addEventListener("keydown", unlockPlayback);
+    return () => {
+      removeUnlockListeners();
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      backgroundMusic.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    const audio = backgroundMusic.current;
+    if (!audio) return;
+    audio.volume = prefs.musicVolume;
+    audio.muted = !prefs.music;
+    if (prefs.music) void audio.play().catch(() => {});
+    else audio.pause();
+  }, [prefs.music, prefs.musicVolume]);
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
@@ -526,7 +587,7 @@ export default function Simulator({
           {onFlip && (
             <Tool
               icon="rotate"
-              label={`Flip board to ${snakes ? "Ludo" : "Snakes & Ladders"}`}
+              label={`Flip board to ${snakes ? "Luddo" : "Snakes & Ladders"}`}
               onClick={flipBoard}
               disabled={frame.busy || flipping}
             />
@@ -715,7 +776,7 @@ export default function Simulator({
               ? "Free look"
               : prefs.view === "play"
                 ? "Seated view"
-                : `${prefs.view} view`}
+                : CAMERA_VIEW_LABELS[prefs.view]}
           </span>
           <small>1 Seated view · 2 Overhead · 3 Table</small>
         </div>
@@ -774,9 +835,9 @@ export default function Simulator({
                     ["play", "Seated", "Your place at the table"],
                     ["overhead", "Overhead", "A clear view of every move"],
                     ["table", "Table", "Take in the whole setting"],
-                    ["north", "North", "Across the table"],
-                    ["west", "West", "From the left"],
-                    ["east", "East", "From the right"],
+                    ["north", "Across from you", "The opposite player’s seat"],
+                    ["west", "Seat to your left", "Your left-hand player’s view"],
+                    ["east", "Seat to your right", "Your right-hand player’s view"],
                   ] as const
                 ).map(([value, label, desc]) => (
                   <button
@@ -855,6 +916,53 @@ export default function Simulator({
                   onChange={(e) => setPref("sound", e.target.checked)}
                 />
               </label>
+              {practice && playerCount && onPlayerCountChange && (
+                <label className="setting-row">
+                  <span>
+                    Players<small>Includes you and computer players</small>
+                  </span>
+                  <select
+                    value={playerCount}
+                    onChange={(e) =>
+                      onPlayerCountChange(
+                        Number(e.target.value) as 2 | 3 | 4,
+                      )
+                    }
+                  >
+                    <option value={2}>2 players</option>
+                    <option value={3}>3 players</option>
+                    <option value={4}>4 players</option>
+                  </select>
+                </label>
+              )}
+              <label className="setting-row">
+                <span>
+                  Background music<small>Ambient table soundtrack</small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={prefs.music}
+                  onChange={(e) => setPref("music", e.target.checked)}
+                />
+              </label>
+              <label className="setting-row setting-volume">
+                <span>
+                  Music volume<small>{Math.round(prefs.musicVolume * 100)}%</small>
+                </span>
+                <input
+                  className="setting-range"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={prefs.musicVolume}
+                  disabled={!prefs.music}
+                  aria-label="Background music volume"
+                  onChange={(e) =>
+                    setPref("musicVolume", Number(e.target.value))
+                  }
+                />
+              </label>
               {onAutoRoll && (
                 <label className="setting-row">
                   <span>
@@ -880,8 +988,8 @@ export default function Simulator({
                 {snakes ? "Face square 1" : "Bring my color closer"}
               </button>
               <p className="panel-note">
-                Your graphics, sound, and board orientation are saved on this
-                device. Each game begins in Seated view.
+                Your graphics, sound, music, and board orientation are saved on
+                this device. Each game begins in Seated view.
               </p>
             </>
           )}
@@ -922,7 +1030,7 @@ export default function Simulator({
                   disabled={frame.busy || flipping}
                 >
                   <Icon name="rotate" />
-                  Flip board · {snakes ? "Ludo" : "Snakes & Ladders"}
+                  Flip board · {snakes ? "Luddo" : "Snakes & Ladders"}
                 </button>
               )}
               <p className="panel-note">

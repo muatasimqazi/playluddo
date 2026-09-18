@@ -382,8 +382,17 @@ function PhysicalDie({
   canRoll,
   onRoll,
   mode,
-}: Pick<SceneProps, "frame" | "canRoll" | "onRoll" | "mode">) {
+  players,
+  turnPlayerId,
+}: Pick<
+  SceneProps,
+  "frame" | "canRoll" | "onRoll" | "mode" | "players" | "turnPlayerId"
+>) {
   const mesh = useRef<THREE.Group>(null);
+  const activePlayer = players.find(
+    (player) => player.id === (frame.actorId ?? turnPlayerId),
+  );
+  const dieColor = activePlayer ? COLORS[activePlayer.color] : "#fff5da";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
     () =>
@@ -449,11 +458,23 @@ function PhysicalDie({
           castShadow
         >
           <meshPhysicalMaterial
-            color="#fff5da"
-            roughness={0.24}
+            color={dieColor}
+            roughness={0.08}
+            metalness={0}
             clearcoat={1}
-            emissive={canRoll ? "#d8af61" : "#000000"}
-            emissiveIntensity={0.18}
+            clearcoatRoughness={0.035}
+            transmission={0.52}
+            thickness={0.62}
+            ior={1.49}
+            attenuationColor={dieColor}
+            attenuationDistance={0.38}
+            specularIntensity={1}
+            specularColor="#ffffff"
+            envMapIntensity={1.8}
+            transparent
+            opacity={1}
+            emissive={canRoll ? dieColor : "#000000"}
+            emissiveIntensity={canRoll ? 0.07 : 0}
           />
         </RoundedBox>
         {DIE_FACES.map((face) => (
@@ -465,7 +486,11 @@ function PhysicalDie({
             {PIPS[face.value].map(([x, y], i) => (
               <mesh key={i} position={[x * 0.105, y * 0.105, 0]}>
                 <circleGeometry args={[0.031, 16]} />
-                <meshStandardMaterial color="#353b31" roughness={0.6} />
+                <meshPhysicalMaterial
+                  color="#fffdf5"
+                  roughness={0.22}
+                  clearcoat={0.65}
+                />
               </mesh>
             ))}
           </group>

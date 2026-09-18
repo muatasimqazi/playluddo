@@ -473,10 +473,31 @@
   color: #f4f1e4;
 }
 .sim-seat.is-active {
-  border-color: #d9be82ad;
+  border-color: color-mix(in srgb, var(--seat-color), white 24%);
+  background: color-mix(in srgb, var(--seat-color), #1e2720 70%);
   box-shadow:
-    0 0 0 3px #d9be8212,
+    0 0 0 3px color-mix(in srgb, var(--seat-color), transparent 78%),
+    0 0 22px color-mix(in srgb, var(--seat-color), transparent 62%),
     0 5px 24px #1b221326;
+  animation: active-seat-pulse 1.15s ease-in-out infinite alternate;
+}
+@keyframes active-seat-pulse {
+  from {
+    border-color: color-mix(in srgb, var(--seat-color), white 10%);
+    background: color-mix(in srgb, var(--seat-color), #1e2720 82%);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--seat-color), transparent 88%),
+      0 0 9px color-mix(in srgb, var(--seat-color), transparent 78%),
+      0 5px 24px #1b221326;
+  }
+  to {
+    border-color: color-mix(in srgb, var(--seat-color), white 34%);
+    background: color-mix(in srgb, var(--seat-color), #1e2720 58%);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--seat-color), transparent 72%),
+      0 0 24px color-mix(in srgb, var(--seat-color), transparent 55%),
+      0 5px 24px #1b221326;
+  }
 }
 .seat-avatar {
   width: 29px;
@@ -1623,6 +1644,9 @@
   .sim-entrance * {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  .sim-seat.is-active {
+    animation: none !important;
   }
 }
 .room-lobby {

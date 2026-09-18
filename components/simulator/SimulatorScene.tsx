@@ -438,7 +438,7 @@ function PhysicalDie({
         radius={0.02}
         position={[3.65, 0.028, 1.1]}
       >
-        <meshStandardMaterial color="#5b6550" roughness={0.9} />
+        <meshStandardMaterial color="#9b9c98" roughness={0.84} />
       </RoundedBox>
       <group
         ref={mesh}

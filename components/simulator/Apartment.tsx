@@ -103,7 +103,13 @@ function Plant({
   );
 }
 
-function Sofa({ fabric }: { fabric: THREE.Texture }) {
+function Sofa({
+  fabric,
+  pillow,
+}: {
+  fabric: THREE.Texture;
+  pillow: THREE.Texture;
+}) {
   return (
     <group position={[0, -2.6, -6.3]}>
       <Box
@@ -115,7 +121,7 @@ function Sofa({ fabric }: { fabric: THREE.Texture }) {
       <Box
         position={[0, 1.35, -1]}
         size={[9, 2.1, 0.55]}
-        color="#eee3cf"
+        color="#ffffff"
         round={0.2}
         map={fabric}
       />
@@ -124,14 +130,14 @@ function Sofa({ fabric }: { fabric: THREE.Texture }) {
           <Box
             position={[x, 0.95, 0.12]}
             size={[2.92, 0.55, 2.05]}
-            color="#f4ebdc"
+            color="#ffffff"
             round={0.18}
             map={fabric}
           />
           <Box
             position={[x, 1.85, -0.68]}
             size={[2.82, 1.35, 0.44]}
-            color="#eee5d6"
+            color="#ffffff"
             round={0.17}
             map={fabric}
             rotation={[-0.12, 0, 0]}
@@ -143,7 +149,7 @@ function Sofa({ fabric }: { fabric: THREE.Texture }) {
           key={x}
           position={[x, 1.1, 0]}
           size={[0.45, 1.65, 2.7]}
-          color="#e8dcc6"
+          color="#ffffff"
           round={0.15}
           map={fabric}
         />
@@ -151,7 +157,7 @@ function Sofa({ fabric }: { fabric: THREE.Texture }) {
       <Box
         position={[-3.05, 0.84, 2]}
         size={[2.95, 0.7, 2.5]}
-        color="#f1e7d4"
+        color="#ffffff"
         round={0.16}
         map={fabric}
       />
@@ -162,28 +168,145 @@ function Sofa({ fabric }: { fabric: THREE.Texture }) {
         <Box
           key={i}
           position={p as Point}
-          size={[1.25, 1.25, 0.4]}
+          size={[1.55, 1.05, 0.4]}
           rotation={[-0.18, 0, i ? 0.22 : -0.2]}
-          color={i ? "#b39e76" : "#b6bbb0"}
+          color="#ffffff"
           round={0.2}
-          map={fabric}
+          map={pillow}
         />
       ))}
     </group>
   );
 }
 
-function Kitchen({ wood }: { wood: THREE.Texture }) {
+function IslandDecor() {
+  const stems = [
+    [-0.2, 0.05, -0.16],
+    [-0.12, 0.16, 0.08],
+    [-0.04, -0.08, -0.04],
+    [0.06, 0.12, 0.12],
+    [0.14, -0.15, 0.02],
+    [0.21, 0.03, -0.1],
+  ] as const;
+  return (
+    <group position={[0, 3.13, 4.7]}>
+      {/* Small white ceramic pitcher. */}
+      <group position={[-1.05, 0, 0.05]}>
+        <mesh position={[0, 0.34, 0]} castShadow>
+          <cylinderGeometry args={[0.18, 0.25, 0.68, 24]} />
+          <meshStandardMaterial color="#f4f1e9" roughness={0.42} />
+        </mesh>
+        <mesh position={[0.03, 0.73, 0]} rotation={[0, 0, -0.18]} castShadow>
+          <cylinderGeometry args={[0.12, 0.16, 0.26, 24]} />
+          <meshStandardMaterial color="#f4f1e9" roughness={0.42} />
+        </mesh>
+        <mesh position={[-0.19, 0.54, 0]} rotation={[0, Math.PI / 2, 0]}>
+          <torusGeometry args={[0.18, 0.035, 10, 24, Math.PI * 1.55]} />
+          <meshStandardMaterial color="#f4f1e9" roughness={0.42} />
+        </mesh>
+      </group>
+
+      {/* Ribbed stone vase and abstract brass stems. */}
+      <group position={[-0.38, 0, -0.02]}>
+        <mesh position={[0, 0.23, 0]} castShadow>
+          <cylinderGeometry args={[0.24, 0.31, 0.46, 12]} />
+          <meshStandardMaterial color="#777a72" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 0.48, 0]}>
+          <cylinderGeometry args={[0.12, 0.2, 0.12, 12]} />
+          <meshStandardMaterial color="#85877f" roughness={0.75} />
+        </mesh>
+        {[-0.12, 0, 0.12].map((x, i) => (
+          <mesh
+            key={x}
+            position={[x * 0.45, 0.83, 0]}
+            rotation={[0, 0, (i - 1) * -0.28]}
+            castShadow
+          >
+            <cylinderGeometry args={[0.025, 0.045, 0.72, 8]} />
+            <meshStandardMaterial
+              color="#c69a3e"
+              metalness={0.85}
+              roughness={0.2}
+            />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Tall white planter with clustered leafy stems. */}
+      <group position={[0.75, 0, 0]}>
+        <mesh position={[0, 0.43, 0]} castShadow>
+          <cylinderGeometry args={[0.34, 0.3, 0.86, 28]} />
+          <meshStandardMaterial color="#f2f0e9" roughness={0.5} />
+        </mesh>
+        <mesh position={[0, 0.87, 0]}>
+          <cylinderGeometry args={[0.31, 0.31, 0.025, 24]} />
+          <meshStandardMaterial color="#493c2a" roughness={1} />
+        </mesh>
+        {stems.map(([x, tilt, z], stemIndex) => {
+          const height = 1.2 + (stemIndex % 3) * 0.18;
+          return (
+            <group key={stemIndex} position={[x, 0.85, z]} rotation={[0, 0, tilt]}>
+              <mesh position={[0, height / 2, 0]} castShadow>
+                <cylinderGeometry args={[0.014, 0.02, height, 6]} />
+                <meshStandardMaterial color="#526d34" roughness={0.9} />
+              </mesh>
+              {Array.from({ length: 7 }, (_, leafIndex) => {
+                const y = 0.2 + leafIndex * (height / 8);
+                const side = leafIndex % 2 ? 1 : -1;
+                return (
+                  <mesh
+                    key={leafIndex}
+                    position={[side * 0.13, y, 0]}
+                    rotation={[0, 0, side * -0.65]}
+                    scale={[0.07, 0.22, 0.04]}
+                    castShadow
+                  >
+                    <sphereGeometry args={[1, 8, 6]} />
+                    <meshStandardMaterial
+                      color={leafIndex % 3 ? "#688342" : "#7e963e"}
+                      roughness={0.9}
+                    />
+                  </mesh>
+                );
+              })}
+            </group>
+          );
+        })}
+      </group>
+    </group>
+  );
+}
+
+function Kitchen({
+  island,
+  stool,
+}: {
+  island: THREE.Texture;
+  stool: THREE.Texture;
+}) {
   return (
     <group position={[6, -2.6, -11.4]}>
-      <Box position={[0, 1.5, 0]} size={[9, 3, 1.8]} color="#777c70" />
+      <Box
+        position={[0, 1.5, 0]}
+        size={[9, 3, 1.8]}
+        color="#ffffff"
+        map={island}
+        roughness={0.7}
+      />
       <Box
         position={[0, 3.03, 0.08]}
         size={[9.1, 0.15, 2]}
         color="#ddd9c8"
         roughness={0.25}
       />
-      <Box position={[0, 5.8, 0.08]} size={[9, 2, 1.6]} color="#dbd5c6" />
+      <Box
+        position={[0, 5.8, 0.08]}
+        size={[9, 2, 1.6]}
+        color="#ffffff"
+        map={island}
+        roughness={0.7}
+      />
       {Array.from({ length: 8 }, (_, i) => (
         <group key={i}>
           <Box
@@ -202,8 +325,9 @@ function Kitchen({ wood }: { wood: THREE.Texture }) {
       <Box
         position={[0, 1.45, 4.7]}
         size={[6.4, 2.9, 2.1]}
-        color="#a5987b"
-        map={wood}
+        color="#ffffff"
+        map={island}
+        roughness={0.7}
       />
       <Box
         position={[0, 2.99, 4.7]}
@@ -211,13 +335,16 @@ function Kitchen({ wood }: { wood: THREE.Texture }) {
         color="#dad7c9"
         roughness={0.2}
       />
+      <IslandDecor />
       {[-2, 0, 2].map((x) => (
         <group key={x} position={[x, 0, 6.6]}>
           <Box
             position={[0, 1.95, 0]}
             size={[1.25, 0.22, 1.1]}
-            color="#2f3430"
+            color="#ffffff"
             round={0.1}
+            map={stool}
+            roughness={0.62}
           />
           {[-0.4, 0.4].map((z) => (
             <Box
@@ -269,14 +396,25 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }, [originalWood]);
-  const originalFabric = useTexture("/textures/room-sofa-fabric.jpg");
-  const fabric = useMemo(() => {
-    const t = originalFabric.clone();
+  const originalFloor = useTexture("/textures/floor.jpg");
+  const floor = useMemo(() => {
+    const t = originalFloor.clone();
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(5, 5);
+    // The replacement source is a square, straight-on plank texture, so an
+    // even repeat keeps board widths consistent in both room directions.
+    t.repeat.set(3, 3);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalFloor, quality]);
+  const originalCouchFabric = useTexture("/textures/couch-fabric.jpg");
+  const couchFabric = useMemo(() => {
+    const t = originalCouchFabric.clone();
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(3, 3);
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
-  }, [originalFabric]);
+  }, [originalCouchFabric]);
   const originalRug = useTexture("/textures/room-rug.jpg");
   const rug = useMemo(() => {
     const t = originalRug.clone();
@@ -331,51 +469,128 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.anisotropy = 8;
     return t;
   }, [originalCactus]);
-  const originalBooks = useTexture("/textures/books.jpg");
+  const originalBooks = useTexture("/textures/bookshelf.jpg");
   const books = useMemo(() => {
     const t = originalBooks.clone();
-    // Center-crop the 3:2 photograph to the shelf's narrower proportions.
-    t.offset.set(0.125, 0);
-    t.repeat.set(0.75, 1);
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = quality === "low" ? 2 : 8;
     return t;
   }, [originalBooks, quality]);
+  const originalPaintings = useTexture("/textures/paintings.jpg");
+  const paintings = useMemo(() => {
+    const t = originalPaintings.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalPaintings, quality]);
+  const originalIsland = useTexture("/textures/island.jpg");
+  const island = useMemo(() => {
+    const t = originalIsland.clone();
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(3, 1);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalIsland, quality]);
+  const originalTableTop = useTexture("/textures/table-top.jpg");
+  const tableTop = useMemo(() => {
+    const t = originalTableTop.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalTableTop, quality]);
+  const originalPillow = useTexture("/textures/pillow-1.jpg");
+  const pillow = useMemo(() => {
+    const t = originalPillow.clone();
+    t.offset.set(0.025, 0.045);
+    t.repeat.set(0.95, 0.91);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalPillow, quality]);
+  const originalPaintingTwo = useTexture("/textures/painting-2.png");
+  const paintingTwo = useMemo(() => {
+    const t = originalPaintingTwo.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalPaintingTwo, quality]);
+  const originalStool = useTexture("/textures/stool.jpg");
+  const stool = useMemo(() => {
+    // Sample the white leather seat from the supplied stool photograph; the
+    // modeled chrome base remains reflective geometry.
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 512;
+    const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
+    if (!ctx) throw new Error("Could not prepare the stool texture.");
+    ctx.drawImage(
+      originalStool.image as HTMLImageElement,
+      340,
+      245,
+      320,
+      105,
+      0,
+      0,
+      512,
+      512,
+    );
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalStool, quality]);
+  const originalCurtains = useTexture("/textures/curtains.jpg");
+  const curtains = useMemo(() => {
+    const t = originalCurtains.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalCurtains, quality]);
   useEffect(
     () => () => {
       wood.dispose();
-      fabric.dispose();
+      floor.dispose();
+      couchFabric.dispose();
       rug.dispose();
       skyline.dispose();
       mug.dispose();
       cactus.dispose();
       books.dispose();
+      paintings.dispose();
+      island.dispose();
+      tableTop.dispose();
+      pillow.dispose();
+      paintingTwo.dispose();
+      stool.dispose();
+      curtains.dispose();
     },
-    [wood, fabric, rug, skyline, mug, cactus, books],
+    [
+      wood,
+      floor,
+      couchFabric,
+      rug,
+      skyline,
+      mug,
+      cactus,
+      books,
+      paintings,
+      island,
+      tableTop,
+      pillow,
+      paintingTwo,
+      stool,
+      curtains,
+    ],
   );
   return (
     <group>
       <Box
         position={[0, -2.73, 0]}
         size={[27, 0.25, 28]}
-        color="#9f9d91"
-        roughness={0.32}
+        color="#ffffff"
+        map={floor}
+        roughness={0.48}
       />
-      {/* Expansion joints in the polished concrete. */}
-      {[-10, -5, 0, 5, 10].map((p) => (
-        <group key={p}>
-          <Box
-            position={[p, -2.597, 0]}
-            size={[0.016, 0.002, 28]}
-            color="#797c73"
-          />
-          <Box
-            position={[0, -2.596, p]}
-            size={[27, 0.002, 0.016]}
-            color="#797c73"
-          />
-        </group>
-      ))}
       <Box
         position={[0, -2.57, 0]}
         size={[13, 0.065, 11.5]}
@@ -387,6 +602,41 @@ export function Apartment({ quality }: { quality: Quality }) {
       <Box position={[0, 6, -13.7]} size={[27, 17.2, 0.3]} color="#d8d3c8" />
       <Box position={[13.5, 6, 0]} size={[0.3, 17.2, 28]} color="#ddd9cf" />
       <Box position={[0, 6, 13.7]} size={[27, 17.2, 0.3]} color="#d0cbc0" />
+      {/* Large abstract artwork on the wall opposite the bookshelf. */}
+      <Box
+        position={[0, 6.4, 13.25]}
+        size={[10.9, 7.4, 0.18]}
+        color="#242421"
+        roughness={0.32}
+      />
+      <mesh position={[0, 6.4, 13.14]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[10.5, 7]} />
+        <meshBasicMaterial
+          map={paintingTwo}
+          color="#ffffff"
+          toneMapped={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Paired artwork on the solid wall opposite the windows. */}
+      <Box
+        position={[13.27, 6.5, -1.4]}
+        size={[0.16, 5.45, 7.8]}
+        color="#373733"
+        roughness={0.46}
+      />
+      <mesh
+        position={[13.12, 6.5, -1.4]}
+        rotation={[0, -Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[7.5, 5.2]} />
+        <meshBasicMaterial
+          map={paintings}
+          color="#ffffff"
+          toneMapped={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
       <Box position={[0, 14.65, 0]} size={[27, 0.25, 28]} color="#f1ece0" />
       {/* Curved inset ceiling and warm cove lighting. */}
       <RoundedBox
@@ -476,47 +726,37 @@ export function Apartment({ quality }: { quality: Quality }) {
             >
               <cylinderGeometry args={[0.12, 0.14, 11.8, 8]} />
               <meshStandardMaterial
-                color={i % 2 ? "#beb6a2" : "#d4cbb5"}
+                map={curtains}
+                color="#ffffff"
                 roughness={1}
               />
             </mesh>
           ))}
         </group>
       ))}
-      <Sofa fabric={fabric} />
-      <Kitchen wood={wood} />
-      {/* Walnut shelving behind the sectional. */}
-      <group position={[-4.1, -2.6, -12.9]}>
+      <Sofa fabric={couchFabric} pillow={pillow} />
+      <Kitchen island={island} stool={stool} />
+      {/* Recessed built-in shelving behind the sectional. */}
+      <group position={[-4.1, 0, -13.5]}>
         <Box
-          position={[0, 3.5, 0]}
-          size={[7.5, 7, 0.22]}
-          color="#574c3b"
-          map={wood}
+          position={[0, 0.89, 0.06]}
+          size={[8.78, 6.99, 0.12]}
+          color="#eceae3"
+          roughness={0.82}
         />
-        {[0.2, 2.4, 4.6, 6.8].map((y) => (
-          <Box
-            key={y}
-            position={[0, y, 0.5]}
-            size={[7.6, 0.14, 1.2]}
-            color="#877354"
-            map={wood}
-          />
-        ))}
-        {[-3.75, 0, 3.75].map((x) => (
-          <Box
-            key={x}
-            position={[x, 3.5, 0.5]}
-            size={[0.12, 7, 1.2]}
-            color="#8b7758"
-            map={wood}
-          />
-        ))}
-        <mesh position={[0, 3.5, 0.63]}>
-          <planeGeometry args={[7.35, 6.55]} />
-          <meshBasicMaterial
+        <Box
+          position={[0, -2.465, 0.2]}
+          size={[8.78, 0.28, 0.4]}
+          color="#deddd7"
+          roughness={0.72}
+          round={0.025}
+        />
+        <mesh position={[0, 0.7, 0.17]} receiveShadow>
+          <planeGeometry args={[8.4, 6.61]} />
+          <meshStandardMaterial
             map={books}
             color="#ffffff"
-            toneMapped={false}
+            roughness={0.76}
           />
         </mesh>
       </group>
@@ -553,16 +793,16 @@ export function Apartment({ quality }: { quality: Quality }) {
           <Box
             position={[0, 0.8, 0]}
             size={[2.6, 1.3, 2.2]}
-            color="#c7beac"
+            color="#ffffff"
             round={0.22}
-            map={fabric}
+            map={couchFabric}
           />
           <Box
             position={[0, 1.75, 1]}
             size={[2.6, 1.8, 0.4]}
-            color="#c7beac"
+            color="#ffffff"
             round={0.16}
-            map={fabric}
+            map={couchFabric}
           />
         </group>
       ))}
@@ -570,10 +810,10 @@ export function Apartment({ quality }: { quality: Quality }) {
       <Box
         position={[0, -0.19, 0]}
         size={[8.5, 0.36, 7.65]}
-        color="#a1845e"
-        map={wood}
+        color="#ffffff"
+        map={tableTop}
         round={0.14}
-        roughness={0.32}
+        roughness={0.38}
       />
       <Box
         position={[0, -0.4, 0]}

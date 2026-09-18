@@ -10,6 +10,14 @@ Playing pieces are low, rounded glass discs inspired by the supplied counter ref
 
 The board print uses an unlit material with tone mapping disabled. Its color-managed artwork therefore retains the source ink colors regardless of apartment lighting; the wooden board beneath it and every physical game piece remain lit normally.
 
+The apartment's open window wall looks onto `public/textures/seattle-skyline.jpg`. The sRGB photograph is rendered on an unlit, aspect-correct plane beyond the physical glass and balcony geometry, replacing the earlier procedural block skyline.
+
+The modeled coffee cup uses a color-managed ceramic wrap derived from `public/textures/coffee-mug.jpg`. The supplied front artwork is isolated onto a neutral glaze in-browser, avoiding photographic countertop pixels around the cylindrical cup while retaining physical highlights on the body and handle.
+
+The modeled apartment plants use an sRGB surface crop from `public/textures/cactus.jpg`. UV offset and repeat isolate a continuous green cactus pad from the source, adding natural mottling and spine detail without projecting the photograph's white wall onto the leaves.
+
+The walnut shelving uses an aspect-preserving center crop of `public/textures/books.jpg` behind its modeled back, rails, and dividers. The photograph supplies detailed book spines while the Three.js shelf geometry retains depth and room-scale shadows.
+
 ## Run and play
 
 - `/`: apartment entrance, private-room creation, joining by code, and practice entry.

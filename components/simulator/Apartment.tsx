@@ -52,7 +52,15 @@ function Box({
   );
 }
 
-function Plant({ position, scale = 1 }: { position: Point; scale?: number }) {
+function Plant({
+  position,
+  cactus,
+  scale = 1,
+}: {
+  position: Point;
+  cactus: THREE.Texture;
+  scale?: number;
+}) {
   return (
     <group position={position} scale={scale}>
       <mesh position={[0, 0.42, 0]} castShadow>
@@ -83,8 +91,9 @@ function Plant({ position, scale = 1 }: { position: Point; scale?: number }) {
             >
               <sphereGeometry args={[1, 12, 10]} />
               <meshStandardMaterial
-                color={i % 2 ? "#627553" : "#3a5b43"}
-                roughness={0.65}
+                map={cactus}
+                color={i % 2 ? "#e2ead9" : "#ffffff"}
+                roughness={0.78}
               />
             </mesh>
           </group>
@@ -276,13 +285,73 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }, [originalRug]);
+  const originalSkyline = useTexture("/textures/seattle-skyline.jpg");
+  const skyline = useMemo(() => {
+    const t = originalSkyline.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }, [originalSkyline]);
+  const originalMug = useTexture("/textures/coffee-mug.jpg");
+  const mug = useMemo(() => {
+    // Build a ceramic wrap from the photographed front: retain the supplied
+    // logo and white glaze without wrapping its countertop/background around
+    // the modeled cylinder.
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 512;
+    const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
+    if (!ctx) throw new Error("Could not prepare the coffee mug texture.");
+    ctx.fillStyle = "#f2f1ed";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+      originalMug.image as HTMLImageElement,
+      215,
+      215,
+      420,
+      360,
+      332,
+      76,
+      360,
+      309,
+    );
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }, [originalMug]);
+  const originalCactus = useTexture("/textures/cactus.jpg");
+  const cactus = useMemo(() => {
+    const t = originalCactus.clone();
+    // Sample an uninterrupted pad from the photograph so the white wall
+    // never appears on the modeled leaves.
+    t.offset.set(0.27, 0.35);
+    t.repeat.set(0.11, 0.16);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }, [originalCactus]);
+  const originalBooks = useTexture("/textures/books.jpg");
+  const books = useMemo(() => {
+    const t = originalBooks.clone();
+    // Center-crop the 3:2 photograph to the shelf's narrower proportions.
+    t.offset.set(0.125, 0);
+    t.repeat.set(0.75, 1);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = quality === "low" ? 2 : 8;
+    return t;
+  }, [originalBooks, quality]);
   useEffect(
     () => () => {
       wood.dispose();
       fabric.dispose();
       rug.dispose();
+      skyline.dispose();
+      mug.dispose();
+      cactus.dispose();
+      books.dispose();
     },
-    [wood, fabric, rug],
+    [wood, fabric, rug, skyline, mug, cactus, books],
   );
   return (
     <group>
@@ -348,7 +417,7 @@ export function Apartment({ quality }: { quality: Quality }) {
           </mesh>
         )),
       )}
-      {/* Windows look out onto actual distant geometry, never a background photo. */}
+      {/* Window glass remains physical; the city image sits beyond it. */}
       {[-10, -5, 0, 5, 10].map((z) => (
         <group key={z}>
           <mesh position={[-13.25, 6, z]} rotation={[0, Math.PI / 2, 0]}>
@@ -370,20 +439,18 @@ export function Apartment({ quality }: { quality: Quality }) {
           />
         </group>
       ))}
-      {/* Remove the solid window wall: skyline spans the view beyond open frames. */}
+      {/* Aspect-correct Seattle panorama behind the full open window wall. */}
+      <mesh position={[-25, 5.7, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[36, 18.55]} />
+        <meshBasicMaterial
+          map={skyline}
+          color="#ffffff"
+          toneMapped={false}
+          side={THREE.FrontSide}
+        />
+      </mesh>
+      {/* Balcony slab and rail remain in front of the photographic distance. */}
       <Box position={[-17, -2, 0]} size={[7, 0.2, 28]} color="#979d92" />
-      {Array.from({ length: 18 }, (_, i) => {
-        const z = -22 + i * 2.7,
-          h = 3 + ((i * 13) % 11);
-        return (
-          <Box
-            key={i}
-            position={[-22 - (i % 3) * 3, -9 + h / 2, z]}
-            size={[2 + (i % 3), h, 2]}
-            color={i % 2 ? "#8a9a94" : "#a9b2a8"}
-          />
-        );
-      })}
       <Box
         position={[-15.8, -0.2, 0]}
         size={[0.06, 0.07, 28]}
@@ -444,18 +511,17 @@ export function Apartment({ quality }: { quality: Quality }) {
             map={wood}
           />
         ))}
-        {quality !== "low" &&
-          Array.from({ length: 22 }, (_, i) => (
-            <Box
-              key={i}
-              position={[-3.1 + (i % 11) * 0.29, i < 11 ? 3.05 : 5.3, 0.6]}
-              size={[0.18, 1.1 + (i % 3) * 0.12, 0.6]}
-              color={["#c5b38c", "#757e6c", "#e1d6c0", "#a26f58"][i % 4]}
-            />
-          ))}
+        <mesh position={[0, 3.5, 0.63]}>
+          <planeGeometry args={[7.35, 6.55]} />
+          <meshBasicMaterial
+            map={books}
+            color="#ffffff"
+            toneMapped={false}
+          />
+        </mesh>
       </group>
-      <Plant position={[-9, -2.6, -7]} scale={1.6} />
-      <Plant position={[9, -2.6, 5]} scale={1.3} />
+      <Plant position={[-9, -2.6, -7]} scale={1.6} cactus={cactus} />
+      <Plant position={[9, -2.6, 5]} scale={1.3} cactus={cactus} />
       <group position={[6, -2.6, -3]}>
         <mesh position={[0, 0.12, 0]}>
           <cylinderGeometry args={[0.6, 0.65, 0.16, 32]} />
@@ -534,9 +600,9 @@ export function Apartment({ quality }: { quality: Quality }) {
           <cylinderGeometry args={[0.35, 0.35, 0.045, 32]} />
           <meshStandardMaterial color="#75664d" />
         </mesh>
-        <mesh position={[0, 0.19, 0]} castShadow>
+        <mesh position={[0, 0.19, 0]} rotation={[0, Math.PI, 0]} castShadow>
           <cylinderGeometry args={[0.23, 0.18, 0.34, 32]} />
-          <meshStandardMaterial color="#ded5bd" roughness={0.3} />
+          <meshStandardMaterial map={mug} color="#ffffff" roughness={0.24} />
         </mesh>
         <mesh position={[0, 0.365, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <circleGeometry args={[0.207, 32]} />

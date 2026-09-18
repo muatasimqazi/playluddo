@@ -89,11 +89,9 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       actionCamera: ["off", "subtle", "cinematic"].includes(value.actionCamera)
         ? value.actionCamera
         : "off",
-      view: ["play", "overhead", "table", "north", "east", "west"].includes(
-        value.view,
-      )
-        ? value.view
-        : "play",
+      // Every new table session begins from the player's seated position.
+      // Camera choices remain available for the current session only.
+      view: "play",
       orientation:
         value.localColor === color && Number.isFinite(value.orientation)
           ? value.orientation
@@ -260,7 +258,13 @@ export default function Simulator({
     try {
       localStorage.setItem(
         PREF_KEY,
-        JSON.stringify({ ...prefs, localColor: me?.color ?? "blue" }),
+        JSON.stringify({
+          quality: prefs.quality,
+          sound: prefs.sound,
+          actionCamera: prefs.actionCamera,
+          orientation: prefs.orientation,
+          localColor: me?.color ?? "blue",
+        }),
       );
     } catch {}
   }, [prefs, me?.color]);
@@ -670,7 +674,7 @@ export default function Simulator({
                 ? "Seated view"
                 : `${prefs.view} view`}
           </span>
-          <small>1 Play · 2 Overhead · 3 Table</small>
+          <small>1 Seated view · 2 Overhead · 3 Table</small>
         </div>
       </footer>
       {(error || localError || voice?.error) && (
@@ -831,8 +835,8 @@ export default function Simulator({
                 Bring my color closer
               </button>
               <p className="panel-note">
-                Your camera, graphics, sound, and board orientation are saved on
-                this device.
+                Your graphics, sound, and board orientation are saved on this
+                device. Each game begins in Seated view.
               </p>
             </>
           )}

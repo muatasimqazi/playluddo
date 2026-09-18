@@ -39,7 +39,7 @@ The chat migration adds `table_messages` and `send_table_message`. It checks mem
 | Camera panel | Seated, overhead, table, north, east, and west views |
 | Replay | Watch the previous roll and move locally; return to live at any time |
 
-Camera, board orientation, graphics, sound, and action-camera preferences stay on the current device. Orientation is associated with the player's color. Entering rotation mode stops camera inertia; changing board orientation does not touch the camera, table, apartment, or network state.
+Board orientation, graphics, sound, and action-camera preferences stay on the current device. Orientation is associated with the player's color. Each game session starts in Seated view; camera changes apply for that session. Entering rotation mode stops camera inertia; changing board orientation does not touch the camera, table, apartment, or network state.
 
 ## Implementation boundaries
 

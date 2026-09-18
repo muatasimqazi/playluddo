@@ -116,6 +116,10 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
       const connection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
       const audio = new Audio();
       audio.autoplay = true;
+      audio.setAttribute("playsinline", "");
+      // Safari is more reliable with MediaStream-backed audio attached to the DOM.
+      audio.style.display = "none";
+      document.body.appendChild(audio);
       const peer: Peer = { connection, audio, pendingCandidates: [] };
       peers.current.set(id, peer);
 
@@ -215,10 +219,14 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
   useEffect(() => {
     if (voiceSignals.length === 0) return;
     for (const { id, signal } of voiceSignals) {
-      if (!joined || signal.to !== myPlayerId) {
+      if (signal.to !== myPlayerId) {
         consumeVoiceSignal(id);
         continue;
       }
+      // Joining the voice roster broadcasts before joinVoiceRpc necessarily
+      // resolves. Keep an offer received in that window queued; consuming it
+      // here leaves both peers in voice with no connection to negotiate.
+      if (!joined) continue;
       const from = signal.from;
       const payload = signal.signal;
       if (payload.type === "offer") {

@@ -38,6 +38,16 @@ export function gridPoint(row: number, col: number): Point {
   return [(col - 7) * CELL, BOARD_Y, (row - 7) * CELL];
 }
 
+function finalGoalPoint(color: PlayerColor): Point {
+  const end: Record<PlayerColor, Point> = {
+    blue: [0, BOARD_Y, 0.34],
+    green: [0, BOARD_Y, -0.34],
+    red: [-0.34, BOARD_Y, 0],
+    yellow: [0.34, BOARD_Y, 0],
+  };
+  return end[color];
+}
+
 /** Canonical logical coordinates only. No DOM measurements or camera transforms. */
 export function pawnPoint(pawn: Pawn): Point {
   if (pawn.pathIndex === null) {
@@ -60,12 +70,15 @@ export function pawnPoint(pawn: Pawn): Point {
       HOME_LANE_CELLS[pawn.color][pawn.pathIndex - PATH_INDEX.HOME_LANE_START];
     return gridPoint(row, col);
   }
-  const offset = (pawn.index - 1.5) * 0.15;
+  // Finished discs leave the printed board and line up on the tabletop
+  // beside their own corner. Keeping these positions board-local means the
+  // tray follows its matching base when the player rotates the board.
+  const offset = (pawn.index - 1.5) * 0.42;
   const end: Record<PlayerColor, Point> = {
-    blue: [offset, BOARD_Y, 0.34],
-    green: [offset, BOARD_Y, -0.34],
-    red: [-0.34, BOARD_Y, offset],
-    yellow: [0.34, BOARD_Y, offset],
+    red: [-3.48, BOARD_Y, -1.8 + offset],
+    green: [3.48, BOARD_Y, -1.8 + offset],
+    yellow: [3.48, BOARD_Y, 1.8 + offset],
+    blue: [-3.48, BOARD_Y, 1.8 + offset],
   };
   return end[pawn.color];
 }
@@ -74,9 +87,14 @@ export function pawnPoint(pawn: Pawn): Point {
 export function moveWaypoints(from: Pawn, to: Pawn): Point[] {
   if (to.pathIndex === null || from.pathIndex === null) return [pawnPoint(to)];
   if (to.pathIndex <= from.pathIndex) return [pawnPoint(to)];
-  return Array.from({ length: to.pathIndex - from.pathIndex }, (_, i) =>
+  const path = Array.from({ length: to.pathIndex - from.pathIndex }, (_, i) =>
     pawnPoint({ ...to, pathIndex: from.pathIndex! + i + 1 }),
   );
+  if (to.pathIndex === PATH_INDEX.FINISHED) {
+    // Touch the center goal first, then clear the board into the finish tray.
+    path.splice(path.length - 1, 0, finalGoalPoint(to.color));
+  }
+  return path;
 }
 
 export function shortestAngle(from: number, to: number): number {

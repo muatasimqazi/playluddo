@@ -3,6 +3,7 @@ import { PerspectiveCamera, Vector3 } from "three";
 import { cameraFraming } from "../../lib/presentation/camera";
 import {
   BOARD_Y,
+  BOARD_SIZE,
   HOME_ROTATION,
   moveWaypoints,
   pawnPoint,
@@ -16,11 +17,11 @@ import { PresentationTimeline } from "../../lib/presentation/timeline";
 import { deriveStateFromPathIndex } from "../../lib/board/geometry";
 import type { Pawn, PlayerColor } from "../../lib/board/types";
 
-function pawn(color: PlayerColor, pathIndex: number | null): Pawn {
+function pawn(color: PlayerColor, pathIndex: number | null, index = 0): Pawn {
   return {
-    id: color + "-0",
+    id: `${color}-${index}`,
     color,
-    index: 0,
+    index,
     pathIndex,
     state: deriveStateFromPathIndex(pathIndex),
   };
@@ -73,13 +74,26 @@ describe("logical positions independent of the view", () => {
       expect(path.every((p) => p[1] === BOARD_Y)).toBe(true);
     }
   });
-  it("finishes in its own center zone and captures return to the correct nest", () => {
-    expect(moveWaypoints(pawn("red", 55), pawn("red", 56))).toEqual([
-      pawnPoint(pawn("red", 56)),
-    ]);
+  it("touches the center goal then moves a finisher beside its base", () => {
+    const finish = moveWaypoints(pawn("red", 55), pawn("red", 56));
+    expect(finish).toHaveLength(2);
+    expect(finish[0]).toEqual([-0.34, BOARD_Y, 0]);
+    expect(finish[1]).toEqual(pawnPoint(pawn("red", 56)));
+    expect(Math.abs(finish[1][0])).toBeGreaterThan(BOARD_SIZE / 2);
     expect(moveWaypoints(pawn("green", 18), pawn("green", null))).toEqual([
       pawnPoint(pawn("green", null)),
     ]);
+  });
+  it("gives all four finished discs separate tabletop slots", () => {
+    for (const color of ["red", "green", "yellow", "blue"] as const) {
+      const slots = Array.from({ length: 4 }, (_, index) =>
+        pawnPoint(pawn(color, 56, index)),
+      );
+      expect(new Set(slots.map(([x, , z]) => `${x}:${z}`)).size).toBe(4);
+      expect(slots.every(([x, , z]) => Math.abs(x) > 3 || Math.abs(z) > 3)).toBe(
+        true,
+      );
+    }
   });
   it("all four local orientations put that color's home lane at the near edge", () => {
     for (const color of ["red", "green", "yellow", "blue"] as const) {

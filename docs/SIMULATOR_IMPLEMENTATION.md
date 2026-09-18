@@ -6,7 +6,7 @@ The board surface uses `designs/board-design.png` through a static asset import.
 
 The printed surface uses a matte physical material with reduced reflections and bypasses filmic tone mapping, which otherwise desaturates the bright green and yellow inks. Its neutral albedo compensates for the room's light intensity; lighting and shadows still affect the board.
 
-Playing pieces are low, rounded glass discs inspired by the supplied counter reference. Their physical materials use transmission, refraction, colored absorption, and polished highlights rather than alpha-only transparency. Shared-square pieces form small vertical stacks; movement lifts from the current stack height and settles onto the destination stack. Selection rings and padded hit targets remain separate from the glass geometry.
+Playing pieces are low, rounded glass discs inspired by the supplied counter reference. Their physical materials use transmission, refraction, colored absorption, and polished highlights rather than alpha-only transparency. Shared-square pieces form small vertical stacks; movement lifts from the current stack height and settles onto the destination stack. A finishing disc touches its center goal, then moves off the printed board into one of four tabletop slots beside its color base. Selection rings and padded hit targets remain separate from the glass geometry.
 
 ## Run and play
 

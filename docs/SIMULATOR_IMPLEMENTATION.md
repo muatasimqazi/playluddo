@@ -8,6 +8,8 @@ The printed surface uses a matte physical material with reduced reflections and 
 
 Playing pieces are low, rounded glass discs inspired by the supplied counter reference. Their physical materials use transmission, refraction, colored absorption, and polished highlights rather than alpha-only transparency. Shared-square pieces form small vertical stacks; movement lifts from the current stack height and settles onto the destination stack. A finishing disc touches its center goal, then moves off the printed board into one of four tabletop slots beside its color base. Selection rings and padded hit targets remain separate from the glass geometry.
 
+The board print uses an unlit material with tone mapping disabled. Its color-managed artwork therefore retains the source ink colors regardless of apartment lighting; the wooden board beneath it and every physical game piece remain lit normally.
+
 ## Run and play
 
 - `/`: apartment entrance, private-room creation, joining by code, and practice entry.

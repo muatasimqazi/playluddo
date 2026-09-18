@@ -528,23 +528,14 @@ function BoardObject(props: SceneProps) {
           clearcoat={0.6}
         />
       </RoundedBox>
-      <mesh position={[0, BOARD_Y - 0.008, 0]} receiveShadow>
+      <mesh position={[0, BOARD_Y - 0.008, 0]}>
         <boxGeometry args={[BOARD_SIZE, 0.018, BOARD_SIZE]} />
-        <meshPhysicalMaterial
+        <meshBasicMaterial
           map={texture}
-          // Preserve printed ink hues; the room's filmic curve fades green/yellow.
-          // `color` multiplies the map, so it must stay white or it dulls the ink.
+          // Treat the printed artwork as self-lit color reference: room lights,
+          // reflections, shadows, and the filmic curve must not alter its inks.
           toneMapped={false}
-          color="#cccccc"
-          roughness={0.68}
-          clearcoat={0.1}
-          clearcoatRoughness={0.65}
-          // Untonemapped means bright ink hard-clips to white instead of
-          // rolling off — yellow reflects the most across R+G, so it's the
-          // first to blow out. Keep the neutral (non-hue) specular/env
-          // layers thin so they don't push it over that clip point.
-          specularIntensity={0.2}
-          envMapIntensity={0.35}
+          color="#ffffff"
         />
       </mesh>
       {[-1, 1].flatMap((x) =>

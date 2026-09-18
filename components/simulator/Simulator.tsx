@@ -550,18 +550,23 @@ export default function Simulator({
         {voice && (
           <>
             <Tool
-              icon={voice.joined ? "mic" : "mic-off"}
-              label={voice.joined ? "Leave voice chat" : "Join voice chat"}
-              active={voice.joined}
+              icon={voice.joined && !voice.muted ? "mic" : "mic-off"}
+              label={
+                voice.joined
+                  ? voice.muted
+                    ? "Unmute microphone"
+                    : "Mute microphone"
+                  : "Join voice chat"
+              }
+              active={voice.joined && !voice.muted}
               disabled={voice.connecting}
-              onClick={() => (voice.joined ? voice.leave() : voice.join())}
+              onClick={() => (voice.joined ? voice.toggleMute() : voice.join())}
             />
             {voice.joined && (
               <Tool
-                icon={voice.muted ? "mic-off" : "mic"}
-                label={voice.muted ? "Unmute microphone" : "Mute microphone"}
-                active={voice.muted}
-                onClick={voice.toggleMute}
+                icon="phone-off"
+                label="Leave voice chat"
+                onClick={voice.leave}
               />
             )}
           </>

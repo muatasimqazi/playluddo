@@ -18,7 +18,8 @@ export type IconName =
   | "check"
   | "users"
   | "mic"
-  | "mic-off";
+  | "mic-off"
+  | "phone-off";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -115,6 +116,12 @@ const paths: Record<IconName, React.ReactNode> = {
       <line x1="12" y1="21" x2="12" y2="23" />
       <line x1="8" y1="23" x2="16" y2="23" />
       <line x1="3" y1="3" x2="21" y2="21" />
+    </>
+  ),
+  "phone-off": (
+    <>
+      <path d="M7.2 3.5 9.8 8l-2.1 2.1a15 15 0 0 0 6.2 6.2l2.1-2.1 4.5 2.6-1.2 3.6c-.3.9-1.2 1.5-2.2 1.4C9.5 21 3 14.5 2.2 6.9c-.1-1 .5-1.9 1.4-2.2Z" />
+      <path d="m3 3 18 18" />
     </>
   ),
 };

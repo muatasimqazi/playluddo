@@ -127,19 +127,21 @@ export function RoomLobby({
             <button
               className={voice.joined ? "is-active" : ""}
               disabled={voice.connecting}
-              onClick={() => (voice.joined ? voice.leave() : voice.join())}
+              onClick={() => (voice.joined ? voice.toggleMute() : voice.join())}
             >
-              <Icon name={voice.joined ? "mic" : "mic-off"} />
+              <Icon name={voice.joined && !voice.muted ? "mic" : "mic-off"} />
               {voice.connecting
                 ? "Joining…"
                 : voice.joined
-                  ? "Leave audio"
+                  ? voice.muted
+                    ? "Unmute"
+                    : "Mute"
                   : "Join audio"}
             </button>
             {voice.joined && (
-              <button onClick={voice.toggleMute}>
-                <Icon name={voice.muted ? "mic-off" : "mic"} />
-                {voice.muted ? "Unmute" : "Mute"}
+              <button onClick={voice.leave}>
+                <Icon name="phone-off" />
+                Leave audio
               </button>
             )}
             {voice.error && <span className="lobby-voice-error">{voice.error}</span>}

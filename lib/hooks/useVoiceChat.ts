@@ -62,6 +62,9 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
 
   const localStream = useRef<MediaStream | null>(null);
   const peers = useRef(new Map<string, Peer>());
+  const earlyCandidates = useRef(
+    new Map<string, RTCIceCandidateInit[]>(),
+  );
   const analysed = useRef(new Map<string, Analysed>());
   const joinedRef = useRef(false);
   const mutedRef = useRef(false);
@@ -120,7 +123,12 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
       // Safari is more reliable with MediaStream-backed audio attached to the DOM.
       audio.style.display = "none";
       document.body.appendChild(audio);
-      const peer: Peer = { connection, audio, pendingCandidates: [] };
+      const peer: Peer = {
+        connection,
+        audio,
+        pendingCandidates: earlyCandidates.current.get(id) ?? [],
+      };
+      earlyCandidates.current.delete(id);
       peers.current.set(id, peer);
 
       localStream.current
@@ -131,9 +139,10 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
         if (e.candidate) sendSignal(id, { type: "ice", candidate: e.candidate.toJSON() });
       };
       connection.ontrack = (e) => {
-        audio.srcObject = e.streams[0] ?? null;
+        const stream = e.streams[0] ?? new MediaStream([e.track]);
+        audio.srcObject = stream;
         void audio.play().catch(() => {});
-        attachAnalyser(id, e.streams[0]);
+        attachAnalyser(id, stream);
       };
       connection.onconnectionstatechange = () => {
         if (["failed", "closed"].includes(connection.connectionState))
@@ -159,6 +168,7 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
     for (const id of Array.from(peers.current.keys())) cleanupPeer(id);
     localStream.current?.getTracks().forEach((track) => track.stop());
     localStream.current = null;
+    earlyCandidates.current.clear();
     if (myPlayerId) detachAnalyser(myPlayerId);
     joinedRef.current = false;
     setJoined(false);
@@ -260,9 +270,9 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
       } else if (payload.type === "ice") {
         const peer = peers.current.get(from);
         if (!peer) {
-          // No connection yet — ignore; the offer that creates one will
-          // arrive from the same peer and this candidate is re-sent by ICE
-          // restart logic on their end if it truly mattered.
+          const pending = earlyCandidates.current.get(from) ?? [];
+          pending.push(payload.candidate);
+          earlyCandidates.current.set(from, pending);
         } else if (peer.connection.remoteDescription) {
           void peer.connection.addIceCandidate(payload.candidate).catch(() => {});
         } else {

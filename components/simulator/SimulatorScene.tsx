@@ -19,7 +19,7 @@ import {
   useTexture,
 } from "@react-three/drei";
 import * as THREE from "three";
-import type { Pawn, Player, PlayerColor } from "@/lib/board/types";
+import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
 import {
   BOARD_SIZE,
@@ -39,12 +39,14 @@ import {
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
 import boardArtwork from "@/designs/board-design.png";
+import snakeArtwork from "@/designs/snake-and-ladder.png";
 import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { Icon } from "./Icon";
 
 export interface SceneProps {
+  gameType?: GameType;
   frame: PresentationFrame;
   players: Player[];
   myPlayerId: string | null;
@@ -154,6 +156,7 @@ function Piece({
   onMove,
   move,
   mode,
+  gameType = "ludo",
 }: {
   pawn: Pawn;
   allPawns: Pawn[];
@@ -161,24 +164,27 @@ function Piece({
   onMove: (id: string) => void;
   move: PresentationFrame["move"];
   mode: InteractionMode;
+  gameType?: GameType;
 }) {
   const ref = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
   const previous = useRef(pawn);
+  const previousMove = useRef(move);
   const motion = useRef<{
     points: Point[];
     elapsed: number;
     delay: number;
   } | null>(null);
   const [hovered, setHovered] = useState(false);
-  const [initial] = useState(() => pawnPoint(pawn));
+  const point = (piece: Pawn) => pawnPoint(piece, gameType);
+  const [initial] = useState(() => pawnPoint(pawn, gameType));
   const stack = allPawns
     .filter(
       (p) =>
         p.pathIndex !== null &&
         pawn.pathIndex !== null &&
-        pawnPoint(p)[0] === pawnPoint(pawn)[0] &&
-        pawnPoint(p)[2] === pawnPoint(pawn)[2],
+        point(p)[0] === point(pawn)[0] &&
+        point(p)[2] === point(pawn)[2],
     )
     .sort((a, b) => a.id.localeCompare(b.id));
   const stackIndex = stack.findIndex((p) => p.id === pawn.id);
@@ -192,12 +198,19 @@ function Piece({
       : [0, 0, 0];
   useEffect(() => {
     const from = previous.current;
-    if (from.pathIndex !== pawn.pathIndex) {
+    if (
+      from.pathIndex !== pawn.pathIndex ||
+      (gameType === "snakes_and_ladders" &&
+        move?.pawnId === pawn.id &&
+        previousMove.current !== move)
+    ) {
       const isCapture = pawn.pathIndex === null;
       const moved = allPawns.find((p) => p.id === move?.pawnId);
       const start =
         moved && move?.fromTileId
-          ? tileIdToPathIndex(moved.color, move.fromTileId)
+          ? gameType === "snakes_and_ladders"
+            ? Number(move.fromTileId.split(":")[1])
+            : tileIdToPathIndex(moved.color, move.fromTileId)
           : null;
       const movingSteps =
         start === null ? 1 : Math.max(1, (moved?.pathIndex ?? start) - start);
@@ -205,15 +218,16 @@ function Piece({
         points: [
           ref.current
             ? (ref.current.position.toArray() as Point)
-            : pawnPoint(from),
-          ...moveWaypoints(from, pawn),
+            : pawnPoint(from, gameType),
+          ...moveWaypoints(from, pawn, gameType, move),
         ],
         elapsed: 0,
         delay: isCapture ? (movingSteps * HOP_MS) / 1000 : 0,
       };
     }
     previous.current = pawn;
-  }, [pawn, allPawns, move]);
+    previousMove.current = move;
+  }, [pawn, allPawns, move, gameType]);
   useFrame(({ clock }, delta) => {
     if (!ref.current) return;
     const m = motion.current;
@@ -222,7 +236,7 @@ function Piece({
       const t = Math.max(0, m.elapsed - m.delay) / (HOP_MS / 1000),
         index = Math.floor(t);
       if (index >= m.points.length - 1) {
-        const p = pawnPoint(pawn);
+        const p = pawnPoint(pawn, gameType);
         ref.current.position.set(
           p[0] + offset[0],
           p[1] + offset[1],
@@ -242,7 +256,15 @@ function Piece({
           e = f * f * (3 - 2 * f);
         ref.current.position.set(
           THREE.MathUtils.lerp(a[0], b[0], e),
-          THREE.MathUtils.lerp(a[1], b[1], e) + Math.sin(f * Math.PI) * 0.1,
+          THREE.MathUtils.lerp(a[1], b[1], e) +
+            Math.sin(f * Math.PI) *
+              (gameType === "snakes_and_ladders" &&
+              move?.landingSquare !== undefined &&
+              index >=
+                move.landingSquare -
+                  (Number(move.fromTileId?.split(":")[1]) || 0)
+                ? 0
+                : 0.1),
           THREE.MathUtils.lerp(a[2], b[2], e),
         );
       }
@@ -250,7 +272,7 @@ function Piece({
       // Not this pawn's turn to hop, but its stack offset can still shift
       // when another pawn joins/leaves the same cell — ease into that
       // instead of snapping, so a stationary piece never visibly teleports.
-      const p = pawnPoint(pawn);
+      const p = pawnPoint(pawn, gameType);
       const damp = 1 - Math.exp(-delta * 10);
       ref.current.position.set(
         THREE.MathUtils.lerp(ref.current.position.x, p[0] + offset[0], damp),
@@ -461,9 +483,19 @@ function PhysicalDie({
 
 function BoardObject(props: SceneProps) {
   const group = useRef<THREE.Group>(null);
+  const board = useRef<THREE.Group>(null);
+  const pieces = useRef<THREE.Group>(null);
+  const targetFlip = props.gameType === "snakes_and_ladders" ? Math.PI : 0;
+  const [initialFlip] = useState(targetFlip);
+  const flip = useRef({ from: targetFlip, to: targetFlip, elapsed: 1.5 });
   const [initialRotation] = useState(props.orientation);
   const artwork = useTexture(boardArtwork.src);
   const texture = useMemo(() => makeBoardTexture(artwork), [artwork]);
+  const snakeSource = useTexture(snakeArtwork.src);
+  const snakeTexture = useMemo(
+    () => makeBoardTexture(snakeSource, true),
+    [snakeSource],
+  );
   const wood = useTexture("/textures/board-wood.jpg");
   const drag = useRef<{ x: number; angle: number; pointer: number } | null>(
     null,
@@ -471,6 +503,15 @@ function BoardObject(props: SceneProps) {
   const angle = useRef(props.orientation);
   const dragging = useRef(false);
   useEffect(() => () => texture.dispose(), [texture]);
+  useEffect(() => () => snakeTexture.dispose(), [snakeTexture]);
+  useEffect(() => {
+    if (flip.current.to !== targetFlip)
+      flip.current = {
+        from: board.current?.rotation.x ?? flip.current.to,
+        to: targetFlip,
+        elapsed: 0,
+      };
+  }, [targetFlip]);
   useEffect(() => {
     if (props.mode !== "rotate") {
       drag.current = null;
@@ -484,6 +525,18 @@ function BoardObject(props: SceneProps) {
         shortestAngle(angle.current, props.orientation) *
         (1 - Math.exp(-delta * 9));
     group.current.rotation.y = angle.current;
+    const f = flip.current;
+    f.elapsed = Math.min(1.5, f.elapsed + delta);
+    const t = f.elapsed / 1.5;
+    if (board.current) {
+      board.current.rotation.x = THREE.MathUtils.lerp(
+        f.from,
+        f.to,
+        t * t * (3 - 2 * t),
+      );
+      board.current.position.y = 0.1 + Math.sin(t * Math.PI) * 3.4;
+    }
+    if (pieces.current) pieces.current.visible = t === 1;
   });
   function down(e: ThreeEvent<PointerEvent>) {
     if (props.mode !== "rotate") return;
@@ -514,58 +567,70 @@ function BoardObject(props: SceneProps) {
       onPointerUp={up}
       onPointerCancel={up}
     >
-      <RoundedBox
-        args={[6.36, 0.17, 6.36]}
-        radius={0.065}
-        position={[0, 0.1, 0]}
-        castShadow
-        receiveShadow
-      >
-        <meshPhysicalMaterial
-          color="#726046"
-          map={wood}
-          roughness={0.3}
-          clearcoat={0.6}
-        />
-      </RoundedBox>
-      <mesh position={[0, BOARD_Y - 0.008, 0]}>
-        <boxGeometry args={[BOARD_SIZE, 0.018, BOARD_SIZE]} />
-        <meshBasicMaterial
-          map={texture}
-          // Treat the printed artwork as self-lit color reference: room lights,
-          // reflections, shadows, and the filmic curve must not alter its inks.
-          toneMapped={false}
-          color="#ffffff"
-        />
-      </mesh>
-      {[-1, 1].flatMap((x) =>
-        [-1, 1].map((z) => (
-          <mesh
-            key={`${x}:${z}`}
-            position={[x * 3.09, 0.19, z * 3.09]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
-            <circleGeometry args={[0.022, 12]} />
-            <meshStandardMaterial
-              color="#ccb785"
-              metalness={0.7}
-              roughness={0.3}
-            />
-          </mesh>
-        )),
-      )}
+      <group ref={board} position={[0, 0.1, 0]} rotation={[initialFlip, 0, 0]}>
+        <RoundedBox
+          args={[6.36, 0.17, 6.36]}
+          radius={0.065}
+          castShadow
+          receiveShadow
+        >
+          <meshPhysicalMaterial
+            color="#726046"
+            map={wood}
+            roughness={0.3}
+            clearcoat={0.6}
+          />
+        </RoundedBox>
+        <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
+          <meshBasicMaterial
+            map={texture}
+            // Treat the printed artwork as self-lit color reference: room lights,
+            // reflections, shadows, and the filmic curve must not alter its inks.
+            toneMapped={false}
+            color="#ffffff"
+          />
+        </mesh>
+        <mesh position={[0, -0.09, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
+          <meshBasicMaterial
+            map={snakeTexture}
+            toneMapped={false}
+            color="#ffffff"
+          />
+        </mesh>
+        {[-1, 1].flatMap((x) =>
+          [-1, 1].map((z) => (
+            <mesh
+              key={`${x}:${z}`}
+              position={[x * 3.09, 0.09, z * 3.09]}
+              rotation={[-Math.PI / 2, 0, 0]}
+            >
+              <circleGeometry args={[0.022, 12]} />
+              <meshStandardMaterial
+                color="#ccb785"
+                metalness={0.7}
+                roughness={0.3}
+              />
+            </mesh>
+          )),
+        )}
+      </group>
       <Seats {...props} />
-      {props.frame.pawns.map((pawn) => (
-        <Piece
-          key={`${props.frame.revision}:${pawn.id}`}
-          pawn={pawn}
-          allPawns={props.frame.pawns}
-          legal={props.legalPawnIds.includes(pawn.id)}
-          mode={props.mode}
-          move={props.frame.move}
-          onMove={props.onMove}
-        />
-      ))}
+      <group ref={pieces}>
+        {props.frame.pawns.map((pawn) => (
+          <Piece
+            key={`${props.gameType}:${props.frame.revision}:${pawn.id}`}
+            gameType={props.gameType}
+            pawn={pawn}
+            allPawns={props.frame.pawns}
+            legal={props.legalPawnIds.includes(pawn.id)}
+            mode={props.mode}
+            move={props.frame.move}
+            onMove={props.onMove}
+          />
+        ))}
+      </group>
     </group>
   );
 }
@@ -578,6 +643,7 @@ function Seats({
   reactions,
   speakingPlayerIds,
   preview,
+  gameType,
 }: SceneProps) {
   if (preview) return null;
   // Board-local anchors follow the same rotation as the artwork and pawns.
@@ -650,13 +716,20 @@ function Seats({
                   <span>
                     {" "}
                     ·{" "}
-                    {
-                      frame.pawns.filter(
-                        (p) =>
-                          p.color === player.color && p.state === "finished",
-                      ).length
-                    }
-                    /4 home
+                    {gameType === "snakes_and_ladders" ? (
+                      `${frame.pawns.find((p) => p.color === player.color)?.pathIndex ?? 0}/100`
+                    ) : (
+                      <>
+                        {
+                          frame.pawns.filter(
+                            (p) =>
+                              p.color === player.color &&
+                              p.state === "finished",
+                          ).length
+                        }
+                        /4 home
+                      </>
+                    )}
                   </span>
                 </small>
               </span>
@@ -693,19 +766,18 @@ export default function SimulatorScene(props: SceneProps) {
         }}
         fallback={
           <div className="sim-fallback">
-            A physical 3D Ludo table. Use the controls below to roll and select
-            a legal piece. If the table is not visible, enable WebGL in your
-            browser.
+            A physical 3D game table. Use the controls below to play. If the
+            table is not visible, enable WebGL in your browser.
           </div>
         }
       >
         <color attach="background" args={["#d4ddd4"]} />
         <fog attach="fog" args={["#d4ddd4", 32, 85]} />
-        <hemisphereLight args={["#e9f2ed", "#756854", 1.8]} />
+        <hemisphereLight args={["#edf3fa", "#717475", 1.8]} />
         <directionalLight
           position={[-9, 10, 3]}
           intensity={3.2}
-          color="#fff0d5"
+          color="#ffffff"
           castShadow
           shadow-mapSize={[shadowSize, shadowSize]}
           shadow-camera-left={-10}
@@ -718,7 +790,7 @@ export default function SimulatorScene(props: SceneProps) {
         <directionalLight
           position={[6, 8, -6]}
           intensity={0.7}
-          color="#ffe0b4"
+          color="#e6efff"
         />
         <Suspense fallback={null}>
           <Environment
@@ -730,14 +802,14 @@ export default function SimulatorScene(props: SceneProps) {
               scale={[12, 8]}
               rotation={[0, Math.PI / 2, 0]}
               intensity={2}
-              color="#eaf1ec"
+              color="#edf4ff"
             />
             <Lightformer
               position={[0, 8, 0]}
               scale={[10, 8]}
               rotation={[Math.PI / 2, 0, 0]}
               intensity={1.3}
-              color="#ffe6bf"
+              color="#ffffff"
             />
           </Environment>
           <Apartment quality={props.quality} />

@@ -9,7 +9,7 @@
  * must be kept in sync via tests/parity.
  */
 
-export type GameType = "ludo";
+export type GameType = "ludo" | "snakes_and_ladders";
 export type PlayerColor = "red" | "green" | "yellow" | "blue";
 export type PlayerStatus = "connected" | "disconnected" | "inactive" | "bot";
 export type TurnPhase =
@@ -52,7 +52,7 @@ export interface Pawn {
   /** Stable 0-3 ordering, mirrors the DB's pawn_index column. */
   index: number;
   state: PawnState;
-  /** 0-56 forward-progress index, relative to the pawn's own color. See geometry.ts. */
+  /** Ludo: color-relative 0–56. Snakes & Ladders: square 1–100. Null is off-board. */
   pathIndex: number | null;
 }
 
@@ -62,6 +62,8 @@ export interface LegalMove {
   toTileId: string;
   capturesPawnIds: string[];
   finishesPawn: boolean;
+  /** Snakes & Ladders: square reached by the die, before a snake or ladder. */
+  landingSquare?: number;
 }
 
 export interface GameRoomState {

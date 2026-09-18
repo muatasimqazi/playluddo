@@ -54,6 +54,7 @@ export interface SimulatorProps {
   messages?: TableMessage[];
   onMessage?: (text: string, kind: "chat" | "reaction") => Promise<unknown>;
   onRestart?: () => void;
+  onFlip?: () => void;
   onRematch?: () => Promise<unknown>;
   onReclaim?: () => Promise<unknown>;
   voice?: VoiceChat;
@@ -63,6 +64,7 @@ interface Preferences {
   sound: boolean;
   actionCamera: ActionCamera;
   orientation: number;
+  snakeOrientation: number;
   view: CameraView;
 }
 const PREF_KEY = "luddo-simulator-v1";
@@ -75,6 +77,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     sound: true,
     actionCamera: "off",
     orientation: HOME_ROTATION[color],
+    snakeOrientation: 0,
     view: "play",
   };
   try {
@@ -96,6 +99,9 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
         value.localColor === color && Number.isFinite(value.orientation)
           ? value.orientation
           : defaults.orientation,
+      snakeOrientation: Number.isFinite(value.snakeOrientation)
+        ? value.snakeOrientation
+        : 0,
     };
   } catch {
     return defaults;
@@ -168,10 +174,18 @@ export default function Simulator({
   messages = [],
   onMessage,
   onRestart,
+  onFlip,
   onRematch,
   onReclaim,
   voice,
 }: SimulatorProps) {
+  const snakes = state.gameType === "snakes_and_ladders";
+  const gameName = snakes ? "Snakes & Ladders" : "Ludo";
+  const [flipping, setFlipping] = useState(false);
+  const flipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  useEffect(() => () => clearTimeout(flipTimer.current), []);
   const me = state.players.find((p) => p.id === myPlayerId);
   const progressRanking = rankPlayers(
     state.players.map((player) => {
@@ -188,7 +202,8 @@ export default function Simulator({
     }),
   );
   const ranking =
-    state.status === "summary" && state.winnerIds.length === state.players.length
+    state.status === "summary" &&
+    state.winnerIds.length === state.players.length
       ? state.winnerIds
       : progressRanking;
   const [prefs, setPrefs] = useState(() =>
@@ -227,6 +242,7 @@ export default function Simulator({
     !panel &&
     !pending &&
     !frame.busy &&
+    !flipping &&
     !frame.waitingForEvents &&
     !readOnly &&
     connection === "connected" &&
@@ -287,13 +303,13 @@ export default function Simulator({
   const setPref = useCallback(
     <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
       setPrefs((p) => ({ ...p, [key]: value })),
-    [],
+    [setPrefs],
   );
   const reset = useCallback(() => {
     setMode("play");
     setPref("view", "play");
     setResetKey((n) => n + 1);
-  }, [setPref]);
+  }, [setPref, setMode, setResetKey]);
   useEffect(() => {
     function key(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -408,7 +424,9 @@ export default function Simulator({
                             ? "Auto-roll is on"
                             : state.rollsThisTurn > 0
                               ? "A little luck. One more roll."
-                              : "Your next move starts here."
+                              : snakes
+                                ? "Roll to move · Land exactly on 100 to finish."
+                                : "Your next move starts here."
                         : "Settle in. Your turn is coming.";
   const actionLabel = frame.busy
     ? frame.phase === "roll"
@@ -428,10 +446,19 @@ export default function Simulator({
   function togglePanel(value: typeof panel) {
     setPanel((p) => (p === value ? null : value));
   }
+  function flipBoard() {
+    if (!onFlip || flipping || frame.busy) return;
+    setFlipping(true);
+    setPanel(null);
+    setMode("play");
+    onFlip();
+    flipTimer.current = setTimeout(() => setFlipping(false), 1600);
+  }
   return (
     <main className="simulator" ref={root}>
       <SceneBoundary>
         <Scene
+          gameType={state.gameType}
           frame={frame}
           players={state.players}
           myPlayerId={myPlayerId}
@@ -440,11 +467,15 @@ export default function Simulator({
           canRoll={canRoll}
           view={prefs.view}
           mode={mode}
-          orientation={prefs.orientation}
+          orientation={snakes ? prefs.snakeOrientation : prefs.orientation}
           quality={prefs.quality}
           actionCamera={prefs.actionCamera}
           resetKey={resetKey}
-          onRotate={(angle) => setPref("orientation", angle)}
+          onRotate={(angle) =>
+            snakes
+              ? setPref("snakeOrientation", angle)
+              : setPref("orientation", angle)
+          }
           onRoll={() => void onRoll()}
           onMove={(id) => void onMove(id)}
           reactions={reactions}
@@ -461,7 +492,7 @@ export default function Simulator({
             <i />
           </span>
           <span>
-            LUDDO<small>LET'S PLAY</small>
+            LUDDO<small>{gameName}</small>
           </span>
         </div>
         <div className="sim-turn" role="status">
@@ -492,6 +523,14 @@ export default function Simulator({
             )}
         </div>
         <div className="sim-session">
+          {onFlip && (
+            <Tool
+              icon="rotate"
+              label={`Flip board to ${snakes ? "Ludo" : "Snakes & Ladders"}`}
+              onClick={flipBoard}
+              disabled={frame.busy || flipping}
+            />
+          )}
           <span
             className={`connection-dot ${connection !== "connected" ? "reconnecting" : ""}`}
           />
@@ -615,10 +654,14 @@ export default function Simulator({
       )}
       <footer className="sim-footer">
         <div className="sim-location">
-          <span className="eyebrow">Let's Play </span>
-          <strong>LUDDO <span>01</span>
+          <span className="eyebrow">Let’s Play </span>
+          <strong>
+            {snakes ? "SNAKES & LADDERS" : "LUDDO"}{" "}
+            <span>{snakes ? "02" : "01"}</span>
           </strong>
-          <small>In warm light. In great company.</small>
+          <small>
+            {snakes ? "A little luck. A long way up." : "In great company."}
+          </small>
         </div>
         <div className="sim-action-area">
           <p aria-live="polite">{instruction}</p>
@@ -828,11 +871,13 @@ export default function Simulator({
               <button
                 className="panel-secondary"
                 onClick={() =>
-                  setPref("orientation", HOME_ROTATION[me?.color ?? "blue"])
+                  snakes
+                    ? setPref("snakeOrientation", 0)
+                    : setPref("orientation", HOME_ROTATION[me?.color ?? "blue"])
                 }
               >
                 <Icon name="rotate" />
-                Bring my color closer
+                {snakes ? "Face square 1" : "Bring my color closer"}
               </button>
               <p className="panel-note">
                 Your graphics, sound, and board orientation are saved on this
@@ -850,7 +895,7 @@ export default function Simulator({
                   <i />
                 </span>
                 <div>
-                  <strong>Let's Play LUDDO</strong>
+                  <strong>{gameName}</strong>
                   <small>
                     {practice
                       ? "Practice against three computers"
@@ -870,6 +915,23 @@ export default function Simulator({
                   </div>
                 ))}
               </div>
+              {onFlip && (
+                <button
+                  className="panel-secondary"
+                  onClick={flipBoard}
+                  disabled={frame.busy || flipping}
+                >
+                  <Icon name="rotate" />
+                  Flip board · {snakes ? "Ludo" : "Snakes & Ladders"}
+                </button>
+              )}
+              <p className="panel-note">
+                {snakes
+                  ? "One piece each. Roll to move automatically. Climb ladders, slide down snakes, and land exactly on 100. Sixes do not grant extra turns. Everyone plays for a place."
+                  : "Roll a six to enter. Bring all four pieces home; completed players sit out while the others finish."}
+                {practice &&
+                  " Each side keeps its own practice progress when you flip."}
+              </p>
               {onRestart && (
                 <button className="panel-secondary" onClick={onRestart}>
                   <Icon name="replay" />
@@ -927,14 +989,18 @@ export default function Simulator({
                       </span>
                       <p>
                         {e.event_type === "dice_rolled"
-                          ? `rolled ${e.payload.dieValue}${e.payload.cancelledByThirdSix ? " · third six, turn ends" : ""}`
+                          ? `rolled ${e.payload.dieValue}${e.payload.overshoot ? " · exact roll needed, stays put" : e.payload.cancelledByThirdSix ? " · third six, turn ends" : ""}`
                           : e.event_type === "legal_move_selected"
-                            ? e.payload.finishesPawn
-                              ? "brought a piece home"
-                              : Array.isArray(e.payload.capturesPawnIds) &&
-                                  e.payload.capturesPawnIds.length
-                                ? "captured a piece"
-                                : "moved a piece"
+                            ? snakes
+                              ? e.payload.finishesPawn
+                                ? "reached 100"
+                                : `moved to square ${String(e.payload.toTileId).split(":")[1]}`
+                              : e.payload.finishesPawn
+                                ? "brought a piece home"
+                                : Array.isArray(e.payload.capturesPawnIds) &&
+                                    e.payload.capturesPawnIds.length
+                                  ? "captured a piece"
+                                  : "moved a piece"
                             : e.event_type.replaceAll("_", " ")}
                       </p>
                     </div>
@@ -1004,7 +1070,9 @@ export default function Simulator({
             <p>
               {state.status === "abandoned"
                 ? "The match ended when everyone left."
-                : "Four pieces home. One lovely game."}
+                : snakes
+                  ? "One hundred squares. One lovely game."
+                  : "Four pieces home. One lovely game."}
             </p>
             <div className="menu-players">
               {[...state.players]
@@ -1014,14 +1082,20 @@ export default function Simulator({
                     <i style={{ background: COLORS[p.color] }} />
                     <span>{p.displayName}</span>
                     <small>
-                      {
-                        state.pawns.filter(
-                          (piece) =>
-                            piece.color === p.color &&
-                            piece.state === "finished",
-                        ).length
-                      }
-                      /4 home
+                      {snakes ? (
+                        `${state.pawns.find((piece) => piece.color === p.color)?.pathIndex ?? 0}/100`
+                      ) : (
+                        <>
+                          {
+                            state.pawns.filter(
+                              (piece) =>
+                                piece.color === p.color &&
+                                piece.state === "finished",
+                            ).length
+                          }
+                          /4 home
+                        </>
+                      )}
                     </small>
                   </div>
                 ))}
@@ -1052,8 +1126,25 @@ export default function Simulator({
           </div>
         )}
       {frame.move?.finishesPawn && frame.phase === "move" && (
-        <div className="sim-event-toast">A little closer. A piece is home.</div>
+        <div className="sim-event-toast">
+          {snakes
+            ? "100! A place at the finish."
+            : "A little closer. A piece is home."}
+        </div>
       )}
+      {snakes &&
+        frame.phase === "move" &&
+        frame.move?.landingSquare !== undefined &&
+        Number(frame.move.toTileId.split(":")[1]) !==
+          frame.move.landingSquare && (
+          <div className="sim-event-toast">
+            {Number(frame.move.toTileId.split(":")[1]) >
+            frame.move.landingSquare
+              ? "Up the ladder"
+              : "Down the snake"}
+            {` · ${frame.move.landingSquare} → ${frame.move.toTileId.split(":")[1]}`}
+          </div>
+        )}
     </main>
   );
 }

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fillBot, startMatch } from "@/lib/supabase/rpc";
+import { fillBot, setRoomGame, startMatch } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { createPractice } from "@/lib/presentation/practice";
@@ -32,7 +32,10 @@ export function RoomLobby({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const pawns = useMemo(() => createPractice().state.pawns, []);
+  const pawns = useMemo(
+    () => createPractice(state?.gameType).state.pawns,
+    [state?.gameType],
+  );
   if (!state) return null;
   const host = state.players.find((p) => p.seatIndex === 0)?.id === myPlayerId;
   async function run(fn: () => Promise<unknown>) {
@@ -58,6 +61,7 @@ export function RoomLobby({
   return (
     <main className="sim-entrance">
       <Scene
+        gameType={state.gameType}
         frame={{
           pawns,
           dice: 1,
@@ -96,7 +100,7 @@ export function RoomLobby({
             <i />
           </span>
           <span>
-            LUDDO<small>Let's Play</small>
+            LUDDO<small>Let’s Play</small>
           </span>
         </Link>
         <span>THE EVENING IS JUST BEGINNING.</span>
@@ -122,6 +126,38 @@ export function RoomLobby({
             {copied ? "Copied" : "Copy code"}
           </button>
         </div>
+        <div className="lobby-game">
+          <div>
+            <span className="eyebrow">ON THE TABLE</span>
+            <strong>
+              {state.gameType === "ludo" ? "Ludo" : "Snakes & Ladders"}
+            </strong>
+          </div>
+          {host ? (
+            <button
+              disabled={pending}
+              onClick={() =>
+                void run(async () => {
+                  const next = await setRoomGame(
+                    client,
+                    roomId,
+                    state.gameType === "ludo" ? "snakes_and_ladders" : "ludo",
+                  );
+                  useRoomStore.getState().setRoomState(next);
+                })
+              }
+            >
+              <Icon name="rotate" /> Flip board
+            </button>
+          ) : (
+            <small>The host chooses the board</small>
+          )}
+        </div>
+        <p className="lobby-game-rules">
+          {state.gameType === "ludo"
+            ? "Four pieces each. Bring your color home."
+            : "One piece each. Climb ladders, slide down snakes. Reach 100 with an exact roll."}
+        </p>
         {voice && (
           <div className="lobby-voice">
             <button
@@ -144,7 +180,9 @@ export function RoomLobby({
                 Leave audio
               </button>
             )}
-            {voice.error && <span className="lobby-voice-error">{voice.error}</span>}
+            {voice.error && (
+              <span className="lobby-voice-error">{voice.error}</span>
+            )}
           </div>
         )}
         <div className="lobby-seats">

@@ -1,4 +1,5 @@
 import { applyMove } from "../board/rules";
+import { applySnakeMove } from "../board/snakes";
 import type { GameRoomState, LegalMove, Pawn } from "../board/types";
 import type { MatchEventRow } from "../realtime/room-channel";
 import { movementDuration, ROLL_MS } from "./board";
@@ -72,7 +73,12 @@ export class PresentationTimeline {
   }
 
   receive(events: MatchEventRow[], state: GameRoomState) {
+    const switched = this.latest.gameType !== state.gameType;
     this.latest = state;
+    if (switched) {
+      this.restore(state);
+      return;
+    }
     const fresh = events
       .filter((e) => e.sequence > this.seen)
       .sort((a, b) => a.sequence - b.sequence);
@@ -166,8 +172,16 @@ export class PresentationTimeline {
             this.recording = { pawns: this.frame.pawns, events: [] };
           this.recording.events.push(event);
         }
-        const next = applyMove(this.frame.pawns, move);
-        duration = movementDuration(this.frame.pawns, next);
+        const next =
+          this.latest.gameType === "snakes_and_ladders"
+            ? applySnakeMove(this.frame.pawns, move)
+            : applyMove(this.frame.pawns, move);
+        duration = movementDuration(
+          this.frame.pawns,
+          next,
+          this.latest.gameType,
+          move,
+        );
         this.publish({
           pawns: next,
           actorId: event.player_id,

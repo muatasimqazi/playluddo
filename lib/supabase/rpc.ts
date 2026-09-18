@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GameRoomState } from "../board/types";
+import type { GameRoomState, GameType } from "../board/types";
 
 /**
  * Typed wrappers around the RPC surface in docs/IMPLEMENTATION_HANDOFF.md
@@ -85,6 +85,17 @@ export function fillBot(client: SupabaseClient, roomId: string, seatIndex: numbe
 
 export function startMatch(client: SupabaseClient, roomId: string) {
   return call<{ roomId: string }>(client, "start_match", { p_room_id: roomId });
+}
+
+export function setRoomGame(
+  client: SupabaseClient,
+  roomId: string,
+  gameType: GameType,
+) {
+  return call<GameRoomState>(client, "set_room_game", {
+    p_room_id: roomId,
+    p_game_type: gameType,
+  });
 }
 
 export function claimSeat(client: SupabaseClient, roomId: string) {

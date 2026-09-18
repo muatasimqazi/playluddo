@@ -1,6 +1,7 @@
 import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { chooseBotMove } from "../../lib/board/bot";
+import { snakeMove } from "../../lib/board/snakes";
 import type { EnginePawn } from "../../lib/board/engine-types";
 import {
   applyMove,
@@ -37,6 +38,37 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await client.end();
+});
+
+it("Snakes & Ladders SQL and practice agree for every square and die", async () => {
+  // Includes off-board, finished, and every overshoot, snake and ladder.
+  const fixtures = Array.from({ length: 101 }, (_, square) =>
+    Array.from({ length: 6 }, (_, i) => ({
+      die: i + 1,
+      pawns: [
+        {
+          id: "red-0",
+          color: "red" as const,
+          index: 0,
+          state:
+            square === 0
+              ? ("nest" as const)
+              : square === 100
+                ? ("finished" as const)
+                : ("track" as const),
+          pathIndex: square || null,
+        },
+      ],
+    })),
+  ).flat();
+  const { rows } = await client.query(
+    `select private.snakes_move(f->'pawns', 'red', (f->>'die')::int) as move
+     from jsonb_array_elements($1::jsonb) with ordinality t(f, n) order by n`,
+    [JSON.stringify(fixtures)],
+  );
+  expect(rows.map((r) => r.move)).toEqual(
+    fixtures.map((f) => snakeMove(f.pawns, "red", f.die)),
+  );
 });
 
 function pawn(
@@ -222,8 +254,16 @@ const LEGAL_MOVE_FIXTURES: {
 describe("parity: getLegalMoves (TS) vs private.ludo_legal_moves (SQL)", () => {
   for (const fixture of LEGAL_MOVE_FIXTURES) {
     it(fixture.name, async () => {
-      const tsResult = getLegalMoves(fixture.pawns, fixture.color, fixture.dieValue);
-      const sqlResult = await sqlLegalMoves(fixture.pawns, fixture.color, fixture.dieValue);
+      const tsResult = getLegalMoves(
+        fixture.pawns,
+        fixture.color,
+        fixture.dieValue,
+      );
+      const sqlResult = await sqlLegalMoves(
+        fixture.pawns,
+        fixture.color,
+        fixture.dieValue,
+      );
       expect(sqlResult).toEqual(tsResult);
     });
   }
@@ -235,7 +275,9 @@ describe("parity: applyMove (TS) vs private.ludo_apply_move (SQL)", () => {
       "red-0": pawn("red-0", "red", 0, "track", 6),
       "green-0": pawn("green-0", "green", 0, "track", 49),
     });
-    const move = getLegalMoves(pawns, "red", 4).find((m) => m.pawnId === "red-0")!;
+    const move = getLegalMoves(pawns, "red", 4).find(
+      (m) => m.pawnId === "red-0",
+    )!;
     const tsResult = applyMove(pawns, move);
     const sqlResult = await sqlApplyMove(pawns, move);
     expect(sqlResult).toEqual(tsResult);
@@ -243,7 +285,9 @@ describe("parity: applyMove (TS) vs private.ludo_apply_move (SQL)", () => {
 
   it("agree on a move that crosses into the home lane", async () => {
     const pawns = fullBoard({ "red-0": pawn("red-0", "red", 0, "track", 49) });
-    const move = getLegalMoves(pawns, "red", 3).find((m) => m.pawnId === "red-0")!;
+    const move = getLegalMoves(pawns, "red", 3).find(
+      (m) => m.pawnId === "red-0",
+    )!;
     const tsResult = applyMove(pawns, move);
     const sqlResult = await sqlApplyMove(pawns, move);
     expect(sqlResult).toEqual(tsResult);
@@ -252,7 +296,13 @@ describe("parity: applyMove (TS) vs private.ludo_apply_move (SQL)", () => {
 
 describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
   it("agree across the consecutive-six progression", async () => {
-    const cases: [number, number][] = [[0, 4], [0, 6], [1, 6], [2, 6], [2, 3]];
+    const cases: [number, number][] = [
+      [0, 4],
+      [0, 6],
+      [1, 6],
+      [2, 6],
+      [2, 3],
+    ];
     for (const [before, dieValue] of cases) {
       const tsResult = evaluateSixRoll(before, dieValue);
       const sqlResult = await sqlEvaluateSixRoll(before, dieValue);

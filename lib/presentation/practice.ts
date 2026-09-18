@@ -5,20 +5,21 @@ import {
   getLegalMoves,
   isMatchWon,
 } from "../board/rules";
-import type { GameRoomState, PlayerColor } from "../board/types";
+import type { GameRoomState, GameType, PlayerColor } from "../board/types";
+import { applySnakeMove, snakeMove } from "../board/snakes";
 import type { MatchEventRow } from "../realtime/room-channel";
 
 export interface PracticeSession {
   state: GameRoomState;
   events: MatchEventRow[];
 }
-export function createPractice(): PracticeSession {
+export function createPractice(gameType: GameType = "ludo"): PracticeSession {
   const colors: PlayerColor[] = ["blue", "red", "green", "yellow"];
   return {
     state: {
       roomId: "practice",
       code: "LOCAL",
-      gameType: "ludo",
+      gameType,
       status: "in_game",
       players: colors.map((color, i) => ({
         id: `practice-${i}`,
@@ -35,7 +36,7 @@ export function createPractice(): PracticeSession {
         inVoice: false,
       })),
       pawns: colors.flatMap((color) =>
-        Array.from({ length: 4 }, (_, index) => ({
+        Array.from({ length: gameType === "ludo" ? 4 : 1 }, (_, index) => ({
           id: `${color}-${index}`,
           color,
           index,
@@ -67,15 +68,19 @@ export function practiceReducer(
   session: PracticeSession,
   action: PracticeAction,
 ): PracticeSession {
-  if (action.type === "reset") return createPractice();
+  if (action.type === "reset") return createPractice(session.state.gameType);
   const { state } = session;
   if (state.status !== "in_game") return session;
+  if (state.gameType === "snakes_and_ladders")
+    return snakePracticeReducer(session, action);
   const player = state.players.find((p) => p.id === state.turnPlayerId)!;
   let next = { ...state };
   let event: MatchEventRow;
   const advance = () => {
-    const nextPlayer = Array.from({ length: state.players.length - 1 }, (_, i) =>
-      state.players[(player.seatIndex + i + 1) % state.players.length],
+    const nextPlayer = Array.from(
+      { length: state.players.length },
+      (_, i) =>
+        state.players[(player.seatIndex + i + 1) % state.players.length],
     ).find((candidate) => !isMatchWon(next.pawns, candidate.color));
     if (!nextPlayer) return;
     next = {
@@ -158,6 +163,74 @@ export function practiceReducer(
   }
   next.eventSequence = state.eventSequence + 1;
   return { state: next, events: [...session.events, event].slice(-100) };
+}
+
+function snakePracticeReducer(
+  session: PracticeSession,
+  action: PracticeAction,
+): PracticeSession {
+  const { state } = session;
+  if (
+    action.type !== "roll" ||
+    state.turnPhase !== "awaiting_roll" ||
+    !Number.isInteger(action.value) ||
+    action.value < 1 ||
+    action.value > 6
+  )
+    return session;
+  const player = state.players.find((p) => p.id === state.turnPlayerId)!;
+  const move = snakeMove(state.pawns, player.color, action.value);
+  const pawns = move ? applySnakeMove(state.pawns, move) : state.pawns;
+  const winnerIds = move?.finishesPawn
+    ? [...state.winnerIds, player.id]
+    : state.winnerIds;
+  const complete = winnerIds.length === state.players.length;
+  const nextPlayer = Array.from(
+    { length: state.players.length },
+    (_, i) => state.players[(player.seatIndex + i + 1) % state.players.length],
+  ).find((candidate) => !winnerIds.includes(candidate.id));
+  const events: MatchEventRow[] = [];
+  const append = (event_type: string, payload: Record<string, unknown>) => {
+    const sequence = state.eventSequence + events.length + 1;
+    events.push({
+      id: sequence,
+      sequence,
+      event_type,
+      player_id: player.id,
+      payload,
+      created_at: new Date().toISOString(),
+    });
+  };
+  append("dice_rolled", {
+    dieValue: action.value,
+    cancelledByThirdSix: false,
+    overshoot: !move,
+  });
+  if (move) append("legal_move_selected", { ...move });
+  if (move?.finishesPawn)
+    append("player_finished", { place: winnerIds.length });
+  if (complete)
+    append("match_completed", {
+      winnerId: winnerIds[0],
+      placements: winnerIds,
+    });
+  return {
+    state: {
+      ...state,
+      pawns,
+      winnerIds,
+      status: complete ? "summary" : "in_game",
+      turnPlayerId: nextPlayer?.id ?? null,
+      turnPhase: complete ? "complete" : "awaiting_roll",
+      activeDiceValue: null,
+      legalMoves: [],
+      rollsThisTurn: 0,
+      consecutiveSixes: 0,
+      matchEndReason: complete ? "completed" : null,
+      eventSequence: state.eventSequence + events.length,
+    },
+    events: [...session.events, ...events].slice(-100),
+  };
 }
 
 export function randomDie(): number {

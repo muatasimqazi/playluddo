@@ -246,6 +246,19 @@ describe("event playback and replay isolation", () => {
 });
 
 describe("offline practice uses the established rules", () => {
+  it("lets the last unfinished Ludo player keep rolling", () => {
+    const initial = createPractice();
+    initial.state.winnerIds = ["practice-1", "practice-2", "practice-3"];
+    initial.state.pawns = initial.state.pawns.map((piece) =>
+      piece.color === "blue"
+        ? piece
+        : { ...piece, state: "finished", pathIndex: 56 },
+    );
+    const next = practiceReducer(initial, { type: "roll", value: 3 });
+    expect(next.state.turnPlayerId).toBe("practice-0");
+    expect(next.state.turnPhase).toBe("awaiting_roll");
+    expect(next.state.activeDiceValue).toBeNull();
+  });
   it("needs six to leave the nest, grants a bonus roll, and rejects illegal intents", () => {
     const initial = createPractice();
     expect(practiceReducer(initial, { type: "move", pawnId: "blue-0" })).toBe(

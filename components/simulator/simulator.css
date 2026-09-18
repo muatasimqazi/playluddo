@@ -1,3 +1,31 @@
+.lobby-game {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 14px 0;
+  border-block: 1px solid var(--sim-line);
+}
+.lobby-game strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.lobby-game button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--sim-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.lobby-game-rules {
+  font-size: 12px !important;
+  margin: 10px 0 !important;
+}
 .simulator,
 .sim-entrance {
   --sim-ink: #f0ecdf;
@@ -1367,6 +1395,12 @@
 }
 .room-lobby {
   width: 390px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-height: calc(100dvh - 160px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 4px 4px 8px 0;
 }
 .room-lobby h1 {
   font-size: 49px;
@@ -1533,16 +1567,23 @@
 @media (max-width: 700px) {
   .room-lobby {
     width: auto;
-    top: 51%;
-    transform: translateY(-45%);
+    top: 50%;
+    transform: translateY(-50%);
   }
   .room-lobby h1 {
-    font-size: 40px;
+    font-size: 32px;
+    margin-bottom: 10px;
   }
   .room-lobby > p {
     max-width: 320px;
+    font-size: 11px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .room-lobby > p:first-of-type {
+    display: none;
   }
   .lobby-seat {
-    padding: 9px 11px;
+    padding: 7px 11px;
   }
 }

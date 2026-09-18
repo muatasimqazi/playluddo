@@ -247,7 +247,7 @@ function Kitchen({ wood }: { wood: THREE.Texture }) {
           </mesh>
           <mesh position={[x, 4.64, 4.7]} rotation={[Math.PI / 2, 0, 0]}>
             <circleGeometry args={[0.5, 24]} />
-            <meshBasicMaterial color="#ffe7b1" side={THREE.DoubleSide} />
+            <meshBasicMaterial color="#fff5e8" side={THREE.DoubleSide} />
           </mesh>
         </group>
       ))}
@@ -403,7 +403,7 @@ export function Apartment({ quality }: { quality: Quality }) {
         scale={[1, 0.8, 1]}
       >
         <torusGeometry args={[9, 0.035, 8, 80]} />
-        <meshBasicMaterial color="#ffe2a3" />
+        <meshBasicMaterial color="#f5f1e9" />
       </mesh>
       {[-7, 0, 7].flatMap((x) =>
         [-8, 0, 8].map((z) => (
@@ -413,7 +413,7 @@ export function Apartment({ quality }: { quality: Quality }) {
             rotation={[Math.PI / 2, 0, 0]}
           >
             <circleGeometry args={[0.18, 20]} />
-            <meshBasicMaterial color="#fff2d3" side={THREE.DoubleSide} />
+            <meshBasicMaterial color="#fffaf1" side={THREE.DoubleSide} />
           </mesh>
         )),
       )}
@@ -538,7 +538,7 @@ export function Apartment({ quality }: { quality: Quality }) {
         <pointLight
           position={[0, 4.3, 0]}
           intensity={5}
-          color="#ffd5a0"
+          color="#fff0df"
           distance={10}
           decay={2}
         />

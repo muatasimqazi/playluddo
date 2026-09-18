@@ -393,6 +393,7 @@ function PhysicalDie({
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
   const dieColor = activePlayer ? COLORS[activePlayer.color] : "#fff5da";
+  const pipColor = activePlayer ? "#fffdf5" : "#25251f";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
     () =>
@@ -459,22 +460,22 @@ function PhysicalDie({
         >
           <meshPhysicalMaterial
             color={dieColor}
-            roughness={0.08}
+            roughness={0.025}
             metalness={0}
             clearcoat={1}
-            clearcoatRoughness={0.035}
-            transmission={0.52}
-            thickness={0.62}
+            clearcoatRoughness={0.01}
+            transmission={0.32}
+            thickness={0.82}
             ior={1.49}
             attenuationColor={dieColor}
-            attenuationDistance={0.38}
+            attenuationDistance={0.28}
             specularIntensity={1}
             specularColor="#ffffff"
-            envMapIntensity={1.8}
+            envMapIntensity={3.4}
             transparent
             opacity={1}
             emissive={canRoll ? dieColor : "#000000"}
-            emissiveIntensity={canRoll ? 0.07 : 0}
+            emissiveIntensity={canRoll ? 0.025 : 0}
           />
         </RoundedBox>
         {DIE_FACES.map((face) => (
@@ -487,7 +488,7 @@ function PhysicalDie({
               <mesh key={i} position={[x * 0.105, y * 0.105, 0]}>
                 <circleGeometry args={[0.031, 16]} />
                 <meshPhysicalMaterial
-                  color="#fffdf5"
+                  color={pipColor}
                   roughness={0.22}
                   clearcoat={0.65}
                 />
@@ -832,6 +833,20 @@ export default function SimulatorScene(props: SceneProps) {
               rotation={[Math.PI / 2, 0, 0]}
               intensity={1.3}
               color="#ffffff"
+            />
+            <Lightformer
+              position={[0, 2, 9]}
+              scale={[3, 7]}
+              rotation={[0, Math.PI, 0]}
+              intensity={3.5}
+              color="#ffffff"
+            />
+            <Lightformer
+              position={[9, 2, 0]}
+              scale={[2, 6]}
+              rotation={[0, -Math.PI / 2, 0]}
+              intensity={2.8}
+              color="#dfeaff"
             />
           </Environment>
           <Apartment quality={props.quality} />

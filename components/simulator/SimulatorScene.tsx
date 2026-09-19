@@ -483,6 +483,8 @@ const DIE_ROTATION: Record<number, Point> = {
   5: [Math.PI / 2, 0, 0],
   6: [Math.PI, 0, 0],
 };
+const MOBILE_DIE_POINT: Point = [0, 0.26, 0];
+const DESKTOP_DIE_POINT: Point = [3.65, 0.26, 1.1];
 
 function PhysicalDie({
   frame,
@@ -497,11 +499,23 @@ function PhysicalDie({
 >) {
   const mesh = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const compact = useThree(
+    ({ size }) => size.width <= 900 || size.height <= 650,
+  );
+  const restingPoint = compact ? MOBILE_DIE_POINT : DESKTOP_DIE_POINT;
+  const restingVector = useMemo(
+    () => new THREE.Vector3(...restingPoint),
+    [restingPoint],
+  );
   const activePlayer = players.find(
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
-  const dieColor = activePlayer ? COLORS[activePlayer.color] : "#fff5da";
-  const pipColor = activePlayer ? "#fffdf5" : "#25251f";
+  const dieColor = compact
+    ? "#ffffff"
+    : activePlayer
+      ? COLORS[activePlayer.color]
+      : "#fff5da";
+  const pipColor = compact ? "#111111" : activePlayer ? "#fffdf5" : "#25251f";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
     () =>
@@ -531,35 +545,44 @@ function PhysicalDie({
     if (t < 0.7) {
       mesh.current.rotation.x += delta * 17;
       mesh.current.rotation.z += delta * 13;
-      mesh.current.position.set(
-        3.65 + Math.sin(t * 9) * 0.12,
-        0.26 + Math.abs(Math.sin(t * Math.PI * 3)) * (1 - t) * 0.85,
-        1.1 + (1 - t) * 0.4,
-      );
+      if (compact) {
+        const progress = THREE.MathUtils.smoothstep(t / 0.7, 0, 1);
+        mesh.current.position.set(
+          Math.sin(progress * Math.PI * 5) * 0.28 * (1 - progress),
+          0.26 + Math.abs(Math.sin(progress * Math.PI * 4)) * (1 - progress) * 0.9,
+          Math.cos(progress * Math.PI * 4) * 0.24 * (1 - progress),
+        );
+      } else {
+        mesh.current.position.set(
+          3.65 + Math.sin(t * 9) * 0.12,
+          0.26 + Math.abs(Math.sin(t * Math.PI * 3)) * (1 - t) * 0.85,
+          1.1 + (1 - t) * 0.4,
+        );
+      }
     } else {
       mesh.current.quaternion.slerp(target, 1 - Math.exp(-delta * 24));
       mesh.current.position.lerp(
-        new THREE.Vector3(3.65, 0.26, 1.1),
+        restingVector,
         1 - Math.exp(-delta * 24),
       );
       if (t === 1) {
         mesh.current.quaternion.copy(target);
-        mesh.current.position.set(3.65, 0.26, 1.1);
+        mesh.current.position.copy(restingVector);
       }
     }
   });
   return (
     <group>
       <RoundedBox
-        args={[0.92, 0.055, 1.55]}
+        args={compact ? [0.72, 0.045, 0.72] : [0.92, 0.055, 1.55]}
         radius={0.02}
-        position={[3.65, 0.028, 1.1]}
+        position={compact ? [0, 0.023, 0] : [3.65, 0.028, 1.1]}
       >
         <meshStandardMaterial color="#9b9c98" roughness={0.84} />
       </RoundedBox>
       <group
         ref={mesh}
-        position={[3.65, 0.26, 1.1]}
+        position={restingPoint}
         onPointerDown={(e) => {
           if (mode === "play") e.stopPropagation();
         }}

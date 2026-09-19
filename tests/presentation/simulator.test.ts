@@ -50,7 +50,11 @@ describe("responsive camera framing", () => {
             ).toBeLessThan(1);
           }
         }
-        const dieEdge = new Vector3(3.9, 0.5, 1.35).project(camera);
+        const dieEdge = new Vector3(
+          aspect < 0.9 ? 0.3 : 3.9,
+          0.5,
+          aspect < 0.9 ? 0.3 : 1.35,
+        ).project(camera);
         expect(
           Math.abs(dieEdge.x),
           `die in ${view} at aspect ${aspect}`,

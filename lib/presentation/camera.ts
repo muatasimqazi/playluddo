@@ -9,7 +9,7 @@ export function cameraFraming(
   const portrait = aspect < 0.9;
   const views: Record<CameraView, Point> = {
     play: portrait ? [0, 8.1, 9.4] : [0, 6.2, 7.4],
-    overhead: portrait ? [0, 10.7, 0.01] : [0, 12, 0.01],
+    overhead: portrait ? [0, 8.55, 0.01] : [0, 12, 0.01],
     table: [8.2, 9.5, 10.7],
     north: [0, 6.8, -8.6],
     east: [8.6, 6.8, 0],

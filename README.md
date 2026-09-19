@@ -24,6 +24,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). [Offline practice](http://localhost:3000/practice) works without Supabase.
 
+## Player sign-in
+
+The welcome screen supports Google, Facebook, passwordless email, and phone OTP sign-in while keeping guest play available. Configure the hosted Supabase project under **Authentication → Sign In / Providers**:
+
+- Enable Google and Facebook and add their client IDs and secrets.
+- Enable email OTP and set the site URL plus allowed redirect URLs for each deployed environment.
+- Enable phone sign-in and configure an SMS provider such as Twilio. Phone numbers must use international format, for example `+15551234567`.
+
+Profile display names are stored in Supabase Auth user metadata and automatically populate the player name used when creating or joining rooms. Provider credentials belong in Supabase secrets and must not be committed to this repository.
+
 ## Project layout
 
 See `docs/IMPLEMENTATION_HANDOFF.md` Section 2 for the full rationale. Short version:

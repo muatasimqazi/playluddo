@@ -750,8 +750,8 @@ export function Apartment({ quality }: { quality: Quality }) {
       {/* Four physical places at the table. */}
       {[
         [0, 6.2, 0],
-        [-6.2, 0, Math.PI / 2],
-        [6.2, 0, -Math.PI / 2],
+        [-6.2, 0, -Math.PI / 2],
+        [6.2, 0, Math.PI / 2],
       ].map(([x, z, r], i) => (
         <group key={i} position={[x, -2.6, z]} rotation={[0, r, 0]}>
           <Box

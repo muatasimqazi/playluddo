@@ -1,0 +1,292 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+
+type LoginMethod = "email" | "phone";
+
+function profileName(user: User | null) {
+  if (!user) return "";
+  return (
+    user.user_metadata?.display_name ||
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0] ||
+    user.phone ||
+    "Player"
+  );
+}
+
+export function ProfilePanel({
+  onNameChange,
+}: {
+  onNameChange: (name: string) => void;
+}) {
+  const client = useMemo(() => createClient(), []);
+  const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [method, setMethod] = useState<LoginMethod>("email");
+  const [destination, setDestination] = useState("");
+  const [token, setToken] = useState("");
+  const [sent, setSent] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [pending, setPending] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const applyUser = (nextUser: User | null) => {
+      setUser(nextUser);
+      const nextName = profileName(nextUser);
+      setDisplayName(nextName);
+      if (nextUser && !nextUser.is_anonymous && nextName) onNameChange(nextName);
+    };
+
+    void client.auth.getUser().then(({ data }) => applyUser(data.user));
+    const { data } = client.auth.onAuthStateChange((_event, session) => {
+      applyUser(session?.user ?? null);
+    });
+    return () => data.subscription.unsubscribe();
+  }, [client, onNameChange]);
+
+  const authenticated = !!user && !user.is_anonymous;
+  const identity = user?.email || user?.phone || "Signed-in player";
+
+  async function oauth(provider: "google" | "facebook") {
+    setPending(provider);
+    setMessage(null);
+    const { error } = await client.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) {
+      setMessage(error.message);
+      setPending(null);
+    }
+  }
+
+  async function sendCode() {
+    const value = destination.trim();
+    if (!value) return;
+    setPending("send");
+    setMessage(null);
+    const { error } = await client.auth.signInWithOtp(
+      method === "email"
+        ? {
+            email: value,
+            options: {
+              shouldCreateUser: true,
+              emailRedirectTo: window.location.origin,
+            },
+          }
+        : { phone: value, options: { shouldCreateUser: true } },
+    );
+    setPending(null);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setSent(true);
+    setMessage(
+      method === "email"
+        ? "Check your email for a sign-in link or verification code."
+        : "Enter the verification code sent to your phone.",
+    );
+  }
+
+  async function verifyCode() {
+    setPending("verify");
+    setMessage(null);
+    const value = destination.trim();
+    const { data, error } = await client.auth.verifyOtp(
+      method === "email"
+        ? { email: value, token: token.trim(), type: "email" }
+        : { phone: value, token: token.trim(), type: "sms" },
+    );
+    setPending(null);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setUser(data.user);
+    setSent(false);
+    setToken("");
+    setMessage("You’re signed in.");
+  }
+
+  async function saveProfile() {
+    const name = displayName.trim();
+    if (!name) return;
+    setPending("profile");
+    setMessage(null);
+    const { data, error } = await client.auth.updateUser({
+      data: { display_name: name },
+    });
+    setPending(null);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setUser(data.user);
+    onNameChange(name);
+    setMessage("Profile saved.");
+  }
+
+  async function signOut() {
+    setPending("signout");
+    const { error } = await client.auth.signOut();
+    setPending(null);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setUser(null);
+    setMessage(null);
+  }
+
+  return (
+    <>
+      <button
+        className="profile-trigger"
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={authenticated ? "Open your profile" : "Sign in or create a profile"}
+      >
+        <span>{authenticated ? profileName(user).slice(0, 1).toUpperCase() : "○"}</span>
+        {authenticated ? profileName(user) : "Sign in"}
+      </button>
+      {open && (
+        <div className="profile-backdrop" role="presentation" onMouseDown={() => setOpen(false)}>
+          <section
+            className="profile-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-heading"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="profile-close"
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close profile"
+            >
+              ×
+            </button>
+            <span className="eyebrow">YOUR SEAT AT THE TABLE</span>
+            <h2 id="profile-heading">{authenticated ? "Your profile" : "Welcome back"}</h2>
+            {authenticated ? (
+              <>
+                <div className="profile-identity">
+                  {user.user_metadata?.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- provider avatars are remote and domains vary.
+                    <img src={user.user_metadata.avatar_url} alt="" />
+                  ) : (
+                    <span>{profileName(user).slice(0, 1).toUpperCase()}</span>
+                  )}
+                  <div>
+                    <strong>{profileName(user)}</strong>
+                    <small>{identity}</small>
+                  </div>
+                </div>
+                <label className="profile-field">
+                  Display name
+                  <input
+                    value={displayName}
+                    onChange={(event) => setDisplayName(event.target.value)}
+                    maxLength={24}
+                    autoComplete="nickname"
+                  />
+                </label>
+                <button
+                  className="profile-primary"
+                  type="button"
+                  disabled={pending !== null || !displayName.trim()}
+                  onClick={() => void saveProfile()}
+                >
+                  {pending === "profile" ? "Saving…" : "Save profile"}
+                </button>
+                <button
+                  className="profile-secondary"
+                  type="button"
+                  disabled={pending !== null}
+                  onClick={() => void signOut()}
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <p>Save your name and return to the same identity on any device.</p>
+                <div className="profile-socials">
+                  <button type="button" disabled={pending !== null} onClick={() => void oauth("google")}>
+                    <b>G</b> Continue with Google
+                  </button>
+                  <button type="button" disabled={pending !== null} onClick={() => void oauth("facebook")}>
+                    <b>f</b> Continue with Facebook
+                  </button>
+                </div>
+                <span className="profile-divider">or use a code</span>
+                <div className="profile-methods" role="tablist" aria-label="Sign-in method">
+                  {(["email", "phone"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="tab"
+                      aria-selected={method === value}
+                      className={method === value ? "is-selected" : ""}
+                      onClick={() => {
+                        setMethod(value);
+                        setDestination("");
+                        setToken("");
+                        setSent(false);
+                        setMessage(null);
+                      }}
+                    >
+                      {value === "email" ? "Email" : "Phone"}
+                    </button>
+                  ))}
+                </div>
+                <label className="profile-field">
+                  {method === "email" ? "Email address" : "Phone number"}
+                  <input
+                    type={method === "email" ? "email" : "tel"}
+                    value={destination}
+                    onChange={(event) => setDestination(event.target.value)}
+                    placeholder={method === "email" ? "you@example.com" : "+1 555 123 4567"}
+                    autoComplete={method === "email" ? "email" : "tel"}
+                  />
+                </label>
+                {sent && (
+                  <label className="profile-field">
+                    Verification code
+                    <input
+                      inputMode="numeric"
+                      value={token}
+                      onChange={(event) => setToken(event.target.value.replace(/\D/g, "").slice(0, 8))}
+                      placeholder="123456"
+                      autoComplete="one-time-code"
+                    />
+                  </label>
+                )}
+                <button
+                  className="profile-primary"
+                  type="button"
+                  disabled={pending !== null || !destination.trim() || (sent && token.length < 6)}
+                  onClick={() => void (sent ? verifyCode() : sendCode())}
+                >
+                  {pending
+                    ? "Please wait…"
+                    : sent
+                      ? "Verify and sign in"
+                      : `Send ${method === "email" ? "email" : "text"} code`}
+                </button>
+                <small className="profile-guest-note">You can keep playing as a guest without signing in.</small>
+              </>
+            )}
+            {message && <p className="profile-message" role="status">{message}</p>}
+          </section>
+        </div>
+      )}
+    </>
+  );
+}

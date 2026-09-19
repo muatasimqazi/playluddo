@@ -11,6 +11,7 @@ import { createPractice } from "@/lib/presentation/practice";
 import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
+import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
@@ -106,7 +107,10 @@ export default function Home() {
             LUDDO<small>THE TABLETOP EXPERIENCE</small>
           </span>
         </div>
-        <span>A LITTLE CLOSER TOGETHER.</span>
+        <div className="entrance-header-actions">
+          <span>A LITTLE CLOSER TOGETHER.</span>
+          <ProfilePanel onNameChange={setName} />
+        </div>
       </header>
       <section className="entrance-content">
         {!friends ? (

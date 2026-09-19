@@ -1610,6 +1610,93 @@ body.sim-piece-hover .sim-canvas {
 .entrance-secondary:hover {
   background: #59634677;
 }
+.together-setup {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 10%, #6e8060 0, transparent 45%),
+    linear-gradient(145deg, #202b25, #101714);
+  color: var(--sim-ink);
+}
+.together-card {
+  width: min(100%, 460px);
+  padding: 32px;
+  border: 1px solid #e8e2cf2b;
+  border-radius: 18px;
+  background: #202c27eb;
+  box-shadow: 0 28px 80px #050a0870;
+}
+.together-card h1,
+.together-handoff h2 {
+  margin: 8px 0 10px;
+  font: 400 42px/1.05 Georgia, serif;
+  color: #f4eddc;
+}
+.together-card p,
+.together-handoff p { color: #b8c1b0; line-height: 1.6; }
+.together-card fieldset { margin: 24px 0 16px; border: 0; }
+.together-card legend { margin-bottom: 8px; font-size: 11px; color: #c9cfbd; }
+.together-count { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.together-count button {
+  height: 42px;
+  border: 1px solid #e8e2cf2b;
+  border-radius: 8px;
+  color: #e8eadf;
+  background: #ffffff0a;
+}
+.together-count button.is-selected { border-color: #dec88a; background: #dec88a24; }
+.together-names { display: grid; gap: 10px; margin-bottom: 22px; }
+.together-names label span { display: block; margin-bottom: 5px; font-size: 10px; color: #aeb8a8; }
+.together-names input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #e8e2cf24;
+  border-radius: 8px;
+  background: #0b120f5c;
+  color: #f4f0e5;
+}
+.together-card > .sim-primary { width: 100%; height: 48px; justify-content: center; }
+.together-handoff {
+  position: fixed;
+  z-index: 100;
+  top: 82px;
+  left: 50%;
+  width: min(calc(100% - 32px), 560px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.together-handoff section {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #eadba750;
+  border-radius: 16px;
+  background: #17221de8;
+  box-shadow: 0 18px 55px #0509067d;
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+}
+.together-handoff .player-avatar { margin: 0; }
+.together-handoff h2 { margin: 2px 0; font-size: 22px; }
+.together-handoff p { margin: 0; font-size: 11px; }
+.together-handoff .eyebrow { font-size: 8px; letter-spacing: 2px; color: #d7c68d; }
+.together-handoff .sim-primary {
+  min-width: 112px;
+  height: 42px;
+  justify-content: center;
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .together-handoff { top: 68px; }
+  .together-handoff section { grid-template-columns: auto minmax(0, 1fr); }
+  .together-handoff .player-avatar { width: 46px !important; height: 46px !important; }
+  .together-handoff .sim-primary { grid-column: 1 / -1; width: 100%; }
+}
 .entrance-content .entrance-caption {
   font-size: 9px;
   margin-top: 16px;

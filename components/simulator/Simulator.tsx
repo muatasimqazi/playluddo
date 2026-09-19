@@ -52,6 +52,7 @@ export interface SimulatorProps {
   readOnly?: boolean;
   connection?: "connected" | "connecting" | "reconnecting";
   practice?: boolean;
+  localPlay?: boolean;
   playerCount?: 2 | 3 | 4;
   onPlayerCountChange?: (count: 2 | 3 | 4) => void;
   messages?: TableMessage[];
@@ -201,6 +202,7 @@ export default function Simulator({
   readOnly = false,
   connection = "connected",
   practice = false,
+  localPlay = false,
   playerCount,
   onPlayerCountChange,
   messages = [],
@@ -462,9 +464,11 @@ export default function Simulator({
     : state.status === "summary" || state.status === "abandoned"
       ? "MATCH COMPLETE"
       : frame.busy
-        ? `${activePlayer?.id === myPlayerId ? "You are" : `${activePlayer?.displayName ?? "Player"} is`} ${frame.phase === "roll" ? "rolling" : "moving"}`
+        ? `${localPlay ? activePlayer?.displayName ?? "Player" : activePlayer?.id === myPlayerId ? "You" : activePlayer?.displayName ?? "Player"} ${frame.phase === "roll" ? "is rolling" : "is moving"}`
         : isMyTurn
-          ? "YOUR TURN"
+          ? localPlay
+            ? `${activePlayer?.displayName ?? "PLAYER"}’S TURN`
+            : "YOUR TURN"
           : `${activePlayer?.displayName ?? "Player"}’S TURN`;
   const instruction =
     mode === "look"
@@ -531,7 +535,7 @@ export default function Simulator({
           gameType={state.gameType}
           frame={frame}
           players={state.players}
-          myPlayerId={myPlayerId}
+          myPlayerId={localPlay ? null : myPlayerId}
           turnPlayerId={state.turnPlayerId}
           legalPawnIds={legalPawnIds}
           canRoll={canRoll}
@@ -1017,7 +1021,9 @@ export default function Simulator({
                   <strong>{gameName}</strong>
                   <small>
                     {practice
-                      ? "Practice against three computers"
+                      ? localPlay
+                        ? "Table Together · shared device"
+                        : "Practice against computers"
                       : `Private table · ${state.code}`}
                   </small>
                 </div>
@@ -1028,7 +1034,7 @@ export default function Simulator({
                     <PlayerAvatar player={player} size={30} />
                     <span>
                       {player.displayName}
-                      {player.id === myPlayerId ? " (you)" : ""}
+                      {!localPlay && player.id === myPlayerId ? " (you)" : ""}
                     </span>
                     <small>{player.isBot ? "Computer" : player.status}</small>
                   </div>

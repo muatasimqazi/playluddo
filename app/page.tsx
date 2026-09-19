@@ -176,6 +176,13 @@ export default function Home() {
                 <span>Settle in with a practice game</span>
                 <Icon name="dice" />
               </Link>
+              <Link
+                className="entrance-secondary"
+                href={`/table-together?players=${playerCount}`}
+              >
+                <span>Table Together · Share this screen</span>
+                <Icon name="users" />
+              </Link>
             </div>
             <p className="entrance-caption">
               Up to four players · A shared 3D table · No download

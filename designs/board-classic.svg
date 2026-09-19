@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1500">
+  <defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="#fffdf7"/><path d="M100 0H0V100" fill="none" stroke="#5b625d" stroke-width="5"/></pattern></defs>
+  <rect width="1500" height="1500" fill="#eee8d9"/>
+  <rect width="600" height="600" fill="#e2262e"/><rect x="900" width="600" height="600" fill="#31a65b"/>
+  <rect y="900" width="600" height="600" fill="#224c9e"/><rect x="900" y="900" width="600" height="600" fill="#f2c400"/>
+  <rect y="600" width="1500" height="300" fill="url(#grid)"/><rect x="600" width="300" height="1500" fill="url(#grid)"/>
+  <g fill="none" stroke="#fff" stroke-width="90"><path d="M100 750h500" stroke="#e2262e"/><path d="M750 100v500" stroke="#31a65b"/><path d="M750 900v500" stroke="#224c9e"/><path d="M900 750h500" stroke="#f2c400"/></g>
+  <g stroke="#fff" stroke-width="5">
+    <path d="M200 700v100M300 700v100M400 700v100M500 700v100M600 700v100"/>
+    <path d="M700 200h100M700 300h100M700 400h100M700 500h100M700 600h100"/>
+    <path d="M700 900h100M700 1000h100M700 1100h100M700 1200h100M700 1300h100"/>
+    <path d="M900 700v100M1000 700v100M1100 700v100M1200 700v100M1300 700v100"/>
+  </g>
+  <g fill="none" stroke="#454c47" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 750h56m-18-18 18 18-18 18"/>
+    <path d="M750 22v56m-18-18 18 18 18-18"/>
+    <path d="M1478 750h-56m18-18-18 18 18 18"/>
+    <path d="M750 1478v-56m-18 18 18-18 18 18"/>
+  </g>
+  <g fill="#fbf8ef" stroke="#454c47" stroke-width="7"><rect x="145" y="145" width="335" height="335" rx="45"/><rect x="1020" y="145" width="335" height="335" rx="45"/><rect x="145" y="1020" width="335" height="335" rx="45"/><rect x="1020" y="1020" width="335" height="335" rx="45"/></g>
+  <g stroke="#fff" stroke-width="8">
+    <g fill="#e2262e"><circle cx="63.12" cy="64.36" r="48"/><circle cx="538.37" cy="64.36" r="48"/><circle cx="68.07" cy="533.42" r="48"/><circle cx="535.89" cy="533.42" r="48"/></g>
+    <g fill="#31a65b"><circle cx="959.16" cy="65.59" r="48"/><circle cx="1429.46" cy="68.07" r="48"/><circle cx="964.11" cy="533.42" r="48"/><circle cx="1429.46" cy="533.42" r="48"/></g>
+    <g fill="#224c9e"><circle cx="63.12" cy="959.16" r="48"/><circle cx="534.65" cy="962.87" r="48"/><circle cx="68.07" cy="1429.46" r="48"/><circle cx="538.37" cy="1431.93" r="48"/></g>
+    <g fill="#f2c400"><circle cx="962.87" cy="962.87" r="48"/><circle cx="1433.17" cy="959.16" r="48"/><circle cx="964.11" cy="1429.46" r="48"/><circle cx="1429.46" cy="1429.46" r="48"/></g>
+  </g>
+  <g stroke="#fff" stroke-width="5">
+    <g fill="#e2262e"><circle cx="150" cy="650" r="40"/><circle cx="250" cy="850" r="40"/></g>
+    <g fill="#31a65b"><circle cx="650" cy="250" r="40"/><circle cx="850" cy="150" r="40"/></g>
+    <g fill="#f2c400"><circle cx="1250" cy="650" r="40"/><circle cx="1350" cy="850" r="40"/></g>
+    <g fill="#224c9e"><circle cx="850" cy="1250" r="40"/><circle cx="650" cy="1350" r="40"/></g>
+  </g>
+  <g fill="#fff">
+    <path d="m150 620 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m250 820 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m650 220 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m850 120 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m1250 620 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m1350 820 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m850 1220 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+    <path d="m650 1320 9 19 21 3-15 15 4 21-19-10-19 10 4-21-15-15 21-3Z"/>
+  </g>
+  <g stroke="#fff" stroke-width="5"><path d="M600 600H900L750 750Z" fill="#31a65b"/><path d="M900 600V900L750 750Z" fill="#f2c400"/><path d="M900 900H600L750 750Z" fill="#224c9e"/><path d="M600 900V600L750 750Z" fill="#e2262e"/></g>
+  <circle cx="750" cy="750" r="48" fill="#fffdf7" stroke="#4a4f4b" stroke-width="7"/>
+</svg>

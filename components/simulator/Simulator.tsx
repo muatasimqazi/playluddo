@@ -75,6 +75,7 @@ interface Preferences {
   orientation: number;
   snakeOrientation: number;
   view: CameraView;
+  boardStyle: "signature" | "classic";
 }
 const PREF_KEY = "luddo-simulator-v1";
 const CAMERA_VIEW_LABELS: Record<CameraView, string> = {
@@ -106,6 +107,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     orientation: HOME_ROTATION[color],
     snakeOrientation: 0,
     view: defaultCameraView(),
+    boardStyle: "signature",
   };
   try {
     const value = JSON.parse(localStorage.getItem(PREF_KEY) ?? "null");
@@ -136,6 +138,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       snakeOrientation: Number.isFinite(value.snakeOrientation)
         ? value.snakeOrientation
         : 0,
+      boardStyle: value.boardStyle === "classic" ? "classic" : "signature",
     };
   } catch {
     return defaults;
@@ -564,6 +567,7 @@ export default function Simulator({
           reactions={reactions}
           speakingPlayerIds={voice?.speakingPlayerIds}
           soundEnabled={prefs.sound}
+          boardStyle={prefs.boardStyle}
         />
       </SceneBoundary>
       <div className="sim-vignette" />
@@ -919,6 +923,23 @@ export default function Simulator({
           )}
           {panel === "settings" && (
             <>
+              <label className="setting-row">
+                <span>
+                  Board design<small>Choose your Luddo artwork</small>
+                </span>
+                <select
+                  value={prefs.boardStyle}
+                  onChange={(e) =>
+                    setPref(
+                      "boardStyle",
+                      e.target.value as Preferences["boardStyle"],
+                    )
+                  }
+                >
+                  <option value="signature">Signature</option>
+                  <option value="classic">Classic</option>
+                </select>
+              </label>
               <label className="setting-row">
                 <span>
                   Graphics<small>Detail and shadow quality</small>

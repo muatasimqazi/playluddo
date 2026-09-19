@@ -40,10 +40,12 @@ import {
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
 import boardArtwork from "@/designs/board-design.png";
+import classicBoardArtwork from "@/designs/board-classic.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/board.svg";
 import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
+import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
 import { Icon } from "./Icon";
 import { PlayerAvatars3D } from "./PlayerAvatar3D";
 
@@ -68,6 +70,7 @@ export interface SceneProps {
   speakingPlayerIds?: Set<string>;
   preview?: boolean;
   soundEnabled?: boolean;
+  boardStyle?: "signature" | "classic";
 }
 
 function CameraRig({
@@ -161,6 +164,7 @@ function Piece({
   mode,
   gameType = "ludo",
   soundEnabled = true,
+  boardStyle = "signature",
 }: {
   pawn: Pawn;
   allPawns: Pawn[];
@@ -170,6 +174,7 @@ function Piece({
   mode: InteractionMode;
   gameType?: GameType;
   soundEnabled?: boolean;
+  boardStyle?: "signature" | "classic";
 }) {
   const ref = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
@@ -187,6 +192,8 @@ function Piece({
     delay: number;
   } | null>(null);
   const [hovered, setHovered] = useState(false);
+  const classicPawn = boardStyle === "classic" && gameType === "ludo";
+  const pawnHeight = classicPawn ? CLASSIC_PAWN_HEIGHT : GLASS_PAWN_HEIGHT;
   useEffect(() => {
     if (!soundEnabled) {
       moveSound.current?.pause();
@@ -218,11 +225,17 @@ function Piece({
   const stackIndex = stack.findIndex((p) => p.id === pawn.id);
   const offset: Point =
     stack.length > 1
-      ? [
-          ((stackIndex % 2) - 0.5) * 0.025,
-          stackIndex * (GLASS_PAWN_HEIGHT + 0.006),
-          ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.025,
-        ]
+      ? classicPawn
+        ? [
+            ((stackIndex % 2) - 0.5) * 0.13,
+            0,
+            ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.13,
+          ]
+        : [
+            ((stackIndex % 2) - 0.5) * 0.025,
+            stackIndex * (pawnHeight + 0.006),
+            ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.025,
+          ]
       : [0, 0, 0];
   useEffect(() => {
     const from = previous.current;
@@ -408,7 +421,11 @@ function Piece({
           setHovered(false);
         }}
       >
-        <GlassPawn color={pawn.color} />
+        {classicPawn ? (
+          <ClassicPawn color={pawn.color} />
+        ) : (
+          <GlassPawn color={pawn.color} />
+        )}
         <mesh
           ref={ring}
           rotation={[-Math.PI / 2, 0, 0]}
@@ -662,9 +679,17 @@ function BoardObject(props: SceneProps) {
   const flip = useRef({ from: targetFlip, to: targetFlip, elapsed: 1.5 });
   const [initialRotation] = useState(props.orientation);
   const artwork = useTexture(boardArtwork.src);
+  const classicArtwork = useTexture(classicBoardArtwork.src as string);
   const texture = useMemo(
-    () => makeBoardTexture(artwork, "ludo", props.view === "overhead" ? 1.24 : 1),
-    [artwork, props.view],
+    () => {
+      const classic = props.boardStyle === "classic";
+      return makeBoardTexture(
+        classic ? classicArtwork : artwork,
+        classic ? "full" : "ludo",
+        props.view === "overhead" ? 1.24 : 1,
+      );
+    },
+    [artwork, classicArtwork, props.boardStyle, props.view],
   );
   const snakeSource = useTexture(snakeArtwork.src as string);
   const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);
@@ -801,6 +826,7 @@ function BoardObject(props: SceneProps) {
             move={props.frame.move}
             onMove={props.onMove}
             soundEnabled={props.soundEnabled}
+            boardStyle={props.boardStyle}
           />
         ))}
       </group>

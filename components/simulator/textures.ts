@@ -58,8 +58,12 @@ export function makeBoardTexture(
   // Merely labeling the original Adobe RGB bytes as sRGB shifts the ink hues.
   const canvas = document.createElement("canvas");
   const image = source.image as HTMLImageElement;
-  canvas.width = image.naturalWidth;
-  canvas.height = image.naturalHeight;
+  // SVG images without explicit pixel dimensions report a small browser
+  // default intrinsic size. Rasterize board vectors at texture resolution
+  // before uploading them to WebGL so overhead and zoomed views stay crisp.
+  const vectorSource = /\.svg(?:$|\?)/i.test(image.currentSrc || image.src);
+  canvas.width = vectorSource ? 2048 : image.naturalWidth;
+  canvas.height = vectorSource ? 2048 : image.naturalHeight;
   const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
   if (!ctx) throw new Error("Could not prepare the board artwork.");
   ctx.drawImage(image, 0, 0);

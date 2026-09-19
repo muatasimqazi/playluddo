@@ -65,6 +65,7 @@ export interface SceneProps {
   reactions?: Record<string, string>;
   speakingPlayerIds?: Set<string>;
   preview?: boolean;
+  soundEnabled?: boolean;
 }
 
 function CameraRig({
@@ -157,6 +158,7 @@ function Piece({
   move,
   mode,
   gameType = "ludo",
+  soundEnabled = true,
 }: {
   pawn: Pawn;
   allPawns: Pawn[];
@@ -165,9 +167,16 @@ function Piece({
   move: PresentationFrame["move"];
   mode: InteractionMode;
   gameType?: GameType;
+  soundEnabled?: boolean;
 }) {
   const ref = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
+  const trail = useRef<THREE.Group>(null);
+  const trailSamples = useRef<Point[]>([]);
+  const trailSampleElapsed = useRef(0);
+  const trailOpacity = useRef(0);
+  const moveSound = useRef<HTMLAudioElement>(null);
+  const soundedStep = useRef(0);
   const previous = useRef(pawn);
   const previousMove = useRef(move);
   const motion = useRef<{
@@ -176,6 +185,23 @@ function Piece({
     delay: number;
   } | null>(null);
   const [hovered, setHovered] = useState(false);
+  useEffect(() => {
+    if (!soundEnabled) {
+      moveSound.current?.pause();
+      moveSound.current = null;
+      return;
+    }
+    const audio = new Audio("/audio/ludo_piece_move.wav");
+    audio.preload = "auto";
+    audio.volume = 0.46;
+    moveSound.current = audio;
+    return () => {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      if (moveSound.current === audio) moveSound.current = null;
+    };
+  }, [soundEnabled]);
   const point = (piece: Pawn) => pawnPoint(piece, gameType);
   const [initial] = useState(() => pawnPoint(pawn, gameType));
   const stack = allPawns
@@ -224,6 +250,10 @@ function Piece({
         elapsed: 0,
         delay: isCapture ? (movingSteps * HOP_MS) / 1000 : 0,
       };
+      trailSamples.current = [];
+      trailSampleElapsed.current = 0;
+      trailOpacity.current = 1;
+      soundedStep.current = 0;
     }
     previous.current = pawn;
     previousMove.current = move;
@@ -231,10 +261,21 @@ function Piece({
   useFrame(({ clock }, delta) => {
     if (!ref.current) return;
     const m = motion.current;
+    let moving = false;
     if (m) {
       m.elapsed += Math.min(delta, 0.1);
       const t = Math.max(0, m.elapsed - m.delay) / (HOP_MS / 1000),
         index = Math.floor(t);
+      const arrivedStep = Math.min(index, m.points.length - 1);
+      if (
+        m.elapsed >= m.delay &&
+        arrivedStep > soundedStep.current &&
+        moveSound.current
+      ) {
+        soundedStep.current = arrivedStep;
+        moveSound.current.currentTime = 0;
+        void moveSound.current.play().catch(() => {});
+      }
       if (index >= m.points.length - 1) {
         const p = pawnPoint(pawn, gameType);
         ref.current.position.set(
@@ -244,6 +285,7 @@ function Piece({
         );
         motion.current = null;
       } else {
+        moving = m.elapsed >= m.delay;
         const a = m.points[index],
           destination = m.points[index + 1],
           b =
@@ -280,6 +322,37 @@ function Piece({
         THREE.MathUtils.lerp(ref.current.position.z, p[2] + offset[2], damp),
       );
     }
+    if (moving) {
+      trailSampleElapsed.current += delta;
+      if (
+        trailSampleElapsed.current >= 0.035 ||
+        trailSamples.current.length === 0
+      ) {
+        trailSampleElapsed.current = 0;
+        trailSamples.current.unshift([
+          ref.current.position.x,
+          BOARD_Y + 0.014,
+          ref.current.position.z,
+        ]);
+        trailSamples.current.length = Math.min(trailSamples.current.length, 6);
+      }
+      trailOpacity.current = 1;
+    } else {
+      trailOpacity.current = Math.max(0, trailOpacity.current - delta * 2.8);
+    }
+    if (trail.current) {
+      trail.current.children.forEach((child, index) => {
+        const sample = trailSamples.current[index];
+        const mesh = child as THREE.Mesh;
+        mesh.visible = !!sample && trailOpacity.current > 0;
+        if (!sample) return;
+        mesh.position.set(...sample);
+        const age = 1 - index / trail.current!.children.length;
+        mesh.scale.setScalar(0.55 + age * 0.6);
+        const material = mesh.material as THREE.MeshBasicMaterial;
+        material.opacity = trailOpacity.current * age * 0.52;
+      });
+    }
     ref.current.scale.setScalar(hovered && legal ? 1.12 : 1);
     if (ring.current) {
       ring.current.visible = legal;
@@ -288,41 +361,65 @@ function Piece({
   });
   const clickable = legal && mode === "play";
   return (
-    <group
-      ref={ref}
-      position={initial}
-      onPointerDown={(e) => {
-        if (mode === "play") e.stopPropagation();
-      }}
-      onClick={(e) => {
-        if (mode !== "play") return;
-        e.stopPropagation();
-        if (clickable) onMove(pawn.id);
-      }}
-      onPointerOver={(e) => {
-        if (!clickable) return;
-        e.stopPropagation();
-        setHovered(true);
-      }}
-      onPointerOut={() => setHovered(false)}
-    >
-      <GlassPawn color={pawn.color} />
-      <mesh ref={ring} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.009, 0]}>
-        <ringGeometry args={[0.195, 0.218, 32]} />
-        <meshBasicMaterial
-          color="#ffdf94"
-          transparent
-          opacity={0.9}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {clickable && (
-        <mesh position={[0, 0.12, 0]} visible={false}>
-          <cylinderGeometry args={[0.24, 0.24, 0.26, 12]} />
-          <meshBasicMaterial />
+    <>
+      <group ref={trail}>
+        {Array.from({ length: 6 }, (_, index) => (
+          <mesh
+            key={index}
+            visible={false}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <circleGeometry args={[0.17, 20]} />
+            <meshBasicMaterial
+              color={COLORS[pawn.color]}
+              transparent
+              opacity={0}
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+            />
+          </mesh>
+        ))}
+      </group>
+      <group
+        ref={ref}
+        position={initial}
+        onPointerDown={(e) => {
+          if (mode === "play") e.stopPropagation();
+        }}
+        onClick={(e) => {
+          if (mode !== "play") return;
+          e.stopPropagation();
+          if (clickable) onMove(pawn.id);
+        }}
+        onPointerOver={(e) => {
+          if (!clickable) return;
+          e.stopPropagation();
+          setHovered(true);
+        }}
+        onPointerOut={() => setHovered(false)}
+      >
+        <GlassPawn color={pawn.color} />
+        <mesh
+          ref={ring}
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, 0.009, 0]}
+        >
+          <ringGeometry args={[0.195, 0.218, 32]} />
+          <meshBasicMaterial
+            color="#ffdf94"
+            transparent
+            opacity={0.9}
+            side={THREE.DoubleSide}
+          />
         </mesh>
-      )}
-    </group>
+        {clickable && (
+          <mesh position={[0, 0.12, 0]} visible={false}>
+            <cylinderGeometry args={[0.24, 0.24, 0.26, 12]} />
+            <meshBasicMaterial />
+          </mesh>
+        )}
+      </group>
+    </>
   );
 }
 
@@ -651,6 +748,7 @@ function BoardObject(props: SceneProps) {
             mode={props.mode}
             move={props.frame.move}
             onMove={props.onMove}
+            soundEnabled={props.soundEnabled}
           />
         ))}
       </group>

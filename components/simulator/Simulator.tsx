@@ -549,6 +549,7 @@ export default function Simulator({
           onMove={(id) => void onMove(id)}
           reactions={reactions}
           speakingPlayerIds={voice?.speakingPlayerIds}
+          soundEnabled={prefs.sound}
         />
       </SceneBoundary>
       <div className="sim-vignette" />

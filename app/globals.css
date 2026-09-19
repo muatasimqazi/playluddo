@@ -22,6 +22,83 @@
   object-fit: cover;
 }
 
+.player-avatar.is-place-1 {
+  border-color: #f7c94a;
+  box-shadow:
+    0 0 0 2px rgb(255 229 128 / 55%),
+    0 3px 12px rgb(91 58 5 / 38%);
+}
+
+.player-avatar.is-place-2 {
+  border-color: #dce4ec;
+  box-shadow:
+    0 0 0 2px rgb(226 235 244 / 48%),
+    0 3px 11px rgb(42 52 63 / 34%);
+}
+
+.player-avatar.is-place-3 {
+  border-color: #d58a4a;
+  box-shadow:
+    0 0 0 2px rgb(223 151 88 / 42%),
+    0 3px 11px rgb(79 42 17 / 34%);
+}
+
+.player-avatar-crown {
+  position: absolute;
+  z-index: 2;
+  top: 1%;
+  left: 50%;
+  width: 68%;
+  height: auto;
+  overflow: visible;
+  transform: translateX(-50%) rotate(-4deg);
+  fill: #f8c83c;
+  stroke: #7b4807;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 1px rgb(55 32 0 / 55%));
+}
+
+.player-avatar-laurel {
+  position: absolute;
+  z-index: 2;
+  inset: 1%;
+  width: 98%;
+  height: 98%;
+  overflow: visible;
+  fill: none;
+  stroke: #e2e9ef;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgb(30 35 40 / 60%));
+  color: #e2e9ef;
+}
+
+.player-avatar-laurel.place-3 {
+  stroke: #d58a4a;
+  color: #d58a4a;
+}
+
+.player-avatar-laurel circle {
+  fill: currentColor;
+  stroke: #58636c;
+}
+
+.player-avatar-laurel.place-3 circle {
+  stroke: #77441f;
+}
+
+.player-avatar-laurel text {
+  fill: #37414a;
+  stroke: none;
+  font: 700 8px/1 sans-serif;
+}
+
+.player-avatar-laurel.place-3 text {
+  fill: #603315;
+}
+
 /*
  * "Modern Boardroom" design system tokens, transcribed directly from
  * designs/modern_boardroom/DESIGN.md — the canonical source per

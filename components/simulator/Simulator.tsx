@@ -1178,6 +1178,14 @@ export default function Simulator({
             state.pawns.find((s) => s.id === p.id)?.pathIndex === p.pathIndex,
         ) && (
           <div className="sim-victory">
+            {state.status !== "abandoned" &&
+              state.players.find((p) => p.id === state.winnerIds[0]) && (
+                <PlayerAvatar
+                  player={state.players.find((p) => p.id === state.winnerIds[0])!}
+                  size={76}
+                  crowned
+                />
+              )}
             <span className="eyebrow">
               {state.status === "abandoned" ? "UNTIL NEXT TIME" : "WELL PLAYED"}
             </span>
@@ -1196,9 +1204,13 @@ export default function Simulator({
             <div className="menu-players">
               {[...state.players]
                 .sort((a, b) => ranking.indexOf(a.id) - ranking.indexOf(b.id))
-                .map((p) => (
+                .map((p, index) => (
                   <div key={p.id}>
-                    <PlayerAvatar player={p} size={30} />
+                    <PlayerAvatar
+                      player={p}
+                      size={30}
+                      placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
+                    />
                     <span>{p.displayName}</span>
                     <small>
                       {snakes ? (

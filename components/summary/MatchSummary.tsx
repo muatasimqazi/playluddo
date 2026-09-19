@@ -68,6 +68,15 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
       <div className="rounded-lg border border-hairline bg-surface p-4 text-center shadow-elevation-2">
+        {!isAbandoned && playerById.get(roomState.winnerIds[0]) && (
+          <div className="mb-2 flex justify-center">
+            <PlayerAvatar
+              player={playerById.get(roomState.winnerIds[0])!}
+              size={72}
+              crowned
+            />
+          </div>
+        )}
         <p className="text-label-lg text-action">{isAbandoned ? "Match Abandoned" : "Victory!"}</p>
         <h1 className="mt-1 text-headline-md tracking-tight text-foreground">
           {isAbandoned
@@ -86,7 +95,11 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
           return (
             <div key={playerId} className="flex items-center gap-2">
               <span className="w-5 text-body-sm font-semibold text-text-secondary">{index + 1}</span>
-              <PlayerAvatar player={player} size={28} />
+              <PlayerAvatar
+                player={player}
+                size={28}
+                placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
+              />
               <span className="flex-1 truncate text-body-sm text-foreground">
                 {player.displayName} {player.id === myPlayerId && "(You)"}
               </span>

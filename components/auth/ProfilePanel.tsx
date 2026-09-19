@@ -6,6 +6,30 @@ import { createClient } from "@/lib/supabase/client";
 
 type LoginMethod = "email" | "phone";
 
+const AVATARS = [
+  { id: "fox", symbol: "🦊", label: "Fox" },
+  { id: "panda", symbol: "🐼", label: "Panda" },
+  { id: "lion", symbol: "🦁", label: "Lion" },
+  { id: "owl", symbol: "🦉", label: "Owl" },
+  { id: "koala", symbol: "🐨", label: "Koala" },
+  { id: "tiger", symbol: "🐯", label: "Tiger" },
+  { id: "frog", symbol: "🐸", label: "Frog" },
+  { id: "bear", symbol: "🐻", label: "Bear" },
+] as const;
+
+const COUNTRY_CODES = `AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`.split(" ");
+
+function countryOptions() {
+  const names = new Intl.DisplayNames(["en"], { type: "region" });
+  return COUNTRY_CODES.map((code) => ({ code, name: names.of(code) ?? code })).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+}
+
+function avatarSymbol(id: string) {
+  return AVATARS.find((avatar) => avatar.id === id)?.symbol;
+}
+
 function profileName(user: User | null) {
   if (!user) return "";
   return (
@@ -24,6 +48,7 @@ export function ProfilePanel({
   onNameChange: (name: string) => void;
 }) {
   const client = useMemo(() => createClient(), []);
+  const countries = useMemo(() => countryOptions(), []);
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
@@ -31,6 +56,8 @@ export function ProfilePanel({
   const [token, setToken] = useState("");
   const [sent, setSent] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [avatarId, setAvatarId] = useState("");
+  const [country, setCountry] = useState("");
   const [pending, setPending] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -39,6 +66,8 @@ export function ProfilePanel({
       setUser(nextUser);
       const nextName = profileName(nextUser);
       setDisplayName(nextName);
+      setAvatarId(nextUser?.user_metadata?.avatar_id ?? "");
+      setCountry(nextUser?.user_metadata?.country ?? "");
       if (nextUser && !nextUser.is_anonymous && nextName) onNameChange(nextName);
     };
 
@@ -111,16 +140,17 @@ export function ProfilePanel({
     setUser(data.user);
     setSent(false);
     setToken("");
-    setMessage("You’re signed in.");
+    setMessage(null);
+    setOpen(false);
   }
 
   async function saveProfile() {
     const name = displayName.trim();
-    if (!name) return;
+    if (!name || !avatarId || !country) return;
     setPending("profile");
     setMessage(null);
     const { data, error } = await client.auth.updateUser({
-      data: { display_name: name },
+      data: { display_name: name, avatar_id: avatarId, country },
     });
     setPending(null);
     if (error) {
@@ -152,7 +182,7 @@ export function ProfilePanel({
         onClick={() => setOpen(true)}
         aria-label={authenticated ? "Open your profile" : "Sign in or create a profile"}
       >
-        <span>{authenticated ? profileName(user).slice(0, 1).toUpperCase() : "○"}</span>
+        <span>{authenticated ? avatarSymbol(user.user_metadata?.avatar_id) ?? profileName(user).slice(0, 1).toUpperCase() : "○"}</span>
         {authenticated ? profileName(user) : "Sign in"}
       </button>
       {open && (
@@ -177,7 +207,9 @@ export function ProfilePanel({
             {authenticated ? (
               <>
                 <div className="profile-identity">
-                  {user.user_metadata?.avatar_url ? (
+                  {avatarSymbol(avatarId) ? (
+                    <span>{avatarSymbol(avatarId)}</span>
+                  ) : user.user_metadata?.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element -- provider avatars are remote and domains vary.
                     <img src={user.user_metadata.avatar_url} alt="" />
                   ) : (
@@ -197,10 +229,38 @@ export function ProfilePanel({
                     autoComplete="nickname"
                   />
                 </label>
+                <fieldset className="profile-avatar-field">
+                  <legend>Choose your avatar</legend>
+                  <div className="profile-avatars">
+                    {AVATARS.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        type="button"
+                        className={avatarId === avatar.id ? "is-selected" : ""}
+                        aria-label={avatar.label}
+                        aria-pressed={avatarId === avatar.id}
+                        onClick={() => setAvatarId(avatar.id)}
+                      >
+                        {avatar.symbol}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+                <label className="profile-field">
+                  Country
+                  <select value={country} onChange={(event) => setCountry(event.target.value)}>
+                    <option value="">Select your country</option>
+                    {countries.map((option) => (
+                      <option key={option.code} value={option.code}>
+                        {option.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <button
                   className="profile-primary"
                   type="button"
-                  disabled={pending !== null || !displayName.trim()}
+                  disabled={pending !== null || !displayName.trim() || !avatarId || !country}
                   onClick={() => void saveProfile()}
                 >
                   {pending === "profile" ? "Saving…" : "Save profile"}

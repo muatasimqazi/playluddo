@@ -1283,7 +1283,8 @@
   color: #c9d0c0;
   font-size: 10px;
 }
-.profile-field input {
+.profile-field input,
+.profile-field select {
   width: 100%;
   border: 1px solid #e7ebdc30;
   border-radius: 7px;
@@ -1293,9 +1294,55 @@
   padding: 12px;
   font-size: 13px;
 }
-.profile-field input:focus {
+.profile-field select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #bfc8b6 50%),
+    linear-gradient(135deg, #bfc8b6 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+}
+.profile-field input:focus,
+.profile-field select:focus {
   border-color: #d7c38b99;
   box-shadow: 0 0 0 3px #d7c38b18;
+}
+.profile-avatar-field {
+  margin: 3px 0 15px;
+  padding: 0;
+  border: 0;
+}
+.profile-avatar-field legend {
+  margin-bottom: 8px;
+  color: #c9d0c0;
+  font-size: 10px;
+}
+.profile-avatars {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+}
+.profile-avatars button {
+  display: grid;
+  aspect-ratio: 1;
+  min-width: 0;
+  place-items: center;
+  border: 1px solid #e7ebdc22;
+  border-radius: 50%;
+  background: #17241ca6;
+  font-size: 20px;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+.profile-avatars button:hover {
+  transform: translateY(-1px);
+}
+.profile-avatars button.is-selected {
+  border-color: #e4cd91;
+  background: #64745a;
+  box-shadow: 0 0 0 3px #d7c38b24;
 }
 .profile-primary {
   width: 100%;
@@ -1792,6 +1839,9 @@
   .profile-panel {
     max-height: calc(100dvh - 20px);
     padding: 25px 20px;
+  }
+  .profile-avatars {
+    grid-template-columns: repeat(4, 42px);
   }
   .entrance-content {
     left: 28px;

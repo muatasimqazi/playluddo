@@ -37,7 +37,9 @@ export function RoomLobby({
   const myPlayerId = useRoomStore((s) => s.myPlayerId);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [inviteFeedback, setInviteFeedback] = useState<
+    "code" | "link" | "shared" | null
+  >(null);
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(() => {
     if (typeof window === "undefined") return 2;
     const value = Number(
@@ -67,13 +69,34 @@ export function RoomLobby({
       setPending(false);
     }
   }
-  async function copy() {
+  function showInviteFeedback(value: "code" | "link" | "shared") {
+    setInviteFeedback(value);
+    setTimeout(() => setInviteFeedback(null), 2000);
+  }
+  async function copyInvite(value: string, kind: "code" | "link") {
     try {
-      await navigator.clipboard.writeText(state!.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(value);
+      showInviteFeedback(kind);
     } catch {
-      setError("Copy the six-letter code above to invite your friends.");
+      setError("Could not copy the invite. Select the room code above instead.");
+    }
+  }
+  async function shareInvite() {
+    const url = `${window.location.origin}/room/${roomId}`;
+    if (!navigator.share) {
+      await copyInvite(url, "link");
+      return;
+    }
+    try {
+      await navigator.share({
+        title: "Join my Luddo table",
+        text: `Join my Luddo table with room code ${state!.code}.`,
+        url,
+      });
+      showInviteFeedback("shared");
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+      setError("Could not open sharing. Copy the room link instead.");
     }
   }
   return (
@@ -139,10 +162,23 @@ export function RoomLobby({
             <span className="eyebrow">INVITE YOUR FRIENDS</span>
             <strong>{state.code}</strong>
           </div>
-          <button onClick={() => void copy()} title="Copy room code">
-            <Icon name={copied ? "check" : "users"} />
-            {copied ? "Copied" : "Copy code"}
-          </button>
+          <div className="lobby-invite-actions">
+            <button onClick={() => void shareInvite()} title="Share room invite">
+              <Icon name={inviteFeedback === "shared" ? "check" : "share"} />
+              {inviteFeedback === "shared" ? "Shared" : "Share"}
+            </button>
+            <button
+              onClick={() => void copyInvite(`${window.location.origin}/room/${roomId}`, "link")}
+              title="Copy room link"
+            >
+              <Icon name={inviteFeedback === "link" ? "check" : "link"} />
+              {inviteFeedback === "link" ? "Copied" : "Link"}
+            </button>
+            <button onClick={() => void copyInvite(state.code, "code")} title="Copy room code">
+              <Icon name={inviteFeedback === "code" ? "check" : "copy"} />
+              {inviteFeedback === "code" ? "Copied" : "Code"}
+            </button>
+          </div>
         </div>
         <div className="lobby-game">
           <div>

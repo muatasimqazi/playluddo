@@ -2229,6 +2229,21 @@ body.sim-piece-hover .sim-canvas {
   font-size: 9px;
   color: #c5ceb2;
 }
+.lobby-invite-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lobby-invite-actions button {
+  min-width: 48px;
+  justify-content: center;
+  padding: 7px 5px;
+  border-radius: 7px;
+}
+.lobby-invite-actions button:hover {
+  color: #f0ddaa;
+  background: #d9c78a14;
+}
 .lobby-voice {
   display: flex;
   align-items: center;
@@ -2372,5 +2387,17 @@ body.sim-piece-hover .sim-canvas {
   }
   .lobby-seat {
     padding: 7px 11px;
+  }
+  .lobby-code {
+    align-items: flex-end;
+  }
+  .lobby-invite-actions {
+    gap: 2px;
+  }
+  .lobby-invite-actions button {
+    min-width: 38px;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 7px;
   }
 }

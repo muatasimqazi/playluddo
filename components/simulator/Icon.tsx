@@ -17,6 +17,9 @@ export type IconName =
   | "home"
   | "check"
   | "users"
+  | "share"
+  | "link"
+  | "copy"
   | "mic"
   | "mic-off"
   | "phone-off";
@@ -99,6 +102,26 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <circle cx="9" cy="8" r="3" />
       <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="m8.7 10.7 6.6-4.1m-6.6 6.7 6.6 4.1" />
+    </>
+  ),
+  link: (
+    <>
+      <path d="m9.5 14.5 5-5" />
+      <path d="M7 17H5a4 4 0 0 1 0-8h3m9-2h2a4 4 0 0 1 0 8h-3" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="8" y="8" width="12" height="12" rx="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
     </>
   ),
   mic: (

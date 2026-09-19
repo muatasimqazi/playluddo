@@ -430,34 +430,6 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.anisotropy = 8;
     return t;
   }, [originalSkyline]);
-  const originalMug = useTexture("/textures/coffee-mug.jpg");
-  const mug = useMemo(() => {
-    // Build a ceramic wrap from the photographed front: retain the supplied
-    // logo and white glaze without wrapping its countertop/background around
-    // the modeled cylinder.
-    const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 512;
-    const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
-    if (!ctx) throw new Error("Could not prepare the coffee mug texture.");
-    ctx.fillStyle = "#f2f1ed";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(
-      originalMug.image as HTMLImageElement,
-      215,
-      215,
-      420,
-      360,
-      332,
-      76,
-      360,
-      309,
-    );
-    const t = new THREE.CanvasTexture(canvas);
-    t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 8;
-    return t;
-  }, [originalMug]);
   const originalCactus = useTexture("/textures/cactus.jpg");
   const cactus = useMemo(() => {
     const t = originalCactus.clone();
@@ -553,7 +525,6 @@ export function Apartment({ quality }: { quality: Quality }) {
       couchFabric.dispose();
       rug.dispose();
       skyline.dispose();
-      mug.dispose();
       cactus.dispose();
       books.dispose();
       paintings.dispose();
@@ -570,7 +541,6 @@ export function Apartment({ quality }: { quality: Quality }) {
       couchFabric,
       rug,
       skyline,
-      mug,
       cactus,
       books,
       paintings,
@@ -618,15 +588,9 @@ export function Apartment({ quality }: { quality: Quality }) {
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* Paired artwork on the solid wall opposite the windows. */}
-      <Box
-        position={[13.27, 6.5, -1.4]}
-        size={[0.16, 5.45, 7.8]}
-        color="#373733"
-        roughness={0.46}
-      />
+      {/* Frameless paired artwork on the solid wall opposite the windows. */}
       <mesh
-        position={[13.12, 6.5, -1.4]}
+        position={[13.31, 6.5, -1.4]}
         rotation={[0, -Math.PI / 2, 0]}
       >
         <planeGeometry args={[7.5, 5.2]} />
@@ -834,25 +798,6 @@ export function Apartment({ quality }: { quality: Quality }) {
           />
         )),
       )}
-      {/* Small everyday objects establish scale without cluttering the play surface. */}
-      <group position={[-3.65, 0.02, -2.5]}>
-        <mesh>
-          <cylinderGeometry args={[0.35, 0.35, 0.045, 32]} />
-          <meshStandardMaterial color="#75664d" />
-        </mesh>
-        <mesh position={[0, 0.19, 0]} rotation={[0, Math.PI, 0]} castShadow>
-          <cylinderGeometry args={[0.23, 0.18, 0.34, 32]} />
-          <meshStandardMaterial map={mug} color="#ffffff" roughness={0.24} />
-        </mesh>
-        <mesh position={[0, 0.365, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.207, 32]} />
-          <meshStandardMaterial color="#463123" />
-        </mesh>
-        <mesh position={[-0.25, 0.2, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <torusGeometry args={[0.12, 0.035, 8, 20]} />
-          <meshStandardMaterial color="#ded5bd" roughness={0.3} />
-        </mesh>
-      </group>
     </group>
   );
 }

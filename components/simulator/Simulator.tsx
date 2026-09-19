@@ -95,7 +95,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
         ? "medium"
         : "high",
     sound: true,
-    music: true,
+    music: false,
     musicVolume: 0.3,
     actionCamera: "off",
     orientation: HOME_ROTATION[color],
@@ -111,7 +111,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
         ? value.quality
         : defaults.quality,
       sound: typeof value.sound === "boolean" ? value.sound : true,
-      music: typeof value.music === "boolean" ? value.music : true,
+      music: typeof value.music === "boolean" ? value.music : false,
       musicVolume:
         typeof value.musicVolume === "number" &&
         value.musicVolume >= 0 &&

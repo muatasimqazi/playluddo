@@ -14,6 +14,7 @@ import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { createPractice } from "@/lib/presentation/practice";
 import { Icon } from "@/components/simulator/Icon";
+import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import "@/components/simulator/simulator.css";
@@ -275,15 +276,11 @@ export function RoomLobby({
                 key={color}
                 className={`lobby-seat ${player ? "occupied" : ""}`}
               >
-                <span
-                  className="lobby-avatar"
-                  style={{
-                    background: player ? COLORS[color] : undefined,
-                    borderColor: COLORS[color],
-                  }}
-                >
-                  {player ? player.displayName.slice(0, 1) : "+"}
-                </span>
+                {player ? (
+                  <PlayerAvatar player={player} size={44} className="lobby-avatar" />
+                ) : (
+                  <span className="lobby-avatar" style={{ borderColor: COLORS[color] }}>+</span>
+                )}
                 <span>
                   <strong>
                     {player

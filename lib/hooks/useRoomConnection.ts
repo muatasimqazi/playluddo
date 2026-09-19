@@ -7,6 +7,7 @@ import { claimSeat, getRoomState, RpcError } from "../supabase/rpc";
 import { fetchRecentEvents, subscribeToRoom } from "../realtime/room-channel";
 import { fetchTableMessages } from "../realtime/table-messages";
 import { useRoomStore } from "../store/room-store";
+import type { GameRoomState } from "../board/types";
 
 /** Subscribe first, then reconcile a snapshot on every successful join/rejoin. */
 export function useRoomConnection(roomId: string) {
@@ -20,7 +21,26 @@ export function useRoomConnection(roomId: string) {
     let refreshing = false;
     let refreshAgain = false;
     let subscribed = false;
+    let currentProfile: { avatarId?: string; displayName?: string; country?: string } = {};
     const store = useRoomStore.getState;
+
+    function withCurrentProfile(state: GameRoomState): GameRoomState {
+      const playerId = store().myPlayerId;
+      if (!playerId || !currentProfile.avatarId) return state;
+      return {
+        ...state,
+        players: state.players.map((player) =>
+          player.id === playerId
+            ? {
+                ...player,
+                avatarId: currentProfile.avatarId,
+                displayName: currentProfile.displayName || player.displayName,
+                country: currentProfile.country || player.country,
+              }
+            : player,
+        ),
+      };
+    }
 
     async function refreshEvents() {
       if (refreshing) {
@@ -44,7 +64,7 @@ export function useRoomConnection(roomId: string) {
       try {
         const state = await getRoomState(client, roomId);
         if (cancelled) return;
-        store().setRoomState(state);
+        store().setRoomState(withCurrentProfile(state));
         await refreshEvents();
         if (!cancelled) {
           store().setConnection(subscribed ? "connected" : "reconnecting");
@@ -70,6 +90,13 @@ export function useRoomConnection(roomId: string) {
     async function connect() {
       try {
         await ensureSession(client);
+        const { data: userData } = await client.auth.getUser();
+        const metadata = userData.user?.user_metadata;
+        currentProfile = {
+          avatarId: metadata?.avatar_id,
+          displayName: metadata?.display_name,
+          country: metadata?.country,
+        };
         const { playerId, connectionToken } = await claimSeat(client, roomId);
         if (cancelled) return;
         store().setIdentity(playerId, connectionToken);
@@ -78,7 +105,7 @@ export function useRoomConnection(roomId: string) {
           roomId,
           (nextState) => {
             if (cancelled) return;
-            store().setRoomState(nextState);
+            store().setRoomState(withCurrentProfile(nextState));
             void refreshEvents();
           },
           {
@@ -105,7 +132,7 @@ export function useRoomConnection(roomId: string) {
         // Also load if realtime is temporarily unavailable; the HUD remains read-only.
         const state = await getRoomState(client, roomId);
         if (!cancelled) {
-          store().setRoomState(state);
+          store().setRoomState(withCurrentProfile(state));
           await refreshEvents();
           setLoading(false);
         }

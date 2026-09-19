@@ -13,10 +13,16 @@ export interface PracticeSession {
   state: GameRoomState;
   events: MatchEventRow[];
 }
+export interface PracticeProfile {
+  displayName?: string;
+  avatarId?: string;
+  country?: string;
+}
 export function createPractice(
   gameType: GameType = "ludo",
   playerCount: 2 | 3 | 4 = 4,
   playerColor: PlayerColor = "blue",
+  profile: PracticeProfile = {},
 ): PracticeSession {
   const colors = [
     playerColor,
@@ -33,7 +39,7 @@ export function createPractice(
       players: colors.map((color, i) => ({
         id: `practice-${i}`,
         seatIndex: i,
-        displayName: ["You", "Rowan", "Sage", "Jules"][i],
+        displayName: i === 0 ? profile.displayName || "You" : ["You", "Rowan", "Sage", "Jules"][i],
         color,
         status: i ? "bot" : "connected",
         isBot: i > 0,
@@ -43,6 +49,8 @@ export function createPractice(
         autoRollEnabled: false,
         rematchReady: false,
         inVoice: false,
+        avatarId: i === 0 ? profile.avatarId || "fox" : ["fox", "panda", "owl", "frog"][i],
+        country: i === 0 ? profile.country || "" : "",
       })),
       pawns: colors.flatMap((color) =>
         Array.from({ length: gameType === "ludo" ? 4 : 1 }, (_, index) => ({
@@ -82,6 +90,7 @@ export function practiceReducer(
       session.state.gameType,
       session.state.players.length as 2 | 3 | 4,
       session.state.players[0].color,
+      session.state.players[0],
     );
   const { state } = session;
   if (state.status !== "in_game") return session;

@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { DicePipFace } from "./Dice";
-import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
+import { QUADRANT_CLASSES } from "@/components/shared/colors";
+import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import type { GameRoomState, Player } from "@/lib/board/types";
 
@@ -108,12 +109,7 @@ export function StatusPod({
           </motion.svg>
         )}
       </AnimatePresence>
-      <div
-        className={`absolute inset-0.75 flex items-center justify-center rounded-full text-label-md text-white ${classes.bg}`}
-        aria-hidden
-      >
-        {QUADRANT_INITIAL[player.color]}
-      </div>
+      <PlayerAvatar player={player} size={AVATAR_SIZE} className="absolute inset-0.75" />
     </div>
   );
 

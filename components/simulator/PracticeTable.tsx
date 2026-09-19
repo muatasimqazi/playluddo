@@ -10,6 +10,7 @@ import {
   type PracticeSession,
 } from "@/lib/presentation/practice";
 import Simulator from "./Simulator";
+import { createClient } from "@/lib/supabase/client";
 
 function requestedPlayerCount(): 2 | 3 | 4 | undefined {
   if (typeof window === "undefined") return undefined;
@@ -81,6 +82,35 @@ export default function PracticeTable() {
   const [generation, setGeneration] = useState(0);
   const state = session.state;
   useEffect(() => {
+    const client = createClient();
+    void client.auth.getUser().then(({ data }) => {
+      const metadata = data.user?.user_metadata;
+      if (!data.user || !metadata?.avatar_id) return;
+      setSessions((previous) => {
+        const applyProfile = (current: PracticeSession): PracticeSession => ({
+          ...current,
+          state: {
+            ...current.state,
+            players: current.state.players.map((player, index) =>
+              index === 0
+                ? {
+                    ...player,
+                    displayName: metadata.display_name || player.displayName,
+                    avatarId: metadata.avatar_id,
+                    country: metadata.country || "",
+                  }
+                : player,
+            ),
+          },
+        });
+        return {
+          ludo: applyProfile(previous.ludo),
+          snakes_and_ladders: applyProfile(previous.snakes_and_ladders),
+        };
+      });
+    });
+  }, []);
+  useEffect(() => {
     try {
       localStorage.setItem(
         gameType === "ludo" ? "luddo-practice-v1" : "luddo-snakes-practice-v1",
@@ -133,6 +163,7 @@ export default function PracticeTable() {
             gameType,
             playerCount,
             state.players[0].color,
+            state.players[0],
           ),
         }));
         setGeneration((n) => n + 1);

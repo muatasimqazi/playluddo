@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+.player-avatar {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 2px solid var(--player-avatar-color, #fff);
+  border-radius: 999px;
+  background: #e9e3d7;
+  box-shadow: 0 2px 8px rgb(20 17 13 / 24%);
+}
+
+.player-avatar img {
+  position: absolute;
+  top: -9%;
+  left: -3%;
+  width: 106%;
+  height: 106%;
+  max-width: none;
+  object-fit: cover;
+}
+
 /*
  * "Modern Boardroom" design system tokens, transcribed directly from
  * designs/modern_boardroom/DESIGN.md — the canonical source per
@@ -293,4 +315,3 @@ button:hover > .ludo-piece-legal {
 .ios-switch input:checked + .ios-slider::before {
   transform: translateX(18px);
 }
-

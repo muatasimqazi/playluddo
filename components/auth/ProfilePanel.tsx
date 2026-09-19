@@ -1,21 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { AVATARS, avatarDefinition } from "@/lib/avatars/catalog";
 
 type LoginMethod = "email" | "phone";
-
-const AVATARS = [
-  { id: "fox", symbol: "🦊", label: "Fox" },
-  { id: "panda", symbol: "🐼", label: "Panda" },
-  { id: "lion", symbol: "🦁", label: "Lion" },
-  { id: "owl", symbol: "🦉", label: "Owl" },
-  { id: "koala", symbol: "🐨", label: "Koala" },
-  { id: "tiger", symbol: "🐯", label: "Tiger" },
-  { id: "frog", symbol: "🐸", label: "Frog" },
-  { id: "bear", symbol: "🐻", label: "Bear" },
-] as const;
 
 const COUNTRY_CODES = `AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`.split(" ");
 
@@ -26,8 +16,20 @@ function countryOptions() {
   );
 }
 
-function avatarSymbol(id: string) {
-  return AVATARS.find((avatar) => avatar.id === id)?.symbol;
+function AnimatedAvatar({ id, fallback = "P" }: { id?: string; fallback?: string }) {
+  const avatar = avatarDefinition(id);
+  return (
+    <span className="animated-avatar" data-avatar={id || "player"} aria-hidden="true">
+      <span className="avatar-glow" />
+      {avatar ? (
+        // eslint-disable-next-line @next/next/no-img-element -- local avatar thumbnails are tiny pre-optimized WebP assets.
+        <img className="avatar-portrait" src={avatar.portrait} alt="" />
+      ) : (
+        <span className="avatar-fallback">{fallback}</span>
+      )}
+      <span className="avatar-spark">✦</span>
+    </span>
+  );
 }
 
 function profileName(user: User | null) {
@@ -49,6 +51,7 @@ export function ProfilePanel({
 }) {
   const client = useMemo(() => createClient(), []);
   const countries = useMemo(() => countryOptions(), []);
+  const avatarRail = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
@@ -77,6 +80,16 @@ export function ProfilePanel({
     });
     return () => data.subscription.unsubscribe();
   }, [client, onNameChange]);
+
+  useEffect(() => {
+    if (!open || !avatarId) return;
+    const frame = requestAnimationFrame(() => {
+      avatarRail.current
+        ?.querySelector<HTMLElement>(`[data-avatar-choice="${avatarId}"]`)
+        ?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, avatarId]);
 
   const authenticated = !!user && !user.is_anonymous;
   const identity = user?.email || user?.phone || "Signed-in player";
@@ -146,7 +159,7 @@ export function ProfilePanel({
 
   async function saveProfile() {
     const name = displayName.trim();
-    if (!name || !avatarId || !country) return;
+    if (!name || !avatarId) return;
     setPending("profile");
     setMessage(null);
     const { data, error } = await client.auth.updateUser({
@@ -182,7 +195,14 @@ export function ProfilePanel({
         onClick={() => setOpen(true)}
         aria-label={authenticated ? "Open your profile" : "Sign in or create a profile"}
       >
-        <span>{authenticated ? avatarSymbol(user.user_metadata?.avatar_id) ?? profileName(user).slice(0, 1).toUpperCase() : "○"}</span>
+        {authenticated ? (
+          <AnimatedAvatar
+            id={user.user_metadata?.avatar_id}
+            fallback={profileName(user).slice(0, 1).toUpperCase()}
+          />
+        ) : (
+          <span className="profile-guest-avatar">○</span>
+        )}
         {authenticated ? profileName(user) : "Sign in"}
       </button>
       {open && (
@@ -207,8 +227,8 @@ export function ProfilePanel({
             {authenticated ? (
               <>
                 <div className="profile-identity">
-                  {avatarSymbol(avatarId) ? (
-                    <span>{avatarSymbol(avatarId)}</span>
+                  {avatarDefinition(avatarId) ? (
+                    <AnimatedAvatar id={avatarId} />
                   ) : user.user_metadata?.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element -- provider avatars are remote and domains vary.
                     <img src={user.user_metadata.avatar_url} alt="" />
@@ -229,23 +249,42 @@ export function ProfilePanel({
                     autoComplete="nickname"
                   />
                 </label>
-                <fieldset className="profile-avatar-field">
-                  <legend>Choose your avatar</legend>
-                  <div className="profile-avatars">
+                <div className="profile-avatar-field">
+                  <div className="profile-avatar-heading">
+                    <span>Choose your avatar</span>
+                    <div className="profile-avatar-controls" aria-label="Scroll avatars">
+                      <button
+                        type="button"
+                        aria-label="Previous avatars"
+                        onClick={() => avatarRail.current?.scrollBy({ left: -190, behavior: "smooth" })}
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Next avatars"
+                        onClick={() => avatarRail.current?.scrollBy({ left: 190, behavior: "smooth" })}
+                      >
+                        ›
+                      </button>
+                    </div>
+                  </div>
+                  <div ref={avatarRail} className="profile-avatars">
                     {AVATARS.map((avatar) => (
                       <button
                         key={avatar.id}
+                        data-avatar-choice={avatar.id}
                         type="button"
                         className={avatarId === avatar.id ? "is-selected" : ""}
                         aria-label={avatar.label}
                         aria-pressed={avatarId === avatar.id}
                         onClick={() => setAvatarId(avatar.id)}
                       >
-                        {avatar.symbol}
+                        <AnimatedAvatar id={avatar.id} />
                       </button>
                     ))}
                   </div>
-                </fieldset>
+                </div>
                 <label className="profile-field">
                   Country
                   <select value={country} onChange={(event) => setCountry(event.target.value)}>
@@ -260,7 +299,7 @@ export function ProfilePanel({
                 <button
                   className="profile-primary"
                   type="button"
-                  disabled={pending !== null || !displayName.trim() || !avatarId || !country}
+                  disabled={pending !== null || !displayName.trim() || !avatarId}
                   onClick={() => void saveProfile()}
                 >
                   {pending === "profile" ? "Saving…" : "Save profile"}

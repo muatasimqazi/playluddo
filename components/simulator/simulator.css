@@ -239,6 +239,10 @@
 .sim-canvas.mode-rotate {
   cursor: ew-resize;
 }
+body.sim-die-hover .sim-canvas,
+body.sim-piece-hover .sim-canvas {
+  cursor: pointer;
+}
 .sim-vignette {
   position: absolute;
   inset: 0;
@@ -1158,7 +1162,7 @@
   font-size: 10px;
   backdrop-filter: blur(18px);
 }
-.profile-trigger > span {
+.profile-guest-avatar {
   display: grid;
   width: 26px;
   height: 26px;
@@ -1168,6 +1172,74 @@
   color: #263324;
   font-size: 11px;
   font-weight: 700;
+}
+.animated-avatar {
+  --avatar-a: #f5c46b;
+  --avatar-b: #cf674d;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid #ffffff73;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 22%, #ffffffbf 0 5%, transparent 22%),
+    linear-gradient(145deg, var(--avatar-a), var(--avatar-b));
+  box-shadow:
+    inset -5px -7px 10px #24150b3d,
+    inset 4px 5px 8px #ffffff4f,
+    0 4px 12px color-mix(in srgb, var(--avatar-b) 48%, transparent);
+}
+.animated-avatar[data-avatar="fox"] { --avatar-a: #ffcc68; --avatar-b: #e65d36; }
+.animated-avatar[data-avatar="panda"] { --avatar-a: #f7f4e9; --avatar-b: #879397; }
+.animated-avatar[data-avatar="lion"] { --avatar-a: #ffe071; --avatar-b: #c77c22; }
+.animated-avatar[data-avatar="owl"] { --avatar-a: #cf9eff; --avatar-b: #6050ad; }
+.animated-avatar[data-avatar="koala"] { --avatar-a: #d8e1e1; --avatar-b: #71878d; }
+.animated-avatar[data-avatar="tiger"] { --avatar-a: #ffb34d; --avatar-b: #d84628; }
+.animated-avatar[data-avatar="frog"] { --avatar-a: #b9e75f; --avatar-b: #3b9c59; }
+.animated-avatar[data-avatar="bear"] { --avatar-a: #d9a36c; --avatar-b: #784c36; }
+.animated-avatar[data-avatar="player"] { --avatar-a: #e6d39f; --avatar-b: #67785f; }
+.avatar-glow {
+  position: absolute;
+  inset: -45%;
+  z-index: -1;
+  background: conic-gradient(from 0deg, transparent, #ffffff75, transparent 32%);
+  animation: avatar-orbit 5s linear infinite;
+}
+.avatar-portrait {
+  position: absolute;
+  top: -9%;
+  left: -3%;
+  width: 106%;
+  height: 106%;
+  border-radius: inherit;
+  object-fit: cover;
+  object-position: 50% 50%;
+  animation: avatar-breathe 2.8s ease-in-out infinite;
+}
+.avatar-fallback {
+  color: #273426;
+  font-size: 0.48em;
+  font-weight: 750;
+}
+.avatar-spark {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  color: #fff7c9;
+  font-size: 0.28em;
+  line-height: 1;
+  text-shadow: 0 0 5px #fff;
+  animation: avatar-twinkle 1.9s ease-in-out infinite;
+}
+.profile-trigger > .animated-avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 21px;
 }
 .profile-backdrop {
   position: fixed;
@@ -1315,34 +1387,72 @@
   padding: 0;
   border: 0;
 }
-.profile-avatar-field legend {
-  margin-bottom: 8px;
+.profile-avatar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.profile-avatar-heading > span {
   color: #c9d0c0;
   font-size: 10px;
 }
-.profile-avatars {
+.profile-avatar-controls {
+  display: flex;
+  gap: 5px;
+}
+.profile-avatar-controls button {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 6px;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid #ffffff24;
+  border-radius: 50%;
+  color: #e7e1d2;
+  font-size: 20px;
+  line-height: 1;
+}
+.profile-avatars {
+  display: flex;
+  gap: 10px;
+  margin: 0 -4px;
+  padding: 5px 4px 11px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: #d7c38b66 transparent;
+  scrollbar-width: thin;
 }
 .profile-avatars button {
   display: grid;
-  aspect-ratio: 1;
-  min-width: 0;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
   place-items: center;
-  border: 1px solid #e7ebdc22;
+  padding: 4px;
+  border: 1px solid transparent;
   border-radius: 50%;
-  background: #17241ca6;
+  background: transparent;
   font-size: 20px;
+  scroll-snap-align: center;
   transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+.profile-avatars .animated-avatar {
+  width: 100%;
+  height: 100%;
+  font-size: 31px;
 }
 .profile-avatars button:hover {
   transform: translateY(-1px);
 }
 .profile-avatars button.is-selected {
   border-color: #e4cd91;
-  background: #64745a;
+  background: #d7c38b1c;
   box-shadow: 0 0 0 3px #d7c38b24;
+}
+.profile-avatars button.is-selected .animated-avatar {
+  animation: avatar-selected 1.8s ease-in-out infinite;
 }
 .profile-primary {
   width: 100%;
@@ -1384,7 +1494,7 @@
   border-radius: 9px;
   background: #16221ba1;
 }
-.profile-identity > span,
+.profile-identity > .animated-avatar,
 .profile-identity img {
   display: grid;
   width: 42px;
@@ -1396,6 +1506,32 @@
   color: #273426;
   object-fit: cover;
   font-weight: 700;
+}
+.profile-identity > .animated-avatar {
+  font-size: 34px;
+}
+@keyframes avatar-orbit {
+  to { transform: rotate(360deg); }
+}
+@keyframes avatar-breathe {
+  0%, 100% { transform: translateY(0) rotate(-2deg) scale(1); }
+  50% { transform: translateY(-1px) rotate(2deg) scale(1.07); }
+}
+@keyframes avatar-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.7) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(20deg); }
+}
+@keyframes avatar-selected {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar-glow,
+  .avatar-portrait,
+  .avatar-spark,
+  .profile-avatars button.is-selected .animated-avatar {
+    animation: none;
+  }
 }
 .profile-identity strong,
 .profile-identity small {
@@ -1841,7 +1977,12 @@
     padding: 25px 20px;
   }
   .profile-avatars {
-    grid-template-columns: repeat(4, 42px);
+    gap: 8px;
+  }
+  .profile-avatars button {
+    width: 70px;
+    height: 70px;
+    flex-basis: 70px;
   }
   .entrance-content {
     left: 28px;

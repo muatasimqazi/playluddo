@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { QUADRANT_CLASSES, QUADRANT_INITIAL } from "@/components/shared/colors";
+import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { acceptRematch, requestRematch } from "@/lib/supabase/rpc";
 import { rankPlayers, type PlayerProgress } from "@/lib/board/rules";
 import { useRoomStore } from "@/lib/store/room-store";
@@ -81,15 +81,12 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
         {ranking.map((playerId, index) => {
           const player = playerById.get(playerId);
           if (!player) return null;
-          const classes = QUADRANT_CLASSES[player.color];
           const pawns = roomState.pawns.filter((p) => p.color === player.color);
           const finished = pawns.filter((p) => p.state === "finished").length;
           return (
             <div key={playerId} className="flex items-center gap-2">
               <span className="w-5 text-body-sm font-semibold text-text-secondary">{index + 1}</span>
-              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-label-sm text-white shadow-elevation-3 ${classes.bg}`}>
-                {QUADRANT_INITIAL[player.color]}
-              </div>
+              <PlayerAvatar player={player} size={28} />
               <span className="flex-1 truncate text-body-sm text-foreground">
                 {player.displayName} {player.id === myPlayerId && "(You)"}
               </span>

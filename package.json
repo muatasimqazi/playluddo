@@ -13,6 +13,7 @@
     "test:multiplayer": "vitest run tests/integration"
   },
   "dependencies": {
+    "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@supabase/ssr": "^0.12.7",

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { QUADRANT_CLASSES } from "@/components/shared/colors";
+import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { Player } from "@/lib/board/types";
 
@@ -46,12 +46,7 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
               >
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-1.5">
-                    {player && (
-                      <span
-                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${QUADRANT_CLASSES[player.color].bg}`}
-                        aria-hidden
-                      />
-                    )}
+                    {player && <PlayerAvatar player={player} size={24} />}
                     <span className="truncate text-label-md text-foreground">{player?.displayName ?? "Match"}</span>
                   </div>
                   <RelativeTime iso={event.created_at} />

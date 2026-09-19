@@ -16,6 +16,7 @@ import { rankPlayers } from "@/lib/board/rules";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
+import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import {
   COLORS,
@@ -1024,7 +1025,7 @@ export default function Simulator({
               <div className="menu-players">
                 {state.players.map((player) => (
                   <div key={player.id}>
-                    <i style={{ background: COLORS[player.color] }} />
+                    <PlayerAvatar player={player} size={30} />
                     <span>
                       {player.displayName}
                       {player.id === myPlayerId ? " (you)" : ""}
@@ -1197,7 +1198,7 @@ export default function Simulator({
                 .sort((a, b) => ranking.indexOf(a.id) - ranking.indexOf(b.id))
                 .map((p) => (
                   <div key={p.id}>
-                    <i style={{ background: COLORS[p.color] }} />
+                    <PlayerAvatar player={p} size={30} />
                     <span>{p.displayName}</span>
                     <small>
                       {snakes ? (

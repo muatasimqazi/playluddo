@@ -19,6 +19,7 @@ import {
   useTexture,
 } from "@react-three/drei";
 import * as THREE from "three";
+import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
 import {
@@ -44,6 +45,7 @@ import { makeBoardTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { Icon } from "./Icon";
+import { PlayerAvatars3D } from "./PlayerAvatar3D";
 
 export interface SceneProps {
   gameType?: GameType;
@@ -389,14 +391,22 @@ function Piece({
         onClick={(e) => {
           if (mode !== "play") return;
           e.stopPropagation();
-          if (clickable) onMove(pawn.id);
+          if (clickable) {
+            document.body.classList.remove("sim-piece-hover");
+            setHovered(false);
+            onMove(pawn.id);
+          }
         }}
         onPointerOver={(e) => {
           if (!clickable) return;
           e.stopPropagation();
+          document.body.classList.add("sim-piece-hover");
           setHovered(true);
         }}
-        onPointerOut={() => setHovered(false)}
+        onPointerOut={() => {
+          document.body.classList.remove("sim-piece-hover");
+          setHovered(false);
+        }}
       >
         <GlassPawn color={pawn.color} />
         <mesh
@@ -486,6 +496,7 @@ function PhysicalDie({
   "frame" | "canRoll" | "onRoll" | "mode" | "players" | "turnPlayerId"
 >) {
   const mesh = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
   const activePlayer = players.find(
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
@@ -500,6 +511,11 @@ function PhysicalDie({
     [frame.dice],
   );
   const lastRoll = useRef(frame.rollId);
+  useEffect(() => {
+    const active = hovered && canRoll && mode === "play";
+    document.body.classList.toggle("sim-die-hover", active);
+    return () => document.body.classList.remove("sim-die-hover");
+  }, [canRoll, hovered, mode]);
   useFrame((_, delta) => {
     if (!mesh.current) return;
     if (frame.rollId !== lastRoll.current) {
@@ -507,6 +523,10 @@ function PhysicalDie({
       elapsed.current = 0;
     }
     elapsed.current += Math.min(delta, 0.1);
+    const hoverScale = hovered && canRoll && mode === "play" ? 1.08 : 1;
+    mesh.current.scale.setScalar(
+      THREE.MathUtils.damp(mesh.current.scale.x, hoverScale, 12, delta),
+    );
     const t = Math.min(1, elapsed.current / (ROLL_MS / 1000));
     if (t < 0.7) {
       mesh.current.rotation.x += delta * 17;
@@ -548,6 +568,12 @@ function PhysicalDie({
           e.stopPropagation();
           if (canRoll) onRoll();
         }}
+        onPointerOver={(e) => {
+          if (!canRoll || mode !== "play") return;
+          e.stopPropagation();
+          setHovered(true);
+        }}
+        onPointerOut={() => setHovered(false)}
       >
         <RoundedBox
           args={[0.46, 0.46, 0.46]}
@@ -817,9 +843,7 @@ function Seats({
               {reactions?.[player.id] && (
                 <span className="seat-reaction">{reactions[player.id]}</span>
               )}
-              <span className="seat-avatar">
-                {player.displayName.slice(0, 1).toUpperCase()}
-              </span>
+              <PlayerAvatar player={player} size={34} className="seat-avatar" />
               {player.inVoice && (
                 <span
                   className={`seat-mic ${speakingPlayerIds?.has(player.id) ? "speaking" : ""}`}
@@ -951,6 +975,13 @@ export default function SimulatorScene(props: SceneProps) {
             />
           </Environment>
           <Apartment quality={props.quality} />
+          <PlayerAvatars3D
+            players={props.players}
+            turnPlayerId={props.turnPlayerId}
+            speakingPlayerIds={props.speakingPlayerIds}
+            preview={props.preview}
+            orientation={props.orientation}
+          />
           <BoardObject {...props} />
           <PhysicalDie key={props.frame.revision} {...props} />
           {props.quality !== "low" && (

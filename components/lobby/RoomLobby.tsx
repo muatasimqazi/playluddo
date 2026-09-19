@@ -294,7 +294,7 @@ export function RoomLobby({
                   : "Join audio"}
             </button>
             {voice.joined && (
-              <button onClick={voice.leave}>
+              <button className="leave-voice" onClick={voice.leave}>
                 <Icon name="phone-off" />
                 Leave audio
               </button>

@@ -171,16 +171,18 @@ function Tool({
   onClick,
   active = false,
   disabled = false,
+  danger = false,
 }: {
   icon: IconName;
   label: string;
   onClick: () => void;
   active?: boolean;
   disabled?: boolean;
+  danger?: boolean;
 }) {
   return (
     <button
-      className={`sim-tool ${active ? "is-selected" : ""}`}
+      className={`sim-tool ${active ? "is-selected" : ""} ${danger ? "is-danger" : ""}`}
       type="button"
       title={label}
       aria-label={label}
@@ -715,6 +717,7 @@ export default function Simulator({
                 icon="phone-off"
                 label="Leave voice chat"
                 onClick={voice.leave}
+                danger
               />
             )}
           </>

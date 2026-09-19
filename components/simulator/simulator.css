@@ -398,6 +398,14 @@ body.sim-piece-hover .sim-canvas {
   border-color: #b9a27680;
   background: #3e483a;
 }
+.sim-tool.is-danger {
+  border-color: #db806b66;
+  color: #f0a08e;
+}
+.sim-tool.is-danger:hover {
+  background: #a83c2938;
+  color: #ffc1b3;
+}
 .sim-modebar {
   position: absolute;
   top: 88px;
@@ -2287,6 +2295,11 @@ body.sim-piece-hover .sim-canvas {
 .lobby-voice button.is-active {
   border-color: #d9be82ad;
   color: #ebd9ab;
+}
+.lobby-voice button.leave-voice {
+  border-color: #db806b66;
+  color: #f0a08e;
+  background: #8f35272b;
 }
 .lobby-voice-error {
   font-size: 9px;

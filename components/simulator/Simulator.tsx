@@ -61,6 +61,9 @@ export interface SimulatorProps {
   onFlip?: () => void;
   onRematch?: () => Promise<unknown>;
   onReclaim?: () => Promise<unknown>;
+  paused?: boolean;
+  canPause?: boolean;
+  onPause?: (paused: boolean) => Promise<unknown> | void;
   voice?: VoiceChat;
 }
 interface Preferences {
@@ -211,6 +214,9 @@ export default function Simulator({
   onFlip,
   onRematch,
   onReclaim,
+  paused = false,
+  canPause = false,
+  onPause,
   voice,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
@@ -280,6 +286,7 @@ export default function Simulator({
     !flipping &&
     !frame.waitingForEvents &&
     !readOnly &&
+    !paused &&
     connection === "connected" &&
     mode === "play";
   const canRoll =
@@ -598,6 +605,14 @@ export default function Simulator({
             )}
         </div>
         <div className="sim-session">
+          {canPause && onPause && state.status === "in_game" && (
+            <Tool
+              icon={paused ? "play" : "pause"}
+              label={paused ? "Resume match" : "Pause match"}
+              onClick={() => void onPause(!paused)}
+              disabled={pending || frame.busy}
+            />
+          )}
           {onFlip && (
             <Tool
               icon="rotate"
@@ -622,6 +637,20 @@ export default function Simulator({
           />
         </div>
       </header>
+      {paused && (
+        <div className="sim-paused" role="status">
+          <Icon name="pause" size={22} />
+          <div>
+            <strong>Game paused</strong>
+            <span>{canPause ? "Resume when everyone is ready." : "The host will resume the table."}</span>
+          </div>
+          {canPause && onPause && (
+            <button className="sim-primary" onClick={() => void onPause(false)}>
+              <Icon name="play" /> Resume
+            </button>
+          )}
+        </div>
+      )}
       <nav className="sim-modebar" aria-label="Interaction mode">
         {(
           [

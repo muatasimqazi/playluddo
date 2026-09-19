@@ -78,6 +78,7 @@ export interface GameRoomState {
   code: string;
   gameType: GameType;
   status: "lobby" | "in_game" | "summary" | "abandoned";
+  paused?: boolean;
   players: Player[];
   pawns: Pawn[];
   turnPlayerId: string | null;

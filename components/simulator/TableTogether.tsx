@@ -45,12 +45,13 @@ export default function TableTogether() {
   } | null>(null);
   const [gameType, setGameType] = useState<GameType>("ludo");
   const [readyPlayerId, setReadyPlayerId] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
   const [handoffPlayerId, setHandoffPlayerId] = useState<string | null>(null);
   const session = sessions?.[gameType];
   const state = session?.state;
   const turnPlayer = state?.players.find((player) => player.id === state.turnPlayerId);
   const needsHandoff =
-    !!state && state.status === "in_game" && readyPlayerId !== state.turnPlayerId;
+    !!state && !paused && state.status === "in_game" && readyPlayerId !== state.turnPlayerId;
 
   useEffect(() => {
     if (!state?.turnPlayerId || state.status !== "in_game") return;
@@ -137,6 +138,9 @@ export default function TableTogether() {
         myPlayerId={needsHandoff ? null : state.turnPlayerId}
         localPlay
         practice
+        paused={paused}
+        canPause
+        onPause={(next) => setPaused(next)}
         onRoll={() => dispatch({ type: "roll", value: randomDie() })}
         onMove={(pawnId) => dispatch({ type: "move", pawnId })}
         onFlip={() => {

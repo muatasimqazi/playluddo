@@ -94,6 +94,10 @@ function describeEvent(event: MatchEventRow): string {
     }
     case "match_started":
       return "match started";
+    case "match_paused":
+      return "paused the match";
+    case "match_resumed":
+      return "resumed the match";
     case "match_completed":
       return "won the match!";
     case "player_finished":

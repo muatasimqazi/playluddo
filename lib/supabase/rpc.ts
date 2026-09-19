@@ -19,6 +19,7 @@ export type RpcErrorCode =
   | "NOT_ENOUGH_PLAYERS"
   | "NOT_YOUR_TURN"
   | "INVALID_PHASE"
+  | "MATCH_PAUSED"
   | "ILLEGAL_MOVE"
   | "SEAT_NOT_CONTROLLED"
   | "SESSION_REPLACED"
@@ -38,6 +39,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "NOT_ENOUGH_PLAYERS",
   "NOT_YOUR_TURN",
   "INVALID_PHASE",
+  "MATCH_PAUSED",
   "ILLEGAL_MOVE",
   "SEAT_NOT_CONTROLLED",
   "SESSION_REPLACED",
@@ -142,6 +144,13 @@ export function toggleAutoRoll(client: SupabaseClient, roomId: string, enabled: 
   return call<{ autoRollEnabled: boolean }>(client, "toggle_auto_roll", {
     p_room_id: roomId,
     p_enabled: enabled,
+  });
+}
+
+export function toggleMatchPause(client: SupabaseClient, roomId: string, paused: boolean) {
+  return call<GameRoomState>(client, "toggle_match_pause", {
+    p_room_id: roomId,
+    p_paused: paused,
   });
 }
 

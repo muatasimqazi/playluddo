@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 export type IconName =
   | "play"
+  | "pause"
   | "look"
   | "rotate"
   | "camera"
@@ -27,6 +28,11 @@ const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
       <path d="m9 5 10 7-10 7Z" />
+    </>
+  ),
+  pause: (
+    <>
+      <path d="M8 5v14M16 5v14" />
     </>
   ),
   look: (

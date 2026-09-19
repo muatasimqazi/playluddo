@@ -11,6 +11,7 @@ import {
   requestRematch,
   acceptRematch,
   reclaimSeat,
+  toggleMatchPause,
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
@@ -95,6 +96,14 @@ export function MatchArena({
       onReclaim={() => act(() => reclaimSeat(client, roomId))}
       onAutoRoll={(enabled) =>
         act(() => toggleAutoRoll(client, roomId, enabled))
+      }
+      paused={state.paused}
+      canPause={state.hostPlayerId === myPlayerId}
+      onPause={(paused) =>
+        act(async () => {
+          const next = await toggleMatchPause(client, roomId, paused);
+          useRoomStore.getState().setRoomState(next);
+        })
       }
       voice={voice}
     />

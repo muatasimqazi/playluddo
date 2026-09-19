@@ -53,6 +53,7 @@ function load(
 }
 
 export default function PracticeTable() {
+  const [paused, setPaused] = useState(false);
   const [initialPlayerCount] = useState(requestedPlayerCount);
   const [initialPlayerColor] = useState(requestedPlayerColor);
   const [gameType, setGameType] = useState<GameType>(() => {
@@ -120,7 +121,7 @@ export default function PracticeTable() {
     } catch {}
   }, [session, gameType]);
   useEffect(() => {
-    if (state.status !== "in_game" || state.turnPlayerId === "practice-0")
+    if (paused || state.status !== "in_game" || state.turnPlayerId === "practice-0")
       return;
     const timer = setTimeout(
       () => {
@@ -147,7 +148,7 @@ export default function PracticeTable() {
       gameType === "snakes_and_ladders" ? 5500 : 2100,
     );
     return () => clearTimeout(timer);
-  }, [state, gameType]);
+  }, [state, gameType, paused]);
   return (
     <Simulator
       key={generation}
@@ -155,6 +156,9 @@ export default function PracticeTable() {
       events={session.events}
       myPlayerId="practice-0"
       practice
+      paused={paused}
+      canPause
+      onPause={(next) => setPaused(next)}
       playerCount={state.players.length as 2 | 3 | 4}
       onPlayerCountChange={(playerCount) => {
         setSessions((previous) => ({

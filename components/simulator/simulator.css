@@ -1024,6 +1024,29 @@ body.sim-piece-hover .sim-canvas {
 .sim-connection {
   top: 190px;
 }
+.sim-paused {
+  position: absolute;
+  z-index: 65;
+  top: 96px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(calc(100% - 32px), 460px);
+  padding: 12px 14px;
+  transform: translateX(-50%);
+  border: 1px solid #dec98b66;
+  border-radius: 14px;
+  background: #18231eeb;
+  box-shadow: 0 16px 48px #07100b66;
+  backdrop-filter: blur(14px);
+}
+.sim-paused > div { min-width: 0; flex: 1; }
+.sim-paused strong,
+.sim-paused span { display: block; }
+.sim-paused strong { color: #f0e7cf; font-size: 12px; }
+.sim-paused span { margin-top: 3px; color: #b8c1b0; font-size: 9px; }
+.sim-paused .sim-primary { min-width: 100px; height: 38px; justify-content: center; }
 .sim-event-toast {
   top: 145px;
   pointer-events: none;

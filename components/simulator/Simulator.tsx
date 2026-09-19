@@ -377,13 +377,15 @@ export default function Simulator({
     if (playedRoll.current === frame.rollId) return;
     playedRoll.current = frame.rollId;
     if (!prefs.sound || frame.phase !== "roll") return;
-    const sound = new Audio("/sounds/dice-roll.wav");
+    const sound = new Audio(
+      frame.dice === 6 ? "/audio/dice-six.wav" : "/sounds/dice-roll.wav",
+    );
     sound.volume = 0.45;
     void sound.play().catch(() => {});
     return () => {
       sound.pause();
     };
-  }, [frame.rollId, frame.phase, prefs.sound]);
+  }, [frame.dice, frame.rollId, frame.phase, prefs.sound]);
   const setPref = useCallback(
     <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
       setPrefs((p) => ({ ...p, [key]: value })),

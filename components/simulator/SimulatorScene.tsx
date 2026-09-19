@@ -191,7 +191,7 @@ function Piece({
       moveSound.current = null;
       return;
     }
-    const audio = new Audio("/audio/ludo_piece_move.wav");
+    const audio = new Audio("/audio/ludo_piece_hopping_v2.wav");
     audio.preload = "auto";
     audio.volume = 0.46;
     moveSound.current = audio;
@@ -613,7 +613,10 @@ function BoardObject(props: SceneProps) {
   const flip = useRef({ from: targetFlip, to: targetFlip, elapsed: 1.5 });
   const [initialRotation] = useState(props.orientation);
   const artwork = useTexture(boardArtwork.src);
-  const texture = useMemo(() => makeBoardTexture(artwork), [artwork]);
+  const texture = useMemo(
+    () => makeBoardTexture(artwork, "ludo", props.view === "overhead" ? 1.24 : 1),
+    [artwork, props.view],
+  );
   const snakeSource = useTexture(snakeArtwork.src as string);
   const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);
   const wood = useTexture("/textures/board-wood.jpg");

@@ -1390,11 +1390,11 @@
   }
   .sim-brand {
     gap: 8px;
-    font-size: 13px;
-    letter-spacing: 3px;
+    font-size: 12px;
+    letter-spacing: 2.5px;
   }
   .sim-brand small {
-    font-size: 6px;
+    display: none;
   }
   .brand-mark {
     grid-template-columns: repeat(2, 6px);
@@ -1406,14 +1406,14 @@
   }
   .sim-turn {
     position: absolute;
-    top: 49px;
+    top: 43px;
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
     max-width: 95vw;
     font-size: 8px;
-    gap: 8px;
-    padding: 10px 13px;
+    gap: 6px;
+    padding: 7px 10px;
   }
   .sim-turn strong {
     max-width: 145px;
@@ -1422,31 +1422,37 @@
     display: none;
   }
   .sim-tool {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
   }
   .sim-modebar {
-    top: 115px;
-    padding: 3px;
+    top: 82px;
+    padding: 2px;
     white-space: nowrap;
   }
   .sim-modebar button {
-    padding: 7px 11px;
-    font-size: 10px;
-    gap: 6px;
+    width: 31px;
+    height: 31px;
+    justify-content: center;
+    padding: 0;
+    gap: 0;
+  }
+  .sim-modebar button span {
+    display: none;
   }
   .sim-modebar kbd {
     display: none;
   }
   .sim-side-tools {
-    left: 12px;
-    top: 180px;
-    transform: none;
-    gap: 8px;
+    left: 50%;
+    top: 122px;
+    transform: translateX(-50%);
+    flex-direction: row;
+    gap: 4px;
   }
   .sim-side-tools .sim-tool {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
   }
   .sim-side-tools .sim-tool:nth-last-child(1) {
     display: none;
@@ -1455,12 +1461,12 @@
     display: none;
   }
   .sim-side-tools svg {
-    width: 15px;
+    width: 13px;
   }
   .sim-footer {
-    bottom: max(22px, env(safe-area-inset-bottom));
-    left: 15px;
-    right: 15px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
+    right: 10px;
     display: flex;
     justify-content: center;
   }
@@ -1472,20 +1478,30 @@
     width: 100%;
   }
   .sim-action-area > p {
-    font-size: 10px;
-    margin-bottom: 12px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .sim-primary {
-    height: 46px;
-    font-size: 12px;
-    min-width: 160px;
+    height: 40px;
+    min-width: 138px;
+    gap: 8px;
+    padding: 0 14px;
+    font-size: 11px;
   }
   .sim-primary kbd {
     display: none;
   }
   .sim-replay {
-    font-size: 10px;
-    padding: 13px;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
   }
   .sim-seat {
     min-width: 85px;

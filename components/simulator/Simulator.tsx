@@ -80,6 +80,14 @@ const CAMERA_VIEW_LABELS: Record<CameraView, string> = {
   west: "Seat to your left",
   east: "Seat to your right",
 };
+function defaultCameraView(): CameraView {
+  if (
+    typeof window !== "undefined" &&
+    (window.innerWidth <= 900 || window.innerHeight <= 650)
+  )
+    return "overhead";
+  return "play";
+}
 function loadPreferences(color: keyof typeof COLORS): Preferences {
   const defaults: Preferences = {
     quality:
@@ -92,7 +100,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     actionCamera: "off",
     orientation: HOME_ROTATION[color],
     snakeOrientation: 0,
-    view: "play",
+    view: defaultCameraView(),
   };
   try {
     const value = JSON.parse(localStorage.getItem(PREF_KEY) ?? "null");
@@ -113,9 +121,9 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       actionCamera: ["off", "subtle", "cinematic"].includes(value.actionCamera)
         ? value.actionCamera
         : "off",
-      // Every new table session begins from the player's seated position.
+      // Compact screens begin overhead so the full board remains usable.
       // Camera choices remain available for the current session only.
-      view: "play",
+      view: defaults.view,
       orientation:
         value.localColor === color && Number.isFinite(value.orientation)
           ? value.orientation
@@ -368,7 +376,7 @@ export default function Simulator({
   );
   const reset = useCallback(() => {
     setMode("play");
-    setPref("view", "play");
+    setPref("view", defaultCameraView());
     setResetKey((n) => n + 1);
   }, [setPref, setMode, setResetKey]);
   useEffect(() => {
@@ -618,6 +626,7 @@ export default function Simulator({
         ).map(([value, icon, label, key]) => (
           <button
             key={value}
+            aria-label={label}
             className={mode === value ? "is-selected" : ""}
             aria-pressed={mode === value}
             onClick={() => {

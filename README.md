@@ -26,9 +26,9 @@ Open [http://localhost:3000](http://localhost:3000). [Offline practice](http://l
 
 ## Player sign-in
 
-The welcome screen supports Google, Facebook, passwordless email, and phone OTP sign-in while keeping guest play available. Configure the hosted Supabase project under **Authentication → Sign In / Providers**:
+The welcome screen supports Google, passwordless email, and phone OTP sign-in while keeping guest play available. Configure the hosted Supabase project under **Authentication → Sign In / Providers**:
 
-- Enable Google and Facebook and add their client IDs and secrets.
+- Enable Google and add its client ID and secret.
 - Enable email OTP and set the site URL plus allowed redirect URLs for each deployed environment.
 - Enable phone sign-in and configure an SMS provider such as Twilio. Phone numbers must use international format, for example `+15551234567`.
 

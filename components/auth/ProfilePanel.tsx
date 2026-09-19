@@ -52,11 +52,11 @@ export function ProfilePanel({
   const authenticated = !!user && !user.is_anonymous;
   const identity = user?.email || user?.phone || "Signed-in player";
 
-  async function oauth(provider: "google" | "facebook") {
-    setPending(provider);
+  async function signInWithGoogle() {
+    setPending("google");
     setMessage(null);
     const { error } = await client.auth.signInWithOAuth({
-      provider,
+      provider: "google",
       options: { redirectTo: window.location.origin },
     });
     if (error) {
@@ -218,11 +218,8 @@ export function ProfilePanel({
               <>
                 <p>Save your name and return to the same identity on any device.</p>
                 <div className="profile-socials">
-                  <button type="button" disabled={pending !== null} onClick={() => void oauth("google")}>
+                  <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
                     <b>G</b> Continue with Google
-                  </button>
-                  <button type="button" disabled={pending !== null} onClick={() => void oauth("facebook")}>
-                    <b>f</b> Continue with Facebook
                   </button>
                 </div>
                 <span className="profile-divider">or use a code</span>

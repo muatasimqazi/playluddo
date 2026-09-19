@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { AVATARS, avatarDefinition } from "@/lib/avatars/catalog";
@@ -205,7 +206,7 @@ export function ProfilePanel({
         )}
         {authenticated ? profileName(user) : "Sign in"}
       </button>
-      {open && (
+      {open && createPortal(
         <div className="profile-backdrop" role="presentation" onMouseDown={() => setOpen(false)}>
           <section
             className="profile-panel"
@@ -381,7 +382,8 @@ export function ProfilePanel({
             )}
             {message && <p className="profile-message" role="status">{message}</p>}
           </section>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

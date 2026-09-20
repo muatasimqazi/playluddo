@@ -256,7 +256,7 @@ export default function Simulator({
   );
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "settings" | "chat" | null
+    "menu" | "camera" | "settings" | "chat" | "tools" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -622,9 +622,27 @@ export default function Simulator({
               disabled={pending || frame.busy}
             />
           )}
+          {(
+            [
+              ["play", "play", "Play (1)"],
+              ["look", "look", "Look (L)"],
+              ["rotate", "rotate", "Rotate board (R)"],
+            ] as const
+          ).map(([value, icon, label]) => (
+            <Tool
+              key={value}
+              icon={icon}
+              label={label}
+              active={mode === value}
+              onClick={() => {
+                setMode(value);
+                setPanel(null);
+              }}
+            />
+          ))}
           {onFlip && (
             <Tool
-              icon="rotate"
+              icon="swap"
               label={`Flip board to ${snakes ? "Luddo" : "Snakes & Ladders"}`}
               onClick={flipBoard}
               disabled={frame.busy || flipping}
@@ -638,6 +656,14 @@ export default function Simulator({
             : connection === "connected"
               ? `ROOM ${state.code}`
               : "RECONNECTING"}
+          <span className="mobile-tools-trigger">
+            <Tool
+              icon="settings"
+              label="Table tools"
+              active={panel === "tools"}
+              onClick={() => togglePanel("tools")}
+            />
+          </span>
           <Tool
             icon="menu"
             label="Table menu"
@@ -660,30 +686,6 @@ export default function Simulator({
           )}
         </div>
       )}
-      <nav className="sim-modebar" aria-label="Interaction mode">
-        {(
-          [
-            ["play", "play", "Play", "1"],
-            ["look", "look", "Look", "L"],
-            ["rotate", "rotate", "Rotate board", "R"],
-          ] as const
-        ).map(([value, icon, label, key]) => (
-          <button
-            key={value}
-            aria-label={label}
-            className={mode === value ? "is-selected" : ""}
-            aria-pressed={mode === value}
-            onClick={() => {
-              setMode(value);
-              setPanel(null);
-            }}
-          >
-            <Icon name={icon} size={16} />
-            <span>{label}</span>
-            <kbd>{key}</kbd>
-          </button>
-        ))}
-      </nav>
       <aside className="sim-side-tools" aria-label="Table tools">
         <Tool
           icon="camera"
@@ -800,7 +802,7 @@ export default function Simulator({
               </button>
             ) : (
               <button
-                className="sim-primary"
+                className="sim-primary sim-primary-roll"
                 disabled={!canRoll}
                 onClick={() => void onRoll()}
               >
@@ -871,7 +873,9 @@ export default function Simulator({
                     ? "Make yourself at home"
                     : panel === "chat"
                       ? "Table talk"
-                      : "Your evening, your game"}
+                      : panel === "tools"
+                        ? "Table tools"
+                        : "Your evening, your game"}
               </h2>
             </div>
             <Tool
@@ -921,6 +925,81 @@ export default function Simulator({
               >
                 <Icon name="look" />
                 Explore the room
+              </button>
+            </>
+          )}
+          {panel === "tools" && (
+            <>
+              <button
+                className="panel-secondary"
+                onClick={() => {
+                  (frame.replaying ? timeline.stopReplay : timeline.replay)();
+                  setPanel(null);
+                }}
+                disabled={
+                  !frame.replaying &&
+                  (!frame.canReplay || frame.busy || frame.waitingForEvents)
+                }
+              >
+                <Icon name="replay" />
+                {frame.replaying ? "Live table" : "Replay previous action"}
+              </button>
+              <button
+                className="panel-secondary"
+                onClick={() => setPanel("camera")}
+              >
+                <Icon name="camera" />
+                Camera views
+              </button>
+              <button
+                className="panel-secondary"
+                onClick={() => setPref("sound", !prefs.sound)}
+              >
+                <Icon name={prefs.sound ? "sound" : "muted"} />
+                {prefs.sound ? "Mute sound" : "Enable sound"}
+              </button>
+              <button
+                className="panel-secondary"
+                onClick={() => setPanel("chat")}
+              >
+                <Icon name="chat" />
+                Chat and match activity
+              </button>
+              {voice && (
+                <button
+                  className="panel-secondary"
+                  disabled={voice.connecting}
+                  onClick={() =>
+                    voice.joined ? voice.toggleMute() : voice.join()
+                  }
+                >
+                  <Icon name={voice.joined && !voice.muted ? "mic" : "mic-off"} />
+                  {voice.joined
+                    ? voice.muted
+                      ? "Unmute microphone"
+                      : "Mute microphone"
+                    : "Join voice chat"}
+                </button>
+              )}
+              {voice?.joined && (
+                <button className="panel-secondary" onClick={voice.leave}>
+                  <Icon name="phone-off" />
+                  Leave voice chat
+                </button>
+              )}
+              <button
+                className="panel-secondary"
+                onClick={() => setPanel("settings")}
+              >
+                <Icon name="settings" />
+                Settings
+              </button>
+              <button
+                className="panel-secondary"
+                onClick={() => void toggleFullscreen()}
+              >
+                <Icon name="expand" />
+                {fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
               </button>
             </>
           )}
@@ -1102,7 +1181,7 @@ export default function Simulator({
                   onClick={flipBoard}
                   disabled={frame.busy || flipping}
                 >
-                  <Icon name="rotate" />
+                  <Icon name="swap" />
                   Flip board · {snakes ? "Luddo" : "Snakes & Ladders"}
                 </button>
               )}

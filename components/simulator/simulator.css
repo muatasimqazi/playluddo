@@ -375,6 +375,13 @@ body.sim-piece-hover .sim-canvas {
 .sim-session .sim-tool {
   margin-left: 12px;
 }
+/* The side-tools rail is the primary way to reach these on wide screens;
+   on narrow screens it's replaced by this single trigger (see the
+   max-width: 700px block) so the top of the table doesn't stack three
+   separate rows of icons. */
+.mobile-tools-trigger {
+  display: none;
+}
 .connection-dot.reconnecting {
   background: #e1b263;
   animation: sim-breathe 1s infinite alternate;
@@ -405,39 +412,6 @@ body.sim-piece-hover .sim-canvas {
 .sim-tool.is-danger:hover {
   background: #a83c2938;
   color: #ffc1b3;
-}
-.sim-modebar {
-  position: absolute;
-  top: 88px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  padding: 4px;
-  gap: 3px;
-  z-index: 30;
-  border: 1px solid var(--sim-line);
-  border-radius: 40px;
-  background: rgba(31, 40, 33, 0.78);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 3px 15px #0001;
-}
-.sim-modebar button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid transparent;
-  padding: 8px 15px;
-  border-radius: 30px;
-  color: #c6cdbf;
-  font-size: 11px;
-}
-.sim-modebar button.is-selected {
-  background: #e1d1ab;
-  color: #283326;
-  box-shadow: 0 2px 8px #17291f30;
-}
-.sim-modebar button:hover:not(.is-selected) {
-  background: #5f6a5040;
 }
 .simulator kbd {
   display: inline-flex;
@@ -1819,9 +1793,6 @@ body.sim-piece-hover .sim-canvas {
     right: 36px;
     top: 30px;
   }
-  .sim-modebar {
-    top: 92px;
-  }
   .sim-footer {
     bottom: 33px;
   }
@@ -1952,43 +1923,14 @@ body.sim-piece-hover .sim-canvas {
     width: 30px;
     height: 30px;
   }
-  .sim-modebar {
-    top: 82px;
-    padding: 2px;
-    white-space: nowrap;
-  }
-  .sim-modebar button {
-    width: 31px;
-    height: 31px;
-    justify-content: center;
-    padding: 0;
-    gap: 0;
-  }
-  .sim-modebar button span {
-    display: none;
-  }
-  .sim-modebar kbd {
-    display: none;
-  }
+  /* Replaced by the single "tools" trigger in the header on narrow
+     screens — three stacked rows of icons (header, mode bar, side tools)
+     was too much chrome over the board. */
   .sim-side-tools {
-    left: 50%;
-    top: 122px;
-    transform: translateX(-50%);
-    flex-direction: row;
-    gap: 4px;
-  }
-  .sim-side-tools .sim-tool {
-    width: 28px;
-    height: 28px;
-  }
-  .sim-side-tools .sim-tool:nth-last-child(1) {
     display: none;
   }
-  .sim-side-tools .tool-divider {
-    display: none;
-  }
-  .sim-side-tools svg {
-    width: 13px;
+  .mobile-tools-trigger {
+    display: inline-flex;
   }
   .sim-footer {
     bottom: max(10px, env(safe-area-inset-bottom));
@@ -2021,14 +1963,17 @@ body.sim-piece-hover .sim-canvas {
   .sim-primary kbd {
     display: none;
   }
+  /* The physical die itself is tappable on the table, so this labeled
+     button is redundant on narrow screens — "Return to play" (the other
+     .sim-primary state, shown outside play mode) has no such on-table
+     equivalent and stays visible. */
+  .sim-primary-roll {
+    display: none;
+  }
+  /* Secondary action — moved into the "tools" panel on narrow screens so
+     the bottom of the table is just the one primary button. */
   .sim-replay {
-    width: 40px;
-    height: 40px;
-    justify-content: center;
-    gap: 0;
-    padding: 0;
-    overflow: hidden;
-    font-size: 0;
+    display: none;
   }
   .sim-seat {
     min-width: 85px;
@@ -2155,9 +2100,6 @@ body.sim-piece-hover .sim-canvas {
   }
 }
 @media (max-height: 600px) and (min-width: 701px) {
-  .sim-modebar {
-    top: 66px;
-  }
   .sim-header {
     top: 14px;
   }

@@ -23,7 +23,8 @@ export type IconName =
   | "copy"
   | "mic"
   | "mic-off"
-  | "phone-off";
+  | "phone-off"
+  | "swap";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -150,6 +151,11 @@ const paths: Record<IconName, React.ReactNode> = {
   "phone-off": (
     <>
       <path d="M4 15.5c4.8-4.7 11.2-4.7 16 0l-3.2 3.2-3-2v-2.4a8.2 8.2 0 0 0-3.6 0v2.4l-3 2Z" />
+    </>
+  ),
+  swap: (
+    <>
+      <path d="M4 8h16m-5-4 5 4-5 4M20 16H4m5 4-5-4 5-4" />
     </>
   ),
 };

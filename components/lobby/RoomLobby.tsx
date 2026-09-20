@@ -8,6 +8,7 @@ import {
   fillBot,
   setPlayerColor,
   setRoomGame,
+  setRoomMaxPlayers,
   startMatch,
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
@@ -42,20 +43,14 @@ export function RoomLobby({
   const [inviteFeedback, setInviteFeedback] = useState<
     "code" | "link" | "shared" | null
   >(null);
-  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(() => {
-    if (typeof window === "undefined") return 2;
-    const value = Number(
-      new URLSearchParams(window.location.search).get("players"),
-    );
-    return value === 2 || value === 3 || value === 4 ? value : 2;
-  });
   const pawns = useMemo(
     () => createPractice(state?.gameType).state.pawns,
     [state?.gameType],
   );
   const occupiedCount = state?.players.length ?? 1;
-  const effectivePlayerCount = Math.max(playerCount, occupiedCount) as 2 | 3 | 4;
   if (!state) return null;
+  const maxPlayers = state.maxPlayers ?? 4;
+  const seatColors = SEAT_COLORS.slice(0, maxPlayers);
   const me = state.players.find((player) => player.id === myPlayerId);
   const host = state.hostPlayerId
     ? state.hostPlayerId === myPlayerId
@@ -221,7 +216,7 @@ export function RoomLobby({
               <strong>Choose your color</strong>
             </span>
             <div>
-              {SEAT_COLORS.map((color) => {
+              {seatColors.map((color) => {
                 const occupant = state.players.find(
                   (player) => player.color === color,
                 );
@@ -265,10 +260,17 @@ export function RoomLobby({
               <small>Empty selected seats become computers</small>
             </span>
             <select
-              value={effectivePlayerCount}
+              value={maxPlayers}
               disabled={pending}
               onChange={(event) =>
-                setPlayerCount(Number(event.target.value) as 2 | 3 | 4)
+                void run(async () => {
+                  const next = await setRoomMaxPlayers(
+                    client,
+                    roomId,
+                    Number(event.target.value),
+                  );
+                  useRoomStore.getState().setRoomState(next);
+                })
               }
             >
               {[2, 3, 4].map((count) => (
@@ -307,7 +309,7 @@ export function RoomLobby({
           </div>
         )}
         <div className="lobby-seats">
-          {SEAT_COLORS.map((color, seat) => {
+          {seatColors.map((color, seat) => {
             const player = state.players.find((p) => p.seatIndex === seat);
             return (
               <div
@@ -361,11 +363,10 @@ export function RoomLobby({
             disabled={pending || state.players.length < 2}
             onClick={() =>
               void run(async () => {
-                const openSeats = SEAT_COLORS.map((_, seat) => seat).filter(
+                const openSeats = seatColors.map((_, seat) => seat).filter(
                   (seat) => !state.players.some((p) => p.seatIndex === seat),
                 );
-                const computersNeeded =
-                  effectivePlayerCount - state.players.length;
+                const computersNeeded = maxPlayers - state.players.length;
                 for (const seat of openSeats.slice(0, computersNeeded))
                   await fillBot(client, roomId, seat);
                 await startMatch(client, roomId);
@@ -376,8 +377,8 @@ export function RoomLobby({
               ? "Preparing the table…"
               : state.players.length < 2
                 ? "Invite a friend or add a computer"
-                : state.players.length < effectivePlayerCount
-                  ? `Add ${effectivePlayerCount - state.players.length} computer${effectivePlayerCount - state.players.length === 1 ? "" : "s"} & play`
+                : state.players.length < maxPlayers
+                  ? `Add ${maxPlayers - state.players.length} computer${maxPlayers - state.players.length === 1 ? "" : "s"} & play`
                   : "Everyone’s here. Let’s play."}
             <Icon name="arrow" />
           </button>
@@ -394,7 +395,7 @@ export function RoomLobby({
         <Link href="/">← BACK TO THE ENTRANCE</Link>
         <span>
           <i className="connection-dot" />
-          {state.players.length} OF 4 SEATS TAKEN
+          {state.players.length} OF {maxPlayers} SEATS TAKEN
         </span>
       </footer>
     </main>

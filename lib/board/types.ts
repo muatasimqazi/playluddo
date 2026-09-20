@@ -79,6 +79,8 @@ export interface GameRoomState {
   gameType: GameType;
   status: "lobby" | "in_game" | "summary" | "abandoned";
   paused?: boolean;
+  /** Seats the room was created for (2-4). Absent on older snapshots — treat as 4. */
+  maxPlayers?: number;
   players: Player[];
   pawns: Pawn[];
   turnPlayerId: string | null;

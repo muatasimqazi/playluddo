@@ -15,6 +15,9 @@ export type RpcErrorCode =
   | "ROOM_FULL"
   | "NOT_HOST"
   | "SEAT_TAKEN"
+  | "INVALID_SEAT"
+  | "INVALID_PLAYER_COUNT"
+  | "TOO_MANY_SEATED"
   | "COLOR_TAKEN"
   | "NOT_ENOUGH_PLAYERS"
   | "NOT_YOUR_TURN"
@@ -36,6 +39,9 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "ROOM_FULL",
   "NOT_HOST",
   "SEAT_TAKEN",
+  "INVALID_SEAT",
+  "INVALID_PLAYER_COUNT",
+  "TOO_MANY_SEATED",
   "COLOR_TAKEN",
   "NOT_ENOUGH_PLAYERS",
   "NOT_YOUR_TURN",
@@ -73,10 +79,12 @@ export function createRoom(
   client: SupabaseClient,
   displayName: string,
   teamId?: string,
+  maxPlayers?: number,
 ) {
   return call<{ roomId: string; code: string; playerId: string }>(client, "create_room", {
     p_display_name: displayName,
     p_team_id: teamId ?? null,
+    p_max_players: maxPlayers ?? 4,
   });
 }
 
@@ -106,6 +114,17 @@ export function setRoomGame(
   return call<GameRoomState>(client, "set_room_game", {
     p_room_id: roomId,
     p_game_type: gameType,
+  });
+}
+
+export function setRoomMaxPlayers(
+  client: SupabaseClient,
+  roomId: string,
+  maxPlayers: number,
+) {
+  return call<GameRoomState>(client, "set_room_max_players", {
+    p_room_id: roomId,
+    p_max_players: maxPlayers,
   });
 }
 

@@ -51,15 +51,11 @@ export default function Home() {
       await ensureSession(client);
       const room =
         kind === "create"
-          ? await createRoom(client, name.trim())
+          ? await createRoom(client, name.trim(), undefined, playerCount)
           : await joinRoom(client, code.trim(), name.trim());
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
-      router.push(
-        kind === "create"
-          ? `/room/${room.roomId}?players=${playerCount}`
-          : `/room/${room.roomId}`,
-      );
+      router.push(`/room/${room.roomId}`);
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not connect. Please try again.",

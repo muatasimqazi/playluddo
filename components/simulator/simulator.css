@@ -2333,12 +2333,22 @@ body.sim-piece-hover .sim-canvas {
     height: 70px;
     flex-basis: 70px;
   }
+  /* Was pure transform: translateY(-45%) centering with no bound, inside
+     a parent (.sim-entrance) that has overflow: hidden — content taller
+     than the viewport (e.g. with the team card showing) had no way to
+     scroll into view at all. Same fix as the landscape breakpoints
+     above: bound top/bottom below the header and above the footer, and
+     scroll internally if it's still too tall. */
   .entrance-content {
     left: 28px;
     right: 28px;
+    top: 78px;
+    bottom: 70px;
     width: auto;
     max-width: 350px;
-    transform: translateY(-45%);
+    transform: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .entrance-content h1 {
     font-size: 57px;

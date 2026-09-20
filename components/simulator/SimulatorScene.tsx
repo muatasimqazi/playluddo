@@ -525,6 +525,17 @@ const MOBILE_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
   yellow: [1.15, 0.26, 3.52],
   blue: [-1.15, 0.26, 3.52],
 };
+// Same Z as that color's label (desktopSidePositions below) so the die
+// sits right next to their name, just closer to the board — same pairing
+// mobile already uses (die x-magnitude < label x-magnitude, shared Z).
+// Beyond the board's own edge (its frame spans +-3.18), never toward the
+// far/near corners.
+const DESKTOP_FOUR_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
+  red: [-3.5, 0.26, -1.3],
+  green: [3.5, 0.26, -1.3],
+  yellow: [3.5, 0.26, 1.3],
+  blue: [-3.5, 0.26, 1.3],
+};
 const DESKTOP_DIE_POINT: Point = [3.65, 0.26, 1.1];
 
 function rotateTablePoint(point: Point, angle: number): Point {
@@ -570,7 +581,9 @@ function PhysicalDie({
     if (!activePlayer)
       return compact ? MOBILE_TWO_PLAYER_DIE_POINT : DESKTOP_DIE_POINT;
     return rotateTablePoint(
-      MOBILE_PLAYER_DIE_POINTS[activePlayer.color],
+      (compact ? MOBILE_PLAYER_DIE_POINTS : DESKTOP_FOUR_PLAYER_DIE_POINTS)[
+        activePlayer.color
+      ],
       orientation,
     );
   }, [activePlayer, compact, followsPlayer, orientation, players.length]);
@@ -578,12 +591,8 @@ function PhysicalDie({
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
   );
-  const dieColor = compact
-    ? "#ffffff"
-    : activePlayer
-      ? COLORS[activePlayer.color]
-      : "#fff5da";
-  const pipColor = compact ? "#111111" : activePlayer ? "#fffdf5" : "#25251f";
+  const dieColor = "#ffffff";
+  const pipColor = "#111111";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
     () =>
@@ -647,19 +656,15 @@ function PhysicalDie({
   });
   return (
     <group>
-      <RoundedBox
-        args={
-          followsPlayer ? [0.72, 0.045, 0.72] : [0.92, 0.055, 1.55]
-        }
-        radius={0.02}
-        position={
-          followsPlayer
-            ? [restingPoint[0], 0.023, restingPoint[2]]
-            : [3.65, 0.028, 1.1]
-        }
-      >
-        <meshStandardMaterial color="#9b9c98" roughness={0.84} />
-      </RoundedBox>
+      {!followsPlayer && (
+        <RoundedBox
+          args={[0.92, 0.055, 1.55]}
+          radius={0.02}
+          position={[3.65, 0.028, 1.1]}
+        >
+          <meshStandardMaterial color="#9b9c98" roughness={0.84} />
+        </RoundedBox>
+      )}
       <group
         ref={mesh}
         position={restingPoint}
@@ -925,8 +930,15 @@ function Seats({
     yellow: [2.15, BOARD_Y, 3.52],
     blue: [-2.15, BOARD_Y, 3.52],
   };
+  // Left/right of the board only, same anchor as that color's die point
+  // (DESKTOP_FOUR_PLAYER_DIE_POINTS) — the label is then pushed away from
+  // it by a fixed screen-pixel amount below, since a 3D-space gap shrinks
+  // or grows with camera zoom and can't reliably clear a fixed-size die.
+  const desktopSidePositions: Record<PlayerColor, Point> =
+    DESKTOP_FOUR_PLAYER_DIE_POINTS;
   const mobileDuel = compact && players.length === 2;
   const mobileFourPlayer = compact && players.length === 4;
+  const desktopFourPlayerSide = players.length === 4 && !mobileFourPlayer;
   const duelPlayers = [...players].sort((a, b) => {
     if (a.id === myPlayerId) return -1;
     if (b.id === myPlayerId) return 1;
@@ -944,6 +956,8 @@ function Seats({
             )
           : mobileFourPlayer
             ? mobileCornerPositions[player.color]
+            : players.length === 4
+              ? desktopSidePositions[player.color]
             : positions[player.color];
         return (
           <Html
@@ -956,6 +970,10 @@ function Seats({
                 .project(camera);
               const portrait = size.width / size.height < 0.9;
               const inset = portrait ? 66 : 108;
+              const sidePush = desktopFourPlayerSide
+                ? (player.color === "red" || player.color === "blue" ? -1 : 1) *
+                  170
+                : 0;
               const projectedY = ((1 - point.y) * size.height) / 2;
               const labelY =
                 mobileDuel || mobileFourPlayer
@@ -967,7 +985,7 @@ function Seats({
                   : projectedY;
               return [
                 THREE.MathUtils.clamp(
-                  ((point.x + 1) * size.width) / 2,
+                  ((point.x + 1) * size.width) / 2 + sidePush,
                   inset,
                   size.width - inset,
                 ),

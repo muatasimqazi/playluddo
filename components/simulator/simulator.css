@@ -2068,10 +2068,17 @@ body.sim-piece-hover .sim-canvas {
   }
 }
 @media (min-width: 701px) and (max-width: 1366px) and (min-height: 601px) and (max-height: 850px) {
+  /* Same fragile-centering issue as the shorter landscape block below —
+     at the low end of this range the heading can still ride up over
+     .entrance-header's logo. Same fix: anchor below the header, bound
+     the bottom, scroll internally if it's still too tall to fit. */
   .entrance-content {
-    top: 55%;
-    transform: translateY(-50%);
+    top: 84px;
+    bottom: 16px;
+    transform: none;
     width: 355px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .entrance-content > .eyebrow {
     margin-bottom: 12px;
@@ -2338,18 +2345,26 @@ body.sim-piece-hover .sim-canvas {
   .sim-seat {
     transform: scale(0.85);
   }
+  /* Was vertically centered (top: 50%/54%) with no ceiling, so on short
+     landscape viewports the heading could ride up underneath — even on
+     top of — .entrance-header's logo. Anchored below the header instead,
+     with its own scroll as a safety net rather than relying on every
+     child shrinking exactly enough to fit. */
   .entrance-content {
-    top: 54%;
-    transform: translateY(-50%);
+    top: 74px;
+    bottom: 14px;
+    transform: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .entrance-content h1 {
-    font-size: 45px;
+    font-size: 38px;
   }
   .entrance-content > p {
     display: none;
   }
   .entrance-content > .eyebrow {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .entrance-header {
     top: 20px;

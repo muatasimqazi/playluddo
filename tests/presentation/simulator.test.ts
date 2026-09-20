@@ -263,6 +263,20 @@ describe("offline practice uses the established rules", () => {
     expect(next.state.turnPhase).toBe("awaiting_roll");
     expect(next.state.activeDiceValue).toBeNull();
   });
+  it("ends a 2-player Luddo match the instant the first player finishes, unlike 4-player", () => {
+    const initial = createPractice("ludo", 2);
+    // One pawn away from finishing; every other pawn already home.
+    initial.state.pawns = initial.state.pawns.map((piece) =>
+      piece.id === "blue-0"
+        ? { ...piece, state: "home_lane", pathIndex: 55 }
+        : { ...piece, state: "finished", pathIndex: 56 },
+    );
+    const rolled = practiceReducer(initial, { type: "roll", value: 1 });
+    const next = practiceReducer(rolled, { type: "move", pawnId: "blue-0" });
+    expect(next.state.status).toBe("summary");
+    expect(next.state.matchEndReason).toBe("completed");
+    expect(next.state.winnerIds).toEqual(["practice-0"]);
+  });
   it("needs six to leave the nest, grants a bonus roll, and rejects illegal intents", () => {
     const initial = createPractice();
     expect(practiceReducer(initial, { type: "move", pawnId: "blue-0" })).toBe(

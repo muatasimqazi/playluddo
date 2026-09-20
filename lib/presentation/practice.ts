@@ -167,7 +167,13 @@ export function practiceReducer(
       const winnerIds = state.winnerIds.includes(player.id)
         ? state.winnerIds
         : [...state.winnerIds, player.id];
-      const complete = winnerIds.length === state.players.length;
+      // 3-4 player matches wait for literally everyone to finish (deciding
+      // 2nd/3rd/4th place too), but that degenerates for exactly 2 players
+      // into "wait for the loser too" — the match never completes on a
+      // win at all. See supabase/migrations/20260920010000_fix_two_player_match_end.sql.
+      const complete =
+        (state.players.length === 2 && winnerIds.length >= 1) ||
+        winnerIds.length >= state.players.length;
       next = {
         ...next,
         winnerIds,
@@ -207,7 +213,11 @@ function snakePracticeReducer(
   const winnerIds = move?.finishesPawn
     ? [...state.winnerIds, player.id]
     : state.winnerIds;
-  const complete = winnerIds.length === state.players.length;
+  // Same fix as the Ludo branch above: a 2-player match ends on the first
+  // (only) win instead of waiting for the loser too.
+  const complete =
+    (state.players.length === 2 && winnerIds.length >= 1) ||
+    winnerIds.length >= state.players.length;
   const earnsAnotherRoll = action.value === 6 && !move?.finishesPawn;
   const nextPlayer = Array.from(
     { length: state.players.length },

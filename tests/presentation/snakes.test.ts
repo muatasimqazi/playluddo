@@ -128,6 +128,19 @@ it("requires exact 100 and continues until the last player finishes", () => {
   );
 });
 
+it("ends a 2-player Snakes & Ladders match the instant the first player finishes, unlike 4-player", () => {
+  const session = createPractice("snakes_and_ladders", 2);
+  session.state.pawns = session.state.pawns.map((p) => ({
+    ...p,
+    state: "track",
+    pathIndex: 99,
+  }));
+  const next = practiceReducer(session, { type: "roll", value: 1 });
+  expect(next.state.status).toBe("summary");
+  expect(next.state.matchEndReason).toBe("completed");
+  expect(next.state.winnerIds).toEqual(["practice-0"]);
+});
+
 it("queues automatic movement behind the roll and replays the full action", () => {
   vi.useFakeTimers();
   const initial = createPractice("snakes_and_ladders");

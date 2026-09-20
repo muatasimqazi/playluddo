@@ -4,7 +4,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { AVATARS, avatarDefinition } from "@/lib/avatars/catalog";
+import {
+  AVATARS,
+  avatarDefinition,
+  makePhotoAvatar,
+  photoAvatar,
+  type PhotoAvatarStyle,
+} from "@/lib/avatars/catalog";
 import {
   createTeam,
   getMyTeams,
@@ -14,6 +20,41 @@ import {
 } from "@/lib/supabase/teams";
 
 type LoginMethod = "email" | "phone";
+
+const AVATAR_PHOTO_SIZE = 512;
+const AVATAR_STYLES: PhotoAvatarStyle[] = ["natural", "warm", "cool", "mono"];
+
+/** Center-cropped to a square and downsized, matching how every avatar
+ * chip already renders with object-fit: cover — the upload never needs
+ * its own cropper UI. */
+async function squareWebpFromFile(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const side = Math.min(bitmap.width, bitmap.height);
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = AVATAR_PHOTO_SIZE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not process that image.");
+    ctx.drawImage(
+      bitmap,
+      (bitmap.width - side) / 2,
+      (bitmap.height - side) / 2,
+      side,
+      side,
+      0,
+      0,
+      AVATAR_PHOTO_SIZE,
+      AVATAR_PHOTO_SIZE,
+    );
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", 0.85),
+    );
+    if (!blob) throw new Error("Could not process that image.");
+    return blob;
+  } finally {
+    bitmap.close();
+  }
+}
 
 const COUNTRY_CODES = `AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`.split(" ");
 
@@ -26,10 +67,23 @@ function countryOptions() {
 
 function AnimatedAvatar({ id, fallback = "P" }: { id?: string; fallback?: string }) {
   const avatar = avatarDefinition(id);
+  const photo = photoAvatar(id);
   return (
-    <span className="animated-avatar" data-avatar={id || "player"} aria-hidden="true">
+    <span
+      className="animated-avatar"
+      data-avatar={avatar?.id || "player"}
+      aria-hidden="true"
+    >
       <span className="avatar-glow" />
-      {avatar ? (
+      {photo ? (
+        // eslint-disable-next-line @next/next/no-img-element -- uploaded avatar photos are user Storage URLs, not app-optimizable static assets.
+        <img
+          className="avatar-portrait is-photo-avatar"
+          data-photo-style={photo.style}
+          src={photo.portrait}
+          alt=""
+        />
+      ) : avatar ? (
         // eslint-disable-next-line @next/next/no-img-element -- local avatar thumbnails are tiny pre-optimized WebP assets.
         <img className="avatar-portrait" src={avatar.portrait} alt="" />
       ) : (
@@ -60,6 +114,7 @@ export function ProfilePanel({
   const client = useMemo(() => createClient(), []);
   const countries = useMemo(() => countryOptions(), []);
   const avatarRail = useRef<HTMLDivElement>(null);
+  const photoInput = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
@@ -70,6 +125,7 @@ export function ProfilePanel({
   const [avatarId, setAvatarId] = useState("");
   const [country, setCountry] = useState("");
   const [pending, setPending] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamName, setTeamName] = useState("");
@@ -186,6 +242,44 @@ export function ProfilePanel({
     setToken("");
     setMessage(null);
     setOpen(false);
+  }
+
+  async function uploadPhoto(file: File) {
+    if (!user) return;
+    if (!file.type.startsWith("image/")) {
+      setMessage("Choose an image file for your avatar.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setMessage("That image is too large — try one under 8MB.");
+      return;
+    }
+    setUploadingPhoto(true);
+    setMessage(null);
+    try {
+      const blob = await squareWebpFromFile(file);
+      const path = `${user.id}/avatar.webp`;
+      const { error: uploadError } = await client.storage
+        .from("avatar-photos")
+        .upload(path, blob, { upsert: true, contentType: "image/webp" });
+      if (uploadError) throw uploadError;
+      const { data } = client.storage.from("avatar-photos").getPublicUrl(path);
+      // Cache-bust: the path is stable per user (upsert), so a re-upload
+      // would otherwise keep showing whatever was cached under that URL.
+      setAvatarId(makePhotoAvatar(`${data.publicUrl}?v=${Date.now()}`, "natural"));
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Could not upload that photo.",
+      );
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
+
+  function setPhotoStyle(style: PhotoAvatarStyle) {
+    const photo = photoAvatar(avatarId);
+    if (!photo) return;
+    setAvatarId(makePhotoAvatar(photo.portrait, style));
   }
 
   async function saveProfile() {
@@ -369,6 +463,37 @@ export function ProfilePanel({
                     </div>
                   </div>
                   <div ref={avatarRail} className="profile-avatars">
+                    <button
+                      type="button"
+                      className={`profile-avatar-upload ${photoAvatar(avatarId) ? "is-selected" : ""}`}
+                      aria-label={
+                        photoAvatar(avatarId)
+                          ? "Change your photo"
+                          : "Upload your own photo"
+                      }
+                      aria-pressed={!!photoAvatar(avatarId)}
+                      disabled={uploadingPhoto}
+                      onClick={() => photoInput.current?.click()}
+                    >
+                      {photoAvatar(avatarId) ? (
+                        <AnimatedAvatar id={avatarId} />
+                      ) : (
+                        <span className="profile-avatar-upload-icon" aria-hidden="true">
+                          {uploadingPhoto ? "…" : "+"}
+                        </span>
+                      )}
+                    </button>
+                    <input
+                      ref={photoInput}
+                      type="file"
+                      accept="image/*"
+                      className="profile-avatar-upload-input"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = "";
+                        if (file) void uploadPhoto(file);
+                      }}
+                    />
                     {AVATARS.map((avatar) => (
                       <button
                         key={avatar.id}
@@ -383,6 +508,24 @@ export function ProfilePanel({
                       </button>
                     ))}
                   </div>
+                  {photoAvatar(avatarId) && (
+                    <div className="profile-style-picker" role="radiogroup" aria-label="Photo style">
+                      {AVATAR_STYLES.map((style) => (
+                        <button
+                          key={style}
+                          type="button"
+                          data-photo-style={style}
+                          className={
+                            photoAvatar(avatarId)?.style === style ? "is-selected" : ""
+                          }
+                          aria-pressed={photoAvatar(avatarId)?.style === style}
+                          onClick={() => setPhotoStyle(style)}
+                        >
+                          {style}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <label className="profile-field">
                   Country

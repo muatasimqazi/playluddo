@@ -1491,6 +1491,67 @@ body.sim-piece-hover .sim-canvas {
 .profile-avatars button.is-selected .animated-avatar {
   animation: avatar-selected 1.8s ease-in-out infinite;
 }
+.profile-avatar-upload-input {
+  display: none;
+}
+.profile-avatar-upload:not(.is-selected) {
+  border: 1.5px dashed #d7c38b66;
+  color: #d7c38b;
+}
+.profile-avatar-upload:not(.is-selected):hover {
+  border-color: #e4cd91;
+  background: #d7c38b14;
+}
+.profile-avatar-upload:disabled {
+  opacity: 0.6;
+}
+.profile-avatar-upload-icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+}
+.profile-style-picker {
+  display: flex;
+  gap: 7px;
+  margin: 10px 0 0;
+}
+.profile-style-picker button {
+  flex: 1;
+  padding: 8px 0;
+  border: 1px solid #e7ebdc30;
+  border-radius: 7px;
+  background: #18251da6;
+  color: #bfc8b6;
+  font-size: 10px;
+  text-transform: capitalize;
+}
+.profile-style-picker button.is-selected {
+  border-color: #d7c38b99;
+  background: #d7c38b1c;
+  color: #f3efe2;
+}
+/* Shared by every avatar surface — the profile panel's own preview
+   (.avatar-portrait) and the in-game chip used everywhere else
+   (.player-avatar img) — both already stamp this attribute from
+   lib/avatars/catalog.ts's photoAvatar(); "natural" needs no rule.
+   Scoped to the <img> itself, not just [data-photo-style], since the
+   style-picker buttons above carry the same attribute as a state hook. */
+.avatar-portrait[data-photo-style="warm"],
+.player-avatar img[data-photo-style="warm"] {
+  filter: sepia(0.16) saturate(1.25) hue-rotate(-6deg) brightness(1.04) contrast(1.02);
+}
+.avatar-portrait[data-photo-style="cool"],
+.player-avatar img[data-photo-style="cool"] {
+  filter: saturate(1.08) hue-rotate(14deg) brightness(1.01) contrast(1.03);
+}
+.avatar-portrait[data-photo-style="mono"],
+.player-avatar img[data-photo-style="mono"] {
+  filter: grayscale(1) contrast(1.12) brightness(1.02);
+}
 .profile-primary {
   width: 100%;
   background: #dcca9f;

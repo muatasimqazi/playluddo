@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { avatarForSeat } from "@/lib/avatars/catalog";
+import { avatarForSeat, photoAvatar } from "@/lib/avatars/catalog";
 import { COLORS } from "@/lib/presentation/board";
 import type { Player } from "@/lib/board/types";
 
@@ -17,6 +17,7 @@ export function PlayerAvatar({
   placement?: 1 | 2 | 3;
 }) {
   const avatar = avatarForSeat(player.avatarId, player.seatIndex);
+  const photo = photoAvatar(player.avatarId);
   const rank = placement ?? (crowned ? 1 : undefined);
   return (
     <span
@@ -32,7 +33,12 @@ export function PlayerAvatar({
       aria-label={`${player.displayName}'s${rank ? ` place ${rank}` : ""} avatar`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP game portraits. */}
-      <img src={avatar.portrait} alt="" />
+      <img
+        src={avatar.portrait}
+        alt=""
+        className={photo ? "is-photo-avatar" : undefined}
+        data-photo-style={photo?.style}
+      />
       {rank === 1 && (
         <svg className="player-avatar-crown" viewBox="0 0 64 40" aria-hidden="true">
           <path d="M8 30 4 9l16 11L32 3l12 17L60 9l-4 21Z" />

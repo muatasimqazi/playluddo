@@ -10,11 +10,37 @@ export const AVATARS = [
 ] as const;
 
 export type AvatarId = (typeof AVATARS)[number]["id"];
+export type PhotoAvatarStyle = "natural" | "warm" | "cool" | "mono";
+
+export interface PhotoAvatar {
+  style: PhotoAvatarStyle;
+  portrait: string;
+}
+
+export function photoAvatar(id?: string): PhotoAvatar | null {
+  const match = id?.match(/^photo:(natural|warm|cool|mono):(.+)$/);
+  return match
+    ? { style: match[1] as PhotoAvatarStyle, portrait: match[2] }
+    : null;
+}
+
+export function makePhotoAvatar(url: string, style: PhotoAvatarStyle) {
+  return `photo:${style}:${url}`;
+}
 
 export function avatarDefinition(id?: string) {
   return AVATARS.find((avatar) => avatar.id === id);
 }
 
 export function avatarForSeat(avatarId: string | undefined, seatIndex: number) {
+  const photo = photoAvatar(avatarId);
+  if (photo)
+    return {
+      id: avatarId!,
+      label: "Custom photo avatar",
+      portrait: photo.portrait,
+      primary: "#dcca9f",
+      secondary: "#526247",
+    };
   return avatarDefinition(avatarId) ?? AVATARS[seatIndex % AVATARS.length];
 }

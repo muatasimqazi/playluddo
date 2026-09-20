@@ -22,6 +22,7 @@ import * as THREE from "three";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
+import { SNAKES } from "@/lib/board/snakes";
 import {
   BOARD_SIZE,
   BOARD_Y,
@@ -31,6 +32,7 @@ import {
   moveWaypoints,
   pawnPoint,
   shortestAngle,
+  snakeSquarePoint,
   type ActionCamera,
   type CameraView,
   type InteractionMode,
@@ -42,7 +44,7 @@ import { cameraFraming } from "@/lib/presentation/camera";
 import boardArtwork from "@/designs/board-design.png";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/board.svg";
-import { makeBoardTexture } from "./textures";
+import { makeBoardTexture, makeTongueTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -751,6 +753,7 @@ function BoardObject(props: SceneProps) {
   const group = useRef<THREE.Group>(null);
   const board = useRef<THREE.Group>(null);
   const pieces = useRef<THREE.Group>(null);
+  const snakeHeads = useRef<THREE.Group>(null);
   const targetFlip = props.gameType === "snakes_and_ladders" ? Math.PI : 0;
   const [initialFlip] = useState(targetFlip);
   const flip = useRef({ from: targetFlip, to: targetFlip, elapsed: 1.5 });
@@ -811,6 +814,7 @@ function BoardObject(props: SceneProps) {
       board.current.position.y = 0.1 + Math.sin(t * Math.PI) * 3.4;
     }
     if (pieces.current) pieces.current.visible = t === 1;
+    if (snakeHeads.current) snakeHeads.current.visible = t === 1;
   });
   function down(e: ThreeEvent<PointerEvent>) {
     if (props.mode !== "rotate") return;
@@ -907,7 +911,101 @@ function BoardObject(props: SceneProps) {
           />
         ))}
       </group>
+      {props.gameType === "snakes_and_ladders" && (
+        <group ref={snakeHeads}>
+          <SnakeHeads />
+        </group>
+      )}
     </group>
+  );
+}
+
+/**
+ * The six snakes are baked into the static board texture — there's no live
+ * body to re-animate — so "the snake is alive" comes from a small overlay
+ * at each head: a gentle side-to-side weave plus a tongue that flicks out
+ * and back on a loop. Positions/facing come straight from SNAKES + the
+ * same snakeSquarePoint() pawns use, so they always land on the printed
+ * head/tail squares regardless of board layout changes.
+ */
+const Z_AXIS = new THREE.Vector3(0, 0, 1);
+function SnakeHeads() {
+  const tongueTexture = useMemo(() => makeTongueTexture(), []);
+  useEffect(() => () => tongueTexture.dispose(), [tongueTexture]);
+  const tongueGeometry = useMemo(() => {
+    const geometry = new THREE.PlaneGeometry(0.045, 0.11);
+    geometry.translate(0, 0.055, 0);
+    return geometry;
+  }, []);
+  useEffect(() => () => tongueGeometry.dispose(), [tongueGeometry]);
+  const snakes = useMemo(
+    () =>
+      Object.entries(SNAKES).map(([head, tail], i) => {
+        const headSquare = Number(head);
+        const [hx, hy, hz] = snakeSquarePoint(headSquare);
+        const [tx, , tz] = snakeSquarePoint(tail);
+        const dir = new THREE.Vector3(hx - tx, 0, hz - tz).normalize();
+        const widthAxis = new THREE.Vector3(-dir.z, 0, dir.x);
+        const up = new THREE.Vector3(0, 1, 0);
+        const baseQuaternion = new THREE.Quaternion().setFromRotationMatrix(
+          new THREE.Matrix4().makeBasis(widthAxis, dir, up),
+        );
+        return {
+          position: [hx, hy + 0.004, hz] as Point,
+          baseQuaternion,
+          phase: (headSquare % 7) * 0.9 + i,
+          pause: 1 + (i % 4) * 0.3,
+        };
+      }),
+    [],
+  );
+  const tongues = useRef<(THREE.Mesh | null)[]>([]);
+  const cycles = useRef(
+    snakes.map((snake) => ({ elapsed: -(snake.phase % snake.pause) })),
+  );
+  useFrame((state, delta) => {
+    const t = state.clock.elapsedTime;
+    const FLICK = 0.24;
+    snakes.forEach((snake, i) => {
+      const mesh = tongues.current[i];
+      if (!mesh) return;
+      const wobble = Math.sin(t * 0.8 + snake.phase) * 0.3;
+      mesh.quaternion
+        .copy(snake.baseQuaternion)
+        .multiply(new THREE.Quaternion().setFromAxisAngle(Z_AXIS, wobble));
+      const cycle = cycles.current[i];
+      cycle.elapsed += delta;
+      if (cycle.elapsed < 0) mesh.scale.y = 0;
+      else if (cycle.elapsed < FLICK)
+        mesh.scale.y = Math.sin((cycle.elapsed / FLICK) * Math.PI);
+      else {
+        mesh.scale.y = 0;
+        if (cycle.elapsed > FLICK + snake.pause) cycle.elapsed = 0;
+      }
+    });
+  });
+  return (
+    <>
+      {snakes.map((snake, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            tongues.current[i] = el;
+          }}
+          position={snake.position}
+          geometry={tongueGeometry}
+          scale={[1, 0, 1]}
+        >
+          <meshBasicMaterial
+            map={tongueTexture}
+            transparent
+            depthWrite={false}
+            toneMapped={false}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      ))}
+    </>
   );
 }
 

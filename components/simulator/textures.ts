@@ -48,6 +48,32 @@ function gradeLudoInks(
   ctx.putImageData(pixels, 0, 0);
 }
 
+/** A small forked-tongue silhouette, shared by every animated snake head. */
+export function makeTongueTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 48;
+  const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
+  if (!ctx) throw new Error("Could not prepare the tongue texture.");
+  ctx.strokeStyle = "#c22b2b";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  // A short base tapering into two thin curved prongs near the tip.
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(0, 24);
+  ctx.lineTo(38, 24);
+  ctx.stroke();
+  ctx.lineWidth = 3.5;
+  for (const dy of [-9, 9]) {
+    ctx.beginPath();
+    ctx.moveTo(34, 24);
+    ctx.quadraticCurveTo(50, 24, 62, 24 + dy);
+    ctx.stroke();
+  }
+  return texture(canvas);
+}
+
 export function makeBoardTexture(
   source: THREE.Texture,
   crop: "ludo" | "full" = "ludo",

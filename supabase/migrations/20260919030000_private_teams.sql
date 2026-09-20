@@ -2,7 +2,7 @@ create table public.teams (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(name) between 2 and 32),
   owner_user_id uuid not null references auth.users(id) on delete cascade,
-  invite_code text not null unique default upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 10)),
+  invite_code text not null unique default upper(substr(encode(extensions.gen_random_bytes(8), 'hex'), 1, 10)),
   created_at timestamptz not null default now()
 );
 

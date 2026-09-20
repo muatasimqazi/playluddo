@@ -1832,6 +1832,46 @@ body.sim-piece-hover .sim-canvas {
 .entrance-secondary:hover {
   background: #59634677;
 }
+.entrance-team-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 22px;
+  padding: 14px 16px;
+  border: 1px solid #d8bd7f40;
+  border-radius: 12px;
+  background: #26372e80;
+  backdrop-filter: blur(10px);
+}
+.entrance-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.entrance-team-row .eyebrow {
+  margin-bottom: 4px;
+  color: #d8bd7f;
+}
+.entrance-team-row strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: #f1ead7;
+}
+.entrance-team-row small {
+  display: block;
+  margin-top: 3px;
+  color: #c0c8b5;
+  font-size: 9px;
+}
+.entrance-team-row .sim-primary {
+  flex: 0 0 auto;
+  height: 42px;
+  padding: 0 16px;
+  font-size: 11px;
+}
 .together-setup {
   min-height: 100dvh;
   display: grid;

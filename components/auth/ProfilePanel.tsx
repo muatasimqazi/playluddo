@@ -123,8 +123,10 @@ function profileName(user: User | null) {
 
 export function ProfilePanel({
   onNameChange,
+  onTeamsChange,
 }: {
   onNameChange: (name: string) => void;
+  onTeamsChange?: (teams: Team[]) => void;
 }) {
   const client = useMemo(() => createClient(), []);
   const countries = useMemo(() => countryOptions(), []);
@@ -175,13 +177,22 @@ export function ProfilePanel({
   }, []);
 
   useEffect(() => {
-    if (!open || !user || user.is_anonymous) return;
+    // Fires on sign-in too, not just `open` — the home page surfaces a
+    // team's active table (onTeamsChange below) without requiring the
+    // profile panel to have been opened first this session. Still also
+    // fires on open, so reopening the panel refreshes a stale activeRoom
+    // (e.g. a teammate started a table after this client's initial load).
+    if (!user || user.is_anonymous) return;
     void getMyTeams(client)
       .then(setTeams)
       .catch((error: unknown) =>
         setMessage(error instanceof Error ? error.message : "Could not load teams."),
       );
-  }, [client, open, user]);
+  }, [client, user, open]);
+
+  useEffect(() => {
+    onTeamsChange?.(teams);
+  }, [teams, onTeamsChange]);
 
   useEffect(() => {
     if (!open || !avatarId) return;

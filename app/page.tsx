@@ -12,6 +12,7 @@ import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
+import type { Team } from "@/lib/supabase/teams";
 import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
@@ -27,6 +28,7 @@ export default function Home() {
   const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("blue");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
   const preview = useMemo(
     () => createPractice("ludo", playerCount, playerColor).state,
     [playerCount, playerColor],
@@ -62,6 +64,37 @@ export default function Home() {
       );
       setPending(null);
     }
+  }
+  // Skips the manual player-count/color form and code-sharing dance
+  // entirely: a team's members are already known, so starting or
+  // rejoining their table is one click from the home page.
+  async function goToRoom(
+    kind: "create" | "join",
+    action: (client: ReturnType<typeof createClient>) => Promise<{ roomId: string }>,
+  ) {
+    if (!name.trim()) {
+      setError("What should we call you at the table?");
+      return;
+    }
+    setPending(kind);
+    setError(null);
+    try {
+      const client = createClient();
+      await ensureSession(client);
+      const room = await action(client);
+      router.push(`/room/${room.roomId}`);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Could not connect. Please try again.",
+      );
+      setPending(null);
+    }
+  }
+  function startForTeam(teamId: string) {
+    void goToRoom("create", (client) => createRoom(client, name.trim(), teamId));
+  }
+  function joinTeamRoom(roomCode: string) {
+    void goToRoom("join", (client) => joinRoom(client, roomCode, name.trim()));
   }
   return (
     <main className="sim-entrance">
@@ -109,10 +142,41 @@ export default function Home() {
         </div>
         <div className="entrance-header-actions">
           <span>A LITTLE CLOSER TOGETHER.</span>
-          <ProfilePanel onNameChange={setName} />
+          <ProfilePanel onNameChange={setName} onTeamsChange={setTeams} />
         </div>
       </header>
       <section className="entrance-content">
+        {!friends && teams.length > 0 && (
+          <div className="entrance-team-card">
+            {teams.map((team) => (
+              <div key={team.id} className="entrance-team-row">
+                <div>
+                  <span className="eyebrow">YOUR TEAM</span>
+                  <strong>{team.name}</strong>
+                  <small>
+                    {team.members.length}{" "}
+                    {team.members.length === 1 ? "member" : "members"}
+                    {team.activeRoom &&
+                      ` · Table open · ${team.activeRoom.seatsTaken}/4 seated`}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  className="sim-primary"
+                  disabled={pending !== null}
+                  onClick={() =>
+                    team.activeRoom
+                      ? joinTeamRoom(team.activeRoom.code)
+                      : startForTeam(team.id)
+                  }
+                >
+                  <span>{team.activeRoom ? "Join now" : "Start a table"}</span>
+                  <Icon name="arrow" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         {!friends ? (
           <>
             <span className="eyebrow">MAKE YOURSELF AT HOME</span>

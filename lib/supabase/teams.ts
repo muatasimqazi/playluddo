@@ -8,6 +8,13 @@ export interface TeamMember {
   joinedAt: string;
 }
 
+export interface TeamActiveRoom {
+  roomId: string;
+  code: string;
+  status: "lobby" | "in_game";
+  seatsTaken: number;
+}
+
 export interface Team {
   id: string;
   name: string;
@@ -15,6 +22,7 @@ export interface Team {
   ownerUserId: string;
   createdAt: string;
   members: TeamMember[];
+  activeRoom: TeamActiveRoom | null;
 }
 
 async function teamCall(

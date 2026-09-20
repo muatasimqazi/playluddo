@@ -26,6 +26,7 @@ export type RpcErrorCode =
   | "NOTHING_TO_RECLAIM"
   | "ROOM_NOT_IN_SUMMARY"
   | "INVALID_SIGNAL_TARGET"
+  | "NOT_TEAM_MEMBER"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -46,6 +47,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "NOTHING_TO_RECLAIM",
   "ROOM_NOT_IN_SUMMARY",
   "INVALID_SIGNAL_TARGET",
+  "NOT_TEAM_MEMBER",
 ]);
 
 export class RpcError extends Error {
@@ -67,9 +69,14 @@ async function call<T>(
   return data as T;
 }
 
-export function createRoom(client: SupabaseClient, displayName: string) {
+export function createRoom(
+  client: SupabaseClient,
+  displayName: string,
+  teamId?: string,
+) {
   return call<{ roomId: string; code: string; playerId: string }>(client, "create_room", {
     p_display_name: displayName,
+    p_team_id: teamId ?? null,
   });
 }
 

@@ -12,11 +12,13 @@ import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
+import { TableLoading } from "@/components/simulator/TableLoading";
 import type { Team } from "@/lib/supabase/teams";
 import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
   ssr: false,
+  loading: () => <TableLoading label="Setting the table…" />,
 });
 
 export default function Home() {

@@ -15,12 +15,14 @@ import { COLORS } from "@/lib/presentation/board";
 import { createPractice } from "@/lib/presentation/practice";
 import { Icon } from "@/components/simulator/Icon";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { TableLoading } from "@/components/simulator/TableLoading";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
   ssr: false,
+  loading: () => <TableLoading label="Setting the table…" />,
 });
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 

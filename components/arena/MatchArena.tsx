@@ -15,9 +15,15 @@ import {
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
+import { TableLoading } from "@/components/simulator/TableLoading";
+// Eagerly loaded here, not just inside the dynamic Simulator below, so the
+// loading fallback's own styling (the die animation) is available
+// immediately instead of arriving with the same lazy chunk it stands in for.
+import "@/components/simulator/simulator.css";
 
 const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
   ssr: false,
+  loading: () => <TableLoading label="Joining the table…" />,
 });
 
 export function MatchArena({

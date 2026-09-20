@@ -28,16 +28,12 @@ import {
 } from "@/lib/presentation/board";
 import { PresentationTimeline } from "@/lib/presentation/timeline";
 import { Icon, type IconName } from "./Icon";
+import { TableLoading } from "./TableLoading";
 import "./simulator.css";
 
 const Scene = dynamic(() => import("./SimulatorScene"), {
   ssr: false,
-  loading: () => (
-    <div className="sim-loading">
-      <span />
-      <p>Preparing your table</p>
-    </div>
-  ),
+  loading: () => <TableLoading label="Preparing your table" />,
 });
 
 export interface SimulatorProps {

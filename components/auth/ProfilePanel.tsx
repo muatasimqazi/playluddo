@@ -26,19 +26,34 @@ const AVATAR_STYLES: PhotoAvatarStyle[] = ["natural", "warm", "cool", "mono"];
 
 /** Center-cropped to a square and downsized, matching how every avatar
  * chip already renders with object-fit: cover — the upload never needs
- * its own cropper UI. */
+ * its own cropper UI.
+ *
+ * Decodes via an <img> + decode(), not createImageBitmap(): the latter
+ * has real gaps on real-world uploads (HEIC photos straight off an
+ * iPhone camera roll in particular) that the ordinary image pipeline —
+ * the same one every <img> on the page already relies on — handles fine.
+ */
 async function squareWebpFromFile(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file);
+  const url = URL.createObjectURL(file);
   try {
-    const side = Math.min(bitmap.width, bitmap.height);
+    const image = new Image();
+    image.src = url;
+    try {
+      await image.decode();
+    } catch {
+      throw new Error(
+        "That photo couldn't be processed — try a different image (JPG, PNG, or WebP work best).",
+      );
+    }
+    const side = Math.min(image.naturalWidth, image.naturalHeight);
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = AVATAR_PHOTO_SIZE;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Could not process that image.");
     ctx.drawImage(
-      bitmap,
-      (bitmap.width - side) / 2,
-      (bitmap.height - side) / 2,
+      image,
+      (image.naturalWidth - side) / 2,
+      (image.naturalHeight - side) / 2,
       side,
       side,
       0,
@@ -52,7 +67,7 @@ async function squareWebpFromFile(file: File): Promise<Blob> {
     if (!blob) throw new Error("Could not process that image.");
     return blob;
   } finally {
-    bitmap.close();
+    URL.revokeObjectURL(url);
   }
 }
 

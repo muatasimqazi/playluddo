@@ -5,6 +5,13 @@ import { createPortal } from "react-dom";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { AVATARS, avatarDefinition } from "@/lib/avatars/catalog";
+import {
+  createTeam,
+  getMyTeams,
+  joinTeam,
+  leaveTeam,
+  type Team,
+} from "@/lib/supabase/teams";
 
 type LoginMethod = "email" | "phone";
 
@@ -64,6 +71,10 @@ export function ProfilePanel({
   const [country, setCountry] = useState("");
   const [pending, setPending] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [teamName, setTeamName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
+  const [sharedTeamId, setSharedTeamId] = useState<string | null>(null);
 
   useEffect(() => {
     const applyUser = (nextUser: User | null) => {
@@ -81,6 +92,25 @@ export function ProfilePanel({
     });
     return () => data.subscription.unsubscribe();
   }, [client, onNameChange]);
+
+  useEffect(() => {
+    const invited = new URLSearchParams(window.location.search).get("team");
+    if (!invited) return;
+    const frame = requestAnimationFrame(() => {
+      setInviteCode(invited.toUpperCase());
+      setOpen(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !user || user.is_anonymous) return;
+    void getMyTeams(client)
+      .then(setTeams)
+      .catch((error: unknown) =>
+        setMessage(error instanceof Error ? error.message : "Could not load teams."),
+      );
+  }, [client, open, user]);
 
   useEffect(() => {
     if (!open || !avatarId) return;
@@ -186,6 +216,74 @@ export function ProfilePanel({
     }
     setUser(null);
     setMessage(null);
+  }
+
+  async function makeTeam() {
+    const value = teamName.trim();
+    if (!value) return;
+    setPending("create-team");
+    setMessage(null);
+    try {
+      setTeams(await createTeam(client, value, displayName, avatarId));
+      setTeamName("");
+      setMessage("Private team created. Share its invite with your friends.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not create the team.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function acceptTeamInvite() {
+    const value = inviteCode.trim();
+    if (!value) return;
+    setPending("join-team");
+    setMessage(null);
+    try {
+      setTeams(await joinTeam(client, value, displayName, avatarId));
+      setInviteCode("");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("team");
+      window.history.replaceState({}, "", url);
+      setMessage("You joined the team.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not join the team.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function removeTeam(team: Team) {
+    setPending(`leave-team:${team.id}`);
+    setMessage(null);
+    try {
+      setTeams(await leaveTeam(client, team.id));
+      setMessage(team.ownerUserId === user?.id ? "Team deleted." : "You left the team.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update the team.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function shareTeam(team: Team) {
+    const url = `${window.location.origin}/?team=${team.inviteCode}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Join ${team.name} on Luddo`,
+          text: `Join my private Luddo team, ${team.name}.`,
+          url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+      }
+      setSharedTeamId(team.id);
+      window.setTimeout(() => setSharedTeamId(null), 1800);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setMessage("Could not share the invite. Copy the team code instead.");
+    }
   }
 
   return (
@@ -305,6 +403,79 @@ export function ProfilePanel({
                 >
                   {pending === "profile" ? "Saving…" : "Save profile"}
                 </button>
+                <section className="profile-teams" aria-labelledby="teams-heading">
+                  <div className="profile-team-heading">
+                    <div>
+                      <span className="eyebrow">PRIVATE GROUPS</span>
+                      <h3 id="teams-heading">Your teams</h3>
+                    </div>
+                    <small>{teams.length}</small>
+                  </div>
+                  <div className="profile-team-create">
+                    <input
+                      value={teamName}
+                      onChange={(event) => setTeamName(event.target.value)}
+                      placeholder="New team name"
+                      maxLength={32}
+                      aria-label="New team name"
+                    />
+                    <button
+                      type="button"
+                      disabled={pending !== null || teamName.trim().length < 2}
+                      onClick={() => void makeTeam()}
+                    >
+                      {pending === "create-team" ? "Creating…" : "Create"}
+                    </button>
+                  </div>
+                  <div className="profile-team-create">
+                    <input
+                      value={inviteCode}
+                      onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
+                      placeholder="Friend’s team code"
+                      maxLength={10}
+                      aria-label="Team invite code"
+                    />
+                    <button
+                      type="button"
+                      disabled={pending !== null || !inviteCode.trim()}
+                      onClick={() => void acceptTeamInvite()}
+                    >
+                      {pending === "join-team" ? "Joining…" : "Join"}
+                    </button>
+                  </div>
+                  <div className="profile-team-list">
+                    {teams.map((team) => (
+                      <article key={team.id} className="profile-team-card">
+                        <div className="profile-team-title">
+                          <div>
+                            <strong>{team.name}</strong>
+                            <small>{team.members.length} {team.members.length === 1 ? "member" : "members"}</small>
+                          </div>
+                          <code>{team.inviteCode}</code>
+                        </div>
+                        <div className="profile-team-members" aria-label={`${team.name} members`}>
+                          {team.members.map((member) => (
+                            <span key={member.userId} title={`${member.displayName}${member.role === "owner" ? " · Owner" : ""}`}>
+                              <AnimatedAvatar id={member.avatarId ?? undefined} fallback={member.displayName.slice(0, 1)} />
+                            </span>
+                          ))}
+                        </div>
+                        <div className="profile-team-actions">
+                          <button type="button" onClick={() => void shareTeam(team)}>
+                            {sharedTeamId === team.id ? "Shared" : "Share invite"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={pending !== null}
+                            onClick={() => void removeTeam(team)}
+                          >
+                            {team.ownerUserId === user.id ? "Delete" : "Leave"}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
                 <button
                   className="profile-secondary"
                   type="button"

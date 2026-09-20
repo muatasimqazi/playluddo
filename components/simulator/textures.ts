@@ -66,7 +66,11 @@ export function makeBoardTexture(
   canvas.height = vectorSource ? 2048 : image.naturalHeight;
   const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
   if (!ctx) throw new Error("Could not prepare the board artwork.");
-  ctx.drawImage(image, 0, 0);
+  // Explicit destination size, not drawImage(image, 0, 0) — an SVG with no
+  // width/height attribute (only a viewBox, like board-classic.svg) has no
+  // real intrinsic size, and browsers disagree on the fallback they use for
+  // it, so drawing at "natural" size can end up far smaller than the canvas.
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   if (crop === "ludo")
     gradeLudoInks(ctx, canvas.width, canvas.height, inkStrength);
 

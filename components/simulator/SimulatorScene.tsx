@@ -183,6 +183,7 @@ function Piece({
   const trailSampleElapsed = useRef(0);
   const trailOpacity = useRef(0);
   const moveSound = useRef<HTMLAudioElement>(null);
+  const homeSound = useRef<HTMLAudioElement>(null);
   const soundedStep = useRef(0);
   const previous = useRef(pawn);
   const previousMove = useRef(move);
@@ -197,18 +198,28 @@ function Piece({
   useEffect(() => {
     if (!soundEnabled) {
       moveSound.current?.pause();
+      homeSound.current?.pause();
       moveSound.current = null;
+      homeSound.current = null;
       return;
     }
     const audio = new Audio("/audio/ludo_piece_hopping_v2.wav");
+    const homeAudio = new Audio("/audio/piece-home.wav");
     audio.preload = "auto";
     audio.volume = 0.46;
+    homeAudio.preload = "auto";
+    homeAudio.volume = 0.7;
     moveSound.current = audio;
+    homeSound.current = homeAudio;
     return () => {
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
+      homeAudio.pause();
+      homeAudio.removeAttribute("src");
+      homeAudio.load();
       if (moveSound.current === audio) moveSound.current = null;
+      if (homeSound.current === homeAudio) homeSound.current = null;
     };
   }, [soundEnabled]);
   const point = (piece: Pawn) => pawnPoint(piece, gameType);
@@ -288,8 +299,15 @@ function Piece({
         moveSound.current
       ) {
         soundedStep.current = arrivedStep;
-        moveSound.current.currentTime = 0;
-        void moveSound.current.play().catch(() => {});
+        const reachedHome =
+          arrivedStep === m.points.length - 1 &&
+          move?.pawnId === pawn.id &&
+          move.finishesPawn;
+        const sound = reachedHome ? homeSound.current : moveSound.current;
+        if (sound) {
+          sound.currentTime = 0;
+          void sound.play().catch(() => {});
+        }
       }
       if (index >= m.points.length - 1) {
         const p = pawnPoint(pawn, gameType);
@@ -500,8 +518,24 @@ const DIE_ROTATION: Record<number, Point> = {
   5: [Math.PI / 2, 0, 0],
   6: [Math.PI, 0, 0],
 };
-const MOBILE_DIE_POINT: Point = [0, 0.26, 0];
+const MOBILE_TWO_PLAYER_DIE_POINT: Point = [0, 0.26, 3.46];
+const MOBILE_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
+  red: [-1.15, 0.26, -3.52],
+  green: [1.15, 0.26, -3.52],
+  yellow: [1.15, 0.26, 3.52],
+  blue: [-1.15, 0.26, 3.52],
+};
 const DESKTOP_DIE_POINT: Point = [3.65, 0.26, 1.1];
+
+function rotateTablePoint(point: Point, angle: number): Point {
+  const cosine = Math.cos(angle);
+  const sine = Math.sin(angle);
+  return [
+    point[0] * cosine + point[2] * sine,
+    point[1],
+    -point[0] * sine + point[2] * cosine,
+  ];
+}
 
 function PhysicalDie({
   frame,
@@ -510,22 +544,39 @@ function PhysicalDie({
   mode,
   players,
   turnPlayerId,
+  orientation,
 }: Pick<
   SceneProps,
-  "frame" | "canRoll" | "onRoll" | "mode" | "players" | "turnPlayerId"
+  | "frame"
+  | "canRoll"
+  | "onRoll"
+  | "mode"
+  | "players"
+  | "turnPlayerId"
+  | "orientation"
 >) {
   const mesh = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
   );
-  const restingPoint = compact ? MOBILE_DIE_POINT : DESKTOP_DIE_POINT;
+  const activePlayer = players.find(
+    (player) => player.id === (frame.actorId ?? turnPlayerId),
+  );
+  const followsPlayer = players.length === 4 || compact;
+  const restingPoint = useMemo<Point>(() => {
+    if (!followsPlayer) return DESKTOP_DIE_POINT;
+    if (compact && players.length === 2) return MOBILE_TWO_PLAYER_DIE_POINT;
+    if (!activePlayer)
+      return compact ? MOBILE_TWO_PLAYER_DIE_POINT : DESKTOP_DIE_POINT;
+    return rotateTablePoint(
+      MOBILE_PLAYER_DIE_POINTS[activePlayer.color],
+      orientation,
+    );
+  }, [activePlayer, compact, followsPlayer, orientation, players.length]);
   const restingVector = useMemo(
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
-  );
-  const activePlayer = players.find(
-    (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
   const dieColor = compact
     ? "#ffffff"
@@ -565,15 +616,21 @@ function PhysicalDie({
       if (compact) {
         const progress = THREE.MathUtils.smoothstep(t / 0.7, 0, 1);
         mesh.current.position.set(
-          Math.sin(progress * Math.PI * 5) * 0.28 * (1 - progress),
-          0.26 + Math.abs(Math.sin(progress * Math.PI * 4)) * (1 - progress) * 0.9,
-          Math.cos(progress * Math.PI * 4) * 0.24 * (1 - progress),
+          restingPoint[0] +
+            Math.sin(progress * Math.PI * 5) * 0.28 * (1 - progress),
+          restingPoint[1] +
+            Math.abs(Math.sin(progress * Math.PI * 4)) *
+              (1 - progress) *
+              0.9,
+          restingPoint[2] +
+            Math.cos(progress * Math.PI * 4) * 0.24 * (1 - progress),
         );
       } else {
         mesh.current.position.set(
-          3.65 + Math.sin(t * 9) * 0.12,
-          0.26 + Math.abs(Math.sin(t * Math.PI * 3)) * (1 - t) * 0.85,
-          1.1 + (1 - t) * 0.4,
+          restingPoint[0] + Math.sin(t * 9) * 0.12,
+          restingPoint[1] +
+            Math.abs(Math.sin(t * Math.PI * 3)) * (1 - t) * 0.85,
+          restingPoint[2] + (1 - t) * 0.4,
         );
       }
     } else {
@@ -591,9 +648,15 @@ function PhysicalDie({
   return (
     <group>
       <RoundedBox
-        args={compact ? [0.72, 0.045, 0.72] : [0.92, 0.055, 1.55]}
+        args={
+          followsPlayer ? [0.72, 0.045, 0.72] : [0.92, 0.055, 1.55]
+        }
         radius={0.02}
-        position={compact ? [0, 0.023, 0] : [3.65, 0.028, 1.1]}
+        position={
+          followsPlayer
+            ? [restingPoint[0], 0.023, restingPoint[2]]
+            : [3.65, 0.028, 1.1]
+        }
       >
         <meshStandardMaterial color="#9b9c98" roughness={0.84} />
       </RoundedBox>
@@ -623,22 +686,22 @@ function PhysicalDie({
         >
           <meshPhysicalMaterial
             color={dieColor}
-            roughness={0.025}
+            roughness={compact ? 0.015 : 0.025}
             metalness={0}
             clearcoat={1}
             clearcoatRoughness={0.01}
-            transmission={0.32}
-            thickness={0.82}
+            transmission={compact ? 0.08 : 0.32}
+            thickness={compact ? 0.3 : 0.82}
             ior={1.49}
             attenuationColor={dieColor}
             attenuationDistance={0.28}
             specularIntensity={1}
             specularColor="#ffffff"
-            envMapIntensity={3.4}
+            envMapIntensity={compact ? 4.2 : 3.4}
             transparent
             opacity={1}
-            emissive={canRoll ? dieColor : "#000000"}
-            emissiveIntensity={canRoll ? 0.025 : 0}
+            emissive={compact ? "#ffffff" : canRoll ? dieColor : "#000000"}
+            emissiveIntensity={compact ? 0.14 : canRoll ? 0.025 : 0}
           />
         </RoundedBox>
         {DIE_FACES.map((face) => (
@@ -843,7 +906,11 @@ function Seats({
   speakingPlayerIds,
   preview,
   gameType,
+  orientation,
 }: SceneProps) {
+  const compact = useThree(
+    ({ size }) => size.width <= 900 || size.height <= 650,
+  );
   if (preview) return null;
   // Board-local anchors follow the same rotation as the artwork and pawns.
   const positions: Record<PlayerColor, Point> = {
@@ -852,14 +919,36 @@ function Seats({
     yellow: [1.8, BOARD_Y, 3.5],
     blue: [-1.8, BOARD_Y, 3.5],
   };
+  const mobileCornerPositions: Record<PlayerColor, Point> = {
+    red: [-2.15, BOARD_Y, -3.52],
+    green: [2.15, BOARD_Y, -3.52],
+    yellow: [2.15, BOARD_Y, 3.52],
+    blue: [-2.15, BOARD_Y, 3.52],
+  };
+  const mobileDuel = compact && players.length === 2;
+  const mobileFourPlayer = compact && players.length === 4;
+  const duelPlayers = [...players].sort((a, b) => {
+    if (a.id === myPlayerId) return -1;
+    if (b.id === myPlayerId) return 1;
+    return a.seatIndex - b.seatIndex;
+  });
   return (
     <>
       {players.map((player) => {
         const active = player.id === (frame.actorId ?? turnPlayerId);
+        const duelIndex = duelPlayers.findIndex(({ id }) => id === player.id);
+        const position = mobileDuel
+          ? rotateTablePoint(
+              [duelIndex === 0 ? -1.18 : 1.18, BOARD_Y, 3.46],
+              -orientation,
+            )
+          : mobileFourPlayer
+            ? mobileCornerPositions[player.color]
+            : positions[player.color];
         return (
           <Html
             key={player.id}
-            position={positions[player.color]}
+            position={position}
             center
             calculatePosition={(object, camera, size) => {
               const point = new THREE.Vector3()
@@ -867,6 +956,15 @@ function Seats({
                 .project(camera);
               const portrait = size.width / size.height < 0.9;
               const inset = portrait ? 66 : 108;
+              const projectedY = ((1 - point.y) * size.height) / 2;
+              const labelY =
+                mobileDuel || mobileFourPlayer
+                  ? projectedY
+                  : compact && portrait
+                  ? projectedY < size.height / 2
+                    ? projectedY - 34
+                    : projectedY + 34
+                  : projectedY;
               return [
                 THREE.MathUtils.clamp(
                   ((point.x + 1) * size.width) / 2,
@@ -874,9 +972,9 @@ function Seats({
                   size.width - inset,
                 ),
                 THREE.MathUtils.clamp(
-                  ((1 - point.y) * size.height) / 2,
-                  portrait ? 105 : 75,
-                  size.height - (portrait ? 115 : 75),
+                  labelY,
+                  portrait ? 155 : 75,
+                  size.height - (portrait ? (mobileDuel ? 76 : 92) : 75),
                 ),
               ];
             }}
@@ -884,7 +982,7 @@ function Seats({
             style={{ pointerEvents: "none" }}
           >
             <div
-              className={`sim-seat ${active ? "is-active" : ""}`}
+              className={`sim-seat ${mobileDuel ? "is-mobile-duel" : ""} ${active ? "is-active" : ""}`}
               style={
                 { "--seat-color": COLORS[player.color] } as React.CSSProperties
               }

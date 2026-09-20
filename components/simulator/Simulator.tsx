@@ -376,16 +376,17 @@ export default function Simulator({
   useEffect(() => {
     if (playedRoll.current === frame.rollId) return;
     playedRoll.current = frame.rollId;
-    if (!prefs.sound || frame.phase !== "roll") return;
+    if (!prefs.sound) return;
+    const rolledSix = frame.dice === 6;
     const sound = new Audio(
-      frame.dice === 6 ? "/audio/dice-six.wav" : "/sounds/dice-roll.wav",
+      rolledSix ? "/audio/dice-six.wav" : "/sounds/dice-roll.wav",
     );
-    sound.volume = 0.45;
+    sound.volume = rolledSix ? 0.7 : 0.45;
     void sound.play().catch(() => {});
     return () => {
       sound.pause();
     };
-  }, [frame.dice, frame.rollId, frame.phase, prefs.sound]);
+  }, [frame.dice, frame.rollId, prefs.sound]);
   const setPref = useCallback(
     <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
       setPrefs((p) => ({ ...p, [key]: value })),

@@ -148,37 +148,6 @@ export default function Home() {
         </div>
       </header>
       <section className="entrance-content">
-        {!friends && teams.length > 0 && (
-          <div className="entrance-team-card">
-            {teams.map((team) => (
-              <div key={team.id} className="entrance-team-row">
-                <div>
-                  <span className="eyebrow">YOUR TEAM</span>
-                  <strong>{team.name}</strong>
-                  <small>
-                    {team.members.length}{" "}
-                    {team.members.length === 1 ? "member" : "members"}
-                    {team.activeRoom &&
-                      ` · Table open · ${team.activeRoom.seatsTaken}/4 seated`}
-                  </small>
-                </div>
-                <button
-                  type="button"
-                  className="sim-primary"
-                  disabled={pending !== null}
-                  onClick={() =>
-                    team.activeRoom
-                      ? joinTeamRoom(team.activeRoom.code)
-                      : startForTeam(team.id)
-                  }
-                >
-                  <span>{team.activeRoom ? "Join now" : "Start a table"}</span>
-                  <Icon name="arrow" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
         {!friends ? (
           <>
             <span className="eyebrow">MAKE YOURSELF AT HOME</span>
@@ -230,6 +199,39 @@ export default function Home() {
                 )}
               </div>
             </fieldset>
+            {teams.length > 0 && (
+              <div className="entrance-team-card">
+                {teams.map((team) => (
+                  <div key={team.id} className="entrance-team-row">
+                    <div>
+                      <span className="eyebrow">YOUR TEAM</span>
+                      <strong>{team.name}</strong>
+                      <small>
+                        {team.members.length}{" "}
+                        {team.members.length === 1 ? "member" : "members"}
+                        {team.activeRoom &&
+                          ` · Table open · ${team.activeRoom.seatsTaken}/4 seated`}
+                      </small>
+                    </div>
+                    <button
+                      type="button"
+                      className="sim-primary"
+                      disabled={pending !== null}
+                      onClick={() =>
+                        team.activeRoom
+                          ? joinTeamRoom(team.activeRoom.code)
+                          : startForTeam(team.id)
+                      }
+                    >
+                      <span>
+                        {team.activeRoom ? "Join now" : "Start a table"}
+                      </span>
+                      <Icon name="arrow" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="entrance-buttons">
               <button className="sim-primary" onClick={() => setFriends(true)}>
                 <span>Play with friends</span>

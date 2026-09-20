@@ -243,6 +243,37 @@ body.sim-die-hover .sim-canvas,
 body.sim-piece-hover .sim-canvas {
   cursor: pointer;
 }
+/* Always visible, even in immersive mode — it's the only way back out of
+   it once .sim-header (which normally reaches this same toggle from the
+   tools panel) is hidden. */
+.sim-immersive-toggle {
+  position: absolute;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(27, 36, 30, 0.55);
+  border: 1px solid var(--sim-line);
+  backdrop-filter: blur(18px);
+  color: #e4e7db;
+  opacity: 0.55;
+}
+.sim-immersive-toggle:hover,
+.sim-immersive-toggle:focus-visible {
+  opacity: 1;
+  background: #404d3e;
+}
+.simulator.is-immersive .sim-header,
+.simulator.is-immersive .sim-side-tools,
+.simulator.is-immersive .sim-footer,
+.simulator.is-immersive .sim-rotation,
+.simulator.is-immersive .sim-vignette {
+  display: none;
+}
 .sim-vignette {
   position: absolute;
   inset: 0;

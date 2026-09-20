@@ -76,6 +76,7 @@ interface Preferences {
   snakeOrientation: number;
   view: CameraView;
   boardStyle: "signature" | "classic";
+  immersive: boolean;
 }
 const PREF_KEY = "luddo-simulator-v1";
 const CAMERA_VIEW_LABELS: Record<CameraView, string> = {
@@ -108,6 +109,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     snakeOrientation: 0,
     view: defaultCameraView(),
     boardStyle: "signature",
+    immersive: false,
   };
   try {
     const value = JSON.parse(localStorage.getItem(PREF_KEY) ?? "null");
@@ -139,6 +141,9 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
         ? value.snakeOrientation
         : 0,
       boardStyle: value.boardStyle === "classic" ? "classic" : "signature",
+      // Session-only, like view — reopening the table should never come
+      // back with everything mysteriously hidden.
+      immersive: defaults.immersive,
     };
   } catch {
     return defaults;
@@ -544,7 +549,10 @@ export default function Simulator({
     flipTimer.current = setTimeout(() => setFlipping(false), 1600);
   }
   return (
-    <main className="simulator" ref={root}>
+    <main
+      className={`simulator ${prefs.immersive ? "is-immersive" : ""}`}
+      ref={root}
+    >
       <SceneBoundary>
         <Scene
           gameType={state.gameType}
@@ -571,9 +579,26 @@ export default function Simulator({
           speakingPlayerIds={voice?.speakingPlayerIds}
           soundEnabled={prefs.sound}
           boardStyle={prefs.boardStyle}
+          hideLabels={prefs.immersive}
         />
       </SceneBoundary>
       <div className="sim-vignette" />
+      <button
+        className="sim-immersive-toggle"
+        title={
+          prefs.immersive
+            ? "Show labels and controls"
+            : "Hide labels and controls"
+        }
+        aria-label={
+          prefs.immersive
+            ? "Show labels and controls"
+            : "Hide labels and controls"
+        }
+        onClick={() => setPref("immersive", !prefs.immersive)}
+      >
+        <Icon name={prefs.immersive ? "eye-off" : "look"} />
+      </button>
       <header className="sim-header">
         <div className="sim-brand">
           <span className="brand-mark">
@@ -625,7 +650,7 @@ export default function Simulator({
           {(
             [
               ["play", "play", "Play (1)"],
-              ["look", "look", "Look (L)"],
+              ["look", "cube", "Look (L)"],
               ["rotate", "rotate", "Rotate board (R)"],
             ] as const
           ).map(([value, icon, label]) => (
@@ -923,7 +948,7 @@ export default function Simulator({
                   setPanel(null);
                 }}
               >
-                <Icon name="look" />
+                <Icon name="cube" />
                 Explore the room
               </button>
             </>
@@ -1000,6 +1025,18 @@ export default function Simulator({
               >
                 <Icon name="expand" />
                 {fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+              </button>
+              <button
+                className="panel-secondary"
+                onClick={() => {
+                  setPref("immersive", !prefs.immersive);
+                  setPanel(null);
+                }}
+              >
+                <Icon name={prefs.immersive ? "eye-off" : "look"} />
+                {prefs.immersive
+                  ? "Show labels and controls"
+                  : "Hide labels and controls"}
               </button>
             </>
           )}

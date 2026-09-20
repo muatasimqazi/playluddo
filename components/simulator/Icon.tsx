@@ -24,7 +24,9 @@ export type IconName =
   | "mic"
   | "mic-off"
   | "phone-off"
-  | "swap";
+  | "swap"
+  | "eye-off"
+  | "cube";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -156,6 +158,19 @@ const paths: Record<IconName, React.ReactNode> = {
   swap: (
     <>
       <path d="M4 8h16m-5-4 5 4-5 4M20 16H4m5 4-5-4 5-4" />
+    </>
+  ),
+  "eye-off": (
+    <>
+      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+      <line x1="3" y1="3" x2="21" y2="21" />
+    </>
+  ),
+  cube: (
+    <>
+      <path d="M12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5Z" />
+      <path d="M12 12 20 7.5M12 12 12 21M12 12 4 7.5" />
     </>
   ),
 };

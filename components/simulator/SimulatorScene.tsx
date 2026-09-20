@@ -71,6 +71,7 @@ export interface SceneProps {
   preview?: boolean;
   soundEnabled?: boolean;
   boardStyle?: "signature" | "classic";
+  hideLabels?: boolean;
 }
 
 function CameraRig({
@@ -537,6 +538,10 @@ const DESKTOP_FOUR_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
   blue: [-3.5, 0.26, 1.3],
 };
 const DESKTOP_DIE_POINT: Point = [3.65, 0.26, 1.1];
+// Snakes & Ladders has no per-player corners to track, so the die just
+// sits in one fixed spot — bottom-right, never following whoever's turn
+// it is or rotating with the board.
+const SNAKES_DIE_POINT: Point = [1.8, 0.26, 3.3];
 
 function rotateTablePoint(point: Point, angle: number): Point {
   const cosine = Math.cos(angle);
@@ -556,6 +561,7 @@ function PhysicalDie({
   players,
   turnPlayerId,
   orientation,
+  gameType,
 }: Pick<
   SceneProps,
   | "frame"
@@ -565,6 +571,7 @@ function PhysicalDie({
   | "players"
   | "turnPlayerId"
   | "orientation"
+  | "gameType"
 >) {
   const mesh = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -574,8 +581,10 @@ function PhysicalDie({
   const activePlayer = players.find(
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
-  const followsPlayer = players.length === 4 || compact;
+  const snakes = gameType === "snakes_and_ladders";
+  const followsPlayer = !snakes && (players.length === 4 || compact);
   const restingPoint = useMemo<Point>(() => {
+    if (snakes) return SNAKES_DIE_POINT;
     if (!followsPlayer) return DESKTOP_DIE_POINT;
     if (compact && players.length === 2) return MOBILE_TWO_PLAYER_DIE_POINT;
     if (!activePlayer)
@@ -586,7 +595,7 @@ function PhysicalDie({
       ],
       orientation,
     );
-  }, [activePlayer, compact, followsPlayer, orientation, players.length]);
+  }, [activePlayer, compact, followsPlayer, orientation, players.length, snakes]);
   const restingVector = useMemo(
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
@@ -912,11 +921,12 @@ function Seats({
   preview,
   gameType,
   orientation,
+  hideLabels,
 }: SceneProps) {
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
   );
-  if (preview) return null;
+  if (preview || hideLabels) return null;
   // Board-local anchors follow the same rotation as the artwork and pawns.
   const positions: Record<PlayerColor, Point> = {
     red: [-1.8, BOARD_Y, -3.5],

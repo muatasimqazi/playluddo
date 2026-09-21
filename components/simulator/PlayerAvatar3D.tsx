@@ -6,7 +6,7 @@ import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import type { Player, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
-import { photoAvatar, type PhotoAvatar } from "@/lib/avatars/catalog";
+import { avatarForSeat } from "@/lib/avatars/catalog";
 
 const BASE_SEATS: Record<
   PlayerColor,
@@ -18,8 +18,8 @@ const BASE_SEATS: Record<
   blue: { position: [-4.82, -0.88, 0], rotation: Math.PI / 2 },
 };
 
-function PhotoFace({ photo }: { photo: PhotoAvatar }) {
-  const texture = useTexture(photo.portrait);
+function AvatarFace({ portrait }: { portrait: string }) {
+  const texture = useTexture(portrait);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability -- R3F owns a mutable Three texture, not immutable React state.
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -46,7 +46,7 @@ function ProceduralAvatar({
   const head = useRef<THREE.Group>(null);
   const seat = BASE_SEATS[player.color];
   const playerColor = COLORS[player.color];
-  const photo = photoAvatar(player.avatarId);
+  const portrait = avatarForSeat(player.avatarId, player.seatIndex).portrait;
   const playerColorDark = new THREE.Color(playerColor).offsetHSL(0, 0, -0.14);
 
   useFrame(({ clock }, delta) => {
@@ -88,28 +88,7 @@ function ProceduralAvatar({
             clearcoatRoughness={0.18}
           />
         </mesh>
-        {photo ? (
-          <PhotoFace photo={photo} />
-        ) : (
-          <>
-            <mesh position={[-0.145, 0.06, 0.39]}>
-              <sphereGeometry args={[0.05, 12, 8]} />
-              <meshBasicMaterial color="#172019" />
-            </mesh>
-            <mesh position={[0.145, 0.06, 0.39]}>
-              <sphereGeometry args={[0.05, 12, 8]} />
-              <meshBasicMaterial color="#172019" />
-            </mesh>
-            <mesh position={[-0.145, 0.075, 0.432]}>
-              <sphereGeometry args={[0.014, 8, 6]} />
-              <meshBasicMaterial color="#ffffff" />
-            </mesh>
-            <mesh position={[0.145, 0.075, 0.432]}>
-              <sphereGeometry args={[0.014, 8, 6]} />
-              <meshBasicMaterial color="#ffffff" />
-            </mesh>
-          </>
-        )}
+        <AvatarFace portrait={portrait} />
       </group>
       {active && (
         <mesh position={[0, 1.72, 0]} rotation={[-Math.PI / 2, 0, 0]}>

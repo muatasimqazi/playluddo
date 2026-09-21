@@ -84,7 +84,7 @@ it.each(Object.entries({ ...LADDERS, ...SNAKES }))(
   },
 );
 
-it("enters on any die, moves automatically and grants another roll on six", () => {
+it("needs a six to enter, then grants another roll on six", () => {
   const session = createPractice("snakes_and_ladders");
   const next = practiceReducer(session, { type: "roll", value: 6 });
   expect(next.state.pawns).toHaveLength(4);
@@ -97,6 +97,19 @@ it("enters on any die, moves automatically and grants another roll on six", () =
   ]);
   for (const value of [0, 7, 1.5, NaN])
     expect(practiceReducer(session, { type: "roll", value })).toBe(session);
+});
+
+it("passes the turn without moving when a nest piece doesn't roll a six", () => {
+  const session = createPractice("snakes_and_ladders");
+  const next = practiceReducer(session, { type: "roll", value: 3 });
+  expect(next.state.pawns[0].pathIndex).toBeNull();
+  expect(next.state.turnPlayerId).toBe("practice-1");
+  expect(next.events.map((e) => e.event_type)).toEqual(["dice_rolled"]);
+  expect(next.events.at(-1)?.payload).toMatchObject({
+    dieValue: 3,
+    needsSixToEnter: true,
+    overshoot: false,
+  });
 });
 
 it("requires exact 100 and continues until the last player finishes", () => {
@@ -144,10 +157,13 @@ it("ends a 2-player Snakes & Ladders match the instant the first player finishes
 it("queues automatic movement behind the roll and replays the full action", () => {
   vi.useFakeTimers();
   const initial = createPractice("snakes_and_ladders");
+  // Already on the track (not in the nest) so this roll of 4 isn't blocked
+  // by the six-to-enter rule — this test is about timeline/replay mechanics.
+  initial.state.pawns[0] = { ...initial.state.pawns[0], state: "track", pathIndex: 0 };
   const timeline = new PresentationTimeline(initial.state);
   const next = practiceReducer(initial, { type: "roll", value: 4 });
   timeline.receive(next.events, next.state);
-  expect(timeline.getSnapshot().pawns[0].pathIndex).toBeNull();
+  expect(timeline.getSnapshot().pawns[0].pathIndex).toBe(0);
   vi.advanceTimersByTime(1180);
   expect(timeline.getSnapshot()).toMatchObject({
     phase: "move",

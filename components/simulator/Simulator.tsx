@@ -1282,7 +1282,7 @@ export default function Simulator({
                       </span>
                       <p>
                         {e.event_type === "dice_rolled"
-                          ? `rolled ${e.payload.dieValue}${e.payload.overshoot ? " · exact roll needed, stays put" : e.payload.cancelledByThirdSix ? " · third six, turn ends" : ""}`
+                          ? `rolled ${e.payload.dieValue}${e.payload.needsSixToEnter ? " · needs a six to enter" : e.payload.overshoot ? " · exact roll needed, stays put" : e.payload.cancelledByThirdSix ? " · third six, turn ends" : ""}`
                           : e.event_type === "legal_move_selected"
                             ? snakes
                               ? e.payload.finishesPawn

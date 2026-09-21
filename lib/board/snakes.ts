@@ -18,7 +18,7 @@ export const SNAKES: Readonly<Record<number, number>> = {
   98: 38,
 };
 
-/** One piece each; any roll enters, exact 100, no captures or bonus rolls. */
+/** One piece each; a six enters the board, exact 100, no captures or bonus rolls. */
 export function snakeMove(
   pawns: Pawn[],
   color: PlayerColor,
@@ -27,6 +27,7 @@ export function snakeMove(
   if (!Number.isInteger(die) || die < 1 || die > 6) return null;
   const pawn = pawns.find((p) => p.color === color && p.state !== "finished");
   if (!pawn) return null;
+  if (pawn.pathIndex === null && die !== 6) return null;
   const landingSquare = (pawn.pathIndex ?? 0) + die;
   if (landingSquare > 100) return null;
   const destination =

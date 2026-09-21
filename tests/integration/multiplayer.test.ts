@@ -173,8 +173,13 @@ it.each(["ludo", "snakes_and_ladders"] as const)(
       expect(snapshot.gameType).toBe(gameType);
       expect(snapshot.pawns).toHaveLength(gameType === "ludo" ? 16 : 4);
       if (gameType === "snakes_and_ladders") {
-        const move = snakeMove(before.pawns, "red", roll.dieValue)!;
-        expect(snapshot.pawns).toEqual(applySnakeMove(before.pawns, move));
+        // The piece needs a six to leave the nest, so this first roll only
+        // moves it about a sixth of the time — assert whichever the server
+        // actually did rather than assuming a move happened.
+        const move = snakeMove(before.pawns, "red", roll.dieValue);
+        expect(snapshot.pawns).toEqual(
+          move ? applySnakeMove(before.pawns, move) : before.pawns,
+        );
         expect(snapshot.turnPlayerId).toBe(guest.playerId);
         expect(snapshot.turnPhase).toBe("awaiting_roll");
         const moves = await b
@@ -183,7 +188,7 @@ it.each(["ludo", "snakes_and_ladders"] as const)(
           .eq("room_id", roomId)
           .eq("event_type", "legal_move_selected");
         expect(moves.error).toBeNull();
-        expect(moves.data?.[0].payload).toEqual(move);
+        expect(moves.data ?? []).toEqual(move ? [{ payload: move }] : []);
       }
     } finally {
       await Promise.all(channels.map((channel) => channel.unsubscribe()));

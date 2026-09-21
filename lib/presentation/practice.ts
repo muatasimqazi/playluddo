@@ -208,6 +208,9 @@ function snakePracticeReducer(
   )
     return session;
   const player = state.players.find((p) => p.id === state.turnPlayerId)!;
+  const pawn = state.pawns.find(
+    (p) => p.color === player.color && p.state !== "finished",
+  )!;
   const move = snakeMove(state.pawns, player.color, action.value);
   const pawns = move ? applySnakeMove(state.pawns, move) : state.pawns;
   const winnerIds = move?.finishesPawn
@@ -238,7 +241,8 @@ function snakePracticeReducer(
   append("dice_rolled", {
     dieValue: action.value,
     cancelledByThirdSix: false,
-    overshoot: !move,
+    overshoot: !move && pawn.pathIndex !== null,
+    needsSixToEnter: !move && pawn.pathIndex === null,
   });
   if (move) append("legal_move_selected", { ...move });
   if (move?.finishesPawn)

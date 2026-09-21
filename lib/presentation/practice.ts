@@ -7,6 +7,7 @@ import {
 } from "../board/rules";
 import type { GameRoomState, GameType, PlayerColor } from "../board/types";
 import { applySnakeMove, snakeMove } from "../board/snakes";
+import { DIAGONAL_COLOR } from "./board";
 import type { MatchEventRow } from "../realtime/room-channel";
 
 export interface PracticeSession {
@@ -24,12 +25,18 @@ export function createPractice(
   playerColor: PlayerColor = "blue",
   profile: PracticeProfile = {},
 ): PracticeSession {
-  const colors = [
-    playerColor,
-    ...(["blue", "red", "green", "yellow"] as PlayerColor[]).filter(
-      (color) => color !== playerColor,
-    ),
-  ].slice(0, playerCount);
+  // A 2-player game seats the two players diagonally across the board
+  // (same pairing the SQL room engine uses); 3-4 players fill the
+  // remaining bases in a fixed order same as before.
+  const colors =
+    playerCount === 2
+      ? [playerColor, DIAGONAL_COLOR[playerColor]]
+      : [
+          playerColor,
+          ...(["blue", "red", "green", "yellow"] as PlayerColor[]).filter(
+            (color) => color !== playerColor,
+          ),
+        ].slice(0, playerCount);
   return {
     state: {
       roomId: "practice",

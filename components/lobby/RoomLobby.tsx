@@ -50,7 +50,26 @@ export function RoomLobby({
   const occupiedCount = state?.players.length ?? 1;
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
-  const seatColors = SEAT_COLORS.slice(0, maxPlayers);
+  // For 2 players, the seats aren't a fixed {0,1} range — the second seat
+  // is whichever base sits diagonally across the board from the first
+  // (mirrors the SQL engine's (seat + 2) % 4 pairing). The host is always
+  // seated immediately on creation, so their current seat + its diagonal
+  // is always exactly the pair that matters for the seats grid/bot-fill.
+  const hostSeatIndex =
+    state.players.find((p) => p.id === state.hostPlayerId)?.seatIndex ?? 0;
+  const relevantSeats: number[] =
+    maxPlayers !== 2
+      ? Array.from({ length: maxPlayers }, (_, i) => i)
+      : hostSeatIndex % 2 === 0
+        ? [0, 2]
+        : [1, 3];
+  // What *I* can pick for my own base: any of the 4 for a 2-player room
+  // until someone other than me has actually taken the other seat, then
+  // it's locked to that seat's diagonal, same as the server enforces.
+  const myChoiceSeats: number[] =
+    maxPlayers === 2 && !state.players.some((p) => p.id !== myPlayerId)
+      ? [0, 1, 2, 3]
+      : relevantSeats;
   const me = state.players.find((player) => player.id === myPlayerId);
   const host = state.hostPlayerId
     ? state.hostPlayerId === myPlayerId
@@ -216,7 +235,8 @@ export function RoomLobby({
               <strong>Choose your color</strong>
             </span>
             <div>
-              {seatColors.map((color) => {
+              {myChoiceSeats.map((seat) => {
+                const color = SEAT_COLORS[seat];
                 const occupant = state.players.find(
                   (player) => player.color === color,
                 );
@@ -309,7 +329,8 @@ export function RoomLobby({
           </div>
         )}
         <div className="lobby-seats">
-          {seatColors.map((color, seat) => {
+          {relevantSeats.map((seat) => {
+            const color = SEAT_COLORS[seat];
             const player = state.players.find((p) => p.seatIndex === seat);
             return (
               <div
@@ -363,7 +384,7 @@ export function RoomLobby({
             disabled={pending || state.players.length < 2}
             onClick={() =>
               void run(async () => {
-                const openSeats = seatColors.map((_, seat) => seat).filter(
+                const openSeats = relevantSeats.filter(
                   (seat) => !state.players.some((p) => p.seatIndex === seat),
                 );
                 const computersNeeded = maxPlayers - state.players.length;

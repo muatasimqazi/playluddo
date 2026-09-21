@@ -46,8 +46,8 @@ select 'joinA', public.join_room((select value->>'code' from test_state where ke
 select results_eq(
   $$select seat_index from public.players
     where id = ((select value->>'playerId' from test_state where key = 'joinA'))::uuid$$,
-  $$values (1)$$,
-  'the second joiner takes the last of the two seats'
+  $$values (2)$$,
+  'the second joiner takes the seat diagonally across from the host (red''s diagonal is yellow, seat 2), not just the next one'
 );
 
 set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444403';
@@ -60,18 +60,18 @@ select throws_ok(
 
 set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444401';
 select throws_ok(
-  $$select public.fill_bot(((select value->>'roomId' from test_state where key = 'roomA'))::uuid, 2)$$,
+  $$select public.fill_bot(((select value->>'roomId' from test_state where key = 'roomA'))::uuid, 1)$$,
   'P0001',
   'INVALID_SEAT',
-  'a bot cannot be added to a seat beyond max_players'
+  'a bot cannot be added to a seat that is not the host''s diagonal (green is not red''s diagonal)'
 );
 
 set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444402';
 select throws_ok(
-  $$select public.set_player_color(((select value->>'roomId' from test_state where key = 'roomA'))::uuid, 'yellow')$$,
+  $$select public.set_player_color(((select value->>'roomId' from test_state where key = 'roomA'))::uuid, 'green')$$,
   'P0001',
   'INVALID_SEAT',
-  'choosing a color whose seat is beyond max_players fails'
+  'once seated diagonally, a 2-player room locks further color changes to that pairing'
 );
 
 set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444401';

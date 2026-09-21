@@ -179,7 +179,10 @@ export default function Home() {
                       // so shrinking the table can leave the previously chosen
                       // color out of range — reset it before that can reach the
                       // create_room/set_player_color RPCs as an INVALID_SEAT.
-                      if (SEAT_COLORS.indexOf(playerColor) >= count)
+                      // Every color is valid for 2 (the second seat becomes
+                      // whichever base is diagonally opposite), so no reset
+                      // is needed there.
+                      if (count !== 2 && SEAT_COLORS.indexOf(playerColor) >= count)
                         setPlayerColorChoice(SEAT_COLORS[0]);
                     }}
                   >
@@ -193,7 +196,10 @@ export default function Home() {
             <fieldset className="entrance-color-choice">
               <legend>Choose your base</legend>
               <div>
-                {SEAT_COLORS.slice(0, playerCount).map(
+                {(playerCount === 2
+                  ? SEAT_COLORS
+                  : SEAT_COLORS.slice(0, playerCount)
+                ).map(
                   (color) => (
                     <button
                       key={color}

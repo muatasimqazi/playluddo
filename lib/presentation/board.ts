@@ -22,6 +22,19 @@ export const HOME_ROTATION: Record<PlayerColor, number> = {
   green: Math.PI,
   yellow: Math.PI * 1.5,
 };
+/**
+ * Each color's diagonally-opposite base on the board (BASE_AREA in
+ * components/arena/boardLayout.ts: red=top-left, green=top-right,
+ * yellow=bottom-right, blue=bottom-left). Mirrors the seat_index pairing
+ * ((seat + 2) % 4) the SQL engine uses so a 2-player game seats the two
+ * players across the table from each other.
+ */
+export const DIAGONAL_COLOR: Record<PlayerColor, PlayerColor> = {
+  red: "yellow",
+  yellow: "red",
+  green: "blue",
+  blue: "green",
+};
 export type Point = [number, number, number];
 export type CameraView =
   | "play"

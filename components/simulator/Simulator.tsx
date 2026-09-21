@@ -257,7 +257,7 @@ export default function Simulator({
   );
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "settings" | "chat" | "tools" | null
+    "menu" | "camera" | "preferences" | "chat" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -680,9 +680,9 @@ export default function Simulator({
           <span className="mobile-tools-trigger">
             <Tool
               icon="settings"
-              label="Table tools"
-              active={panel === "tools"}
-              onClick={() => togglePanel("tools")}
+              label="Preferences"
+              active={panel === "preferences"}
+              onClick={() => togglePanel("preferences")}
             />
           </span>
           <Tool
@@ -754,9 +754,9 @@ export default function Simulator({
         )}
         <Tool
           icon="settings"
-          label="Settings"
-          active={panel === "settings"}
-          onClick={() => togglePanel("settings")}
+          label="Preferences"
+          active={panel === "preferences"}
+          onClick={() => togglePanel("preferences")}
         />
         <Tool
           icon="expand"
@@ -890,13 +890,11 @@ export default function Simulator({
               <h2>
                 {panel === "camera"
                   ? "Find your perspective"
-                  : panel === "settings"
-                    ? "Make yourself at home"
+                  : panel === "preferences"
+                    ? "Preferences"
                     : panel === "chat"
                       ? "Table talk"
-                      : panel === "tools"
-                        ? "Table tools"
-                        : "Your evening, your game"}
+                      : "Your evening, your game"}
               </h2>
             </div>
             <Tool
@@ -949,7 +947,7 @@ export default function Simulator({
               </button>
             </>
           )}
-          {panel === "tools" && (
+          {panel === "preferences" && (
             <>
               <button
                 className="panel-secondary"
@@ -971,13 +969,6 @@ export default function Simulator({
               >
                 <Icon name="camera" />
                 Camera views
-              </button>
-              <button
-                className="panel-secondary"
-                onClick={() => setPref("sound", !prefs.sound)}
-              >
-                <Icon name={prefs.sound ? "sound" : "muted"} />
-                {prefs.sound ? "Mute sound" : "Enable sound"}
               </button>
               <button
                 className="panel-secondary"
@@ -1010,13 +1001,6 @@ export default function Simulator({
               )}
               <button
                 className="panel-secondary"
-                onClick={() => setPanel("settings")}
-              >
-                <Icon name="settings" />
-                Settings
-              </button>
-              <button
-                className="panel-secondary"
                 onClick={() => void toggleFullscreen()}
               >
                 <Icon name="expand" />
@@ -1034,10 +1018,6 @@ export default function Simulator({
                   ? "Show labels and controls"
                   : "Hide labels and controls"}
               </button>
-            </>
-          )}
-          {panel === "settings" && (
-            <>
               <label className="setting-row">
                 <span>
                   Board design<small>Choose your Luddo artwork</small>

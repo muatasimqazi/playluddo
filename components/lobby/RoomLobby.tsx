@@ -79,7 +79,7 @@ export function RoomLobby({
     }
   }
   async function shareInvite() {
-    const url = `${window.location.origin}/room/${roomId}`;
+    const url = `${window.location.origin}/room?id=${roomId}`;
     if (!navigator.share) {
       await copyInvite(url, "link");
       return;
@@ -165,7 +165,7 @@ export function RoomLobby({
               {inviteFeedback === "shared" ? "Shared" : "Share"}
             </button>
             <button
-              onClick={() => void copyInvite(`${window.location.origin}/room/${roomId}`, "link")}
+              onClick={() => void copyInvite(`${window.location.origin}/room?id=${roomId}`, "link")}
               title="Copy room link"
             >
               <Icon name={inviteFeedback === "link" ? "check" : "link"} />

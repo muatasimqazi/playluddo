@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:capacitor": "CAPACITOR_BUILD=1 next build",
+    "cap:sync": "npm run build:capacitor && npx cap sync",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run tests/rules-engine-ts tests/presentation",
@@ -13,6 +15,8 @@
     "test:multiplayer": "vitest run tests/integration"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",

@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Native Capacitor projects (npx cap add ios|android) — generated/copied
+    // native code and a synced copy of the web build, not app source.
+    "ios/**",
+    "android/**",
     // Generated locally by `supabase start` (local edge-runtime bootstrap) —
     // gitignored via supabase/.gitignore, but ESLint doesn't read that.
     "supabase/.temp/**",

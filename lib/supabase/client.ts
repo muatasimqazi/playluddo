@@ -12,8 +12,12 @@ import { createBrowserClient } from "@supabase/ssr";
  * auth-dependent server route, per @supabase/ssr's documented pattern.
  */
 export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Supabase now issues "publishable" keys (sb_publishable_...) in place of
+  // the legacy anon JWT; a local Supabase instance (`supabase start`) still
+  // only emits the legacy name, so both are supported rather than assuming
+  // whichever this environment happens to have.
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key);
 }

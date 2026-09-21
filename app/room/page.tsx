@@ -1,14 +1,32 @@
 "use client";
 
-import { use } from "react";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRoomConnection } from "@/lib/hooks/useRoomConnection";
 import { useVoiceChat } from "@/lib/hooks/useVoiceChat";
 import { useRoomStore } from "@/lib/store/room-store";
 import { RoomLobby } from "@/components/lobby/RoomLobby";
 import { MatchArena } from "@/components/arena/MatchArena";
 
-export default function RoomPage({ params }: { params: Promise<{ roomId: string }> }) {
-  const { roomId } = use(params);
+// A query param, not a [roomId] path segment: `output: "export"` (the
+// Capacitor build, see next.config.ts) can't pre-render a dynamic path
+// segment for runtime-generated UUIDs, but a query param needs no
+// pre-rendering at all. useSearchParams() requires a Suspense boundary.
+export default function RoomPage() {
+  return (
+    <Suspense fallback={<CenteredMessage>Connecting…</CenteredMessage>}>
+      <RoomPageContent />
+    </Suspense>
+  );
+}
+
+function RoomPageContent() {
+  const roomId = useSearchParams().get("id");
+  if (!roomId) return <CenteredMessage>Room not found.</CenteredMessage>;
+  return <ConnectedRoom roomId={roomId} />;
+}
+
+function ConnectedRoom({ roomId }: { roomId: string }) {
   const { client, loading, error } = useRoomConnection(roomId);
   const roomState = useRoomStore((s) => s.roomState);
   // Instantiated once here (not inside RoomLobby/MatchArena) so a call

@@ -16,6 +16,10 @@ import { TableLoading } from "@/components/simulator/TableLoading";
 import type { Team } from "@/lib/supabase/teams";
 import "@/components/simulator/simulator.css";
 
+// Matches the seat_index a color maps to server-side (private.ludo_color_for_seat /
+// set_player_color), same order as components/lobby/RoomLobby.tsx's SEAT_COLORS.
+const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
+
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
   ssr: false,
   loading: () => <TableLoading label="Setting the table…" />,
@@ -27,7 +31,10 @@ export default function Home() {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(2);
-  const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("blue");
+  // Must stay valid for the default playerCount (2): a seat's color maps
+  // 1:1 to its index (red=0 ... blue=3), and red (seat 0) is the only
+  // choice guaranteed in range for every possible player count.
+  const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("red");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -55,7 +62,7 @@ export default function Home() {
           : await joinRoom(client, code.trim(), name.trim());
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
-      router.push(`/room/${room.roomId}`);
+      router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not connect. Please try again.",
@@ -80,7 +87,7 @@ export default function Home() {
       const client = createClient();
       await ensureSession(client);
       const room = await action(client);
-      router.push(`/room/${room.roomId}`);
+      router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not connect. Please try again.",
@@ -166,7 +173,15 @@ export default function Home() {
                     type="button"
                     className={playerCount === count ? "is-selected" : ""}
                     aria-pressed={playerCount === count}
-                    onClick={() => setPlayerCount(count)}
+                    onClick={() => {
+                      setPlayerCount(count);
+                      // A seat's color maps 1:1 to its index (red=0 ... blue=3),
+                      // so shrinking the table can leave the previously chosen
+                      // color out of range — reset it before that can reach the
+                      // create_room/set_player_color RPCs as an INVALID_SEAT.
+                      if (SEAT_COLORS.indexOf(playerColor) >= count)
+                        setPlayerColorChoice(SEAT_COLORS[0]);
+                    }}
                   >
                     <strong>{count}</strong>
                     <span>{count === 2 ? "You + 1" : `You + ${count - 1}`}</span>
@@ -178,7 +193,7 @@ export default function Home() {
             <fieldset className="entrance-color-choice">
               <legend>Choose your base</legend>
               <div>
-                {(["red", "green", "yellow", "blue"] as const).map(
+                {SEAT_COLORS.slice(0, playerCount).map(
                   (color) => (
                     <button
                       key={color}

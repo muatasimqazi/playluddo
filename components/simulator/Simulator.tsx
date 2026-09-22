@@ -29,6 +29,7 @@ import {
 import { PresentationTimeline } from "@/lib/presentation/timeline";
 import { Icon, type IconName } from "./Icon";
 import { TableLoading } from "./TableLoading";
+import { BRAND } from "@/lib/brand";
 import "./simulator.css";
 
 const Scene = dynamic(() => import("./SimulatorScene"), {
@@ -226,7 +227,7 @@ export default function Simulator({
   voice,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
-  const gameName = snakes ? "Snakes & Ladders" : "Let's Play";
+  const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
   const [flipping, setFlipping] = useState(false);
   const flipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 // "Modern Boardroom" design system (designs/modern_boardroom/DESIGN.md):
@@ -11,9 +12,27 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
 });
 
+const title = `${BRAND.name} – Play ${BRAND.gameName} Online with Friends`;
+const description = `Play ${BRAND.gameName} online with friends and family on ${BRAND.name}. Create a private room, invite your friends, and enjoy multiplayer ${BRAND.gameName} online.`;
+
 export const metadata: Metadata = {
-  title: "Luddo — A place to play",
-  description: "Pull up a chair. Play classic Luddo with friends around a shared 3D table in a warm, modern apartment.",
+  metadataBase: new URL(BRAND.url),
+  title,
+  description,
+  alternates: { canonical: "/" },
+  applicationName: BRAND.name,
+  openGraph: {
+    title,
+    description,
+    url: "/",
+    siteName: BRAND.name,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
 };
 
 // viewport-fit=cover lets env(safe-area-inset-*) resolve to real, non-zero
@@ -25,10 +44,29 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: BRAND.name,
+  alternateName: BRAND.tagline,
+  description: BRAND.description,
+  url: BRAND.url,
+  applicationCategory: "GameApplication",
+  genre: `${BRAND.gameName} board game`,
+  operatingSystem: "Any",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </body>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-75GZQ69MCG"
         strategy="afterInteractive"

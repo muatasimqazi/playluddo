@@ -14,6 +14,7 @@ import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import type { Team } from "@/lib/supabase/teams";
+import { BRAND } from "@/lib/brand";
 import "@/components/simulator/simulator.css";
 
 // Matches the seat_index a color maps to server-side (private.ludo_color_for_seat /
@@ -142,7 +143,7 @@ export default function Home() {
             <i />
           </span>
           <span>
-            LUDDO<small>THE TABLETOP EXPERIENCE</small>
+            LUDDO<small>HOUSE</small>
           </span>
         </div>
         <div className="entrance-header-actions">
@@ -344,10 +345,10 @@ export default function Home() {
       </section>
       <div className="entrance-room-label">
         <span>CLASSIC MEETS MODERN</span>
-        <p>Let&apos;s Play LUDDO</p>
+        <p>{BRAND.name}</p>
       </div>
       <footer className="entrance-footer">
-        <span>CLASSIC LUDDO. SHARED MOMENTS.</span>
+        <span>{BRAND.tagline.toUpperCase()}. SHARED MOMENTS.</span>
         <span>
           <i className="connection-dot" />
           TAKE YOUR TIME. STAY A WHILE.

@@ -19,6 +19,7 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
+import { BRAND } from "@/lib/brand";
 import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
@@ -105,8 +106,8 @@ export function RoomLobby({
     }
     try {
       await navigator.share({
-        title: "Join my Luddo table",
-        text: `Join my Luddo table with room code ${state!.code}.`,
+        title: `Join my ${BRAND.gameName} table on ${BRAND.name}`,
+        text: `Join my ${BRAND.gameName} game on ${BRAND.name} — room code ${state!.code}.`,
         url,
       });
       showInviteFeedback("shared");
@@ -157,7 +158,7 @@ export function RoomLobby({
             <i />
           </span>
           <span>
-            LUDDO<small>Let’s Play</small>
+            LUDDO<small>House</small>
           </span>
         </Link>
         <span>THE EVENING IS JUST BEGINNING.</span>

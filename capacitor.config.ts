@@ -1,4 +1,5 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { BRAND } from "./lib/brand";
 
 /**
  * Native iOS/Android platforms (`ios/`, `android/`) were added via
@@ -9,7 +10,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  */
 const config: CapacitorConfig = {
   appId: "com.playluddo.app",
-  appName: "Let's Play Luddo",
+  appName: BRAND.name,
   webDir: "out",
 };
 

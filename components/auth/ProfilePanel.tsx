@@ -18,6 +18,7 @@ import {
   leaveTeam,
   type Team,
 } from "@/lib/supabase/teams";
+import { BRAND } from "@/lib/brand";
 
 type LoginMethod = "email" | "phone";
 
@@ -391,8 +392,8 @@ export function ProfilePanel({
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Join ${team.name} on Luddo`,
-          text: `Join my private Luddo team, ${team.name}.`,
+          title: `Join ${team.name} on ${BRAND.name}`,
+          text: `Join my private ${BRAND.gameName} team, ${team.name}, on ${BRAND.name}.`,
           url,
         });
       } else {

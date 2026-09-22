@@ -1,4 +1,6 @@
-# Let's Play Luddo
+# Luddo House
+
+_Let's Play Luddo._
 
 An immersive 3D Luddo table in a modern apartment, with server-authoritative private multiplayer rooms and offline practice against computers.
 

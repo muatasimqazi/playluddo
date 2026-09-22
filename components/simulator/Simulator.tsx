@@ -623,7 +623,9 @@ export default function Simulator({
               : state.turnPhase === "awaiting_move"
                 ? `ROLLED ${state.activeDiceValue}`
                 : practice
-                  ? "PRACTICE"
+                  ? localPlay
+                    ? "TABLE TOGETHER"
+                    : "OFFLINE PRACTICE"
                   : "PRIVATE TABLE"}
           </span>
           {seconds !== null &&
@@ -674,7 +676,9 @@ export default function Simulator({
             className={`connection-dot ${connection !== "connected" ? "reconnecting" : ""}`}
           />
           {practice
-            ? "OFFLINE PRACTICE"
+            ? localPlay
+              ? "OFFLINE · TABLE TOGETHER"
+              : "OFFLINE PRACTICE"
             : connection === "connected"
               ? `ROOM ${state.code}`
               : "RECONNECTING"}

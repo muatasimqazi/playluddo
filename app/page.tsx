@@ -259,14 +259,14 @@ export default function Home() {
                 className="entrance-secondary"
                 href={`/practice?players=${playerCount}&color=${playerColor}`}
               >
-                <span>Settle in with a practice game</span>
+                <span>Settle in with an offline practice game</span>
                 <Icon name="dice" />
               </Link>
               <Link
                 className="entrance-secondary"
                 href={`/table-together?players=${playerCount}`}
               >
-                <span>Table Together · Share this screen</span>
+                <span>Table Together · Offline, share this screen</span>
                 <Icon name="users" />
               </Link>
             </div>

@@ -153,13 +153,17 @@ function CameraRig({
       maxPolarAngle={Math.PI * 0.45}
       boundaryEnclosesCamera={false}
       mouseButtons={{
-        left: mode === "look" ? ACTION.ROTATE : ACTION.NONE,
+        // Orbiting and zooming work immediately, without switching into
+        // Look mode first — only the board-spin gesture (right mouse
+        // button, freed up here so BoardObject can claim it in "play")
+        // and screen-pan stay behind the explicit Look mode.
+        left: mode === "rotate" ? ACTION.NONE : ACTION.ROTATE,
         middle: mode === "look" ? ACTION.DOLLY : ACTION.NONE,
         right: mode === "look" ? ACTION.TRUCK : ACTION.NONE,
-        wheel: mode === "look" ? ACTION.DOLLY : ACTION.NONE,
+        wheel: ACTION.DOLLY,
       }}
       touches={{
-        one: mode === "look" ? ACTION.TOUCH_ROTATE : ACTION.NONE,
+        one: mode === "rotate" ? ACTION.NONE : ACTION.TOUCH_ROTATE,
         two: mode === "look" ? ACTION.TOUCH_DOLLY_TRUCK : ACTION.NONE,
         three: ACTION.NONE,
       }}
@@ -826,7 +830,12 @@ function BoardObject(props: SceneProps) {
     if (snakeHeads.current) snakeHeads.current.visible = t === 1;
   });
   function down(e: ThreeEvent<PointerEvent>) {
-    if (props.mode !== "rotate") return;
+    // Right-drag spins the board immediately in Play mode, without
+    // switching modes — it's freed from CameraControls (see mouseButtons
+    // in CameraRig) specifically so the two never compete for the same
+    // gesture. Explicit Rotate mode keeps accepting any button/touch.
+    const defaultRotateDrag = props.mode === "play" && e.button === 2;
+    if (props.mode !== "rotate" && !defaultRotateDrag) return;
     e.stopPropagation();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
     drag.current = { x: e.clientX, angle: angle.current, pointer: e.pointerId };
@@ -1192,6 +1201,9 @@ export default function SimulatorScene(props: SceneProps) {
           "--sim-saturation": props.saturation ?? 1,
         } as CSSProperties
       }
+      // Right-drag rotates the board in Play mode (see BoardObject), so
+      // the browser's native right-click menu must not interrupt it.
+      onContextMenu={(e) => e.preventDefault()}
     >
       <Canvas
         shadows={props.quality !== "low"}

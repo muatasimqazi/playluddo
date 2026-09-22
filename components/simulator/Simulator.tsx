@@ -984,23 +984,30 @@ export default function Simulator({
               <div className="setting-row">
                 <span>
                   Look around the room
-                  <small>Drag to orbit once you&rsquo;re in Look mode</small>
+                  <small>Drag or swipe, any time &mdash; no mode needed</small>
                 </span>
-                <span className="key-hint">L</span>
+                <span className="key-hint">Drag</span>
               </div>
               <div className="setting-row">
                 <span>
-                  Pan &amp; zoom
-                  <small>Right-drag to pan &middot; scroll or pinch to zoom, while looking around</small>
+                  Zoom
+                  <small>Scroll or pinch, any time</small>
                 </span>
-                <span className="key-hint">Look mode</span>
+                <span className="key-hint">Scroll &middot; pinch</span>
               </div>
               <div className="setting-row">
                 <span>
                   Rotate the board
-                  <small>Drag to spin the table your way</small>
+                  <small>Right-drag the table on a mouse</small>
                 </span>
-                <span className="key-hint">R</span>
+                <span className="key-hint">Right-drag</span>
+              </div>
+              <div className="setting-row">
+                <span>
+                  Pan the camera
+                  <small>Right-drag or two fingers, while in Look mode</small>
+                </span>
+                <span className="key-hint">L</span>
               </div>
               <div className="setting-row">
                 <span>
@@ -1021,8 +1028,8 @@ export default function Simulator({
                 <span className="key-hint">Esc</span>
               </div>
               <p className="panel-note">
-                Shortcuts work on a keyboard. On touch, tap Look or Rotate
-                above, then drag the table.
+                On touch, drag with one finger to look around. To rotate the
+                board, tap Rotate above, then drag.
               </p>
             </>
           )}

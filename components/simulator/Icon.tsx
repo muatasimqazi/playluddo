@@ -26,7 +26,8 @@ export type IconName =
   | "phone-off"
   | "swap"
   | "eye-off"
-  | "cube";
+  | "cube"
+  | "help";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -171,6 +172,13 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <path d="M12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5Z" />
       <path d="M12 12 20 7.5M12 12 12 21M12 12 4 7.5" />
+    </>
+  ),
+  help: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 1 1 3.7 2.2c-.9.5-1.2 1-1.2 1.9" />
+      <line x1="12" y1="17" x2="12" y2="17.01" />
     </>
   ),
 };

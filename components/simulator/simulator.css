@@ -875,6 +875,17 @@ body.sim-piece-hover .sim-canvas {
   font-size: 10px;
   margin-top: 5px;
 }
+.key-hint {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border: 1px solid #ffffff28;
+  border-radius: 6px;
+  background: #374334;
+  color: #e6dfc9;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .setting-row select {
   background: #374334;
   color: #e6dfc9;

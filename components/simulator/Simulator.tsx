@@ -258,7 +258,7 @@ export default function Simulator({
   );
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "preferences" | "chat" | null
+    "menu" | "camera" | "preferences" | "chat" | "help" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -664,6 +664,12 @@ export default function Simulator({
               }}
             />
           ))}
+          <Tool
+            icon="help"
+            label="Controls & shortcuts"
+            active={panel === "help"}
+            onClick={() => togglePanel("help")}
+          />
           {onFlip && (
             <Tool
               icon="swap"
@@ -899,7 +905,9 @@ export default function Simulator({
                     ? "Preferences"
                     : panel === "chat"
                       ? "Table talk"
-                      : "Your evening, your game"}
+                      : panel === "help"
+                        ? "Controls & shortcuts"
+                        : "Your evening, your game"}
               </h2>
             </div>
             <Tool
@@ -950,6 +958,54 @@ export default function Simulator({
                 <Icon name="cube" />
                 Explore the room
               </button>
+            </>
+          )}
+          {panel === "help" && (
+            <>
+              <p>Move around the room and spin the board without breaking your flow.</p>
+              <div className="setting-row">
+                <span>
+                  Look around the room
+                  <small>Drag to orbit once you&rsquo;re in Look mode</small>
+                </span>
+                <span className="key-hint">L</span>
+              </div>
+              <div className="setting-row">
+                <span>
+                  Pan &amp; zoom
+                  <small>Right-drag to pan &middot; scroll or pinch to zoom, while looking around</small>
+                </span>
+                <span className="key-hint">Look mode</span>
+              </div>
+              <div className="setting-row">
+                <span>
+                  Rotate the board
+                  <small>Drag to spin the table your way</small>
+                </span>
+                <span className="key-hint">R</span>
+              </div>
+              <div className="setting-row">
+                <span>
+                  Roll the dice
+                  <small>On your turn</small>
+                </span>
+                <span className="key-hint">Space</span>
+              </div>
+              <div className="setting-row">
+                <span>
+                  Camera views
+                  <small>Seated &middot; Overhead &middot; Table</small>
+                </span>
+                <span className="key-hint">1 &middot; 2 &middot; 3</span>
+              </div>
+              <div className="setting-row">
+                <span>Close this panel</span>
+                <span className="key-hint">Esc</span>
+              </div>
+              <p className="panel-note">
+                Shortcuts work on a keyboard. On touch, tap Look or Rotate
+                above, then drag the table.
+              </p>
             </>
           )}
           {panel === "preferences" && (
@@ -1220,10 +1276,13 @@ export default function Simulator({
                 <Icon name="home" />
                 Back to the entrance
               </Link>
-              <p className="panel-note">
-                Space rolls the die. L explores the room. R rotates the board.
-                Escape returns to play.
-              </p>
+              <button
+                className="panel-secondary"
+                onClick={() => setPanel("help")}
+              >
+                <Icon name="help" />
+                Controls & shortcuts
+              </button>
             </>
           )}
           {panel === "chat" && (

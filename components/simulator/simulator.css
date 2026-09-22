@@ -2404,6 +2404,12 @@ body.sim-piece-hover .sim-canvas {
     width: 22px;
     height: 22px;
   }
+  .leaderboard-trigger {
+    padding-right: 10px;
+  }
+  .leaderboard-trigger small {
+    display: none;
+  }
   .profile-panel {
     max-height: calc(100dvh - 20px);
     padding: 25px 20px;

@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { getMyWins } from "@/lib/supabase/leaderboard";
+import { Icon } from "@/components/simulator/Icon";
 import {
   AVATARS,
   avatarDefinition,
@@ -146,6 +149,7 @@ export function ProfilePanel({
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [wins, setWins] = useState<number | null>(null);
   const [teamName, setTeamName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [sharedTeamId, setSharedTeamId] = useState<string | null>(null);
@@ -189,6 +193,7 @@ export function ProfilePanel({
       .catch((error: unknown) =>
         setMessage(error instanceof Error ? error.message : "Could not load teams."),
       );
+    void getMyWins(client).then(setWins).catch(() => setWins(null));
   }, [client, user, open]);
 
   useEffect(() => {
@@ -460,6 +465,14 @@ export function ProfilePanel({
                     <small>{identity}</small>
                   </div>
                 </div>
+                <Link
+                  className="profile-secondary"
+                  href="/leaderboard"
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon name="trophy" />
+                  {wins === null ? "Leaderboard" : `${wins} ${wins === 1 ? "win" : "wins"} · Leaderboard`}
+                </Link>
                 <label className="profile-field">
                   Display name
                   <input

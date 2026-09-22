@@ -27,7 +27,8 @@ export type IconName =
   | "swap"
   | "eye-off"
   | "cube"
-  | "help";
+  | "help"
+  | "trophy";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -179,6 +180,13 @@ const paths: Record<IconName, React.ReactNode> = {
       <circle cx="12" cy="12" r="9" />
       <path d="M9.5 9a2.5 2.5 0 1 1 3.7 2.2c-.9.5-1.2 1-1.2 1.9" />
       <line x1="12" y1="17" x2="12" y2="17.01" />
+    </>
+  ),
+  trophy: (
+    <>
+      <path d="M7 3h10v3a5 5 0 0 1-10 0V3Z" />
+      <path d="M7 4H4a3 3 0 0 0 3 5M17 4h3a3 3 0 0 1-3 5" />
+      <path d="M12 11v4M9 20h6M9 20l3-5 3 5" />
     </>
   ),
 };

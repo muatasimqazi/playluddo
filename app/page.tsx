@@ -148,6 +148,10 @@ export default function Home() {
         </div>
         <div className="entrance-header-actions">
           <span>A LITTLE CLOSER TOGETHER.</span>
+          <Link className="profile-trigger leaderboard-trigger" href="/leaderboard">
+            <Icon name="trophy" />
+            <small>Leaderboard</small>
+          </Link>
           <ProfilePanel onNameChange={setName} onTeamsChange={setTeams} />
         </div>
       </header>

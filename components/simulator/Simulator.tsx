@@ -74,6 +74,8 @@ interface Preferences {
   view: CameraView;
   boardStyle: "signature" | "classic";
   immersive: boolean;
+  brightness: number;
+  saturation: number;
 }
 const PREF_KEY = "luddo-simulator-v1";
 const CAMERA_VIEW_LABELS: Record<CameraView, string> = {
@@ -107,6 +109,8 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     view: defaultCameraView(),
     boardStyle: "signature",
     immersive: false,
+    brightness: 1,
+    saturation: 1,
   };
   try {
     const value = JSON.parse(localStorage.getItem(PREF_KEY) ?? "null");
@@ -141,6 +145,18 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       // Session-only, like view — reopening the table should never come
       // back with everything mysteriously hidden.
       immersive: defaults.immersive,
+      brightness:
+        typeof value.brightness === "number" &&
+        value.brightness >= 0.6 &&
+        value.brightness <= 1.6
+          ? value.brightness
+          : defaults.brightness,
+      saturation:
+        typeof value.saturation === "number" &&
+        value.saturation >= 0 &&
+        value.saturation <= 2
+          ? value.saturation
+          : defaults.saturation,
     };
   } catch {
     return defaults;
@@ -577,6 +593,8 @@ export default function Simulator({
           soundEnabled={prefs.sound}
           boardStyle={prefs.boardStyle}
           hideLabels={prefs.immersive}
+          brightness={prefs.brightness}
+          saturation={prefs.saturation}
         />
       </SceneBoundary>
       <div className="sim-vignette" />
@@ -1096,6 +1114,42 @@ export default function Simulator({
                   <option value="classic">Classic</option>
                 </select>
               </label>
+              <label className="setting-row setting-volume">
+                <span>
+                  Brightness
+                  <small>{Math.round(prefs.brightness * 100)}%</small>
+                </span>
+                <input
+                  className="setting-range"
+                  type="range"
+                  min="0.6"
+                  max="1.6"
+                  step="0.05"
+                  value={prefs.brightness}
+                  aria-label="Table brightness"
+                  onChange={(e) =>
+                    setPref("brightness", Number(e.target.value))
+                  }
+                />
+              </label>
+              <label className="setting-row setting-volume">
+                <span>
+                  Saturation
+                  <small>{Math.round(prefs.saturation * 100)}%</small>
+                </span>
+                <input
+                  className="setting-range"
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.05"
+                  value={prefs.saturation}
+                  aria-label="Table color saturation"
+                  onChange={(e) =>
+                    setPref("saturation", Number(e.target.value))
+                  }
+                />
+              </label>
               <label className="setting-row">
                 <span>
                   Graphics<small>Detail and shadow quality</small>
@@ -1212,8 +1266,8 @@ export default function Simulator({
                 {snakes ? "Face square 1" : "Bring my color closer"}
               </button>
               <p className="panel-note">
-                Your graphics, sound, music, and board orientation are saved on
-                this device. Each game begins in Seated view.
+                Your graphics, appearance, sound, music, and board orientation
+                are saved on this device. Each game begins in Seated view.
               </p>
             </>
           )}

@@ -230,6 +230,9 @@
   z-index: 0;
   touch-action: none;
 }
+.sim-canvas canvas {
+  filter: brightness(var(--sim-brightness, 1)) saturate(var(--sim-saturation, 1));
+}
 .sim-canvas.mode-look {
   cursor: grab;
 }

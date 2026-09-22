@@ -1,6 +1,13 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import {
   Canvas,
   useFrame,
@@ -74,6 +81,8 @@ export interface SceneProps {
   soundEnabled?: boolean;
   boardStyle?: "signature" | "classic";
   hideLabels?: boolean;
+  brightness?: number;
+  saturation?: number;
 }
 
 function CameraRig({
@@ -1175,7 +1184,15 @@ export default function SimulatorScene(props: SceneProps) {
     ultra: [1, 2],
   };
   return (
-    <div className={`sim-canvas mode-${props.mode}`}>
+    <div
+      className={`sim-canvas mode-${props.mode}`}
+      style={
+        {
+          "--sim-brightness": props.brightness ?? 1,
+          "--sim-saturation": props.saturation ?? 1,
+        } as CSSProperties
+      }
+    >
       <Canvas
         shadows={props.quality !== "low"}
         dpr={[1, Math.min(dpr[props.quality][1], performanceCap)]}

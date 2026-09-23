@@ -57,6 +57,7 @@ import { makeBoardTexture, makeTongueTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
+import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
 import { Icon } from "./Icon";
 import { PlayerAvatars3D } from "./PlayerAvatar3D";
 
@@ -212,7 +213,13 @@ function Piece({
   } | null>(null);
   const [hovered, setHovered] = useState(false);
   const classicPawn = boardStyle === "classic" && gameType === "ludo";
-  const pawnHeight = classicPawn ? CLASSIC_PAWN_HEIGHT : GLASS_PAWN_HEIGHT;
+  const aladdinPawn = boardStyle === "aladdin" && gameType === "ludo";
+  const spreadPawn = classicPawn || aladdinPawn;
+  const pawnHeight = classicPawn
+    ? CLASSIC_PAWN_HEIGHT
+    : aladdinPawn
+      ? ALADDIN_PAWN_HEIGHT
+      : GLASS_PAWN_HEIGHT;
   useEffect(() => {
     if (!soundEnabled) {
       moveSound.current?.pause();
@@ -254,7 +261,7 @@ function Piece({
   const stackIndex = stack.findIndex((p) => p.id === pawn.id);
   const offset: Point =
     stack.length > 1
-      ? classicPawn
+      ? spreadPawn
         ? [
             ((stackIndex % 2) - 0.5) * 0.13,
             0,
@@ -459,6 +466,8 @@ function Piece({
       >
         {classicPawn ? (
           <ClassicPawn color={pawn.color} />
+        ) : aladdinPawn ? (
+          <AladdinPawn color={pawn.color} />
         ) : (
           <GlassPawn color={pawn.color} />
         )}

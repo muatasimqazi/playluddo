@@ -587,35 +587,6 @@
             <g transform="matrix(0,1,-1,0,2039.681065,-15.681065)">
                 <circle cx="1012" cy="1012" r="106" style="fill:url(#_Radial326);"/>
             </g>
-            <g transform="matrix(0.850288,0,0,0.850288,943.006976,913.565864)">
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <ellipse cx="50" cy="62" rx="30" ry="18" style="fill:url(#_Linear327);stroke:rgb(92,68,8);stroke-width:1.5px;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <path d="M80,62C89.333,59.333 95.333,54 98,46C99.333,43.333 98.667,42 96,42C90.667,48.667 84.667,52.667 78,54L80,62Z" style="fill:url(#_Linear328);fill-rule:nonzero;stroke:rgb(92,68,8);stroke-width:1.2px;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <path d="M20,62C10.667,54 9.333,46 16,38C20,34.667 23.333,34 26,36" style="fill:none;fill-rule:nonzero;stroke:url(#_Linear329);stroke-width:4px;stroke-linecap:round;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <ellipse cx="50" cy="44" rx="7" ry="3.5" style="fill:url(#_Linear330);stroke:rgb(92,68,8);stroke-width:1px;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <circle cx="50" cy="40" r="3.5" style="fill:url(#_Linear331);stroke:rgb(92,68,8);stroke-width:0.8px;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <path d="M50,38C48,33.333 48,28.667 50,24C52,28.667 52,33.333 50,38Z" style="fill:rgb(255,234,167);fill-rule:nonzero;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <path d="M50,36C49,33.333 49,30.667 50,28C51,30.667 51,33.333 50,36Z" style="fill:white;fill-opacity:0.8;fill-rule:nonzero;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <path d="M62.945,78C63.527,78 64,78.473 64,79.055L64,82.945C64,83.527 63.527,84 62.945,84L37.055,84C36.473,84 36,83.527 36,82.945L36,79.055C36,78.473 36.473,78 37.055,78L62.945,78Z" style="fill:url(#_Linear332);stroke:rgb(92,68,8);stroke-width:1px;"/>
-                </g>
-                <g transform="matrix(2,0,0,2,0,0)">
-                    <ellipse cx="42" cy="56" rx="10" ry="4" style="fill:rgb(255,243,196);fill-opacity:0.45;"/>
-                </g>
-            </g>
         </g>
     </g>
     <defs>

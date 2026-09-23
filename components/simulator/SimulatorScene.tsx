@@ -15,6 +15,7 @@ import {
   type ThreeEvent,
 } from "@react-three/fiber";
 import {
+  Billboard,
   CameraControls,
   CameraControlsImpl,
   ContactShadows,
@@ -52,6 +53,7 @@ import boardArtwork from "@/designs/board-design.png";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
+import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/board.svg";
 import { makeBoardTexture, makeTongueTexture } from "./textures";
 import { Apartment } from "./Apartment";
@@ -801,6 +803,7 @@ function BoardObject(props: SceneProps) {
   );
   const snakeSource = useTexture(snakeArtwork.src as string);
   const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);
+  const lampTexture = useTexture(lampArtwork.src as string);
   const wood = useTexture("/textures/board-wood.jpg");
   const drag = useRef<{ x: number; angle: number; pointer: number } | null>(
     null,
@@ -902,6 +905,22 @@ function BoardObject(props: SceneProps) {
             color="#ffffff"
           />
         </mesh>
+        {props.boardStyle === "aladdin" && (
+          // Billboard cancels every ancestor rotation (board spin, flip,
+          // even the camera orbiting around the table), not just the
+          // board's own spin -- the lamp always faces the viewer, like a
+          // HUD marker rather than a decal resting flush on the board.
+          <Billboard position={[0, 0.12, 0]}>
+            <mesh>
+              <planeGeometry args={[0.52, 0.35]} />
+              <meshBasicMaterial
+                map={lampTexture}
+                transparent
+                toneMapped={false}
+              />
+            </mesh>
+          </Billboard>
+        )}
         <mesh position={[0, -0.09, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
           <meshBasicMaterial

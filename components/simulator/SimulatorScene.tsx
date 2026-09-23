@@ -1277,13 +1277,21 @@ export default function SimulatorScene(props: SceneProps) {
             />
           </Environment>
           <Apartment quality={props.quality} />
-          <PlayerAvatars3D
-            players={props.players}
-            turnPlayerId={props.turnPlayerId}
-            speakingPlayerIds={props.speakingPlayerIds}
-            preview={props.preview}
-            orientation={props.orientation}
-          />
+          {/* Its own boundary: each player's avatar face is a separate
+              texture that loads independently (see AvatarFace in
+              PlayerAvatar3D.tsx). Sharing the outer Suspense meant every
+              newly-requested face texture re-suspended the whole scene,
+              briefly unmounting the board, pawns, and seat labels below —
+              not just the avatar being loaded. */}
+          <Suspense fallback={null}>
+            <PlayerAvatars3D
+              players={props.players}
+              turnPlayerId={props.turnPlayerId}
+              speakingPlayerIds={props.speakingPlayerIds}
+              preview={props.preview}
+              orientation={props.orientation}
+            />
+          </Suspense>
           <BoardObject {...props} />
           <PhysicalDie key={props.frame.revision} {...props} />
           {props.quality !== "low" && (

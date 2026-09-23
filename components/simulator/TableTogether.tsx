@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { GameType } from "@/lib/board/types";
 import {
   createPractice,
@@ -13,8 +14,8 @@ import Simulator from "./Simulator";
 
 const DEFAULT_NAMES = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
-function requestedPlayerCount(): 2 | 3 | 4 {
-  const value = Number(new URLSearchParams(window.location.search).get("players"));
+function requestedPlayerCount(params: URLSearchParams): 2 | 3 | 4 {
+  const value = Number(params.get("players"));
   return value === 2 || value === 3 || value === 4 ? value : 2;
 }
 
@@ -37,7 +38,20 @@ function newSession(gameType: GameType, names: string[]): PracticeSession {
 }
 
 export default function TableTogether() {
-  const [count, setCount] = useState<2 | 3 | 4>(requestedPlayerCount);
+  // Reactive to client-side navigation — see the matching comment in
+  // PracticeTable.tsx: Next.js's App Router doesn't remount this page for
+  // a same-route navigation that only changes the query string, so a
+  // one-time read of the URL would keep the stale count pre-selected here.
+  const searchParams = useSearchParams();
+  const [count, setCount] = useState<2 | 3 | 4>(() =>
+    requestedPlayerCount(searchParams),
+  );
+  useEffect(() => {
+    function applyFromUrl() {
+      setCount(requestedPlayerCount(searchParams));
+    }
+    applyFromUrl();
+  }, [searchParams]);
   const [names, setNames] = useState(DEFAULT_NAMES);
   const [sessions, setSessions] = useState<{
     ludo: PracticeSession;

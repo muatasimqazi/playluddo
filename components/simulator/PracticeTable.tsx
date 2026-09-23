@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { chooseBotMove } from "@/lib/board/bot";
 import {
@@ -12,15 +13,15 @@ import {
 import Simulator from "./Simulator";
 import { createClient } from "@/lib/supabase/client";
 
-function requestedPlayerCount(): 2 | 3 | 4 | undefined {
-  if (typeof window === "undefined") return undefined;
-  const value = Number(new URLSearchParams(window.location.search).get("players"));
+function requestedPlayerCount(
+  params: URLSearchParams,
+): 2 | 3 | 4 | undefined {
+  const value = Number(params.get("players"));
   return value === 2 || value === 3 || value === 4 ? value : undefined;
 }
 
-function requestedPlayerColor(): PlayerColor | undefined {
-  if (typeof window === "undefined") return undefined;
-  const value = new URLSearchParams(window.location.search).get("color");
+function requestedPlayerColor(params: URLSearchParams): PlayerColor | undefined {
+  const value = params.get("color");
   return ["red", "green", "yellow", "blue"].includes(value ?? "")
     ? (value as PlayerColor)
     : undefined;
@@ -53,9 +54,17 @@ function load(
 }
 
 export default function PracticeTable() {
+  // Reactive to client-side navigation, unlike reading window.location.search
+  // directly: Next.js's App Router doesn't remount this page for a
+  // same-route navigation that only changes the query string (e.g. picking
+  // a different player count on the entrance and landing back on
+  // /practice?players=... again), so a one-time useState read of the URL
+  // would keep showing whatever session was already loaded.
+  const searchParams = useSearchParams();
   const [paused, setPaused] = useState(false);
-  const [initialPlayerCount] = useState(requestedPlayerCount);
-  const [initialPlayerColor] = useState(requestedPlayerColor);
+  const [initialPlayerCount] = useState(() => requestedPlayerCount(searchParams));
+  const [initialPlayerColor] = useState(() => requestedPlayerColor(searchParams));
+  const appliedSearch = useRef(searchParams.toString());
   const [gameType, setGameType] = useState<GameType>(() => {
     try {
       return localStorage.getItem("luddo-practice-side") ===
@@ -82,6 +91,26 @@ export default function PracticeTable() {
     }));
   const [generation, setGeneration] = useState(0);
   const state = session.state;
+  useEffect(() => {
+    function applyIfNew() {
+      const current = searchParams.toString();
+      if (current === appliedSearch.current) return;
+      appliedSearch.current = current;
+      const playerCount = requestedPlayerCount(searchParams);
+      const playerColor = requestedPlayerColor(searchParams);
+      if (!playerCount && !playerColor) return;
+      setSessions({
+        ludo: createPractice("ludo", playerCount ?? 4, playerColor ?? "blue"),
+        snakes_and_ladders: createPractice(
+          "snakes_and_ladders",
+          playerCount ?? 4,
+          playerColor ?? "blue",
+        ),
+      });
+      setGeneration((n) => n + 1);
+    }
+    applyIfNew();
+  }, [searchParams]);
   useEffect(() => {
     const client = createClient();
     void client.auth.getUser().then(({ data }) => {

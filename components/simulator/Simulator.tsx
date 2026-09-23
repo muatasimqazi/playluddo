@@ -278,7 +278,7 @@ export default function Simulator({
   );
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "preferences" | "chat" | "help" | null
+    "menu" | "camera" | "board" | "preferences" | "chat" | "help" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -748,6 +748,12 @@ export default function Simulator({
           onClick={() => togglePanel("camera")}
         />
         <Tool icon="home" label="Reset view (1)" onClick={reset} />
+        <Tool
+          icon="grid"
+          label="Board design"
+          active={panel === "board"}
+          onClick={() => togglePanel("board")}
+        />
         <span className="tool-divider" />
         <Tool
           icon={prefs.sound ? "sound" : "muted"}
@@ -923,13 +929,15 @@ export default function Simulator({
               <h2>
                 {panel === "camera"
                   ? "Find your perspective"
-                  : panel === "preferences"
-                    ? "Preferences"
-                    : panel === "chat"
-                      ? "Table talk"
-                      : panel === "help"
-                        ? "Controls & shortcuts"
-                        : "Your evening, your game"}
+                  : panel === "board"
+                    ? "Board design"
+                    : panel === "preferences"
+                      ? "Preferences"
+                      : panel === "chat"
+                        ? "Table talk"
+                        : panel === "help"
+                          ? "Controls & shortcuts"
+                          : "Your evening, your game"}
               </h2>
             </div>
             <Tool
@@ -980,6 +988,37 @@ export default function Simulator({
                 <Icon name="cube" />
                 Explore the room
               </button>
+            </>
+          )}
+          {panel === "board" && (
+            <>
+              <p>The same game, four different tables.</p>
+              <div className="camera-options">
+                {(
+                  [
+                    ["signature", "Signature", "The Luddo House artwork"],
+                    ["classic", "Classic", "A traditional printed board"],
+                    ["geometric", "Geometric", "Bold shapes, gold accents"],
+                    ["aladdin", "Aladdin", "An Arabian-nights table"],
+                  ] as const
+                ).map(([value, label, desc]) => (
+                  <button
+                    key={value}
+                    className={prefs.boardStyle === value ? "is-selected" : ""}
+                    onClick={() => {
+                      setPref("boardStyle", value);
+                      setPanel(null);
+                    }}
+                  >
+                    <Icon name="grid" />
+                    <span>
+                      <strong>{label}</strong>
+                      <small>{desc}</small>
+                    </span>
+                    {prefs.boardStyle === value && <Icon name="check" size={14} />}
+                  </button>
+                ))}
+              </div>
             </>
           )}
           {panel === "help" && (
@@ -1062,6 +1101,13 @@ export default function Simulator({
               </button>
               <button
                 className="panel-secondary"
+                onClick={() => setPanel("board")}
+              >
+                <Icon name="grid" />
+                Board design
+              </button>
+              <button
+                className="panel-secondary"
                 onClick={() => setPanel("chat")}
               >
                 <Icon name="chat" />
@@ -1108,25 +1154,6 @@ export default function Simulator({
                   ? "Show labels and controls"
                   : "Hide labels and controls"}
               </button>
-              <label className="setting-row">
-                <span>
-                  Board design<small>Choose your Luddo artwork</small>
-                </span>
-                <select
-                  value={prefs.boardStyle}
-                  onChange={(e) =>
-                    setPref(
-                      "boardStyle",
-                      e.target.value as Preferences["boardStyle"],
-                    )
-                  }
-                >
-                  <option value="signature">Signature</option>
-                  <option value="classic">Classic</option>
-                  <option value="geometric">Geometric</option>
-                  <option value="aladdin">Aladdin</option>
-                </select>
-              </label>
               <label className="setting-row setting-volume">
                 <span>
                   Brightness

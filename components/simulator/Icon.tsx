@@ -28,7 +28,8 @@ export type IconName =
   | "eye-off"
   | "cube"
   | "help"
-  | "trophy";
+  | "trophy"
+  | "grid";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -187,6 +188,14 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M7 3h10v3a5 5 0 0 1-10 0V3Z" />
       <path d="M7 4H4a3 3 0 0 0 3 5M17 4h3a3 3 0 0 1-3 5" />
       <path d="M12 11v4M9 20h6M9 20l3-5 3 5" />
+    </>
+  ),
+  grid: (
+    <>
+      <rect x="3" y="3" width="8" height="8" rx="1.6" />
+      <rect x="13" y="3" width="8" height="8" rx="1.6" />
+      <rect x="3" y="13" width="8" height="8" rx="1.6" />
+      <rect x="13" y="13" width="8" height="8" rx="1.6" />
     </>
   ),
 };

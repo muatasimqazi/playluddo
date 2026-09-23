@@ -72,7 +72,7 @@ interface Preferences {
   orientation: number;
   snakeOrientation: number;
   view: CameraView;
-  boardStyle: "signature" | "classic";
+  boardStyle: "signature" | "classic" | "geometric" | "aladdin";
   immersive: boolean;
   brightness: number;
   saturation: number;
@@ -141,7 +141,11 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       snakeOrientation: Number.isFinite(value.snakeOrientation)
         ? value.snakeOrientation
         : 0,
-      boardStyle: value.boardStyle === "classic" ? "classic" : "signature",
+      boardStyle: ["classic", "geometric", "aladdin"].includes(
+        value.boardStyle,
+      )
+        ? value.boardStyle
+        : "signature",
       // Session-only, like view — reopening the table should never come
       // back with everything mysteriously hidden.
       immersive: defaults.immersive,
@@ -1119,6 +1123,8 @@ export default function Simulator({
                 >
                   <option value="signature">Signature</option>
                   <option value="classic">Classic</option>
+                  <option value="geometric">Geometric</option>
+                  <option value="aladdin">Aladdin</option>
                 </select>
               </label>
               <label className="setting-row setting-volume">

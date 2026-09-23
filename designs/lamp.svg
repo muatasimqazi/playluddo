@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">
+  <defs>
+    <linearGradient id="lampGold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#fff3c4"/>
+      <stop offset="55%"  stop-color="#e9c25c"/>
+      <stop offset="100%" stop-color="#b8860b"/>
+    </linearGradient>
+    <linearGradient id="lampGoldDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#f7e08a"/>
+      <stop offset="40%"  stop-color="#d4a017"/>
+      <stop offset="100%" stop-color="#8a6209"/>
+    </linearGradient>
+  </defs>
+
+  <!-- lamp body -->
+  <ellipse cx="50" cy="62" rx="30" ry="18"
+           fill="url(#lampGold)" stroke="#5c4408" stroke-width="1.5"/>
+
+  <!-- spout (points right) -->
+  <path d="M80,62 Q94,58 98,46 Q100,42 96,42 Q88,52 78,54 Z"
+        fill="url(#lampGold)" stroke="#5c4408" stroke-width="1.2"/>
+
+  <!-- handle (left side) -->
+  <path d="M20,62 Q6,50 16,38 Q22,33 26,36"
+        fill="none" stroke="url(#lampGold)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- top knob -->
+  <ellipse cx="50" cy="44" rx="7" ry="3.5"
+           fill="url(#lampGold)" stroke="#5c4408" stroke-width="1"/>
+  <circle cx="50" cy="40" r="3.5"
+          fill="url(#lampGold)" stroke="#5c4408" stroke-width="0.8"/>
+
+  <!-- flame -->
+  <path d="M50,38 Q47,31 50,24 Q53,31 50,38 Z" fill="#ffeaa7"/>
+  <path d="M50,36 Q48.5,32 50,28 Q51.5,32 50,36 Z" fill="#ffffff" opacity="0.8"/>
+
+  <!-- base -->
+  <rect x="36" y="78" width="28" height="6" rx="2"
+        fill="url(#lampGoldDark)" stroke="#5c4408" stroke-width="1"/>
+
+  <!-- subtle highlight on the body -->
+  <ellipse cx="42" cy="56" rx="10" ry="4"
+           fill="#fff3c4" opacity="0.45"/>
+</svg>

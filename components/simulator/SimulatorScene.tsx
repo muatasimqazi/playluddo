@@ -50,6 +50,8 @@ import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
 import boardArtwork from "@/designs/board-design.png";
 import classicBoardArtwork from "@/designs/board-classic.svg";
+import geometricBoardArtwork from "@/designs/board-geometric.svg";
+import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/board.svg";
 import { makeBoardTexture, makeTongueTexture } from "./textures";
 import { Apartment } from "./Apartment";
@@ -79,7 +81,7 @@ export interface SceneProps {
   speakingPlayerIds?: Set<string>;
   preview?: boolean;
   soundEnabled?: boolean;
-  boardStyle?: "signature" | "classic";
+  boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
   hideLabels?: boolean;
   brightness?: number;
   saturation?: number;
@@ -190,7 +192,7 @@ function Piece({
   mode: InteractionMode;
   gameType?: GameType;
   soundEnabled?: boolean;
-  boardStyle?: "signature" | "classic";
+  boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
 }) {
   const ref = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
@@ -773,16 +775,20 @@ function BoardObject(props: SceneProps) {
   const [initialRotation] = useState(props.orientation);
   const artwork = useTexture(boardArtwork.src);
   const classicArtwork = useTexture(classicBoardArtwork.src as string);
+  const geometricArtwork = useTexture(geometricBoardArtwork.src as string);
+  const aladdinArtwork = useTexture(aladdinBoardArtwork.src as string);
   const texture = useMemo(
     () => {
       const classic = props.boardStyle === "classic";
+      const geometric = props.boardStyle === "geometric";
+      const aladdin = props.boardStyle === "aladdin";
       return makeBoardTexture(
-        classic ? classicArtwork : artwork,
-        classic ? "full" : "ludo",
+        classic ? classicArtwork : geometric ? geometricArtwork : aladdin ? aladdinArtwork : artwork,
+        classic ? "full" : geometric ? "full" : aladdin ? "full" : "ludo",
         props.view === "overhead" ? 1.24 : 1,
       );
     },
-    [artwork, classicArtwork, props.boardStyle, props.view],
+    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view],
   );
   const snakeSource = useTexture(snakeArtwork.src as string);
   const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);

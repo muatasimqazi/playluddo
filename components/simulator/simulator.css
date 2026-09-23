@@ -114,6 +114,48 @@
   border-radius: 50%;
   box-shadow: 0 1px 5px #0004;
 }
+.entrance-avatar-choice {
+  width: min(390px, 100%);
+  margin: 0 0 18px;
+  border: 0;
+}
+.entrance-avatar-choice legend {
+  margin-bottom: 9px;
+  color: #d8d4c3;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.entrance-avatar-choice > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+.entrance-avatar-choice button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border: 1px solid var(--sim-line);
+  border-radius: 10px;
+  background: rgba(26, 36, 30, 0.48);
+}
+.entrance-avatar-choice button.is-selected {
+  border-color: #e9d6a5;
+  background: rgba(116, 104, 68, 0.42);
+}
+.entrance-avatar-choice img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.entrance-avatar-choice small {
+  display: block;
+  margin-top: 8px;
+  color: var(--sim-muted);
+  font-size: 10px;
+}
 .lobby-player-count {
   display: flex;
   align-items: center;

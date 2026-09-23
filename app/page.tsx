@@ -10,6 +10,7 @@ import { createRoom, joinRoom, setPlayerColor } from "@/lib/supabase/rpc";
 import { createPractice } from "@/lib/presentation/practice";
 import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
+import { AVATARS } from "@/lib/avatars/catalog";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { TableLoading } from "@/components/simulator/TableLoading";
@@ -36,12 +37,16 @@ export default function Home() {
   // 1:1 to its index (red=0 ... blue=3), and red (seat 0) is the only
   // choice guaranteed in range for every possible player count.
   const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("red");
+  const [playerAvatar, setPlayerAvatar] = useState<string>(AVATARS[0].id);
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const preview = useMemo(
-    () => createPractice("ludo", playerCount, playerColor).state,
-    [playerCount, playerColor],
+    () =>
+      createPractice("ludo", playerCount, playerColor, {
+        avatarId: playerAvatar,
+      }).state,
+    [playerCount, playerColor, playerAvatar],
   );
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
@@ -221,6 +226,25 @@ export default function Home() {
                 )}
               </div>
             </fieldset>
+            <fieldset className="entrance-avatar-choice">
+              <legend>Choose your avatar</legend>
+              <div>
+                {AVATARS.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    className={playerAvatar === avatar.id ? "is-selected" : ""}
+                    aria-label={avatar.label}
+                    aria-pressed={playerAvatar === avatar.id}
+                    onClick={() => setPlayerAvatar(avatar.id)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP thumbnails. */}
+                    <img src={avatar.portrait} alt="" />
+                  </button>
+                ))}
+              </div>
+              <small>Sign in from your profile to keep a photo avatar.</small>
+            </fieldset>
             {teams.length > 0 && (
               <div className="entrance-team-card">
                 {teams.map((team) => (
@@ -261,7 +285,7 @@ export default function Home() {
               </button>
               <Link
                 className="entrance-secondary"
-                href={`/practice?players=${playerCount}&color=${playerColor}`}
+                href={`/practice?players=${playerCount}&color=${playerColor}&avatar=${playerAvatar}`}
               >
                 <span>Settle in with an offline practice game</span>
                 <Icon name="dice" />

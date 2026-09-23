@@ -27,13 +27,20 @@ function requestedPlayerColor(params: URLSearchParams): PlayerColor | undefined 
     : undefined;
 }
 
+function requestedPlayerAvatar(params: URLSearchParams): string | undefined {
+  return params.get("avatar") || undefined;
+}
+
 function load(
   gameType: GameType,
   playerCount?: 2 | 3 | 4,
   playerColor?: PlayerColor,
+  playerAvatar?: string,
 ): PracticeSession {
-  if (playerCount || playerColor)
-    return createPractice(gameType, playerCount ?? 4, playerColor ?? "blue");
+  if (playerCount || playerColor || playerAvatar)
+    return createPractice(gameType, playerCount ?? 4, playerColor ?? "blue", {
+      avatarId: playerAvatar,
+    });
   try {
     const saved = JSON.parse(
       localStorage.getItem(
@@ -64,6 +71,7 @@ export default function PracticeTable() {
   const [paused, setPaused] = useState(false);
   const [initialPlayerCount] = useState(() => requestedPlayerCount(searchParams));
   const [initialPlayerColor] = useState(() => requestedPlayerColor(searchParams));
+  const [initialPlayerAvatar] = useState(() => requestedPlayerAvatar(searchParams));
   const appliedSearch = useRef(searchParams.toString());
   const [gameType, setGameType] = useState<GameType>(() => {
     try {
@@ -76,11 +84,17 @@ export default function PracticeTable() {
     }
   });
   const [sessions, setSessions] = useState(() => ({
-    ludo: load("ludo", initialPlayerCount, initialPlayerColor),
+    ludo: load(
+      "ludo",
+      initialPlayerCount,
+      initialPlayerColor,
+      initialPlayerAvatar,
+    ),
     snakes_and_ladders: load(
       "snakes_and_ladders",
       initialPlayerCount,
       initialPlayerColor,
+      initialPlayerAvatar,
     ),
   }));
   const session = sessions[gameType];
@@ -98,13 +112,21 @@ export default function PracticeTable() {
       appliedSearch.current = current;
       const playerCount = requestedPlayerCount(searchParams);
       const playerColor = requestedPlayerColor(searchParams);
-      if (!playerCount && !playerColor) return;
+      const playerAvatar = requestedPlayerAvatar(searchParams);
+      if (!playerCount && !playerColor && !playerAvatar) return;
+      const profile = { avatarId: playerAvatar };
       setSessions({
-        ludo: createPractice("ludo", playerCount ?? 4, playerColor ?? "blue"),
+        ludo: createPractice(
+          "ludo",
+          playerCount ?? 4,
+          playerColor ?? "blue",
+          profile,
+        ),
         snakes_and_ladders: createPractice(
           "snakes_and_ladders",
           playerCount ?? 4,
           playerColor ?? "blue",
+          profile,
         ),
       });
       setGeneration((n) => n + 1);
@@ -112,6 +134,11 @@ export default function PracticeTable() {
     applyIfNew();
   }, [searchParams]);
   useEffect(() => {
+    // An avatar explicitly chosen on the entrance screen (or by an earlier
+    // reactive re-apply above) wins over the signed-in profile's saved
+    // avatar — otherwise this would silently overwrite it once the async
+    // getUser() call resolves.
+    if (initialPlayerAvatar) return;
     const client = createClient();
     void client.auth.getUser().then(({ data }) => {
       const metadata = data.user?.user_metadata;
@@ -139,7 +166,7 @@ export default function PracticeTable() {
         };
       });
     });
-  }, []);
+  }, [initialPlayerAvatar]);
   useEffect(() => {
     try {
       localStorage.setItem(

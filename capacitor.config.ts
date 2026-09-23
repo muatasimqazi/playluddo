@@ -9,7 +9,7 @@ import { BRAND } from "./lib/brand";
  * both native projects with `npm run cap:sync`.
  */
 const config: CapacitorConfig = {
-  appId: "com.playluddo.app",
+  appId: "com.luddohouse.app",
   appName: BRAND.name,
   webDir: "out",
 };

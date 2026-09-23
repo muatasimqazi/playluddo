@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Let\'s Play Luddo</string>
-    <string name="title_activity_main">Let\'s Play Luddo</string>
-    <string name="package_name">com.playluddo.app</string>
-    <string name="custom_url_scheme">com.playluddo.app</string>
+    <string name="app_name">Luddo House</string>
+    <string name="title_activity_main">Luddo House</string>
+    <string name="package_name">com.luddohouse.app</string>
+    <string name="custom_url_scheme">com.luddohouse.app</string>
 </resources>

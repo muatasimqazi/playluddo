@@ -1,4 +1,4 @@
-package com.playluddo.app;
+package com.luddohouse.app;
 
 import com.getcapacitor.BridgeActivity;
 

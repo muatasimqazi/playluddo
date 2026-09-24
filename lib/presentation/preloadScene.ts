@@ -2,7 +2,7 @@
 // transition from the entrance's static image into a real room/practice
 // game doesn't pay for both at once. Safe to call speculatively — it
 // only downloads and decodes, it never mounts anything.
-import boardArtwork from "@/designs/board-design.png";
+import boardArtwork from "@/designs/board-design.webp";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
@@ -25,23 +25,23 @@ export function preloadBoardScene() {
       aladdinBoardArtwork.src as string,
       snakeArtwork.src as string,
       lampArtwork.src as string,
-      "/textures/board-wood.jpg",
+      "/textures/board-wood.webp",
       // The apartment room behind the table (see Apartment.tsx) — by far
       // the biggest chunk of what the scene is waiting on the first time
       // it mounts, so it's the one most worth warming ahead of time.
       "/textures/room-walnut.jpg",
       "/textures/floor.jpg",
-      "/textures/couch-fabric.jpg",
+      "/textures/couch-fabric.webp",
       "/textures/room-rug.jpg",
-      "/textures/seattle-skyline.jpg",
-      "/textures/cactus.jpg",
+      "/textures/seattle-skyline.webp",
+      "/textures/cactus.webp",
       "/textures/bookshelf.jpg",
       "/textures/paintings.jpg",
       "/textures/island.jpg",
-      "/textures/table-top.jpg",
+      "/textures/table-top.webp",
       "/textures/pillow-1.jpg",
-      "/textures/painting-2.png",
-      "/textures/stool.jpg",
+      "/textures/painting-2.webp",
+      "/textures/stool.webp",
       "/textures/curtains.jpg",
     ])
       useTexture.preload(src);

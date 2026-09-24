@@ -49,7 +49,7 @@ import {
 } from "@/lib/presentation/board";
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
-import boardArtwork from "@/designs/board-design.png";
+import boardArtwork from "@/designs/board-design.webp";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
@@ -811,7 +811,7 @@ function BoardObject(props: SceneProps) {
   const snakeSource = useTexture(snakeArtwork.src as string);
   const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);
   const lampTexture = useTexture(lampArtwork.src as string);
-  const wood = useTexture("/textures/board-wood.jpg");
+  const wood = useTexture("/textures/board-wood.webp");
   const drag = useRef<{ x: number; angle: number; pointer: number } | null>(
     null,
   );

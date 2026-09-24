@@ -407,7 +407,7 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.anisotropy = quality === "low" ? 2 : 8;
     return t;
   }, [originalFloor, quality]);
-  const originalCouchFabric = useTexture("/textures/couch-fabric.jpg");
+  const originalCouchFabric = useTexture("/textures/couch-fabric.webp");
   const couchFabric = useMemo(() => {
     const t = originalCouchFabric.clone();
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -423,14 +423,14 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }, [originalRug]);
-  const originalSkyline = useTexture("/textures/seattle-skyline.jpg");
+  const originalSkyline = useTexture("/textures/seattle-skyline.webp");
   const skyline = useMemo(() => {
     const t = originalSkyline.clone();
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 8;
     return t;
   }, [originalSkyline]);
-  const originalCactus = useTexture("/textures/cactus.jpg");
+  const originalCactus = useTexture("/textures/cactus.webp");
   const cactus = useMemo(() => {
     const t = originalCactus.clone();
     // Sample an uninterrupted pad from the photograph so the white wall
@@ -464,7 +464,7 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.anisotropy = quality === "low" ? 2 : 8;
     return t;
   }, [originalIsland, quality]);
-  const originalTableTop = useTexture("/textures/table-top.jpg");
+  const originalTableTop = useTexture("/textures/table-top.webp");
   const tableTop = useMemo(() => {
     const t = originalTableTop.clone();
     t.colorSpace = THREE.SRGBColorSpace;
@@ -480,14 +480,14 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.anisotropy = quality === "low" ? 2 : 8;
     return t;
   }, [originalPillow, quality]);
-  const originalPaintingTwo = useTexture("/textures/painting-2.png");
+  const originalPaintingTwo = useTexture("/textures/painting-2.webp");
   const paintingTwo = useMemo(() => {
     const t = originalPaintingTwo.clone();
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = quality === "low" ? 2 : 8;
     return t;
   }, [originalPaintingTwo, quality]);
-  const originalStool = useTexture("/textures/stool.jpg");
+  const originalStool = useTexture("/textures/stool.webp");
   const stool = useMemo(() => {
     // Sample the white leather seat from the supplied stool photograph; the
     // modeled chrome base remains reflective geometry.

@@ -26,6 +26,23 @@ export function preloadBoardScene() {
       snakeArtwork.src as string,
       lampArtwork.src as string,
       "/textures/board-wood.jpg",
+      // The apartment room behind the table (see Apartment.tsx) — by far
+      // the biggest chunk of what the scene is waiting on the first time
+      // it mounts, so it's the one most worth warming ahead of time.
+      "/textures/room-walnut.jpg",
+      "/textures/floor.jpg",
+      "/textures/couch-fabric.jpg",
+      "/textures/room-rug.jpg",
+      "/textures/seattle-skyline.jpg",
+      "/textures/cactus.jpg",
+      "/textures/bookshelf.jpg",
+      "/textures/paintings.jpg",
+      "/textures/island.jpg",
+      "/textures/table-top.jpg",
+      "/textures/pillow-1.jpg",
+      "/textures/painting-2.png",
+      "/textures/stool.jpg",
+      "/textures/curtains.jpg",
     ])
       useTexture.preload(src);
   });

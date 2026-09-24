@@ -31,6 +31,11 @@ function requestedPlayerAvatar(params: URLSearchParams): string | undefined {
   return params.get("avatar") || undefined;
 }
 
+function requestedGameType(params: URLSearchParams): GameType | undefined {
+  const value = params.get("game");
+  return value === "ludo" || value === "snakes_and_ladders" ? value : undefined;
+}
+
 function load(
   gameType: GameType,
   playerCount?: 2 | 3 | 4,
@@ -72,8 +77,10 @@ export default function PracticeTable() {
   const [initialPlayerCount] = useState(() => requestedPlayerCount(searchParams));
   const [initialPlayerColor] = useState(() => requestedPlayerColor(searchParams));
   const [initialPlayerAvatar] = useState(() => requestedPlayerAvatar(searchParams));
+  const [initialGameType] = useState(() => requestedGameType(searchParams));
   const appliedSearch = useRef(searchParams.toString());
   const [gameType, setGameType] = useState<GameType>(() => {
+    if (initialGameType) return initialGameType;
     try {
       return localStorage.getItem("luddo-practice-side") ===
         "snakes_and_ladders"
@@ -113,7 +120,9 @@ export default function PracticeTable() {
       const playerCount = requestedPlayerCount(searchParams);
       const playerColor = requestedPlayerColor(searchParams);
       const playerAvatar = requestedPlayerAvatar(searchParams);
-      if (!playerCount && !playerColor && !playerAvatar) return;
+      const requestedGame = requestedGameType(searchParams);
+      if (!playerCount && !playerColor && !playerAvatar && !requestedGame)
+        return;
       const profile = { avatarId: playerAvatar };
       setSessions({
         ludo: createPractice(
@@ -129,6 +138,7 @@ export default function PracticeTable() {
           profile,
         ),
       });
+      if (requestedGame) setGameType(requestedGame);
       setGeneration((n) => n + 1);
     }
     applyIfNew();

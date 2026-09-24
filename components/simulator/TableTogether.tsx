@@ -19,6 +19,11 @@ function requestedPlayerCount(params: URLSearchParams): 2 | 3 | 4 {
   return value === 2 || value === 3 || value === 4 ? value : 2;
 }
 
+function requestedGameType(params: URLSearchParams): GameType | undefined {
+  const value = params.get("game");
+  return value === "ludo" || value === "snakes_and_ladders" ? value : undefined;
+}
+
 function newSession(gameType: GameType, names: string[]): PracticeSession {
   const session = createPractice(gameType, names.length as 2 | 3 | 4, "red");
   return {
@@ -46,9 +51,14 @@ export default function TableTogether() {
   const [count, setCount] = useState<2 | 3 | 4>(() =>
     requestedPlayerCount(searchParams),
   );
+  const [gameType, setGameType] = useState<GameType>(
+    () => requestedGameType(searchParams) ?? "ludo",
+  );
   useEffect(() => {
     function applyFromUrl() {
       setCount(requestedPlayerCount(searchParams));
+      const requestedGame = requestedGameType(searchParams);
+      if (requestedGame) setGameType(requestedGame);
     }
     applyFromUrl();
   }, [searchParams]);
@@ -57,7 +67,6 @@ export default function TableTogether() {
     ludo: PracticeSession;
     snakes_and_ladders: PracticeSession;
   } | null>(null);
-  const [gameType, setGameType] = useState<GameType>("ludo");
   const [readyPlayerId, setReadyPlayerId] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
   const [handoffPlayerId, setHandoffPlayerId] = useState<string | null>(null);

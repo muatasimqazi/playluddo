@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
-import { createRoom, joinRoom, setPlayerColor } from "@/lib/supabase/rpc";
-import type { PlayerColor } from "@/lib/board/types";
+import { createRoom, joinRoom, setPlayerColor, setRoomGame } from "@/lib/supabase/rpc";
+import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { AVATARS } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
@@ -39,6 +39,7 @@ export default function Home() {
   const [friends, setFriends] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [gameType, setGameType] = useState<GameType>("ludo");
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(2);
   // Must stay valid for the default playerCount (2): a seat's color maps
   // 1:1 to its index (red=0 ... blue=3), and red (seat 0) is the only
@@ -70,6 +71,8 @@ export default function Home() {
           : await joinRoom(client, code.trim(), name.trim());
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
+      if (kind === "create" && gameType !== "ludo")
+        await setRoomGame(client, room.roomId, gameType);
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setError(
@@ -95,6 +98,8 @@ export default function Home() {
       const client = createClient();
       await ensureSession(client);
       const room = await action(client);
+      if (kind === "create" && gameType !== "ludo")
+        await setRoomGame(client, room.roomId, gameType);
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setError(
@@ -157,6 +162,31 @@ export default function Home() {
               Pull up a chair. Roll the dice. Share a table with friends,
               wherever the evening finds you.
             </p>
+            <fieldset className="entrance-game-choice">
+              <legend>Choose your game</legend>
+              <div>
+                <button
+                  type="button"
+                  className={gameType === "ludo" ? "is-selected" : ""}
+                  aria-pressed={gameType === "ludo"}
+                  onClick={() => setGameType("ludo")}
+                >
+                  <strong>Ludo</strong>
+                  <span>Roll a six, race four pieces home</span>
+                </button>
+                <button
+                  type="button"
+                  className={
+                    gameType === "snakes_and_ladders" ? "is-selected" : ""
+                  }
+                  aria-pressed={gameType === "snakes_and_ladders"}
+                  onClick={() => setGameType("snakes_and_ladders")}
+                >
+                  <strong>Snakes & Ladders</strong>
+                  <span>Climb ladders, dodge snakes, reach 100</span>
+                </button>
+              </div>
+            </fieldset>
             <fieldset className="entrance-player-count">
               <legend>How many players?</legend>
               <div>
@@ -228,26 +258,28 @@ export default function Home() {
               </div>
               <small>Sign in from your profile to keep a photo avatar.</small>
             </fieldset>
-            <fieldset className="entrance-board-choice">
-              <legend>Choose your board design</legend>
-              <div>
-                {BOARD_STYLES.map((style) => (
-                  <button
-                    key={style.value}
-                    type="button"
-                    className={boardStyle === style.value ? "is-selected" : ""}
-                    aria-pressed={boardStyle === style.value}
-                    onClick={() => {
-                      setBoardStyleChoice(style.value);
-                      setPreferredBoardStyle(style.value);
-                    }}
-                  >
-                    <strong>{style.label}</strong>
-                    <small>{style.desc}</small>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            {gameType === "ludo" && (
+              <fieldset className="entrance-board-choice">
+                <legend>Choose your board design</legend>
+                <div>
+                  {BOARD_STYLES.map((style) => (
+                    <button
+                      key={style.value}
+                      type="button"
+                      className={boardStyle === style.value ? "is-selected" : ""}
+                      aria-pressed={boardStyle === style.value}
+                      onClick={() => {
+                        setBoardStyleChoice(style.value);
+                        setPreferredBoardStyle(style.value);
+                      }}
+                    >
+                      <strong>{style.label}</strong>
+                      <small>{style.desc}</small>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
             {teams.length > 0 && (
               <div className="entrance-team-card">
                 {teams.map((team) => (
@@ -288,14 +320,14 @@ export default function Home() {
               </button>
               <Link
                 className="entrance-secondary"
-                href={`/practice?players=${playerCount}&color=${playerColor}&avatar=${playerAvatar}`}
+                href={`/practice?players=${playerCount}&color=${playerColor}&avatar=${playerAvatar}&game=${gameType}`}
               >
                 <span>Settle in with an offline practice game</span>
                 <Icon name="dice" />
               </Link>
               <Link
                 className="entrance-secondary"
-                href={`/table-together?players=${playerCount}`}
+                href={`/table-together?players=${playerCount}&game=${gameType}`}
               >
                 <span>Table Together · Offline, share this screen</span>
                 <Icon name="users" />

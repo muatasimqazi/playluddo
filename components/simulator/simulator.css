@@ -26,9 +26,49 @@
   font-size: 12px !important;
   margin: 10px 0 !important;
 }
-.entrance-player-count {
+.entrance-game-choice {
   width: min(390px, 100%);
   margin: 22px 0 18px;
+  border: 0;
+}
+.entrance-game-choice legend {
+  margin-bottom: 9px;
+  color: #d8d4c3;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.entrance-game-choice > div {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+.entrance-game-choice button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 11px 12px;
+  border: 1px solid var(--sim-line);
+  border-radius: 8px;
+  background: rgba(26, 36, 30, 0.48);
+  text-align: left;
+}
+.entrance-game-choice button.is-selected {
+  border-color: #d8bd7f;
+  background: rgba(116, 104, 68, 0.42);
+}
+.entrance-game-choice button strong {
+  color: var(--sim-ink);
+  font: 500 15px/1 Georgia, serif;
+}
+.entrance-game-choice button span {
+  color: var(--sim-muted);
+  font-size: 9px;
+}
+.entrance-player-count {
+  width: min(390px, 100%);
+  margin: 0 0 18px;
   border: 0;
 }
 .entrance-player-count legend {
@@ -2309,8 +2349,11 @@ body.sim-piece-hover .sim-canvas {
     font-size: 11px;
     line-height: 1.7;
   }
-  .entrance-player-count {
+  .entrance-game-choice {
     margin: 14px 0;
+  }
+  .entrance-player-count {
+    margin-bottom: 14px;
   }
   .entrance-content .entrance-caption {
     margin-top: 11px;
@@ -2599,8 +2642,11 @@ body.sim-piece-hover .sim-canvas {
   .entrance-header {
     top: 20px;
   }
-  .entrance-player-count {
+  .entrance-game-choice {
     margin: 10px 0;
+  }
+  .entrance-player-count {
+    margin-bottom: 10px;
   }
   .entrance-color-choice {
     margin-bottom: 10px;

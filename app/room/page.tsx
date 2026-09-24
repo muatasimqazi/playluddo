@@ -7,12 +7,18 @@ import { useVoiceChat } from "@/lib/hooks/useVoiceChat";
 import { useRoomStore } from "@/lib/store/room-store";
 import { RoomLobby } from "@/components/lobby/RoomLobby";
 import { MatchArena } from "@/components/arena/MatchArena";
+import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 
 // A query param, not a [roomId] path segment: `output: "export"` (the
 // Capacitor build, see next.config.ts) can't pre-render a dynamic path
 // segment for runtime-generated UUIDs, but a query param needs no
 // pre-rendering at all. useSearchParams() requires a Suspense boundary.
 export default function RoomPage() {
+  // Covers a shared room link opened cold, with no prior visit to the
+  // entrance page to have warmed this already — fires immediately (not
+  // gated on lobby/in-game status) so it races the "Connecting…" wait
+  // instead of the scene's own mount.
+  usePreloadBoardScene();
   return (
     <Suspense fallback={<CenteredMessage>Connecting…</CenteredMessage>}>
       <RoomPageContent />

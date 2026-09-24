@@ -2,6 +2,7 @@
 // transition from the entrance's static image into a real room/practice
 // game doesn't pay for both at once. Safe to call speculatively — it
 // only downloads and decodes, it never mounts anything.
+import { useEffect } from "react";
 import boardArtwork from "@/designs/board-design.webp";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
@@ -46,4 +47,17 @@ export function preloadBoardScene() {
     ])
       useTexture.preload(src);
   });
+}
+
+// Idle time only, so this never competes with a page's own first paint or
+// interactivity for bandwidth or the main thread — safe to call from any
+// entry point (the entrance, a shared room link, Table Together) since
+// preloadBoardScene() itself only ever does its real work once.
+export function usePreloadBoardScene() {
+  useEffect(() => {
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
+    const cancelIdle = window.cancelIdleCallback ?? clearTimeout;
+    const handle = idle(preloadBoardScene);
+    return () => cancelIdle(handle);
+  }, []);
 }

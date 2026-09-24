@@ -99,6 +99,11 @@ function CameraRig({
   preview,
 }: SceneProps) {
   const controls = useRef<CameraControlsImpl>(null);
+  // The very first setLookAt below should snap into place, not glide —
+  // the Canvas's initial camera (see the camera prop) is already seeded
+  // from this same framing, so animating it would only fight a mismatch
+  // between window-based and canvas-based aspect at mount.
+  const firstFraming = useRef(true);
   const { size, camera } = useThree();
   const aspect = size.width / size.height;
   const mobile = aspect < 0.9;
@@ -135,7 +140,9 @@ function CameraRig({
     if (cinematic && !mobile) eye = [eye[0] + 1.1, eye[1] + 0.2, eye[2] - 0.45];
     else if (subtle && !mobile)
       eye = [eye[0] + 0.12, eye[1] + 0.1, eye[2] - 0.1];
-    void c.setLookAt(...eye, ...framing.target, true);
+    const animate = !firstFraming.current;
+    firstFraming.current = false;
+    void c.setLookAt(...eye, ...framing.target, animate);
   }, [view, mode, resetKey, mobile, aspect, cinematic, subtle, preview]);
   const { ACTION } = CameraControlsImpl;
   return (
@@ -1217,6 +1224,18 @@ function Seats({
 
 export default function SimulatorScene(props: SceneProps) {
   const [performanceCap, setPerformanceCap] = useState(2);
+  // Seeded from the same framing CameraRig converges on, using the
+  // window's aspect as a stand-in for the canvas's (not yet mounted) —
+  // so the first frame already looks right instead of starting from a
+  // generic pose and animating into place.
+  const [initialCamera] = useState(() => {
+    const framing = cameraFraming(
+      props.view,
+      window.innerWidth / window.innerHeight,
+      props.preview,
+    );
+    return { position: framing.eye, fov: framing.fov, near: 0.1, far: 120 };
+  });
   const shadowSize = { low: 512, medium: 1024, high: 2048, ultra: 4096 }[
     props.quality
   ];
@@ -1242,7 +1261,7 @@ export default function SimulatorScene(props: SceneProps) {
       <Canvas
         shadows={props.quality !== "low"}
         dpr={[1, Math.min(dpr[props.quality][1], performanceCap)]}
-        camera={{ position: [0, 6.6, 8.4], fov: 42, near: 0.1, far: 120 }}
+        camera={initialCamera}
         gl={{
           antialias: true,
           alpha: false,

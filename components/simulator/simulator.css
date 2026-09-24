@@ -28,7 +28,7 @@
 }
 .entrance-game-choice {
   width: min(390px, 100%);
-  margin: 22px 0 18px;
+  margin: 0 0 18px;
   border: 0;
 }
 .entrance-game-choice legend {
@@ -236,6 +236,63 @@
 .entrance-board-choice button small {
   color: var(--sim-muted);
   font-size: 8px;
+}
+.entrance-wizard-progress {
+  display: flex;
+  gap: 6px;
+  margin: 20px 0 16px;
+}
+.entrance-wizard-progress span {
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  background: #ffffff26;
+}
+.entrance-wizard-progress span.is-active {
+  background: #e9d6a5;
+}
+.entrance-wizard-progress span.is-done {
+  background: #d8bd7f80;
+}
+.entrance-wizard-step {
+  animation: entrance-wizard-fade 220ms ease;
+}
+@keyframes entrance-wizard-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.back-button {
+  font-size: 10px;
+  color: #c2caad;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.entrance-wizard-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(390px, 100%);
+  margin-top: 4px;
+}
+.entrance-wizard-nav .back-button {
+  flex: none;
+}
+.entrance-wizard-nav .sim-primary {
+  flex: 1;
+  height: 49px;
+  justify-content: space-between;
+  padding: 0 19px;
+}
+.entrance-wizard-step .back-button {
+  display: block;
+  margin-bottom: 12px;
 }
 .lobby-player-count {
   display: flex;
@@ -2349,9 +2406,7 @@ body.sim-piece-hover .sim-canvas {
     font-size: 11px;
     line-height: 1.7;
   }
-  .entrance-game-choice {
-    margin: 14px 0;
-  }
+  .entrance-game-choice,
   .entrance-player-count {
     margin-bottom: 14px;
   }
@@ -2642,9 +2697,7 @@ body.sim-piece-hover .sim-canvas {
   .entrance-header {
     top: 20px;
   }
-  .entrance-game-choice {
-    margin: 10px 0;
-  }
+  .entrance-game-choice,
   .entrance-player-count {
     margin-bottom: 10px;
   }

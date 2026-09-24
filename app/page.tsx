@@ -34,6 +34,13 @@ const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [
   { value: "aladdin", label: "Aladdin", desc: "An Arabian-nights table" },
 ];
 
+// One fieldset visible at a time instead of a long scroll — "board" only
+// applies to Ludo's skins, so it drops out of the sequence entirely for
+// Snakes & Ladders rather than showing empty or irrelevant.
+type StepId = "game" | "players" | "base" | "avatar" | "board" | "start";
+const LUDO_STEPS: StepId[] = ["game", "players", "base", "avatar", "board", "start"];
+const SNAKES_STEPS: StepId[] = ["game", "players", "base", "avatar", "start"];
+
 export default function Home() {
   const router = useRouter();
   const [friends, setFriends] = useState(false);
@@ -50,7 +57,16 @@ export default function Home() {
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [step, setStep] = useState(0);
   usePreloadBoardScene();
+  const steps = gameType === "ludo" ? LUDO_STEPS : SNAKES_STEPS;
+  const currentStep = steps[Math.min(step, steps.length - 1)];
+  function next() {
+    setStep((s) => Math.min(s + 1, steps.length - 1));
+  }
+  function back() {
+    setStep((s) => Math.max(s - 1, 0));
+  }
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
       setError("What should we call you at the table?");
@@ -162,180 +178,230 @@ export default function Home() {
               Pull up a chair. Roll the dice. Share a table with friends,
               wherever the evening finds you.
             </p>
-            <fieldset className="entrance-game-choice">
-              <legend>Choose your game</legend>
-              <div>
-                <button
-                  type="button"
-                  className={gameType === "ludo" ? "is-selected" : ""}
-                  aria-pressed={gameType === "ludo"}
-                  onClick={() => setGameType("ludo")}
-                >
-                  <strong>Ludo</strong>
-                  <span>Roll a six, race four pieces home</span>
-                </button>
-                <button
-                  type="button"
+            <div className="entrance-wizard-progress" role="presentation">
+              {steps.map((s, i) => (
+                <span
+                  key={s}
                   className={
-                    gameType === "snakes_and_ladders" ? "is-selected" : ""
+                    i === step ? "is-active" : i < step ? "is-done" : ""
                   }
-                  aria-pressed={gameType === "snakes_and_ladders"}
-                  onClick={() => setGameType("snakes_and_ladders")}
-                >
-                  <strong>Snakes & Ladders</strong>
-                  <span>Climb ladders, dodge snakes, reach 100</span>
-                </button>
-              </div>
-            </fieldset>
-            <fieldset className="entrance-player-count">
-              <legend>How many players?</legend>
-              <div>
-                {([2, 3, 4] as const).map((count) => (
-                  <button
-                    key={count}
-                    type="button"
-                    className={playerCount === count ? "is-selected" : ""}
-                    aria-pressed={playerCount === count}
-                    onClick={() => {
-                      setPlayerCount(count);
-                      // A seat's color maps 1:1 to its index (red=0 ... blue=3),
-                      // so shrinking the table can leave the previously chosen
-                      // color out of range — reset it before that can reach the
-                      // create_room/set_player_color RPCs as an INVALID_SEAT.
-                      // Every color is valid for 2 (the second seat becomes
-                      // whichever base is diagonally opposite), so no reset
-                      // is needed there.
-                      if (count !== 2 && SEAT_COLORS.indexOf(playerColor) >= count)
-                        setPlayerColorChoice(SEAT_COLORS[0]);
-                    }}
-                  >
-                    <strong>{count}</strong>
-                    <span>{count === 2 ? "You + 1" : `You + ${count - 1}`}</span>
-                  </button>
-                ))}
-              </div>
-              <small>Open seats can be friends or computer players.</small>
-            </fieldset>
-            <fieldset className="entrance-color-choice">
-              <legend>Choose your base</legend>
-              <div>
-                {(playerCount === 2
-                  ? SEAT_COLORS
-                  : SEAT_COLORS.slice(0, playerCount)
-                ).map(
-                  (color) => (
+                />
+              ))}
+            </div>
+            <div className="entrance-wizard-step" key={step}>
+              {currentStep === "game" && (
+                <fieldset className="entrance-game-choice">
+                  <legend>Choose your game</legend>
+                  <div>
                     <button
-                      key={color}
                       type="button"
-                      className={playerColor === color ? "is-selected" : ""}
-                      aria-label={`${color} base`}
-                      aria-pressed={playerColor === color}
-                      onClick={() => setPlayerColorChoice(color)}
+                      className={gameType === "ludo" ? "is-selected" : ""}
+                      aria-pressed={gameType === "ludo"}
+                      onClick={() => setGameType("ludo")}
                     >
-                      <i style={{ background: COLORS[color] }} />
-                      {color}
+                      <strong>Ludo</strong>
+                      <span>Roll a six, race four pieces home</span>
                     </button>
-                  ),
-                )}
-              </div>
-            </fieldset>
-            <fieldset className="entrance-avatar-choice">
-              <legend>Choose your avatar</legend>
-              <div>
-                {AVATARS.map((avatar) => (
-                  <button
-                    key={avatar.id}
-                    type="button"
-                    className={playerAvatar === avatar.id ? "is-selected" : ""}
-                    aria-label={avatar.label}
-                    aria-pressed={playerAvatar === avatar.id}
-                    onClick={() => setPlayerAvatar(avatar.id)}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP thumbnails. */}
-                    <img src={avatar.portrait} alt="" />
-                  </button>
-                ))}
-              </div>
-              <small>Sign in from your profile to keep a photo avatar.</small>
-            </fieldset>
-            {gameType === "ludo" && (
-              <fieldset className="entrance-board-choice">
-                <legend>Choose your board design</legend>
-                <div>
-                  {BOARD_STYLES.map((style) => (
-                    <button
-                      key={style.value}
-                      type="button"
-                      className={boardStyle === style.value ? "is-selected" : ""}
-                      aria-pressed={boardStyle === style.value}
-                      onClick={() => {
-                        setBoardStyleChoice(style.value);
-                        setPreferredBoardStyle(style.value);
-                      }}
-                    >
-                      <strong>{style.label}</strong>
-                      <small>{style.desc}</small>
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-            {teams.length > 0 && (
-              <div className="entrance-team-card">
-                {teams.map((team) => (
-                  <div key={team.id} className="entrance-team-row">
-                    <div>
-                      <span className="eyebrow">YOUR TEAM</span>
-                      <strong>{team.name}</strong>
-                      <small>
-                        {team.members.length}{" "}
-                        {team.members.length === 1 ? "member" : "members"}
-                        {team.activeRoom &&
-                          ` · Table open · ${team.activeRoom.seatsTaken}/4 seated`}
-                      </small>
-                    </div>
                     <button
                       type="button"
-                      className="sim-primary"
-                      disabled={pending !== null}
-                      onClick={() =>
-                        team.activeRoom
-                          ? joinTeamRoom(team.activeRoom.code)
-                          : startForTeam(team.id)
+                      className={
+                        gameType === "snakes_and_ladders" ? "is-selected" : ""
                       }
+                      aria-pressed={gameType === "snakes_and_ladders"}
+                      onClick={() => setGameType("snakes_and_ladders")}
                     >
-                      <span>
-                        {team.activeRoom ? "Join now" : "Start a table"}
-                      </span>
-                      <Icon name="arrow" />
+                      <strong>Snakes & Ladders</strong>
+                      <span>Climb ladders, dodge snakes, reach 100</span>
                     </button>
                   </div>
-                ))}
+                </fieldset>
+              )}
+              {currentStep === "players" && (
+                <fieldset className="entrance-player-count">
+                  <legend>How many players?</legend>
+                  <div>
+                    {([2, 3, 4] as const).map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        className={playerCount === count ? "is-selected" : ""}
+                        aria-pressed={playerCount === count}
+                        onClick={() => {
+                          setPlayerCount(count);
+                          // A seat's color maps 1:1 to its index (red=0 ... blue=3),
+                          // so shrinking the table can leave the previously chosen
+                          // color out of range — reset it before that can reach the
+                          // create_room/set_player_color RPCs as an INVALID_SEAT.
+                          // Every color is valid for 2 (the second seat becomes
+                          // whichever base is diagonally opposite), so no reset
+                          // is needed there.
+                          if (
+                            count !== 2 &&
+                            SEAT_COLORS.indexOf(playerColor) >= count
+                          )
+                            setPlayerColorChoice(SEAT_COLORS[0]);
+                        }}
+                      >
+                        <strong>{count}</strong>
+                        <span>
+                          {count === 2 ? "You + 1" : `You + ${count - 1}`}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <small>Open seats can be friends or computer players.</small>
+                </fieldset>
+              )}
+              {currentStep === "base" && (
+                <fieldset className="entrance-color-choice">
+                  <legend>Choose your base</legend>
+                  <div>
+                    {(playerCount === 2
+                      ? SEAT_COLORS
+                      : SEAT_COLORS.slice(0, playerCount)
+                    ).map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={playerColor === color ? "is-selected" : ""}
+                        aria-label={`${color} base`}
+                        aria-pressed={playerColor === color}
+                        onClick={() => setPlayerColorChoice(color)}
+                      >
+                        <i style={{ background: COLORS[color] }} />
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+              {currentStep === "avatar" && (
+                <fieldset className="entrance-avatar-choice">
+                  <legend>Choose your avatar</legend>
+                  <div>
+                    {AVATARS.map((avatar) => (
+                      <button
+                        key={avatar.id}
+                        type="button"
+                        className={
+                          playerAvatar === avatar.id ? "is-selected" : ""
+                        }
+                        aria-label={avatar.label}
+                        aria-pressed={playerAvatar === avatar.id}
+                        onClick={() => setPlayerAvatar(avatar.id)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP thumbnails. */}
+                        <img src={avatar.portrait} alt="" />
+                      </button>
+                    ))}
+                  </div>
+                  <small>Sign in from your profile to keep a photo avatar.</small>
+                </fieldset>
+              )}
+              {currentStep === "board" && (
+                <fieldset className="entrance-board-choice">
+                  <legend>Choose your board design</legend>
+                  <div>
+                    {BOARD_STYLES.map((style) => (
+                      <button
+                        key={style.value}
+                        type="button"
+                        className={
+                          boardStyle === style.value ? "is-selected" : ""
+                        }
+                        aria-pressed={boardStyle === style.value}
+                        onClick={() => {
+                          setBoardStyleChoice(style.value);
+                          setPreferredBoardStyle(style.value);
+                        }}
+                      >
+                        <strong>{style.label}</strong>
+                        <small>{style.desc}</small>
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+              {currentStep === "start" && (
+                <>
+                  <button type="button" className="back-button" onClick={back}>
+                    ← Back
+                  </button>
+                  {teams.length > 0 && (
+                    <div className="entrance-team-card">
+                      {teams.map((team) => (
+                        <div key={team.id} className="entrance-team-row">
+                          <div>
+                            <span className="eyebrow">YOUR TEAM</span>
+                            <strong>{team.name}</strong>
+                            <small>
+                              {team.members.length}{" "}
+                              {team.members.length === 1 ? "member" : "members"}
+                              {team.activeRoom &&
+                                ` · Table open · ${team.activeRoom.seatsTaken}/4 seated`}
+                            </small>
+                          </div>
+                          <button
+                            type="button"
+                            className="sim-primary"
+                            disabled={pending !== null}
+                            onClick={() =>
+                              team.activeRoom
+                                ? joinTeamRoom(team.activeRoom.code)
+                                : startForTeam(team.id)
+                            }
+                          >
+                            <span>
+                              {team.activeRoom ? "Join now" : "Start a table"}
+                            </span>
+                            <Icon name="arrow" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="entrance-buttons">
+                    <button
+                      className="sim-primary"
+                      onClick={() => setFriends(true)}
+                    >
+                      <span>Play with friends</span>
+                      <Icon name="arrow" />
+                    </button>
+                    <Link
+                      className="entrance-secondary"
+                      href={`/practice?players=${playerCount}&color=${playerColor}&avatar=${playerAvatar}&game=${gameType}`}
+                    >
+                      <span>Settle in with an offline practice game</span>
+                      <Icon name="dice" />
+                    </Link>
+                    <Link
+                      className="entrance-secondary"
+                      href={`/table-together?players=${playerCount}&game=${gameType}`}
+                    >
+                      <span>Table Together · Offline, share this screen</span>
+                      <Icon name="users" />
+                    </Link>
+                  </div>
+                  <p className="entrance-caption">
+                    Up to four players · A shared 3D table · No download
+                  </p>
+                </>
+              )}
+            </div>
+            {currentStep !== "start" && (
+              <div className="entrance-wizard-nav">
+                {step > 0 && (
+                  <button type="button" className="back-button" onClick={back}>
+                    ← Back
+                  </button>
+                )}
+                <button type="button" className="sim-primary" onClick={next}>
+                  <span>Continue</span>
+                  <Icon name="arrow" />
+                </button>
               </div>
             )}
-            <div className="entrance-buttons">
-              <button className="sim-primary" onClick={() => setFriends(true)}>
-                <span>Play with friends</span>
-                <Icon name="arrow" />
-              </button>
-              <Link
-                className="entrance-secondary"
-                href={`/practice?players=${playerCount}&color=${playerColor}&avatar=${playerAvatar}&game=${gameType}`}
-              >
-                <span>Settle in with an offline practice game</span>
-                <Icon name="dice" />
-              </Link>
-              <Link
-                className="entrance-secondary"
-                href={`/table-together?players=${playerCount}&game=${gameType}`}
-              >
-                <span>Table Together · Offline, share this screen</span>
-                <Icon name="users" />
-              </Link>
-            </div>
-            <p className="entrance-caption">
-              Up to four players · A shared 3D table · No download
-            </p>
           </>
         ) : (
           <>

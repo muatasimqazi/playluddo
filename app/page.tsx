@@ -1,19 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { createRoom, joinRoom, setPlayerColor } from "@/lib/supabase/rpc";
-import { createPractice } from "@/lib/presentation/practice";
 import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { AVATARS } from "@/lib/avatars/catalog";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
-import { TableLoading } from "@/components/simulator/TableLoading";
 import type { Team } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
 import "@/components/simulator/simulator.css";
@@ -21,11 +18,6 @@ import "@/components/simulator/simulator.css";
 // Matches the seat_index a color maps to server-side (private.ludo_color_for_seat /
 // set_player_color), same order as components/lobby/RoomLobby.tsx's SEAT_COLORS.
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
-
-const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
-  ssr: false,
-  loading: () => <TableLoading label="Setting the table…" />,
-});
 
 export default function Home() {
   const router = useRouter();
@@ -41,13 +33,6 @@ export default function Home() {
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const preview = useMemo(
-    () =>
-      createPractice("ludo", playerCount, playerColor, {
-        avatarId: playerAvatar,
-      }).state,
-    [playerCount, playerColor, playerAvatar],
-  );
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
       setError("What should we call you at the table?");
@@ -109,34 +94,15 @@ export default function Home() {
   }
   return (
     <main className="sim-entrance">
-      <Scene
-        frame={{
-          pawns: preview.pawns,
-          dice: 5,
-          rollId: 0,
-          actorId: null,
-          busy: false,
-          replaying: false,
-          phase: "idle",
-          move: null,
-          canReplay: false,
-          revision: 0,
-        }}
-        players={preview.players}
-        myPlayerId={null}
-        turnPlayerId={null}
-        legalPawnIds={[]}
-        canRoll={false}
-        view="table"
-        mode="play"
-        orientation={0}
-        quality="medium"
-        actionCamera="off"
-        resetKey={0}
-        onRotate={() => {}}
-        onRoll={() => {}}
-        onMove={() => {}}
-        preview
+      {/* A static image, not the live 3D scene — this page is the very
+          first thing anyone sees, so it shouldn't wait on a Three.js/WebGL
+          bundle and a render just to show a decorative background. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
+      <img
+        className="entrance-bg-image"
+        src="/images/entrance-board.webp"
+        alt=""
+        fetchPriority="high"
       />
       <div className="entrance-shade" />
       <header className="entrance-header">

@@ -1275,6 +1275,14 @@ body.sim-piece-hover .sim-canvas {
   }
 }
 /* The entrance shares the physical environment and uses a quiet editorial menu. */
+.entrance-bg-image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .entrance-shade {
   position: absolute;
   inset: 0;

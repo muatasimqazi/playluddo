@@ -27,6 +27,10 @@ import {
   type Quality,
 } from "@/lib/presentation/board";
 import { PresentationTimeline } from "@/lib/presentation/timeline";
+import {
+  SIMULATOR_PREF_KEY,
+  type BoardStyle,
+} from "@/lib/presentation/simulatorPrefs";
 import { Icon, type IconName } from "./Icon";
 import { TableLoading } from "./TableLoading";
 import { BRAND } from "@/lib/brand";
@@ -72,12 +76,12 @@ interface Preferences {
   orientation: number;
   snakeOrientation: number;
   view: CameraView;
-  boardStyle: "signature" | "classic" | "geometric" | "aladdin";
+  boardStyle: BoardStyle;
   immersive: boolean;
   brightness: number;
   saturation: number;
 }
-const PREF_KEY = "luddo-simulator-v1";
+const PREF_KEY = SIMULATOR_PREF_KEY;
 const CAMERA_VIEW_LABELS: Record<CameraView, string> = {
   play: "Seated",
   overhead: "Overhead",
@@ -351,6 +355,7 @@ export default function Simulator({
           actionCamera: prefs.actionCamera,
           orientation: prefs.orientation,
           snakeOrientation: prefs.snakeOrientation,
+          boardStyle: prefs.boardStyle,
           localColor: me?.color ?? "blue",
         }),
       );

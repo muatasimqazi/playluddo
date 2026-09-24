@@ -10,6 +10,10 @@ import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { AVATARS } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
+import {
+  setPreferredBoardStyle,
+  type BoardStyle,
+} from "@/lib/presentation/simulatorPrefs";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import type { Team } from "@/lib/supabase/teams";
@@ -19,6 +23,16 @@ import "@/components/simulator/simulator.css";
 // Matches the seat_index a color maps to server-side (private.ludo_color_for_seat /
 // set_player_color), same order as components/lobby/RoomLobby.tsx's SEAT_COLORS.
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
+
+// Same four styles/descriptions as the in-game "Board design" panel
+// (components/simulator/Simulator.tsx) — choosing one here just seeds
+// that same saved preference before the first game ever starts.
+const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [
+  { value: "signature", label: "Signature", desc: "The Luddo House artwork" },
+  { value: "classic", label: "Classic", desc: "A traditional printed board" },
+  { value: "geometric", label: "Geometric", desc: "Bold shapes, gold accents" },
+  { value: "aladdin", label: "Aladdin", desc: "An Arabian-nights table" },
+];
 
 export default function Home() {
   const router = useRouter();
@@ -31,6 +45,7 @@ export default function Home() {
   // choice guaranteed in range for every possible player count.
   const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("red");
   const [playerAvatar, setPlayerAvatar] = useState<string>(AVATARS[0].id);
+  const [boardStyle, setBoardStyleChoice] = useState<BoardStyle>("signature");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -212,6 +227,26 @@ export default function Home() {
                 ))}
               </div>
               <small>Sign in from your profile to keep a photo avatar.</small>
+            </fieldset>
+            <fieldset className="entrance-board-choice">
+              <legend>Choose your board design</legend>
+              <div>
+                {BOARD_STYLES.map((style) => (
+                  <button
+                    key={style.value}
+                    type="button"
+                    className={boardStyle === style.value ? "is-selected" : ""}
+                    aria-pressed={boardStyle === style.value}
+                    onClick={() => {
+                      setBoardStyleChoice(style.value);
+                      setPreferredBoardStyle(style.value);
+                    }}
+                  >
+                    <strong>{style.label}</strong>
+                    <small>{style.desc}</small>
+                  </button>
+                ))}
+              </div>
             </fieldset>
             {teams.length > 0 && (
               <div className="entrance-team-card">

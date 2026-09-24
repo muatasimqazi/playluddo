@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,7 @@ import { createRoom, joinRoom, setPlayerColor } from "@/lib/supabase/rpc";
 import type { PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { AVATARS } from "@/lib/avatars/catalog";
+import { preloadBoardScene } from "@/lib/presentation/preloadScene";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import type { Team } from "@/lib/supabase/teams";
@@ -33,6 +34,14 @@ export default function Home() {
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  useEffect(() => {
+    // Idle time only, so this never competes with the entrance page's
+    // own first paint/interactivity for bandwidth or the main thread.
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
+    const cancelIdle = window.cancelIdleCallback ?? clearTimeout;
+    const handle = idle(preloadBoardScene);
+    return () => cancelIdle(handle);
+  }, []);
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
       setError("What should we call you at the table?");

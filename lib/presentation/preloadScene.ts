@@ -8,7 +8,7 @@ import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
 import lampArtwork from "@/designs/lamp.svg";
-import snakeArtwork from "@/designs/snake-and-ladder/board.svg";
+import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 
 let started = false;
 

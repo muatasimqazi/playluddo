@@ -1,18 +1,27 @@
 import type { LegalMove, Pawn, PlayerColor } from "./types";
 
-// Endpoints printed on designs/snake-and-ladder/board.svg. Keep SQL in sync.
+// Endpoints printed on designs/snake-and-ladder/snakes-and-ladders-board.svg
+// (each ladder's foot and snake's head carries a "↑ N" / "↓ N" label).
+// Keep SQL (private.snakes_move) in sync.
 export const LADDERS: Readonly<Record<number, number>> = {
+  3: 23,
   4: 16,
+  7: 27,
   9: 30,
-  18: 44,
+  17: 37,
   28: 54,
+  36: 65,
   50: 73,
   71: 91,
+  77: 84,
 };
 export const SNAKES: Readonly<Record<number, number>> = {
-  14: 6,
+  22: 2,
+  26: 6,
   59: 40,
-  87: 45,
+  64: 44,
+  82: 62,
+  87: 46,
   93: 72,
   95: 75,
   98: 38,

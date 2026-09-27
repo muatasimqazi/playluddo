@@ -185,14 +185,12 @@ function CameraRig({
         wheel: ACTION.DOLLY,
       }}
       touches={{
-        // On a phone, one finger is for tapping pawns and the die — letting
-        // it also orbit means every slightly-sloppy tap nudges the view.
-        // Look mode (the eye button) keeps one-finger orbiting; in play,
-        // pinch still zooms in on small cells.
-        one:
-          mode === "rotate" || (coarse && mode === "play")
-            ? ACTION.NONE
-            : ACTION.TOUCH_ROTATE,
+        // One finger drags the view in play too — that's how the table reads
+        // as 3D, and how the phone overhead view reveals the room around it
+        // (see Surroundings). Taps stay safe: pawns and the die ignore a
+        // press that turned into a drag (TAP_SLOP_PX). On phones, pinch also
+        // zooms in on small cells.
+        one: mode === "rotate" ? ACTION.NONE : ACTION.TOUCH_ROTATE,
         two:
           mode === "look" || (coarse && mode === "play")
             ? ACTION.TOUCH_DOLLY_TRUCK
@@ -477,6 +475,7 @@ function Piece({
         onClick={(e) => {
           if (mode !== "play") return;
           e.stopPropagation();
+          if (e.delta > TAP_SLOP_PX) return;
           if (clickable) {
             document.body.classList.remove("sim-piece-hover");
             setHovered(false);
@@ -769,7 +768,7 @@ function PhysicalDie({
         onClick={(e) => {
           if (mode !== "play") return;
           e.stopPropagation();
-          if (!canRoll) return;
+          if (!canRoll || e.delta > TAP_SLOP_PX) return;
           if (coarse) hapticTap(18);
           onRoll();
         }}
@@ -835,6 +834,10 @@ function PhysicalDie({
   );
 }
 
+// How far (px) a press may travel and still count as a tap on a pawn or the
+// die; anything further was a drag of the view.
+const TAP_SLOP_PX = 10;
+
 // About 1.4 cells — roughly a fingertip's width on a phone-sized board.
 const TOUCH_PAWN_REACH = 0.55;
 
@@ -851,6 +854,19 @@ function BoardObject(props: SceneProps) {
   const classicArtwork = useTexture(classicBoardArtwork.src as string);
   const geometricArtwork = useTexture(geometricBoardArtwork.src as string);
   const aladdinArtwork = useTexture(aladdinBoardArtwork.src as string);
+  // Vector boards are rasterized once into a texture. On a desktop screen
+  // at 2x the board spans ~2000 device px at its near edge, so 2048 gets
+  // magnified and the thin numbers/labels go soft; 4096 keeps them crisp.
+  // Phones never show the board that large, so they keep 2048 (a 4096
+  // texture costs ~90MB of GPU memory with mipmaps), as does Low quality.
+  const maxTextureSize = useThree((state) => state.gl.capabilities.maxTextureSize);
+  const compactScreen = useThree(
+    ({ size }) => size.width <= 900 || size.height <= 650,
+  );
+  const vectorSize =
+    !compactScreen && props.quality !== "low" && maxTextureSize >= 4096
+      ? 4096
+      : 2048;
   const texture = useMemo(
     () => {
       const classic = props.boardStyle === "classic";
@@ -860,12 +876,16 @@ function BoardObject(props: SceneProps) {
         classic ? classicArtwork : geometric ? geometricArtwork : aladdin ? aladdinArtwork : artwork,
         classic ? "full" : geometric ? "full" : aladdin ? "full" : "ludo",
         props.view === "overhead" ? 1.24 : 1,
+        vectorSize,
       );
     },
-    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view],
+    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view, vectorSize],
   );
   const snakeSource = useTexture(snakeArtwork.src as string);
-  const snakeTexture = useMemo(() => makeBoardTexture(snakeSource, "full"), [snakeSource]);
+  const snakeTexture = useMemo(
+    () => makeBoardTexture(snakeSource, "full", 1, vectorSize),
+    [snakeSource, vectorSize],
+  );
   const lampTexture = useTexture(lampArtwork.src as string);
   const wood = useTexture("/textures/board-wood.webp");
   const drag = useRef<{ x: number; angle: number; pointer: number } | null>(
@@ -879,7 +899,7 @@ function BoardObject(props: SceneProps) {
   // wins. Direct hits never get here: Piece stops propagation.
   function tapNearestLegalPawn(e: ThreeEvent<MouseEvent>) {
     if (!coarse || props.mode !== "play" || !group.current) return;
-    if (props.legalPawnIds.length === 0) return;
+    if (props.legalPawnIds.length === 0 || e.delta > TAP_SLOP_PX) return;
     const local = group.current.worldToLocal(e.point.clone());
     let best: { id: string; distance: number } | null = null;
     for (const pawn of props.frame.pawns) {
@@ -1594,7 +1614,9 @@ function SceneLoadingOverlay({ ready, label }: { ready: boolean; label?: string 
 }
 
 export default function SimulatorScene(props: SceneProps) {
-  const [performanceCap, setPerformanceCap] = useState(2);
+  // Render-scale ceiling PerformanceMonitor has stepped down to after
+  // sustained low frame rates; null = no throttling, use the quality's max.
+  const [performanceCap, setPerformanceCap] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
   const markReady = useCallback(() => setReady(true), []);
   // Seeded from the same framing CameraRig converges on, using the
@@ -1612,11 +1634,17 @@ export default function SimulatorScene(props: SceneProps) {
   const shadowSize = { low: 512, medium: 1024, high: 2048, ultra: 4096 }[
     props.quality
   ];
+  // Max render scale per quality, still capped by the device's own pixel
+  // ratio. Anything under the screen's real density renders the scene
+  // small and lets the browser upscale it, which is what made the board's
+  // numbers and edges soft (a 3x phone on medium was drawing ~42% of its
+  // pixels). Medium — the phone default — now reaches 2x; high (desktop
+  // default) covers 2x Retina fully.
   const dpr: { [K in Quality]: [number, number] } = {
     low: [1, 1],
-    medium: [1, 1.25],
-    high: [1, 1.75],
-    ultra: [1, 2],
+    medium: [1, 2],
+    high: [1, 2.5],
+    ultra: [1, 3],
   };
   return (
     <div
@@ -1633,7 +1661,7 @@ export default function SimulatorScene(props: SceneProps) {
     >
       <Canvas
         shadows={props.quality !== "low"}
-        dpr={[1, Math.min(dpr[props.quality][1], performanceCap)]}
+        dpr={[1, Math.min(dpr[props.quality][1], performanceCap ?? Infinity)]}
         camera={initialCamera}
         gl={{
           antialias: true,
@@ -1740,11 +1768,27 @@ export default function SimulatorScene(props: SceneProps) {
           <SceneReady onReady={markReady} />
         </Suspense>
         <CameraRig {...props} />
+        {/* drei counts every adjustment toward `flipflops` — inclines
+            included — and then stops sampling and fires onFallback. This
+            used to hard-set 1x there, so a machine holding a steady 60fps
+            racked up "inclines" and got dropped to 1x (blurry) ~10-15s
+            after load. Now inclines recover resolution, declines shed it
+            0.25 at a time, and fallback just keeps whatever it settled on. */}
         <PerformanceMonitor
           bounds={() => [28, 55]}
           flipflops={3}
-          onDecline={() => setPerformanceCap((cap) => Math.max(1, cap - 0.25))}
-          onFallback={() => setPerformanceCap(1)}
+          onIncline={() =>
+            setPerformanceCap((cap) =>
+              cap === null || cap + 0.25 >= dpr[props.quality][1]
+                ? null
+                : cap + 0.25,
+            )
+          }
+          onDecline={() =>
+            setPerformanceCap((cap) =>
+              Math.max(1, (cap ?? dpr[props.quality][1]) - 0.25),
+            )
+          }
         />
       </Canvas>
       <SceneLoadingOverlay ready={ready} label={props.loadingLabel} />

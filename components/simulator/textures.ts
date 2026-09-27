@@ -78,6 +78,7 @@ export function makeBoardTexture(
   source: THREE.Texture,
   crop: "ludo" | "full" = "ludo",
   inkStrength = 1,
+  vectorSize = 2048,
 ) {
   // The PNG embeds Adobe RGB (1998). Drawing to an sRGB canvas lets the
   // browser apply that ICC profile before Three uploads the color pixels.
@@ -87,9 +88,10 @@ export function makeBoardTexture(
   // SVG images without explicit pixel dimensions report a small browser
   // default intrinsic size. Rasterize board vectors at texture resolution
   // before uploading them to WebGL so overhead and zoomed views stay crisp.
+  // `vectorSize` is chosen by the caller for the screen it will be seen on.
   const vectorSource = /\.svg(?:$|\?)/i.test(image.currentSrc || image.src);
-  canvas.width = vectorSource ? 2048 : image.naturalWidth;
-  canvas.height = vectorSource ? 2048 : image.naturalHeight;
+  canvas.width = vectorSource ? vectorSize : image.naturalWidth;
+  canvas.height = vectorSource ? vectorSize : image.naturalHeight;
   const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
   if (!ctx) throw new Error("Could not prepare the board artwork.");
   // Explicit destination size, not drawImage(image, 0, 0) — an SVG with no

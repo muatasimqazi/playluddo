@@ -18,7 +18,6 @@ import type { TableMessage } from "@/lib/realtime/table-messages";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
-import { useCoarsePointer } from "@/lib/hooks/useCoarsePointer";
 import {
   COLORS,
   HOME_ROTATION,
@@ -330,13 +329,11 @@ export default function Simulator({
     interactable && isMyTurn && state.turnPhase === "awaiting_move"
       ? state.legalMoves.map((m) => m.pawnId)
       : [];
-  // Mobile Ludo convention: when the roll leaves no real choice — one
-  // legal move, or several identical ones (a six with every pawn still in
-  // base) — play it for the player after a beat instead of making them
-  // hunt for a small pawn. Touch devices only; desktop keeps the click.
-  const coarsePointer = useCoarsePointer();
+  // When the roll leaves no real choice — one legal move, or several
+  // identical ones (a six with every pawn still in base) — play it for
+  // the player after a beat instead of making them find and click a pawn.
   const forcedMove =
-    coarsePointer && legalPawnIds.length > 0
+    legalPawnIds.length > 0
       ? state.legalMoves.every(
           (m) =>
             m.fromTileId === state.legalMoves[0].fromTileId &&

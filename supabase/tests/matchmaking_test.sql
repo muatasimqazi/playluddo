@@ -7,7 +7,7 @@
 -- queue timestamps.
 
 begin;
-select plan(25);
+select plan(27);
 
 create temporary table test_state (key text primary key, value jsonb);
 grant select, insert on test_state to authenticated;
@@ -117,6 +117,23 @@ update public.matchmaking_queue set enqueued_at = now() - interval '46 seconds'
 set local role authenticated;
 select pg_temp.as_user(11);
 select is((public.matchmake('snakes_and_ladders', 'Kit', 2)->>'computers')::int, 1, 'after 45s alone, a computer takes the other seat');
+
+-- ---------------------------------------------------------------------------
+-- 4 seats, alone for 45s: three computers (regression: this used to fail
+-- with NOT_ENOUGH_PLAYERS because start_match checks seats before bot-fill).
+-- ---------------------------------------------------------------------------
+select pg_temp.as_user(14);
+select is(public.matchmake('ludo', 'Nell', 4)->>'status', 'waiting', 'lone 4-seat searcher waits');
+reset role;
+update public.matchmaking_queue set enqueued_at = now() - interval '46 seconds'
+  where user_id = '66666666-6666-6666-6666-666666666614';
+set local role authenticated;
+select pg_temp.as_user(14);
+select is(
+  (select (r->>'players')::int || ' players, ' || (r->>'computers') || ' computers'
+   from (select public.matchmake('ludo', 'Nell', 4) as r) m),
+  '4 players, 3 computers', 'after 45s alone at a 4-seat table, computers take all three other seats'
+);
 
 -- ---------------------------------------------------------------------------
 -- A searcher who stopped polling isn't seated; cancel; bad input.

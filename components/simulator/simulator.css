@@ -3497,3 +3497,43 @@ body.sim-piece-hover .sim-canvas {
   font-size: 11px !important;
   color: var(--sim-muted) !important;
 }
+
+/* Safe areas for the entrance-style pages (home, leaderboard, lobby, invite,
+   notices). Their header/content/footer are placed with fixed pixel
+   offsets, which put the header under the Dynamic Island / notch in the iOS
+   app (and in iPhone Safari, since the viewport uses viewport-fit=cover).
+   The insets are 0 everywhere else, so this changes nothing on desktop.
+   The game HUD (.sim-header/.sim-footer) already accounts for them. */
+.entrance-header,
+.entrance-content,
+.leaderboard-content {
+  margin-top: env(safe-area-inset-top, 0px);
+  margin-left: env(safe-area-inset-left, 0px);
+  margin-right: env(safe-area-inset-right, 0px);
+}
+.entrance-footer {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+  margin-left: env(safe-area-inset-left, 0px);
+  margin-right: env(safe-area-inset-right, 0px);
+}
+.entrance-content,
+.leaderboard-content {
+  /* Their bottom edge is pinned too; keep it clear of the home indicator. */
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Phone game header: the logo and eight tool buttons (each with a 12px
+   margin on top of the row gap) needed ~426px, so on every phone narrower
+   than a Pro Max the last button (the table menu) was cut off-screen. Keep
+   the four-tile mark, drop the wordmark, and tighten the button spacing. */
+@media (max-width: 430px) {
+  .sim-header .sim-brand > span:last-child {
+    display: none;
+  }
+  .sim-session {
+    gap: 6px;
+  }
+  .sim-session .sim-tool {
+    margin-left: 0;
+  }
+}

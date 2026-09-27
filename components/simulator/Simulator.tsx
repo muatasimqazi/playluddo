@@ -532,7 +532,9 @@ export default function Simulator({
     : state.status === "summary" || state.status === "abandoned"
       ? "MATCH COMPLETE"
       : frame.busy
-        ? `${localPlay ? activePlayer?.displayName ?? "Player" : activePlayer?.id === myPlayerId ? "You" : activePlayer?.displayName ?? "Player"} ${frame.phase === "roll" ? "is rolling" : "is moving"}`
+        ? !localPlay && activePlayer?.id === myPlayerId
+          ? `You ${frame.phase === "roll" ? "are rolling" : "are moving"}`
+          : `${activePlayer?.displayName ?? "Player"} ${frame.phase === "roll" ? "is rolling" : "is moving"}`
         : isMyTurn
           ? localPlay
             ? `${activePlayer?.displayName ?? "PLAYER"}’S TURN`

@@ -3537,3 +3537,128 @@ body.sim-piece-hover .sim-canvas {
     margin-left: 0;
   }
 }
+
+/* Text pages: privacy policy and support (components/site/InfoPage.tsx).
+   Scroll as a page over the pinned apartment backdrop, like the lobby. */
+.sim-entrance.info-page {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+  padding: 116px 24px 64px 9%;
+}
+.info-page .entrance-bg-image,
+.info-page .entrance-shade {
+  position: fixed;
+}
+.info-page .sim-brand {
+  color: inherit;
+  text-decoration: none;
+}
+.info-content {
+  position: relative;
+  z-index: 4;
+  max-width: 640px;
+  margin-top: env(safe-area-inset-top, 0px);
+  color: #d8d4c3;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.info-content > .eyebrow {
+  color: #c0c5a9;
+  letter-spacing: 3px;
+  font-size: 9px;
+  margin-bottom: 16px;
+}
+.info-content h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 52px;
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -1.6px;
+  color: #f1ead7;
+  margin: 0 0 18px;
+}
+.info-content h1 em {
+  font-weight: 400;
+  color: #d6c497;
+}
+.info-intro {
+  color: #c0c8b5;
+  margin: 0 0 28px;
+}
+.info-body {
+  padding: 8px 28px 24px;
+  border: 1px solid #e9e7d326;
+  border-radius: 14px;
+  background: #1e2a22d9;
+  backdrop-filter: blur(12px);
+}
+.info-body h2 {
+  margin: 28px 0 8px;
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #f1ead7;
+}
+.info-body h3 {
+  margin: 18px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e9dfc0;
+}
+.info-body p {
+  margin: 0 0 10px;
+}
+.info-body ul {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+.info-body li {
+  margin-bottom: 6px;
+}
+.info-body strong {
+  color: #f1ead7;
+  font-weight: 600;
+}
+.info-content a:not(.sim-primary) {
+  color: #e3c47c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.info-cta {
+  display: inline-flex;
+  margin-top: 20px;
+  height: 46px;
+  padding: 0 22px;
+  text-decoration: none;
+}
+.info-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+  font-size: 12px;
+  color: #b6baac;
+}
+@media (max-width: 700px) {
+  .sim-entrance.info-page {
+    padding: 84px 20px 48px;
+  }
+  .info-content h1 {
+    font-size: 40px;
+  }
+  .info-body {
+    padding: 4px 18px 18px;
+  }
+}
+
+.entrance-footer-link {
+  margin-left: 14px;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.85;
+}
+.entrance-footer-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

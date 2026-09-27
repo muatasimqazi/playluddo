@@ -523,7 +523,11 @@ export default function Home() {
         <p>{BRAND.name}</p>
       </div>
       <footer className="entrance-footer">
-        <span>{BRAND.tagline.toUpperCase()}. SHARED MOMENTS.</span>
+        <span>
+          {BRAND.tagline.toUpperCase()}. SHARED MOMENTS.
+          <Link href="/support" className="entrance-footer-link">SUPPORT</Link>
+          <Link href="/privacy" className="entrance-footer-link">PRIVACY</Link>
+        </span>
         <span>
           <i className="connection-dot" />
           TAKE YOUR TIME. STAY A WHILE.

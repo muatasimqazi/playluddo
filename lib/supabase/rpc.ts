@@ -133,6 +133,28 @@ export function cancelMatchmaking(client: SupabaseClient) {
   return call<MatchmakingResult>(client, "cancel_matchmaking");
 }
 
+export interface RoomInvite {
+  status: "lobby" | "in_game" | "summary" | "abandoned";
+  gameType: GameType;
+  maxPlayers: number;
+  seatsTaken: number;
+  hostName: string | null;
+  isSeated: boolean;
+}
+
+/** What a shared room link shows before joining (host, game, open seats). */
+export function getRoomInvite(client: SupabaseClient, roomId: string) {
+  return call<RoomInvite>(client, "room_invite", { p_room_id: roomId });
+}
+
+/** Take a seat from a shared room link — same rules as joinRoom, by id. */
+export function joinRoomById(client: SupabaseClient, roomId: string, displayName: string) {
+  return call<{ roomId: string; code: string; playerId: string }>(client, "join_room_by_id", {
+    p_room_id: roomId,
+    p_display_name: displayName,
+  });
+}
+
 export function fillBot(client: SupabaseClient, roomId: string, seatIndex: number) {
   return call<{ playerId: string }>(client, "fill_bot", {
     p_room_id: roomId,

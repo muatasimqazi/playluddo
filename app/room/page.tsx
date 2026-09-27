@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
-import Link from "next/link";
+import { Suspense, useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRoomConnection } from "@/lib/hooks/useRoomConnection";
 import { useVoiceChat } from "@/lib/hooks/useVoiceChat";
@@ -10,7 +9,9 @@ import { RoomLobby } from "@/components/lobby/RoomLobby";
 import { MatchArena } from "@/components/arena/MatchArena";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import { TableLoading } from "@/components/simulator/TableLoading";
-import { Icon } from "@/components/simulator/Icon";
+import { RoomNotice } from "@/components/lobby/RoomNotice";
+import { JoinTable } from "@/components/lobby/JoinTable";
+import { RpcError } from "@/lib/supabase/rpc";
 import "@/components/simulator/simulator.css";
 
 // A query param, not a [roomId] path segment: `output: "export"` (the
@@ -32,11 +33,15 @@ export default function RoomPage() {
 
 function RoomPageContent() {
   const roomId = useSearchParams().get("id");
+  // Bumped after a friend joins from the link, remounting the connection so
+  // it claims the seat they now hold.
+  const [attempt, setAttempt] = useState(0);
+  const rejoin = useCallback(() => setAttempt((n) => n + 1), []);
   if (!roomId) return <RoomNotice code="ROOM_NOT_FOUND" />;
-  return <ConnectedRoom roomId={roomId} />;
+  return <ConnectedRoom key={attempt} roomId={roomId} onJoined={rejoin} />;
 }
 
-function ConnectedRoom({ roomId }: { roomId: string }) {
+function ConnectedRoom({ roomId, onJoined }: { roomId: string; onJoined: () => void }) {
   const { client, loading, error } = useRoomConnection(roomId);
   const roomState = useRoomStore((s) => s.roomState);
   // Instantiated once here (not inside RoomLobby/MatchArena) so a call
@@ -44,6 +49,10 @@ function ConnectedRoom({ roomId }: { roomId: string }) {
   const voice = useVoiceChat(client, roomId);
 
   if (loading) return <TableLoading label="Joining the table…" />;
+  // Opened someone else's shared link without a seat yet: invite them in
+  // with just a name instead of an error (no sign-in required).
+  if (error instanceof RpcError && error.code === "SEAT_NOT_CONTROLLED")
+    return <JoinTable roomId={roomId} onJoined={onJoined} />;
   if (error) return <RoomNotice code={error.message} />;
   if (!roomState) return <RoomNotice code="ROOM_NOT_FOUND" />;
 
@@ -58,52 +67,4 @@ function ConnectedRoom({ roomId }: { roomId: string }) {
     default:
       return null;
   }
-}
-
-// Room errors arrive as the server's RPC error codes; say what happened in
-// the app's own voice instead of showing "ROOM_NOT_FOUND" on a blank page.
-const NOTICES: Record<string, { title: [string, string]; body: string }> = {
-  ROOM_NOT_FOUND: {
-    title: ["This table has", "cleared."],
-    body: "The link may be old or mistyped, or the game has already finished.",
-  },
-  ROOM_FULL: {
-    title: ["Every seat is", "taken."],
-    body: "This table is already full. Start a new one, or try a quick match.",
-  },
-  ALREADY_STARTED: {
-    title: ["The game has", "started."],
-    body: "This table is mid-game and isn't taking new players.",
-  },
-  UNAUTHENTICATED: {
-    title: ["Let's get you", "seated."],
-    body: "We couldn't sign you in to this table. Head back and try the link again.",
-  },
-};
-
-function RoomNotice({ code }: { code: string }) {
-  const notice = NOTICES[code] ?? {
-    title: ["Couldn't reach", "the table."] as [string, string],
-    body: "Check your connection and try the link again.",
-  };
-  return (
-    <main className="sim-entrance">
-      {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
-      <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
-      <div className="entrance-shade" />
-      <section className="entrance-content room-notice" role="alert">
-        <span className="eyebrow">LUDDO HOUSE</span>
-        <h1>
-          {notice.title[0]}
-          <br />
-          <em>{notice.title[1]}</em>
-        </h1>
-        <p>{notice.body}</p>
-        <Link className="sim-primary" href="/">
-          <span>Back to the apartment</span>
-          <Icon name="arrow" />
-        </Link>
-      </section>
-    </main>
-  );
 }

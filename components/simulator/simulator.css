@@ -3482,3 +3482,18 @@ body.sim-piece-hover .sim-canvas {
     max-width: 390px;
   }
 }
+
+/* Joining from a shared link (components/lobby/JoinTable.tsx). */
+.join-table .entrance-form {
+  margin-top: 6px;
+}
+/* The lobby's phone layout hides its first paragraph; on the invite that's
+   the one line saying who invited you, so keep it. */
+.room-lobby.join-table > p.join-table-host {
+  display: block;
+}
+.join-table-note {
+  margin-top: 16px !important;
+  font-size: 11px !important;
+  color: var(--sim-muted) !important;
+}

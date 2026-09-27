@@ -11,7 +11,7 @@ import "@/components/simulator/simulator.css";
 
 const TableTogether = dynamic(
   () => import("@/components/simulator/TableTogether"),
-  { ssr: false, loading: () => <TableLoading label="Setting up your offline table…" /> },
+  { ssr: false, loading: () => <TableLoading label="Setting up your offline table…" progress={null} /> },
 );
 
 export default function TableTogetherPage() {

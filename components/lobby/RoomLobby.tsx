@@ -24,7 +24,7 @@ import "@/components/simulator/simulator.css";
 
 const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
   ssr: false,
-  loading: () => <TableLoading label="Setting the table…" />,
+  loading: () => <TableLoading label="Setting the table…" progress={null} />,
 });
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 

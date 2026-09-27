@@ -2,6 +2,7 @@
 
 import {
   Suspense,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -24,6 +25,7 @@ import {
   Lightformer,
   PerformanceMonitor,
   RoundedBox,
+  useProgress,
   useTexture,
 } from "@react-three/drei";
 import * as THREE from "three";
@@ -65,6 +67,7 @@ import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
 import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
 import { Icon } from "./Icon";
 import { PlayerAvatars3D } from "./PlayerAvatar3D";
+import { TableLoading } from "./TableLoading";
 
 export interface SceneProps {
   gameType?: GameType;
@@ -91,6 +94,8 @@ export interface SceneProps {
   hideLabels?: boolean;
   brightness?: number;
   saturation?: number;
+  /** Matches the page's own `dynamic()` loading label so the text doesn't change mid-load. */
+  loadingLabel?: string;
 }
 
 function CameraRig({
@@ -1360,8 +1365,45 @@ function Seats({
   );
 }
 
+/** Mounted inside the scene's main Suspense, so it only commits once everything in it has loaded. */
+function SceneReady({ onReady }: { onReady: () => void }) {
+  useEffect(onReady, [onReady]);
+  return null;
+}
+
+/**
+ * The first-load screen over the canvas: picks up where the page's
+ * dynamic() TableLoading fallback leaves off (same die, same spot) and
+ * adds a real percent from three's loading manager while the board and
+ * room textures stream in. Loader progress can dip when new files join
+ * the queue, so the bar only ever moves forward. Shown once per mount —
+ * later loads (e.g. an avatar face) never bring it back.
+ */
+function SceneLoadingOverlay({ ready, label }: { ready: boolean; label?: string }) {
+  const loaded = useProgress((state) => state.progress);
+  const [shown, setShown] = useState(0);
+  const [gone, setGone] = useState(false);
+  const target = ready ? 100 : Math.min(loaded, 99);
+  if (target > shown) setShown(target);
+  useEffect(() => {
+    if (!ready) return;
+    const timer = setTimeout(() => setGone(true), 450);
+    return () => clearTimeout(timer);
+  }, [ready]);
+  if (gone) return null;
+  return (
+    <TableLoading
+      label={label}
+      progress={shown}
+      className={`scene-loading ${ready ? "is-done" : ""}`}
+    />
+  );
+}
+
 export default function SimulatorScene(props: SceneProps) {
   const [performanceCap, setPerformanceCap] = useState(2);
+  const [ready, setReady] = useState(false);
+  const markReady = useCallback(() => setReady(true), []);
   // Seeded from the same framing CameraRig converges on, using the
   // window's aspect as a stand-in for the canvas's (not yet mounted) —
   // so the first frame already looks right instead of starting from a
@@ -1497,6 +1539,7 @@ export default function SimulatorScene(props: SceneProps) {
               color="#332719"
             />
           )}
+          <SceneReady onReady={markReady} />
         </Suspense>
         <CameraRig {...props} />
         <PerformanceMonitor
@@ -1506,6 +1549,7 @@ export default function SimulatorScene(props: SceneProps) {
           onFallback={() => setPerformanceCap(1)}
         />
       </Canvas>
+      <SceneLoadingOverlay ready={ready} label={props.loadingLabel} />
     </div>
   );
 }

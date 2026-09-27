@@ -51,13 +51,23 @@ const FACES = [
   { value: 4, className: "tld-face-bottom" },
 ] as const;
 
+/**
+ * `progress` adds a loading bar under the die: a number (0-100) fills it
+ * and shows the percent, `null` runs it indeterminate (for the code-chunk
+ * download, which reports no progress), and leaving it out hides it.
+ */
 export function TableLoading({
   label = "Setting the table…",
+  progress,
+  className = "",
 }: {
   label?: string;
+  progress?: number | null;
+  className?: string;
 }) {
+  const percent = progress == null ? null : Math.round(progress);
   return (
-    <div className="table-loading" role="status" aria-live="polite">
+    <div className={`table-loading ${className}`} role="status" aria-live="polite">
       <div className="table-loading-die">
         <span className="tld-cube">
           {FACES.map((face) => (
@@ -70,6 +80,23 @@ export function TableLoading({
         </span>
       </div>
       <p>{label}</p>
+      {progress !== undefined && (
+        <div className="table-loading-progress">
+          <div
+            className={`table-loading-bar ${percent === null ? "is-indeterminate" : ""}`}
+            role="progressbar"
+            aria-label="Loading the table"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percent ?? undefined}
+          >
+            <span style={percent === null ? undefined : { width: `${percent}%` }} />
+          </div>
+          <span className="table-loading-percent">
+            {percent === null ? "Loading" : `${percent}%`}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

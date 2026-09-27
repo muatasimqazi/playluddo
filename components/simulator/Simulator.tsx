@@ -38,7 +38,7 @@ import "./simulator.css";
 
 const Scene = dynamic(() => import("./SimulatorScene"), {
   ssr: false,
-  loading: () => <TableLoading label="Preparing your table" />,
+  loading: () => <TableLoading label="Preparing your table" progress={null} />,
 });
 
 export interface SimulatorProps {
@@ -577,6 +577,7 @@ export default function Simulator({
     >
       <SceneBoundary>
         <Scene
+          loadingLabel="Preparing your table"
           gameType={state.gameType}
           frame={frame}
           players={state.players}

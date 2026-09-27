@@ -10,7 +10,7 @@ import "@/components/simulator/simulator.css";
 
 const PracticeTable = dynamic(
   () => import("@/components/simulator/PracticeTable"),
-  { ssr: false, loading: () => <TableLoading label="Setting up your offline table…" /> },
+  { ssr: false, loading: () => <TableLoading label="Setting up your offline table…" progress={null} /> },
 );
 export default function PracticePage() {
   // Covers landing here directly (bookmark, deep link) without a prior

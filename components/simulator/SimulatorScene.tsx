@@ -1434,6 +1434,58 @@ function Seats({
   );
 }
 
+/**
+ * Overhead on a phone looks straight down, so the room around the table
+ * stops reading as a room and becomes clutter — couch backs, cushion
+ * prints, the table's edge and floor bands, and the seat figures seen as
+ * the tops of their heads. In that one view the room steps aside (kept
+ * mounted, just hidden, so switching views never reloads it) for the same
+ * oak tabletop running off every edge of the screen; the seat labels still
+ * say who's who. Every other view, and desktop, keep the full room.
+ */
+function Surroundings({
+  view,
+  preview,
+  children,
+}: {
+  view: CameraView;
+  preview?: boolean;
+  children: React.ReactNode;
+}) {
+  const compact = useThree(
+    ({ size }) => size.width <= 900 || size.height <= 650,
+  );
+  const focused = view === "overhead" && compact && !preview;
+  return (
+    <>
+      <group visible={!focused}>{children}</group>
+      {focused && <FocusedTabletop />}
+    </>
+  );
+}
+
+// Same scale as the coffee table's own top in Apartment (one texture over
+// its 8.5 x 7.65 surface), mirror-tiled so no seam lines show.
+const FOCUSED_TABLETOP_SIZE = 40;
+function FocusedTabletop() {
+  const source = useTexture("/textures/table-top.webp");
+  const texture = useMemo(() => {
+    const t = source.clone();
+    t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping;
+    t.repeat.set(FOCUSED_TABLETOP_SIZE / 8.5, FOCUSED_TABLETOP_SIZE / 7.65);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }, [source]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  return (
+    <mesh position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[FOCUSED_TABLETOP_SIZE, FOCUSED_TABLETOP_SIZE]} />
+      <meshStandardMaterial map={texture} roughness={0.38} />
+    </mesh>
+  );
+}
+
 /** Mounted inside the scene's main Suspense, so it only commits once everything in it has loaded. */
 function SceneReady({ onReady }: { onReady: () => void }) {
   useEffect(onReady, [onReady]);
@@ -1496,7 +1548,7 @@ export default function SimulatorScene(props: SceneProps) {
   };
   return (
     <div
-      className={`sim-canvas mode-${props.mode}`}
+      className={`sim-canvas mode-${props.mode} view-${props.view}`}
       style={
         {
           "--sim-brightness": props.brightness ?? 1,
@@ -1578,6 +1630,7 @@ export default function SimulatorScene(props: SceneProps) {
               color="#dfeaff"
             />
           </Environment>
+          <Surroundings view={props.view} preview={props.preview}>
           <Apartment quality={props.quality} />
           {/* Its own boundary: each player's avatar face is a separate
               texture that loads independently (see AvatarFace in
@@ -1594,8 +1647,9 @@ export default function SimulatorScene(props: SceneProps) {
               orientation={props.orientation}
             />
           </Suspense>
-          <BoardObject {...props} />
-          <PhysicalDie key={props.frame.revision} {...props} />
+          {/* Inside Surroundings so it hides with the room: its baked
+              9x9 patch shows a visible edge on the focused tabletop,
+              where the key light's own shadow does the job instead. */}
           {props.quality !== "low" && (
             <ContactShadows
               position={[0, 0.002, 0]}
@@ -1608,6 +1662,9 @@ export default function SimulatorScene(props: SceneProps) {
               color="#332719"
             />
           )}
+          </Surroundings>
+          <BoardObject {...props} />
+          <PhysicalDie key={props.frame.revision} {...props} />
           <SceneReady onReady={markReady} />
         </Suspense>
         <CameraRig {...props} />

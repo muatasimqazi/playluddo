@@ -410,6 +410,22 @@
   z-index: 0;
   touch-action: none;
 }
+/* Focused overhead on phones (see Surroundings in SimulatorScene): with
+   the room hidden, a soft vignette keeps the eye on the board and the HUD
+   legible over plain wood. Same "compact" breakpoints the scene uses. */
+@media (max-width: 900px), (max-height: 650px) {
+  .sim-canvas.view-overhead::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse 75% 60% at 50% 50%,
+      transparent 55%,
+      rgba(36, 28, 18, 0.34) 100%
+    );
+  }
+}
 .sim-canvas canvas {
   filter: brightness(var(--sim-brightness, 1)) saturate(var(--sim-saturation, 1));
 }

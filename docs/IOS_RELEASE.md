@@ -46,8 +46,14 @@ copy of the build, it doesn't load the website.
 4. **Supabase auth redirects:** make sure `https://luddohouse.com` is in
    Authentication → URL Configuration → Redirect URLs (email links from the app
    come back to the website).
-5. **Archive and upload:** Xcode → Product → Archive → Distribute App → App Store
-   Connect. Bump the build number (target → General → Build) for every upload.
+5. **Archive and upload:** one command builds, signs, and uploads to App Store
+   Connect (build number is a timestamp, so every upload is newer):
+   ```bash
+   APPLE_TEAM_ID=JAK975JG8T npm run ios:archive -- --upload
+   ```
+   Without `--upload` it just writes `build/ios/export/App.ipa` (drag it into
+   Transporter to upload). For a new App Store version (e.g. 1.1), first run
+   `agvtool new-marketing-version 1.1` in `ios/App`.
 6. **App Store listing:**
    - Screenshots: 6.9" iPhone (1320 × 2868) and 13" iPad (2064 × 2752) at minimum.
      The simulator's File → Save Screen does it; practice games make good shots.

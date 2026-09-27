@@ -392,3 +392,16 @@ button:hover > .ludo-piece-legal {
 .ios-switch input:checked + .ios-slider::before {
   transform: translateX(18px);
 }
+
+/* iOS zooms the page in when a text field under 16px gets focus, and stays
+   zoomed after typing — the name field (13px) left the whole entrance
+   layout blown up and cut off. Touch screens get 16px fields; desktop keeps
+   the smaller sizes the design uses. !important because the component
+   styles set field sizes with class selectors. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

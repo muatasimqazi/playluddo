@@ -1812,15 +1812,18 @@ body.sim-piece-hover .sim-canvas {
    Scoped to the <img> itself, not just [data-photo-style], since the
    style-picker buttons above carry the same attribute as a state hook. */
 .avatar-portrait[data-photo-style="warm"],
-.player-avatar img[data-photo-style="warm"] {
+.player-avatar img[data-photo-style="warm"],
+.entrance-avatar-choice img[data-photo-style="warm"] {
   filter: sepia(0.16) saturate(1.25) hue-rotate(-6deg) brightness(1.04) contrast(1.02);
 }
 .avatar-portrait[data-photo-style="cool"],
-.player-avatar img[data-photo-style="cool"] {
+.player-avatar img[data-photo-style="cool"],
+.entrance-avatar-choice img[data-photo-style="cool"] {
   filter: saturate(1.08) hue-rotate(14deg) brightness(1.01) contrast(1.03);
 }
 .avatar-portrait[data-photo-style="mono"],
-.player-avatar img[data-photo-style="mono"] {
+.player-avatar img[data-photo-style="mono"],
+.entrance-avatar-choice img[data-photo-style="mono"] {
   filter: grayscale(1) contrast(1.12) brightness(1.02);
 }
 .profile-primary {

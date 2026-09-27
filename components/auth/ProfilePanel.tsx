@@ -128,9 +128,12 @@ function profileName(user: User | null) {
 export function ProfilePanel({
   onNameChange,
   onTeamsChange,
+  onAvatarChange,
 }: {
   onNameChange: (name: string) => void;
   onTeamsChange?: (teams: Team[]) => void;
+  /** The signed-in profile's saved avatar id, or null when signed out/anonymous. */
+  onAvatarChange?: (avatarId: string | null) => void;
 }) {
   const client = useMemo(() => createClient(), []);
   const countries = useMemo(() => countryOptions(), []);
@@ -162,6 +165,9 @@ export function ProfilePanel({
       setAvatarId(nextUser?.user_metadata?.avatar_id ?? "");
       setCountry(nextUser?.user_metadata?.country ?? "");
       if (nextUser && !nextUser.is_anonymous && nextName) onNameChange(nextName);
+      onAvatarChange?.(
+        nextUser && !nextUser.is_anonymous ? nextUser.user_metadata?.avatar_id || null : null,
+      );
     };
 
     void client.auth.getUser().then(({ data }) => applyUser(data.user));
@@ -169,7 +175,7 @@ export function ProfilePanel({
       applyUser(session?.user ?? null);
     });
     return () => data.subscription.unsubscribe();
-  }, [client, onNameChange]);
+  }, [client, onNameChange, onAvatarChange]);
 
   useEffect(() => {
     const invited = new URLSearchParams(window.location.search).get("team");
@@ -329,6 +335,7 @@ export function ProfilePanel({
     }
     setUser(data.user);
     onNameChange(name);
+    onAvatarChange?.(avatarId);
     setMessage("Profile saved.");
   }
 
@@ -452,7 +459,7 @@ export function ProfilePanel({
             {authenticated ? (
               <>
                 <div className="profile-identity">
-                  {avatarDefinition(avatarId) ? (
+                  {avatarDefinition(avatarId) || photoAvatar(avatarId) ? (
                     <AnimatedAvatar id={avatarId} />
                   ) : user.user_metadata?.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element -- provider avatars are remote and domains vary.

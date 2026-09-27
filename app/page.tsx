@@ -8,7 +8,7 @@ import { ensureSession } from "@/lib/supabase/auth";
 import { createRoom, joinRoom, setPlayerColor, setRoomGame } from "@/lib/supabase/rpc";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
-import { AVATARS } from "@/lib/avatars/catalog";
+import { AVATARS, avatarDefinition, photoAvatar } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import {
   setPreferredBoardStyle,
@@ -52,7 +52,15 @@ export default function Home() {
   // 1:1 to its index (red=0 ... blue=3), and red (seat 0) is the only
   // choice guaranteed in range for every possible player count.
   const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("red");
-  const [playerAvatar, setPlayerAvatar] = useState<string>(AVATARS[0].id);
+  // null = follow the signed-in profile's saved avatar (PracticeTable
+  // applies it itself when the link carries no ?avatar=); a string is an
+  // explicit pick on this screen and wins over the profile.
+  const [pickedAvatar, setPlayerAvatar] = useState<string | null>(null);
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
+  const playerAvatar = pickedAvatar ?? profileAvatar ?? AVATARS[0].id;
+  // An uploaded photo isn't one of the presets, so it gets its own tile.
+  const profilePhoto =
+    profileAvatar && !avatarDefinition(profileAvatar) ? photoAvatar(profileAvatar) : null;
   const [boardStyle, setBoardStyleChoice] = useState<BoardStyle>("signature");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -161,7 +169,11 @@ export default function Home() {
             <Icon name="trophy" />
             <small>Leaderboard</small>
           </Link>
-          <ProfilePanel onNameChange={setName} onTeamsChange={setTeams} />
+          <ProfilePanel
+            onNameChange={setName}
+            onTeamsChange={setTeams}
+            onAvatarChange={setProfileAvatar}
+          />
         </div>
       </header>
       <section className="entrance-content">
@@ -279,6 +291,18 @@ export default function Home() {
                 <fieldset className="entrance-avatar-choice">
                   <legend>Choose your avatar</legend>
                   <div>
+                    {profileAvatar && profilePhoto && (
+                      <button
+                        type="button"
+                        className={playerAvatar === profileAvatar ? "is-selected" : ""}
+                        aria-label="Your profile photo"
+                        aria-pressed={playerAvatar === profileAvatar}
+                        onClick={() => setPlayerAvatar(null)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- uploaded avatar photos are user Storage URLs. */}
+                        <img src={profilePhoto.portrait} alt="" data-photo-style={profilePhoto.style} />
+                      </button>
+                    )}
                     {AVATARS.map((avatar) => (
                       <button
                         key={avatar.id}
@@ -288,14 +312,20 @@ export default function Home() {
                         }
                         aria-label={avatar.label}
                         aria-pressed={playerAvatar === avatar.id}
-                        onClick={() => setPlayerAvatar(avatar.id)}
+                        onClick={() =>
+                          setPlayerAvatar(avatar.id === profileAvatar ? null : avatar.id)
+                        }
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP thumbnails. */}
                         <img src={avatar.portrait} alt="" />
                       </button>
                     ))}
                   </div>
-                  <small>Sign in from your profile to keep a photo avatar.</small>
+                  <small>
+                    {profileAvatar
+                      ? "Your profile avatar is picked. Choose another for just this game."
+                      : "Sign in from your profile to keep a photo avatar."}
+                  </small>
                 </fieldset>
               )}
               {currentStep === "board" && (
@@ -370,7 +400,7 @@ export default function Home() {
                     </button>
                     <Link
                       className="entrance-secondary"
-                      href={`/practice?players=${playerCount}&color=${playerColor}&avatar=${playerAvatar}&game=${gameType}`}
+                      href={`/practice?players=${playerCount}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}`}
                     >
                       <span>Settle in with an offline practice game</span>
                       <Icon name="dice" />

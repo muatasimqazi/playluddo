@@ -144,15 +144,14 @@ export default function PracticeTable() {
     applyIfNew();
   }, [searchParams]);
   useEffect(() => {
-    // An avatar explicitly chosen on the entrance screen (or by an earlier
-    // reactive re-apply above) wins over the signed-in profile's saved
-    // avatar — otherwise this would silently overwrite it once the async
-    // getUser() call resolves.
-    if (initialPlayerAvatar) return;
+    // Seat the signed-in player as themselves. An avatar explicitly chosen
+    // on the entrance screen still wins over the profile's saved one —
+    // otherwise this would silently overwrite it once the async getUser()
+    // call resolves — but their name and country always apply.
     const client = createClient();
     void client.auth.getUser().then(({ data }) => {
       const metadata = data.user?.user_metadata;
-      if (!data.user || !metadata?.avatar_id) return;
+      if (!data.user || data.user.is_anonymous || !metadata) return;
       setSessions((previous) => {
         const applyProfile = (current: PracticeSession): PracticeSession => ({
           ...current,
@@ -163,8 +162,9 @@ export default function PracticeTable() {
                 ? {
                     ...player,
                     displayName: metadata.display_name || player.displayName,
-                    avatarId: metadata.avatar_id,
-                    country: metadata.country || "",
+                    avatarId:
+                      initialPlayerAvatar || metadata.avatar_id || player.avatarId,
+                    country: metadata.country || player.country || "",
                   }
                 : player,
             ),

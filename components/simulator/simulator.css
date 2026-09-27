@@ -156,6 +156,10 @@
 }
 .entrance-avatar-choice {
   width: min(390px, 100%);
+  /* A fieldset grows to fit its content by default (min-inline-size:
+     min-content), which would stretch past the screen instead of letting
+     the avatar row scroll. */
+  min-width: 0;
   margin: 0 0 18px;
   border: 0;
 }
@@ -166,15 +170,31 @@
   letter-spacing: 1.4px;
   text-transform: uppercase;
 }
+/* One row that scrolls sideways (like the profile panel's avatar rail)
+   rather than wrapping into a grid. The fade on the right edge hints that
+   there's more to swipe to. */
 .entrance-avatar-choice > div {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
   gap: 7px;
+  margin: 0 -4px;
+  /* Right padding lets the last avatar scroll clear of the edge fade. */
+  padding: 2px 28px 8px 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-color: #d7c38b66 transparent;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
 }
 .entrance-avatar-choice button {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 56px;
+  height: 56px;
+  scroll-snap-align: start;
   padding: 5px;
   border: 1px solid var(--sim-line);
   border-radius: 10px;
@@ -185,8 +205,8 @@
   background: rgba(116, 104, 68, 0.42);
 }
 .entrance-avatar-choice img {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
 }

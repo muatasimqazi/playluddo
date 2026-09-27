@@ -1,4 +1,10 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
+import { isNativeApp } from "../native";
+
+// One client per page, like createBrowserClient's own browser singleton —
+// several auth clients sharing a storage key race each other's refreshes.
+let nativeClient: SupabaseClient | undefined;
 
 /**
  * Browser Supabase client. This is the only client the app needs for MVP —
@@ -19,5 +25,15 @@ export function createClient() {
   const key =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  // @supabase/ssr keeps the session in document.cookie, which doesn't
+  // persist inside the app's web view (served from capacitor://localhost):
+  // the anonymous sign-in succeeded but the next RPC went out with no
+  // session, as the anon role — "permission denied for function
+  // create_room". The static app build has no server to read cookies
+  // anyway, so it keeps the session in localStorage instead.
+  if (isNativeApp()) {
+    nativeClient ??= createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key);
+    return nativeClient;
+  }
   return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key);
 }

@@ -31,11 +31,14 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
 import { SNAKES } from "@/lib/board/snakes";
+import { BASE_AREA } from "@/components/arena/boardLayout";
 import {
   BOARD_SIZE,
   BOARD_Y,
+  CELL,
   COLORS,
   HOP_MS,
+  gridPoint,
   ROLL_MS,
   moveWaypoints,
   pawnPoint,
@@ -955,6 +958,20 @@ function BoardObject(props: SceneProps) {
       </group>
       <Seats {...props} />
       <group ref={pieces}>
+        {props.gameType !== "snakes_and_ladders" &&
+          !props.preview &&
+          (Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
+            <TurnBaseGlow
+              key={color}
+              color={color}
+              active={
+                props.players.find(
+                  (player) =>
+                    player.id === (props.frame.actorId ?? props.turnPlayerId),
+                )?.color === color
+              }
+            />
+          ))}
         {props.frame.pawns.map((pawn) => (
           <Piece
             key={`${props.gameType}:${props.frame.revision}:${pawn.id}`}
@@ -976,6 +993,127 @@ function BoardObject(props: SceneProps) {
         </group>
       )}
     </group>
+  );
+}
+
+/**
+ * Marks the base of whoever's turn it is with a lit edge and a soft halo
+ * in that player's color, pulsing in step with the active seat label's
+ * glow (never fully off, never flashing) so it reads as "live" without
+ * pulling focus from the pawns,
+ * and nothing is drawn over the base's own artwork beyond a faint inner
+ * falloff. When the turn passes, the old base fades out as the new one
+ * fades in. Lives in the pieces group so it spins with the board and hides
+ * during the Ludo/Snakes flip like the pawns do.
+ */
+const BASE_GLOW_WIDTH = 0.1; // stays well within the slab's 0.18 wooden rim
+// One full in-and-out cycle of the seat label's `active-seat-pulse`
+// (1.15s ease-in-out, alternate), so base and label pulse together.
+const BASE_BREATH_SECONDS = 2.3;
+const BASE_GLOW_VERTEX = /* glsl */ `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+const BASE_GLOW_FRAGMENT = /* glsl */ `
+  uniform vec3 uColor;
+  uniform float uIntensity;
+  uniform float uBreath;
+  uniform float uHalf;
+  uniform float uExtent;
+  uniform float uGlow;
+  uniform float uLine;
+  varying vec2 vUv;
+  void main() {
+    vec2 p = (vUv - 0.5) * uExtent;
+    vec2 q = abs(p) - vec2(uHalf);
+    // Signed distance to the base's square edge: < 0 inside, > 0 outside.
+    float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+    float aa = fwidth(d);
+    float line = 1.0 - smoothstep(uLine * 0.5 - aa, uLine * 0.5 + aa, abs(d));
+    // Mirrors .sim-seat.is-active's pulse: the halo's reach swells like
+    // its box-shadow blur (9px -> 24px), and the edge lightens like its
+    // border (10% -> 34% white).
+    float reach = uGlow * mix(0.4, 1.0, uBreath);
+    float halo = d > 0.0
+      ? exp(-3.0 * d / reach)
+      : exp(-3.0 * -d / (reach * 0.6)) * 0.3;
+    halo *= 1.0 - smoothstep(uGlow * 0.85, uGlow, d);
+    float lineAlpha = mix(0.55, 0.8, uBreath);
+    float alpha = uIntensity * max(line * lineAlpha, halo * mix(0.12, 0.3, uBreath));
+    vec3 color = mix(uColor, vec3(1.0), line * mix(0.1, 0.34, uBreath));
+    gl_FragColor = vec4(color, alpha);
+  }
+`;
+function TurnBaseGlow({
+  color,
+  active,
+}: {
+  color: PlayerColor;
+  active: boolean;
+}) {
+  const mesh = useRef<THREE.Mesh>(null);
+  const material = useRef<THREE.ShaderMaterial>(null);
+  const intensity = useRef(0);
+  const reducedMotion = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  const area = BASE_AREA[color];
+  const [x, , z] = gridPoint(
+    (area.rowStart + area.rowEnd) / 2,
+    (area.colStart + area.colEnd) / 2,
+  );
+  const half = ((area.colEnd - area.colStart + 1) * CELL) / 2;
+  const extent = (half + BASE_GLOW_WIDTH) * 2;
+  const uniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color(COLORS[color]) },
+      uIntensity: { value: 0 },
+      uBreath: { value: 1 },
+      uHalf: { value: half },
+      uExtent: { value: extent },
+      uGlow: { value: BASE_GLOW_WIDTH },
+      uLine: { value: CELL * 0.05 },
+    }),
+    [color, half, extent],
+  );
+  useFrame(({ clock }, delta) => {
+    if (!mesh.current || !material.current) return;
+    intensity.current +=
+      ((active ? 1 : 0) - intensity.current) * (1 - Math.exp(-delta * 7));
+    const u = material.current.uniforms;
+    u.uIntensity.value = intensity.current;
+    u.uBreath.value = reducedMotion
+      ? 0.6
+      : 0.5 -
+        0.5 *
+          Math.cos((clock.elapsedTime * Math.PI * 2) / BASE_BREATH_SECONDS);
+    mesh.current.visible = intensity.current > 0.002;
+  });
+  return (
+    <mesh
+      ref={mesh}
+      position={[x, BOARD_Y + 0.004, z]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      renderOrder={1}
+      visible={false}
+    >
+      <planeGeometry args={[extent, extent]} />
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        vertexShader={BASE_GLOW_VERTEX}
+        fragmentShader={BASE_GLOW_FRAGMENT}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
   );
 }
 

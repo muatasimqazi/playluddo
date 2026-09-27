@@ -16,6 +16,7 @@ import {
 } from "@/lib/presentation/simulatorPrefs";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
+import { QuickMatch } from "@/components/lobby/QuickMatch";
 import type { Team } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
 import "@/components/simulator/simulator.css";
@@ -44,6 +45,7 @@ const SNAKES_STEPS: StepId[] = ["game", "players", "base", "avatar", "start"];
 export default function Home() {
   const router = useRouter();
   const [friends, setFriends] = useState(false);
+  const [quickMatch, setQuickMatch] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [gameType, setGameType] = useState<GameType>("ludo");
@@ -177,7 +179,14 @@ export default function Home() {
         </div>
       </header>
       <section className="entrance-content">
-        {!friends ? (
+        {quickMatch ? (
+          <QuickMatch
+            gameType={gameType}
+            playerCount={playerCount}
+            displayName={name.trim() || "Player"}
+            onCancel={() => setQuickMatch(false)}
+          />
+        ) : !friends ? (
           <>
             <span className="eyebrow">MAKE YOURSELF AT HOME</span>
             <h1>
@@ -393,23 +402,30 @@ export default function Home() {
                   <div className="entrance-buttons">
                     <button
                       className="sim-primary"
+                      onClick={() => setQuickMatch(true)}
+                    >
+                      <span>Quick match · Play people online</span>
+                      <Icon name="arrow" />
+                    </button>
+                    <button
+                      className="entrance-secondary"
                       onClick={() => setFriends(true)}
                     >
                       <span>Play with friends</span>
-                      <Icon name="arrow" />
+                      <Icon name="users" />
                     </button>
                     <Link
                       className="entrance-secondary"
                       href={`/practice?players=${playerCount}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}`}
                     >
-                      <span>Settle in with an offline practice game</span>
+                      <span>Offline: Settle in with an offline practice game</span>
                       <Icon name="dice" />
                     </Link>
                     <Link
                       className="entrance-secondary"
                       href={`/table-together?players=${playerCount}&game=${gameType}`}
                     >
-                      <span>Table Together · Offline, share this screen</span>
+                      <span>Offline: Table Together · Share single screen</span>
                       <Icon name="users" />
                     </Link>
                   </div>

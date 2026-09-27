@@ -30,6 +30,7 @@ export type RpcErrorCode =
   | "ROOM_NOT_IN_SUMMARY"
   | "INVALID_SIGNAL_TARGET"
   | "NOT_TEAM_MEMBER"
+  | "INVALID_GAME_TYPE"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -54,6 +55,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "ROOM_NOT_IN_SUMMARY",
   "INVALID_SIGNAL_TARGET",
   "NOT_TEAM_MEMBER",
+  "INVALID_GAME_TYPE",
 ]);
 
 export class RpcError extends Error {
@@ -93,6 +95,42 @@ export function joinRoom(client: SupabaseClient, code: string, displayName: stri
     p_code: code,
     p_display_name: displayName,
   });
+}
+
+export type MatchmakingResult =
+  | {
+      status: "waiting";
+      waitedSeconds: number;
+      timeoutSeconds: number;
+      /** Other searchers for this game and table size found so far. */
+      found: number;
+      /** Opponents needed to fill the table (seats - 1). */
+      needed: number;
+    }
+  | { status: "matched"; roomId: string; players: number; computers: number }
+  | { status: "cancelled" };
+
+/**
+ * One quick-match poll: joins (or stays in) the queue for this game and
+ * table size. Returns the room once the table fills with other searchers,
+ * or after the server's 45s timeout with computers in any empty seats.
+ */
+export function matchmake(
+  client: SupabaseClient,
+  gameType: GameType,
+  displayName: string,
+  playerCount: 2 | 3 | 4,
+) {
+  return call<MatchmakingResult>(client, "matchmake", {
+    p_game_type: gameType,
+    p_display_name: displayName,
+    p_player_count: playerCount,
+  });
+}
+
+/** Leave the queue — or get the room if a pairing landed first. */
+export function cancelMatchmaking(client: SupabaseClient) {
+  return call<MatchmakingResult>(client, "cancel_matchmaking");
 }
 
 export function fillBot(client: SupabaseClient, roomId: string, seatIndex: number) {

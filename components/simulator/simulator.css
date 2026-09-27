@@ -2170,6 +2170,83 @@ body.sim-piece-hover .sim-canvas {
   justify-content: space-between;
   padding: 0 19px;
 }
+/* Quick match waiting screen (components/lobby/QuickMatch.tsx). */
+.quick-match {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+.quick-match-timer {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  color: #f4f1e4;
+}
+.quick-match-timer svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.quick-match-timer circle {
+  fill: none;
+  stroke-width: 5;
+}
+.quick-match-track {
+  stroke: #ffffff1c;
+}
+.quick-match-progress {
+  stroke: #dcca9f;
+  stroke-linecap: round;
+  stroke-dasharray: 276.46;
+  transition: stroke-dashoffset 0.25s linear;
+}
+.quick-match-timer strong {
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.quick-match-timer small {
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #c9d3ba;
+}
+.quick-match-seats {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #d8d4c3;
+  font-size: 12px;
+}
+.quick-match-seats i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #dcca9f;
+  transition: background 0.3s ease;
+}
+.quick-match-seats i.is-filled {
+  background: #dcca9f;
+}
+.quick-match-seats span {
+  margin-left: 4px;
+}
+.quick-match-note {
+  max-width: 340px;
+  color: #d8d4c3;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.quick-match-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
 .entrance-secondary {
   display: flex;
   align-items: center;

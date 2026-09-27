@@ -6,6 +6,7 @@ import {
   snakeMove,
 } from "../../lib/board/snakes";
 import {
+  CLOCKWISE_COLORS,
   createPractice,
   practiceReducer,
 } from "../../lib/presentation/practice";
@@ -45,6 +46,22 @@ it.each([2, 3, 4] as const)(
     ).toBe(false);
   },
 );
+
+it.each(
+  ([3, 4] as const).flatMap((count) =>
+    CLOCKWISE_COLORS.map((color) => [count, color] as const),
+  ),
+)("seats a %s-player game clockwise starting from %s", (playerCount, color) => {
+  const { players } = createPractice("ludo", playerCount, color).state;
+  const start = CLOCKWISE_COLORS.indexOf(color);
+  expect(players.map((player) => player.color)).toEqual(
+    Array.from({ length: playerCount }, (_, i) => CLOCKWISE_COLORS[(start + i) % 4]),
+  );
+  // Turns go by seat order, so seat order is the turn order.
+  expect(players.map((player) => player.seatIndex)).toEqual(
+    Array.from({ length: playerCount }, (_, i) => i),
+  );
+});
 
 it("maps all 100 printed squares in alternating rows without overlaps", () => {
   const squares = Array.from({ length: 100 }, (_, i) =>

@@ -10,6 +10,18 @@ import { applySnakeMove, snakeMove } from "../board/snakes";
 import { DIAGONAL_COLOR } from "./board";
 import type { MatchEventRow } from "../realtime/room-channel";
 
+/**
+ * The bases in clockwise order around the board (BASE_AREA: red top-left,
+ * green top-right, yellow bottom-right, blue bottom-left) — the same order
+ * as the SQL engine's seat indexes (private.ludo_color_for_seat).
+ */
+export const CLOCKWISE_COLORS: readonly PlayerColor[] = [
+  "red",
+  "green",
+  "yellow",
+  "blue",
+];
+
 export interface PracticeSession {
   state: GameRoomState;
   events: MatchEventRow[];
@@ -26,17 +38,19 @@ export function createPractice(
   profile: PracticeProfile = {},
 ): PracticeSession {
   // A 2-player game seats the two players diagonally across the board
-  // (same pairing the SQL room engine uses); 3-4 players fill the
-  // remaining bases in a fixed order same as before.
+  // (same pairing the SQL room engine uses); 3-4 players fill the bases
+  // clockwise from the player's own. Turns follow seat order, so this is
+  // what makes play go round the table clockwise — the same direction the
+  // pawns travel, and the same order online rooms get from their fixed
+  // red/green/yellow/blue seats.
+  const start = CLOCKWISE_COLORS.indexOf(playerColor);
   const colors =
     playerCount === 2
       ? [playerColor, DIAGONAL_COLOR[playerColor]]
-      : [
-          playerColor,
-          ...(["blue", "red", "green", "yellow"] as PlayerColor[]).filter(
-            (color) => color !== playerColor,
-          ),
-        ].slice(0, playerCount);
+      : Array.from(
+          { length: playerCount },
+          (_, i) => CLOCKWISE_COLORS[(start + i) % CLOCKWISE_COLORS.length],
+        );
   return {
     state: {
       roomId: "practice",

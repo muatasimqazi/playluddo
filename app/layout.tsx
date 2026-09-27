@@ -60,13 +60,17 @@ const jsonLd = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        {children}
+      {/* JSON-LD lives in <head>, not <body>: PostHog (instrumentation-client.ts)
+          injects its loader <script> next to the body's existing scripts before
+          React hydrates, and a React-rendered script there made every page
+          report a hydration mismatch. */}
+      <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-      </body>
+      </head>
+      <body className="min-h-full flex flex-col">{children}</body>
       <Script
         src="https://www.googletagmanager.com/gtag/js?id=G-75GZQ69MCG"
         strategy="afterInteractive"

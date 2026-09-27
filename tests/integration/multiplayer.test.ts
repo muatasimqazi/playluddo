@@ -12,7 +12,8 @@ it.each(["ludo", "snakes_and_ladders"] as const)(
   async (gameType) => {
     const env = parseEnv(readFileSync(".env.local", "utf8"));
     const url = env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const anonKey =
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !anonKey)
       throw new Error(
         "Configure local Supabase in .env.local before running multiplayer tests.",

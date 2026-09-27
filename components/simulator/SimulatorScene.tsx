@@ -1745,7 +1745,11 @@ export default function SimulatorScene(props: SceneProps) {
           <Suspense fallback={null}>
             <PlayerAvatars3D
               players={props.players}
-              turnPlayerId={props.turnPlayerId}
+              // Whoever the table is currently showing act — the mover
+              // until their animation finishes — not the server's turn,
+              // which has already moved on. Same rule as the seat labels,
+              // die and base glow, so the ring doesn't jump ahead.
+              turnPlayerId={props.frame.actorId ?? props.turnPlayerId}
               speakingPlayerIds={props.speakingPlayerIds}
               preview={props.preview}
               orientation={props.orientation}

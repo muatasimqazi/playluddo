@@ -12,19 +12,27 @@ import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.sv
 
 let started = false;
 
+const BOARD_IMAGE_SOURCES = [
+  boardArtwork.src,
+  classicBoardArtwork.src as string,
+  geometricBoardArtwork.src as string,
+  aladdinBoardArtwork.src as string,
+  snakeArtwork.src as string,
+];
+
 export function preloadBoardScene() {
   if (started) return;
   started = true;
   void Promise.all([
     import("@react-three/drei"),
+    import("@react-three/fiber"),
+    import("three"),
     import("@/components/simulator/SimulatorScene"),
-  ]).then(([{ useTexture }]) => {
+  ]).then(([{ useTexture }, { useLoader }, { ImageLoader }]) => {
+    // Board artwork is loaded as plain images (see BoardObject), so it has
+    // to be warmed through the same loader to share its cache.
+    for (const src of BOARD_IMAGE_SOURCES) useLoader.preload(ImageLoader, src);
     for (const src of [
-      boardArtwork.src,
-      classicBoardArtwork.src as string,
-      geometricBoardArtwork.src as string,
-      aladdinBoardArtwork.src as string,
-      snakeArtwork.src as string,
       lampArtwork.src as string,
       "/textures/board-wood.webp",
       // The apartment room behind the table (see Apartment.tsx) — by far

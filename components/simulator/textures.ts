@@ -75,7 +75,7 @@ export function makeTongueTexture() {
 }
 
 export function makeBoardTexture(
-  source: THREE.Texture,
+  image: HTMLImageElement,
   crop: "ludo" | "full" = "ludo",
   inkStrength = 1,
   vectorSize = 2048,
@@ -84,7 +84,6 @@ export function makeBoardTexture(
   // browser apply that ICC profile before Three uploads the color pixels.
   // Merely labeling the original Adobe RGB bytes as sRGB shifts the ink hues.
   const canvas = document.createElement("canvas");
-  const image = source.image as HTMLImageElement;
   // SVG images without explicit pixel dimensions report a small browser
   // default intrinsic size. Rasterize board vectors at texture resolution
   // before uploading them to WebGL so overhead and zoomed views stay crisp.

@@ -12,6 +12,7 @@ import {
 import {
   Canvas,
   useFrame,
+  useLoader,
   useThree,
   type ThreeEvent,
 } from "@react-three/fiber";
@@ -854,10 +855,20 @@ function BoardObject(props: SceneProps) {
   const [initialFlip] = useState(targetFlip);
   const flip = useRef({ from: targetFlip, to: targetFlip, elapsed: 1.5 });
   const [initialRotation] = useState(props.orientation);
-  const artwork = useTexture(boardArtwork.src);
-  const classicArtwork = useTexture(classicBoardArtwork.src as string);
-  const geometricArtwork = useTexture(geometricBoardArtwork.src as string);
-  const aladdinArtwork = useTexture(aladdinBoardArtwork.src as string);
+  // Board artwork is only ever a source image for makeBoardTexture's
+  // canvas, so it's loaded as a plain image — not useTexture, which uploads
+  // every texture to the GPU on load. That upload was wasted memory for
+  // all five boards, and for SVGs with no pixel size (width="100%") it
+  // failed outright with WebGL "bad image data" / "Texture is immutable".
+  // Keep in sync with BOARD_IMAGE_SOURCES in lib/presentation/preloadScene.ts.
+  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, snakeSource] =
+    useLoader(THREE.ImageLoader, [
+      boardArtwork.src,
+      classicBoardArtwork.src as string,
+      geometricBoardArtwork.src as string,
+      aladdinBoardArtwork.src as string,
+      snakeArtwork.src as string,
+    ]);
   // Vector boards are rasterized once into a texture. On a desktop screen
   // at 2x the board spans ~2000 device px at its near edge, so 2048 gets
   // magnified and the thin numbers/labels go soft; 4096 keeps them crisp.
@@ -885,7 +896,6 @@ function BoardObject(props: SceneProps) {
     },
     [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view, vectorSize],
   );
-  const snakeSource = useTexture(snakeArtwork.src as string);
   const snakeTexture = useMemo(
     () => makeBoardTexture(snakeSource, "full", 1, vectorSize),
     [snakeSource, vectorSize],
@@ -1664,7 +1674,9 @@ export default function SimulatorScene(props: SceneProps) {
       onContextMenu={(e) => e.preventDefault()}
     >
       <Canvas
-        shadows={props.quality !== "low"}
+        // "percentage" = PCFShadowMap. `true` asks for PCFSoftShadowMap, which
+        // this three version removed (it warned and fell back to PCF anyway).
+        shadows={props.quality !== "low" ? "percentage" : false}
         dpr={[1, Math.min(dpr[props.quality][1], performanceCap ?? Infinity)]}
         camera={initialCamera}
         gl={{

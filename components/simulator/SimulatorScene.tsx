@@ -1438,11 +1438,19 @@ function Seats({
  * Overhead on a phone looks straight down, so the room around the table
  * stops reading as a room and becomes clutter — couch backs, cushion
  * prints, the table's edge and floor bands, and the seat figures seen as
- * the tops of their heads. In that one view the room steps aside (kept
- * mounted, just hidden, so switching views never reloads it) for the same
- * oak tabletop running off every edge of the screen; the seat labels still
- * say who's who. Every other view, and desktop, keep the full room.
+ * the tops of their heads. While the camera sits in that pose the room
+ * steps aside for the same oak tabletop running off every screen edge;
+ * the seat labels still say who's who.
+ *
+ * The apartment is still there: as soon as the player tilts the view
+ * (Look mode) or pinches out past the default distance, the tabletop
+ * fades away in step with the camera and the room comes back, then
+ * settles again when they return to overhead. Zooming in or panning to
+ * read cells keeps the clean table. Every other view, and desktop, always
+ * show the full room.
  */
+const REVEAL_TILT: readonly [number, number] = [0.1, 0.32]; // radians off straight down
+const REVEAL_ZOOM_OUT: readonly [number, number] = [1.1, 1.3]; // x the overhead distance
 function Surroundings({
   view,
   preview,
@@ -1456,18 +1464,72 @@ function Surroundings({
     ({ size }) => size.width <= 900 || size.height <= 650,
   );
   const focused = view === "overhead" && compact && !preview;
+  const room = useRef<THREE.Group>(null);
+  const tabletop = useRef<THREE.Mesh>(null);
+  const reveal = useRef(focused ? 0 : 1);
+  const target = useMemo(() => new THREE.Vector3(), []);
+  const offset = useMemo(() => new THREE.Vector3(), []);
+  const aspect = useThree(({ size }) => size.width / size.height);
+  const homeDistance = useMemo(
+    () => new THREE.Vector3(...cameraFraming("overhead", aspect).eye).length(),
+    [aspect],
+  );
+  useFrame(({ camera, controls, gl }, delta) => {
+    let goal = 1;
+    if (focused) {
+      const cameraControls = controls as CameraControlsImpl | null;
+      if (cameraControls?.getTarget) cameraControls.getTarget(target);
+      else target.set(0, 0, 0);
+      offset.copy(camera.position).sub(target);
+      const distance = offset.length();
+      const tilt = Math.acos(THREE.MathUtils.clamp(offset.y / distance, -1, 1));
+      goal = Math.max(
+        THREE.MathUtils.smoothstep(tilt, REVEAL_TILT[0], REVEAL_TILT[1]),
+        THREE.MathUtils.smoothstep(
+          distance / homeDistance,
+          REVEAL_ZOOM_OUT[0],
+          REVEAL_ZOOM_OUT[1],
+        ),
+      );
+    }
+    reveal.current = THREE.MathUtils.damp(reveal.current, goal, 8, delta);
+    if (Math.abs(reveal.current - goal) < 0.002) reveal.current = goal;
+    const r = reveal.current;
+    if (room.current) room.current.visible = r > 0.001;
+    if (tabletop.current) {
+      tabletop.current.visible = r < 0.999;
+      const material = tabletop.current.material as THREE.MeshStandardMaterial;
+      material.opacity = 1 - r;
+      material.transparent = r > 0.001;
+      material.depthWrite = r <= 0.001;
+    }
+    // Drives the overhead vignette in simulator.css, so it fades with the table.
+    gl.domElement
+      .closest<HTMLElement>(".sim-canvas")
+      ?.style.setProperty("--sim-focus", String(1 - r));
+  });
   return (
     <>
-      <group visible={!focused}>{children}</group>
-      {focused && <FocusedTabletop />}
+      <group ref={room}>{children}</group>
+      {focused && <FocusedTabletop meshRef={tabletop} />}
     </>
   );
 }
 
 // Same scale as the coffee table's own top in Apartment (one texture over
-// its 8.5 x 7.65 surface), mirror-tiled so no seam lines show.
+// its 8.5 x 7.65 surface), mirror-tiled so no seam lines show. A hair above
+// that real top so the two never z-fight while crossfading.
 const FOCUSED_TABLETOP_SIZE = 40;
-function FocusedTabletop() {
+// The real table sits in the room's shade and reads as a muted greige;
+// alone and fully lit, the same texture comes out far lighter. Matte,
+// with no environment reflections, and this tint lands it on the room
+// table's rendered color (measured ~#8f8980 on both).
+const FOCUSED_TABLETOP_TINT = "#8c98a8";
+function FocusedTabletop({
+  meshRef,
+}: {
+  meshRef: React.RefObject<THREE.Mesh | null>;
+}) {
   const source = useTexture("/textures/table-top.webp");
   const texture = useMemo(() => {
     const t = source.clone();
@@ -1479,9 +1541,19 @@ function FocusedTabletop() {
   }, [source]);
   useEffect(() => () => texture.dispose(), [texture]);
   return (
-    <mesh position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+    <mesh
+      ref={meshRef}
+      position={[0, -0.004, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      receiveShadow
+    >
       <planeGeometry args={[FOCUSED_TABLETOP_SIZE, FOCUSED_TABLETOP_SIZE]} />
-      <meshStandardMaterial map={texture} roughness={0.38} />
+      <meshStandardMaterial
+        map={texture}
+        roughness={1}
+        envMapIntensity={0}
+        color={FOCUSED_TABLETOP_TINT}
+      />
     </mesh>
   );
 }

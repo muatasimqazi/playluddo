@@ -424,6 +424,8 @@
       transparent 55%,
       rgba(36, 28, 18, 0.34) 100%
     );
+    /* Set per frame by Surroundings: fades out as the room comes back. */
+    opacity: var(--sim-focus, 1);
   }
 }
 .sim-canvas canvas {

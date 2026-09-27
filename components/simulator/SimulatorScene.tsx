@@ -30,6 +30,7 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { hapticTap, useCoarsePointer } from "@/lib/hooks/useCoarsePointer";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
 import { SNAKES } from "@/lib/board/snakes";
@@ -115,6 +116,7 @@ function CameraRig({
   const { size, camera } = useThree();
   const aspect = size.width / size.height;
   const mobile = aspect < 0.9;
+  const coarse = useCoarsePointer();
   const cinematic =
     actionCamera === "cinematic" && frame.busy && mode === "play";
   const subtle = actionCamera === "subtle" && frame.busy && mode === "play";
@@ -183,8 +185,18 @@ function CameraRig({
         wheel: ACTION.DOLLY,
       }}
       touches={{
-        one: mode === "rotate" ? ACTION.NONE : ACTION.TOUCH_ROTATE,
-        two: mode === "look" ? ACTION.TOUCH_DOLLY_TRUCK : ACTION.NONE,
+        // On a phone, one finger is for tapping pawns and the die — letting
+        // it also orbit means every slightly-sloppy tap nudges the view.
+        // Look mode (the eye button) keeps one-finger orbiting; in play,
+        // pinch still zooms in on small cells.
+        one:
+          mode === "rotate" || (coarse && mode === "play")
+            ? ACTION.NONE
+            : ACTION.TOUCH_ROTATE,
+        two:
+          mode === "look" || (coarse && mode === "play")
+            ? ACTION.TOUCH_DOLLY_TRUCK
+            : ACTION.NONE,
         three: ACTION.NONE,
       }}
     />
@@ -218,6 +230,7 @@ function Piece({
   const trailSamples = useRef<Point[]>([]);
   const trailSampleElapsed = useRef(0);
   const trailOpacity = useRef(0);
+  const coarse = useCoarsePointer();
   const moveSound = useRef<HTMLAudioElement>(null);
   const homeSound = useRef<HTMLAudioElement>(null);
   const soundedStep = useRef(0);
@@ -467,6 +480,7 @@ function Piece({
           if (clickable) {
             document.body.classList.remove("sim-piece-hover");
             setHovered(false);
+            if (coarse) hapticTap();
             onMove(pawn.id);
           }
         }}
@@ -503,7 +517,9 @@ function Piece({
         </mesh>
         {clickable && (
           <mesh position={[0, 0.12, 0]} visible={false}>
-            <cylinderGeometry args={[0.24, 0.24, 0.26, 12]} />
+            <cylinderGeometry
+              args={[coarse ? 0.3 : 0.24, coarse ? 0.3 : 0.24, 0.26, 12]}
+            />
             <meshBasicMaterial />
           </mesh>
         )}
@@ -562,13 +578,12 @@ const DIE_ROTATION: Record<number, Point> = {
   5: [Math.PI / 2, 0, 0],
   6: [Math.PI, 0, 0],
 };
-const MOBILE_TWO_PLAYER_DIE_POINT: Point = [0, 0.26, 3.46];
-const MOBILE_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
-  red: [-1.15, 0.26, -3.52],
-  green: [1.15, 0.26, -3.52],
-  yellow: [1.15, 0.26, 3.52],
-  blue: [-1.15, 0.26, 3.52],
-};
+const TOUCH_DIE_SCALE = 1.45;
+// On phones the die stays put at the near edge, bottom-center — in thumb
+// reach and never hidden behind a far-side seat's 3D figure or tucked
+// under a corner label. The glowing base and seat label already say
+// whose turn it is, so the die doesn't need to travel to show it.
+const MOBILE_DIE_POINT: Point = [0, 0.26, 3.46];
 // Same Z as that color's label (desktopSidePositions below) so the die
 // sits right next to their name, just closer to the board — same pairing
 // mobile already uses (die x-magnitude < label x-magnitude, shared Z).
@@ -618,27 +633,33 @@ function PhysicalDie({
 >) {
   const mesh = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const cue = useRef<THREE.Mesh>(null);
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
   );
+  const coarse = useCoarsePointer();
+  // ~40pt across on a phone instead of ~25pt, lifted so it still rests on
+  // the table rather than sinking into it.
+  const dieScale = coarse ? TOUCH_DIE_SCALE : 1;
+  const lift = (dieScale - 1) * 0.23;
   const activePlayer = players.find(
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
   const snakes = gameType === "snakes_and_ladders";
-  const followsPlayer = !snakes && (players.length === 4 || compact);
-  const restingPoint = useMemo<Point>(() => {
+  const followsPlayer = !snakes && !compact && players.length === 4;
+  const baseRestingPoint = useMemo<Point>(() => {
     if (snakes) return SNAKES_DIE_POINT;
-    if (!followsPlayer) return DESKTOP_DIE_POINT;
-    if (compact && players.length === 2) return MOBILE_TWO_PLAYER_DIE_POINT;
-    if (!activePlayer)
-      return compact ? MOBILE_TWO_PLAYER_DIE_POINT : DESKTOP_DIE_POINT;
+    if (compact) return MOBILE_DIE_POINT;
+    if (!followsPlayer || !activePlayer) return DESKTOP_DIE_POINT;
     return rotateTablePoint(
-      (compact ? MOBILE_PLAYER_DIE_POINTS : DESKTOP_FOUR_PLAYER_DIE_POINTS)[
-        activePlayer.color
-      ],
+      DESKTOP_FOUR_PLAYER_DIE_POINTS[activePlayer.color],
       orientation,
     );
-  }, [activePlayer, compact, followsPlayer, orientation, players.length, snakes]);
+  }, [activePlayer, compact, followsPlayer, orientation, snakes]);
+  const restingPoint = useMemo<Point>(
+    () => [baseRestingPoint[0], baseRestingPoint[1] + lift, baseRestingPoint[2]],
+    [baseRestingPoint, lift],
+  );
   const restingVector = useMemo(
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
@@ -666,7 +687,19 @@ function PhysicalDie({
       elapsed.current = 0;
     }
     elapsed.current += Math.min(delta, 0.1);
-    const hoverScale = hovered && canRoll && mode === "play" ? 1.08 : 1;
+    const hoverScale =
+      (hovered && canRoll && mode === "play" ? 1.08 : 1) * dieScale;
+    if (cue.current) {
+      const showCue = coarse && canRoll && mode === "play";
+      cue.current.visible = showCue;
+      if (showCue) {
+        const beat = (performance.now() / 1150) % 1;
+        cue.current.position.set(restingPoint[0], 0.2, restingPoint[2]);
+        cue.current.scale.setScalar(dieScale * (0.9 + beat * 0.55));
+        (cue.current.material as THREE.MeshBasicMaterial).opacity =
+          0.75 * (1 - beat);
+      }
+    }
     mesh.current.scale.setScalar(
       THREE.MathUtils.damp(mesh.current.scale.x, hoverScale, 12, delta),
     );
@@ -708,7 +741,17 @@ function PhysicalDie({
   });
   return (
     <group>
-      {!followsPlayer && (
+      <mesh ref={cue} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
+        <ringGeometry args={[0.36, 0.4, 48]} />
+        <meshBasicMaterial
+          color="#ffdf94"
+          transparent
+          opacity={0}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+      {!followsPlayer && !compact && (
         <RoundedBox
           args={[0.92, 0.055, 1.55]}
           radius={0.02}
@@ -726,7 +769,9 @@ function PhysicalDie({
         onClick={(e) => {
           if (mode !== "play") return;
           e.stopPropagation();
-          if (canRoll) onRoll();
+          if (!canRoll) return;
+          if (coarse) hapticTap(18);
+          onRoll();
         }}
         onPointerOver={(e) => {
           if (!canRoll || mode !== "play") return;
@@ -790,6 +835,9 @@ function PhysicalDie({
   );
 }
 
+// About 1.4 cells — roughly a fingertip's width on a phone-sized board.
+const TOUCH_PAWN_REACH = 0.55;
+
 function BoardObject(props: SceneProps) {
   const group = useRef<THREE.Group>(null);
   const board = useRef<THREE.Group>(null);
@@ -825,6 +873,26 @@ function BoardObject(props: SceneProps) {
   );
   const angle = useRef(props.orientation);
   const dragging = useRef(false);
+  const coarse = useCoarsePointer();
+  // A fingertip covers more than a cell, so on touch a tap that misses
+  // every pawn still counts if a legal one is close by — the nearest
+  // wins. Direct hits never get here: Piece stops propagation.
+  function tapNearestLegalPawn(e: ThreeEvent<MouseEvent>) {
+    if (!coarse || props.mode !== "play" || !group.current) return;
+    if (props.legalPawnIds.length === 0) return;
+    const local = group.current.worldToLocal(e.point.clone());
+    let best: { id: string; distance: number } | null = null;
+    for (const pawn of props.frame.pawns) {
+      if (!props.legalPawnIds.includes(pawn.id)) continue;
+      const [x, , z] = pawnPoint(pawn, props.gameType);
+      const distance = Math.hypot(x - local.x, z - local.z);
+      if (!best || distance < best.distance) best = { id: pawn.id, distance };
+    }
+    if (!best || best.distance > TOUCH_PAWN_REACH) return;
+    e.stopPropagation();
+    hapticTap();
+    props.onMove(best.id);
+  }
   useEffect(() => () => texture.dispose(), [texture]);
   useEffect(() => () => snakeTexture.dispose(), [snakeTexture]);
   useEffect(() => {
@@ -895,6 +963,7 @@ function BoardObject(props: SceneProps) {
       }}
       onPointerUp={up}
       onPointerCancel={up}
+      onClick={tapNearestLegalPawn}
     >
       <group ref={board} position={[0, 0.1, 0]} rotation={[initialFlip, 0, 0]}>
         <RoundedBox
@@ -1261,7 +1330,7 @@ function Seats({
         const duelIndex = duelPlayers.findIndex(({ id }) => id === player.id);
         const position = mobileDuel
           ? rotateTablePoint(
-              [duelIndex === 0 ? -1.18 : 1.18, BOARD_Y, 3.46],
+              [duelIndex === 0 ? -1.32 : 1.32, BOARD_Y, 3.46],
               -orientation,
             )
           : mobileFourPlayer

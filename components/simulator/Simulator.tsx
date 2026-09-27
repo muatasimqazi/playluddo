@@ -18,6 +18,7 @@ import type { TableMessage } from "@/lib/realtime/table-messages";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { useCoarsePointer } from "@/lib/hooks/useCoarsePointer";
 import {
   COLORS,
   HOME_ROTATION,
@@ -329,6 +330,34 @@ export default function Simulator({
     interactable && isMyTurn && state.turnPhase === "awaiting_move"
       ? state.legalMoves.map((m) => m.pawnId)
       : [];
+  // Mobile Ludo convention: when the roll leaves no real choice — one
+  // legal move, or several identical ones (a six with every pawn still in
+  // base) — play it for the player after a beat instead of making them
+  // hunt for a small pawn. Touch devices only; desktop keeps the click.
+  const coarsePointer = useCoarsePointer();
+  const forcedMove =
+    coarsePointer && legalPawnIds.length > 0
+      ? state.legalMoves.every(
+          (m) =>
+            m.fromTileId === state.legalMoves[0].fromTileId &&
+            m.toTileId === state.legalMoves[0].toTileId &&
+            m.finishesPawn === state.legalMoves[0].finishesPawn &&
+            m.capturesPawnIds.join() === state.legalMoves[0].capturesPawnIds.join(),
+        )
+        ? state.legalMoves[0].pawnId
+        : null
+      : null;
+  // Parents pass onMove inline, so read it through a ref — depending on
+  // it directly would restart the delay on every render.
+  const onMoveRef = useRef(onMove);
+  useEffect(() => {
+    onMoveRef.current = onMove;
+  });
+  useEffect(() => {
+    if (!forcedMove) return;
+    const timer = setTimeout(() => void onMoveRef.current(forcedMove), 550);
+    return () => clearTimeout(timer);
+  }, [forcedMove]);
   useEffect(() => {
     timeline.receive(events, state);
   }, [timeline, events, state]);

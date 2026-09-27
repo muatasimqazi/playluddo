@@ -582,7 +582,9 @@ const TOUCH_DIE_SCALE = 1.45;
 // reach and never hidden behind a far-side seat's 3D figure or tucked
 // under a corner label. The glowing base and seat label already say
 // whose turn it is, so the die doesn't need to travel to show it.
-const MOBILE_DIE_POINT: Point = [0, 0.26, 3.46];
+// z clears the board's frame (edge at 3.18) by the touch-sized die's
+// half-width, so it sits on the table rather than overlapping the rim.
+const MOBILE_DIE_POINT: Point = [0, 0.26, 3.6];
 // Same Z as that color's label (desktopSidePositions below) so the die
 // sits right next to their name, just closer to the board — same pairing
 // mobile already uses (die x-magnitude < label x-magnitude, shared Z).
@@ -647,8 +649,10 @@ function PhysicalDie({
   const snakes = gameType === "snakes_and_ladders";
   const followsPlayer = !snakes && !compact && players.length === 4;
   const baseRestingPoint = useMemo<Point>(() => {
-    if (snakes) return SNAKES_DIE_POINT;
+    // Phones first, for both games: Snakes & Ladders' desktop spot sits
+    // right where a phone draws the second seat label, hiding the die.
     if (compact) return MOBILE_DIE_POINT;
+    if (snakes) return SNAKES_DIE_POINT;
     if (!followsPlayer || !activePlayer) return DESKTOP_DIE_POINT;
     return rotateTablePoint(
       DESKTOP_FOUR_PLAYER_DIE_POINTS[activePlayer.color],
@@ -1350,7 +1354,7 @@ function Seats({
         const duelIndex = duelPlayers.findIndex(({ id }) => id === player.id);
         const position = mobileDuel
           ? rotateTablePoint(
-              [duelIndex === 0 ? -1.32 : 1.32, BOARD_Y, 3.46],
+              [duelIndex === 0 ? -1.45 : 1.45, BOARD_Y, 3.46],
               -orientation,
             )
           : mobileFourPlayer

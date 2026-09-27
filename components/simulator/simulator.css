@@ -3444,3 +3444,41 @@ body.sim-piece-hover .sim-canvas {
     font-size: 42px;
   }
 }
+
+/* Room lobby ("Play with friends"): the whole page scrolls instead of the
+   form scrolling inside a fixed-height box, with the backdrop photo and
+   shade pinned behind it. Overrides the fixed-viewport .sim-entrance /
+   .entrance-content layout the entrance uses. */
+.sim-entrance.room-lobby-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+  padding: 108px 0 48px 9%;
+}
+.room-lobby-page .entrance-bg-image,
+.room-lobby-page .entrance-shade {
+  position: fixed;
+}
+.room-lobby-page .entrance-content.room-lobby {
+  position: relative;
+  inset: auto;
+  top: auto;
+  left: auto;
+  transform: none;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+}
+@media (max-width: 700px) {
+  .sim-entrance.room-lobby-page {
+    justify-content: flex-start;
+    padding: 84px 24px 40px;
+  }
+  .room-lobby-page .entrance-content.room-lobby {
+    width: auto;
+    max-width: 390px;
+  }
+}

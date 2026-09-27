@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -13,19 +12,13 @@ import {
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
-import { createPractice } from "@/lib/presentation/practice";
 import { Icon } from "@/components/simulator/Icon";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
-import { TableLoading } from "@/components/simulator/TableLoading";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { BRAND } from "@/lib/brand";
 import "@/components/simulator/simulator.css";
 
-const Scene = dynamic(() => import("@/components/simulator/SimulatorScene"), {
-  ssr: false,
-  loading: () => <TableLoading label="Setting the table…" progress={null} />,
-});
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 
 export function RoomLobby({
@@ -44,10 +37,6 @@ export function RoomLobby({
   const [inviteFeedback, setInviteFeedback] = useState<
     "code" | "link" | "shared" | null
   >(null);
-  const pawns = useMemo(
-    () => createPractice(state?.gameType).state.pawns,
-    [state?.gameType],
-  );
   const occupiedCount = state?.players.length ?? 1;
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
@@ -117,37 +106,13 @@ export function RoomLobby({
     }
   }
   return (
-    <main className="sim-entrance">
-      <Scene
-        gameType={state.gameType}
-        frame={{
-          pawns,
-          dice: 1,
-          rollId: 0,
-          actorId: null,
-          busy: false,
-          replaying: false,
-          phase: "idle",
-          move: null,
-          canReplay: false,
-          revision: 0,
-        }}
-        players={state.players}
-        myPlayerId={myPlayerId}
-        turnPlayerId={null}
-        legalPawnIds={[]}
-        canRoll={false}
-        view="table"
-        mode="play"
-        orientation={0}
-        quality="medium"
-        actionCamera="off"
-        resetKey={0}
-        onRotate={() => {}}
-        onRoll={() => {}}
-        onMove={() => {}}
-        preview
-      />
+    <main className="sim-entrance room-lobby-page">
+      {/* The entrance's static photo, not the live 3D table: nothing here is
+          interactive in 3D, so rendering WebGL behind a form only cost GPU
+          and battery. The room page still warms the 3D assets in idle time
+          (usePreloadBoardScene) so the game starts fast once it begins. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
+      <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
       <div className="entrance-shade" />
       <header className="entrance-header">
         <Link href="/" className="sim-brand">

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { BRAND } from "@/lib/brand";
+import { NativeShell } from "@/components/NativeShell";
 import "./globals.css";
 
 // "Modern Boardroom" design system (designs/modern_boardroom/DESIGN.md):
@@ -44,6 +45,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const isAppBuild = !!process.env.CAPACITOR_BUILD;
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -70,17 +73,27 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-75GZQ69MCG"
-        strategy="afterInteractive"
-      />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`window.dataLayer = window.dataLayer || [];
+      <body className="min-h-full flex flex-col">
+        {children}
+        <NativeShell />
+      </body>
+      {/* Web only: the app build (CAPACITOR_BUILD) leaves out Google
+          Analytics' marketing tracking, keeping the App Store privacy label
+          to the product analytics declared in ios/App/App/PrivacyInfo.xcprivacy. */}
+      {!isAppBuild && (
+        <>
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-75GZQ69MCG"
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-75GZQ69MCG');`}
-      </Script>
+          </Script>
+        </>
+      )}
     </html>
   );
 }

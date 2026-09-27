@@ -17,6 +17,7 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { BRAND } from "@/lib/brand";
+import { webUrl } from "@/lib/native";
 import "@/components/simulator/simulator.css";
 
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
@@ -88,7 +89,7 @@ export function RoomLobby({
     }
   }
   async function shareInvite() {
-    const url = `${window.location.origin}/room?id=${roomId}`;
+    const url = webUrl(`/room?id=${roomId}`);
     if (!navigator.share) {
       await copyInvite(url, "link");
       return;
@@ -150,7 +151,7 @@ export function RoomLobby({
               {inviteFeedback === "shared" ? "Shared" : "Share"}
             </button>
             <button
-              onClick={() => void copyInvite(`${window.location.origin}/room?id=${roomId}`, "link")}
+              onClick={() => void copyInvite(webUrl(`/room?id=${roomId}`), "link")}
               title="Copy room link"
             >
               <Icon name={inviteFeedback === "link" ? "check" : "link"} />

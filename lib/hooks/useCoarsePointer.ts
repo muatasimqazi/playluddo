@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from "react";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { isNativeApp } from "../native";
 
 const QUERY = "(pointer: coarse)";
 
@@ -22,8 +24,17 @@ export function useCoarsePointer() {
   );
 }
 
-/** Short tap feedback where the platform supports it (Android; iOS Safari ignores it). */
+/**
+ * Short tap feedback. In the iOS app it goes through the native Taptic
+ * Engine (Capacitor Haptics) — iOS Safari/WKWebView ignore navigator.vibrate.
+ * On the web it's navigator.vibrate where supported (Android).
+ */
 export function hapticTap(pattern: number | number[] = 12) {
+  if (isNativeApp()) {
+    const strong = (Array.isArray(pattern) ? Math.max(...pattern) : pattern) >= 16;
+    void Haptics.impact({ style: strong ? ImpactStyle.Medium : ImpactStyle.Light }).catch(() => {});
+    return;
+  }
   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
     try {
       navigator.vibrate(pattern);

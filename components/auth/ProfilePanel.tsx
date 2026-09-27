@@ -22,6 +22,7 @@ import {
   type Team,
 } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
+import { isNativeApp, webUrl } from "@/lib/native";
 
 type LoginMethod = "email" | "phone";
 
@@ -140,6 +141,8 @@ export function ProfilePanel({
   const avatarRail = useRef<HTMLDivElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
+  // Only affects the sign-in dialog, which never renders on the server.
+  const native = isNativeApp();
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
   const [destination, setDestination] = useState("");
@@ -224,7 +227,7 @@ export function ProfilePanel({
     setMessage(null);
     const { error } = await client.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: webUrl("/") },
     });
     if (error) {
       setMessage(error.message);
@@ -243,7 +246,7 @@ export function ProfilePanel({
             email: value,
             options: {
               shouldCreateUser: true,
-              emailRedirectTo: window.location.origin,
+              emailRedirectTo: webUrl("/"),
             },
           }
         : { phone: value, options: { shouldCreateUser: true } },
@@ -400,7 +403,7 @@ export function ProfilePanel({
   }
 
   async function shareTeam(team: Team) {
-    const url = `${window.location.origin}/?team=${team.inviteCode}`;
+    const url = webUrl(`/?team=${team.inviteCode}`);
     try {
       if (navigator.share) {
         await navigator.share({
@@ -678,12 +681,20 @@ export function ProfilePanel({
             ) : (
               <>
                 <p>Save your name and return to the same identity on any device.</p>
-                <div className="profile-socials">
-                  <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
-                    <b>G</b> Continue with Google
-                  </button>
-                </div>
-                <span className="profile-divider">or use a code</span>
+                {/* Not in the iOS app: Google blocks its sign-in inside embedded
+                    web views, and App Store guideline 4.8 would then require
+                    Sign in with Apple alongside it. Email/phone codes work
+                    everywhere. */}
+                {!native && (
+                  <>
+                    <div className="profile-socials">
+                      <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
+                        <b>G</b> Continue with Google
+                      </button>
+                    </div>
+                    <span className="profile-divider">or use a code</span>
+                  </>
+                )}
                 <div className="profile-methods" role="tablist" aria-label="Sign-in method">
                   {(["email", "phone"] as const).map((value) => (
                     <button

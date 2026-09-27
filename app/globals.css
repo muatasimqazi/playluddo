@@ -393,6 +393,23 @@ button:hover > .ludo-piece-legal {
   transform: translateX(18px);
 }
 
+/* Inside the iOS/Android app (NativeShell adds html.native-app): behave like
+   a native game, not a web page — no long-press callouts or link previews,
+   no text selection on game UI, no grey tap flash. Text fields stay
+   selectable so names and codes can still be edited and pasted. */
+html.native-app {
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+html.native-app input,
+html.native-app textarea,
+html.native-app select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* iOS zooms the page in when a text field under 16px gets focus, and stays
    zoomed after typing — the name field (13px) left the whole entrance
    layout blown up and cut off. Touch screens get 16px fields; desktop keeps

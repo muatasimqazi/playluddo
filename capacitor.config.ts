@@ -12,6 +12,30 @@ const config: CapacitorConfig = {
   appId: "com.luddohouse.app",
   appName: BRAND.name,
   webDir: "out",
+  // The app's own dark green, so there's no white flash behind the web
+  // view while it loads or when it bounces at an edge.
+  backgroundColor: "#1e2720",
+  ios: {
+    // The page handles safe areas itself (viewport-fit=cover +
+    // env(safe-area-inset-*) in simulator.css).
+    contentInset: "never",
+    // Game screens manage their own scrolling; the lobby/leaderboard pages
+    // scroll as documents, which still works with this off.
+    scrollEnabled: true,
+    // WKWebView link previews on long-press get in the way of dragging the
+    // board and tapping pawns.
+    allowsLinkPreview: false,
+  },
+  plugins: {
+    SplashScreen: {
+      // NativeShell hides it as soon as the first screen renders; this is
+      // only the fallback if that never happens.
+      launchShowDuration: 3000,
+      launchAutoHide: true,
+      backgroundColor: "#1e2720",
+      showSpinner: false,
+    },
+  },
 };
 
 export default config;

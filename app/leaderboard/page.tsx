@@ -14,6 +14,7 @@ import {
 import { getMyTeams, type Team } from "@/lib/supabase/teams";
 import { LeaderboardPanel } from "@/components/leaderboard/LeaderboardPanel";
 import { Icon } from "@/components/simulator/Icon";
+import "@/components/simulator/simulator.css";
 
 export default function LeaderboardPage() {
   const client = useMemo(() => createClient(), []);
@@ -64,80 +65,97 @@ export default function LeaderboardPage() {
     };
   }, [client, user, scope]);
 
+  const scopes = [{ id: "global", name: "Global" }, ...teams.map(({ id, name }) => ({ id, name }))];
+
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <div className="flex items-center gap-3">
-        <Link
-          href="/"
-          className="grid size-9 shrink-0 place-items-center rounded-full border border-hairline bg-surface text-foreground shadow-elevation-1"
-          aria-label="Back to home"
-        >
-          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
+    <main className="sim-entrance leaderboard-page">
+      {/* Same backdrop as the entrance: the static apartment photo under the
+          green shade, so the leaderboard reads as another room of the house. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
+      <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
+      <div className="entrance-shade" />
+      <header className="entrance-header">
+        <Link href="/" className="sim-brand" aria-label="Back to the apartment">
+          <span className="brand-mark">
+            <i />
+            <i />
+            <i />
+            <i />
+          </span>
+          <span>
+            LUDDO<small>HOUSE</small>
+          </span>
         </Link>
-        <div>
-          <p className="flex items-center gap-1 text-label-lg text-action">
-            <Icon name="trophy" size={16} /> Leaderboard
+        <Link href="/" className="profile-trigger leaderboard-back">
+          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
+          <small>Back to the apartment</small>
+        </Link>
+      </header>
+
+      <section className="leaderboard-content">
+        <span className="eyebrow">THE LEADERBOARD</span>
+        <h1>
+          Who&rsquo;s winning
+          <br />
+          the <em>most?</em>
+        </h1>
+
+        <div className="leaderboard-record">
+          <Icon name="trophy" size={18} />
+          {authenticated ? (
+            <div>
+              <span className="eyebrow">YOUR RECORD</span>
+              <strong>
+                {myWins ?? "…"} {myWins === 1 ? "win" : "wins"}
+              </strong>
+            </div>
+          ) : (
+            <div>
+              <span className="eyebrow">NOT ON THE BOARD YET</span>
+              <p>Sign in from your profile to start counting your wins.</p>
+            </div>
+          )}
+        </div>
+
+        {scopes.length > 1 && (
+          <div className="leaderboard-scopes" role="tablist" aria-label="Leaderboard">
+            {scopes.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="tab"
+                aria-selected={scope === option.id}
+                className={scope === option.id ? "is-selected" : undefined}
+                onClick={() => setScope(option.id)}
+              >
+                {option.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error ? (
+          <p role="alert" className="leaderboard-message is-error">
+            {error}
           </p>
-          <h1 className="text-headline-md tracking-tight text-foreground">
-            Who&rsquo;s winning the most?
-          </h1>
-        </div>
-      </div>
-
-      {authenticated ? (
-        <p className="rounded-lg border border-hairline bg-surface p-3 text-body-sm text-foreground shadow-elevation-1">
-          You&rsquo;ve won <strong>{myWins ?? "…"}</strong>{" "}
-          {myWins === 1 ? "match" : "matches"}.
-        </p>
-      ) : (
-        <p className="rounded-lg border border-hairline bg-surface p-3 text-body-sm text-text-secondary shadow-elevation-1">
-          Sign in from your profile to start appearing on the leaderboard.
-        </p>
-      )}
-
-      {teams.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setScope("global")}
-            className={`shrink-0 rounded-full border border-hairline px-3 py-1.5 text-label-sm ${
-              scope === "global" ? "bg-action text-white" : "bg-surface text-foreground"
-            }`}
-          >
-            Global
-          </button>
-          {teams.map((team) => (
-            <button
-              key={team.id}
-              type="button"
-              onClick={() => setScope(team.id)}
-              className={`shrink-0 rounded-full border border-hairline px-3 py-1.5 text-label-sm ${
-                scope === team.id ? "bg-action text-white" : "bg-surface text-foreground"
-              }`}
-            >
-              {team.name}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {error ? (
-        <p role="alert" className="text-center text-body-sm text-quadrant-red">
-          {error}
-        </p>
-      ) : loading ? (
-        <p className="text-center text-body-sm text-text-secondary">Loading…</p>
-      ) : (
-        <LeaderboardPanel
-          entries={entries}
-          myUserId={user?.id ?? null}
-          emptyMessage={
-            scope === "global"
-              ? "No wins on the board yet — play a match to be the first."
-              : "No one on this team has a win yet."
-          }
-        />
-      )}
-    </div>
+        ) : loading ? (
+          <div className="leaderboard-loading" aria-label="Loading the leaderboard">
+            {Array.from({ length: 5 }, (_, i) => (
+              <span key={i} />
+            ))}
+          </div>
+        ) : (
+          <LeaderboardPanel
+            entries={entries}
+            myUserId={user?.id ?? null}
+            emptyMessage={
+              scope === "global"
+                ? "No wins on the board yet — play a match to be the first."
+                : "No one on this team has a win yet."
+            }
+          />
+        )}
+      </section>
+    </main>
   );
 }

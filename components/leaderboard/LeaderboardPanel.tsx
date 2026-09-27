@@ -1,6 +1,14 @@
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { LeaderboardEntry } from "@/lib/supabase/leaderboard";
 
+// Podium order left to right: 2nd, 1st (raised), 3rd.
+const PODIUM_ORDER = [1, 0, 2];
+
+/**
+ * The top three stand on a podium (crown and laurels from PlayerAvatar's
+ * placement badges); everyone after them is a row below. The signed-in
+ * player's own entry is outlined in gold wherever it lands.
+ */
 export function LeaderboardPanel({
   entries,
   myUserId,
@@ -11,37 +19,64 @@ export function LeaderboardPanel({
   emptyMessage: string;
 }) {
   if (entries.length === 0) {
-    return (
-      <p className="rounded-lg border border-hairline bg-surface p-4 text-center text-body-sm text-text-secondary shadow-elevation-1">
-        {emptyMessage}
-      </p>
-    );
+    return <p className="leaderboard-message">{emptyMessage}</p>;
   }
+  const podium = entries.slice(0, 3);
+  const rest = entries.slice(3);
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-hairline bg-surface p-3 shadow-elevation-1">
-      {entries.map((entry) => (
-        <div key={entry.userId} className="flex items-center gap-3">
-          <span className="w-5 text-body-sm font-semibold text-text-secondary">
-            {entry.rank}
-          </span>
-          <PlayerAvatar
-            player={{
-              displayName: entry.displayName,
-              avatarId: entry.avatarId ?? undefined,
-              color: "blue",
-              seatIndex: 0,
-            }}
-            size={32}
-            placement={entry.rank <= 3 ? (entry.rank as 1 | 2 | 3) : undefined}
-          />
-          <span className="flex-1 truncate text-body-sm text-foreground">
-            {entry.displayName} {entry.userId === myUserId && "(You)"}
-          </span>
-          <span className="text-label-sm text-text-secondary">
-            {entry.wins} {entry.wins === 1 ? "win" : "wins"}
-          </span>
-        </div>
-      ))}
+    <div className="leaderboard-board">
+      <ol className="leaderboard-podium">
+        {PODIUM_ORDER.filter((i) => podium[i]).map((i) => {
+          const entry = podium[i];
+          const place = entry.rank as 1 | 2 | 3;
+          return (
+            <li
+              key={entry.userId}
+              className={`is-place-${place} ${entry.userId === myUserId ? "is-me" : ""}`}
+            >
+              <PlayerAvatar
+                player={{
+                  displayName: entry.displayName,
+                  avatarId: entry.avatarId ?? undefined,
+                  color: "blue",
+                  seatIndex: entry.rank,
+                }}
+                size={place === 1 ? 64 : 50}
+                placement={place <= 3 ? place : undefined}
+              />
+              <strong>{entry.displayName}</strong>
+              <span>
+                {entry.wins} {entry.wins === 1 ? "win" : "wins"}
+                {entry.userId === myUserId && <small className="leaderboard-you">YOU</small>}
+              </span>
+              <i aria-hidden>{entry.rank}</i>
+            </li>
+          );
+        })}
+      </ol>
+      {rest.length > 0 && (
+        <ol className="leaderboard-list" start={4}>
+          {rest.map((entry) => (
+            <li key={entry.userId} className={entry.userId === myUserId ? "is-me" : undefined}>
+              <span className="leaderboard-rank">{entry.rank}</span>
+              <PlayerAvatar
+                player={{
+                  displayName: entry.displayName,
+                  avatarId: entry.avatarId ?? undefined,
+                  color: "blue",
+                  seatIndex: entry.rank,
+                }}
+                size={30}
+              />
+              <strong>{entry.displayName}</strong>
+              {entry.userId === myUserId && <small className="leaderboard-you">YOU</small>}
+              <span className="leaderboard-wins">
+                {entry.wins} {entry.wins === 1 ? "win" : "wins"}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

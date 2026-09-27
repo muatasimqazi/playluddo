@@ -3122,3 +3122,288 @@ body.sim-piece-hover .sim-canvas {
     font-size: 7px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Leaderboard (app/leaderboard/page.tsx). Another room of the house: the
+   entrance's photo, shade and header, with the same glass panels, gold
+   accents and serif headline as the rest of the app.
+   --------------------------------------------------------------------------- */
+.leaderboard-back small {
+  font-size: 10px;
+}
+.leaderboard-page .sim-brand {
+  color: inherit;
+  text-decoration: none;
+}
+.leaderboard-content {
+  position: absolute;
+  z-index: 4;
+  left: 9%;
+  top: 104px;
+  bottom: 28px;
+  width: min(420px, calc(100% - 56px));
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 24px;
+}
+.leaderboard-content::-webkit-scrollbar {
+  display: none;
+}
+.leaderboard-content > .eyebrow {
+  color: #c0c5a9;
+  letter-spacing: 3px;
+  font-size: 9px;
+  margin-bottom: 16px;
+}
+.leaderboard-content h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 52px;
+  line-height: 1.04;
+  font-weight: 400;
+  letter-spacing: -1.6px;
+  color: #f1ead7;
+  margin: 0 0 22px;
+}
+.leaderboard-content h1 em {
+  font-weight: 400;
+  color: #d6c497;
+}
+.leaderboard-record {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #d8bd7f40;
+  border-radius: 12px;
+  background: #26372e80;
+  backdrop-filter: blur(10px);
+  color: #d8bd7f;
+}
+.leaderboard-record .eyebrow {
+  margin-bottom: 4px;
+  color: #d8bd7f;
+}
+.leaderboard-record strong {
+  display: block;
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #f1ead7;
+}
+.leaderboard-record p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #c0c8b5;
+}
+.leaderboard-scopes {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.leaderboard-scopes button {
+  flex: none;
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid #e7ebdc38;
+  border-radius: 30px;
+  background: #26372ec4;
+  color: #e6e7d6;
+  font-size: 11px;
+  backdrop-filter: blur(18px);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.leaderboard-scopes button.is-selected {
+  border-color: transparent;
+  background: #dcca9f;
+  color: #263324;
+  font-weight: 600;
+}
+.leaderboard-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.leaderboard-podium {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.leaderboard-podium li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px 8px 34px;
+  border: 1px solid #e9e7d326;
+  border-radius: 14px 14px 8px 8px;
+  background: #26372e99;
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+.leaderboard-podium li.is-place-1 {
+  padding-top: 24px;
+  padding-bottom: 46px;
+  border-color: #d8bd7f66;
+  background: linear-gradient(180deg, #d8bd7f26, #26372eb3 70%);
+}
+.leaderboard-podium li.is-me,
+.leaderboard-list li.is-me {
+  box-shadow: inset 0 0 0 1px #dcca9f;
+}
+.leaderboard-podium strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: #f1ead7;
+}
+.leaderboard-podium span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #d8bd7f;
+}
+.leaderboard-podium i {
+  position: absolute;
+  bottom: 8px;
+  font-family: Georgia, serif;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  color: #f1ead740;
+}
+.leaderboard-podium li.is-place-1 i {
+  font-size: 28px;
+  color: #d8bd7f99;
+}
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid #e9e7d326;
+  border-radius: 12px;
+  background: #26372e99;
+  backdrop-filter: blur(12px);
+}
+.leaderboard-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 6px 12px;
+  border-radius: 9px;
+}
+.leaderboard-list li + li {
+  border-top: 1px solid #e9e7d314;
+}
+.leaderboard-list li.is-me {
+  background: #d8bd7f1a;
+}
+.leaderboard-list .player-avatar {
+  border-color: #e9dfc080;
+}
+.leaderboard-rank {
+  width: 22px;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  color: #b6baac;
+  text-align: right;
+}
+.leaderboard-list strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: #f1ead7;
+}
+.leaderboard-wins {
+  font-size: 11px;
+  color: #d8bd7f;
+  font-variant-numeric: tabular-nums;
+}
+.leaderboard-you {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #dcca9f;
+  color: #263324;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.leaderboard-message {
+  padding: 18px;
+  border: 1px solid #e9e7d326;
+  border-radius: 12px;
+  background: #26372e99;
+  color: #c0c8b5;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+.leaderboard-message.is-error {
+  border-color: #e0806b66;
+  color: #f0b8a8;
+}
+.leaderboard-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.leaderboard-loading span {
+  height: 46px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #26372e80 25%, #3a4c4180 50%, #26372e80 75%);
+  background-size: 200% 100%;
+  animation: leaderboard-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes leaderboard-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@media (max-width: 700px) {
+  .leaderboard-content {
+    left: 20px;
+    right: 20px;
+    top: 78px;
+    bottom: 12px;
+    width: auto;
+  }
+  .leaderboard-content h1 {
+    font-size: 40px;
+    margin-bottom: 18px;
+  }
+  .leaderboard-back small {
+    display: none;
+  }
+  .leaderboard-page .entrance-shade {
+    background: linear-gradient(180deg, rgba(23, 33, 26, 0.86), rgba(23, 33, 26, 0.94));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-loading span {
+    animation: none;
+  }
+}

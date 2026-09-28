@@ -181,7 +181,10 @@ it.each(["ludo", "snakes_and_ladders"] as const)(
         expect(snapshot.pawns).toEqual(
           move ? applySnakeMove(before.pawns, move) : before.pawns,
         );
-        expect(snapshot.turnPlayerId).toBe(guest.playerId);
+        // A six also earns another roll, so the turn stays with the host.
+        expect(snapshot.turnPlayerId).toBe(
+          roll.dieValue === 6 ? host.playerId : guest.playerId,
+        );
         expect(snapshot.turnPhase).toBe("awaiting_roll");
         const moves = await b
           .from("match_events")

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { GameType, PlayerColor } from "@/lib/board/types";
-import { chooseBotMove } from "@/lib/board/bot";
+import { BOT_LEVELS, chooseMoveForLevel, type BotLevel } from "@/lib/board/bot";
 import {
   createPractice,
   practiceReducer,
@@ -31,6 +31,11 @@ function requestedPlayerAvatar(params: URLSearchParams): string | undefined {
   return params.get("avatar") || undefined;
 }
 
+function requestedBotLevel(params: URLSearchParams): BotLevel | undefined {
+  const value = params.get("level");
+  return BOT_LEVELS.includes(value as BotLevel) ? (value as BotLevel) : undefined;
+}
+
 function requestedGameType(params: URLSearchParams): GameType | undefined {
   const value = params.get("game");
   return value === "ludo" || value === "snakes_and_ladders" ? value : undefined;
@@ -41,11 +46,16 @@ function load(
   playerCount?: 2 | 3 | 4,
   playerColor?: PlayerColor,
   playerAvatar?: string,
+  botLevel?: BotLevel,
 ): PracticeSession {
-  if (playerCount || playerColor || playerAvatar)
-    return createPractice(gameType, playerCount ?? 4, playerColor ?? "blue", {
-      avatarId: playerAvatar,
-    });
+  if (playerCount || playerColor || playerAvatar || botLevel)
+    return createPractice(
+      gameType,
+      playerCount ?? 4,
+      playerColor ?? "blue",
+      { avatarId: playerAvatar },
+      botLevel,
+    );
   try {
     const saved = JSON.parse(
       localStorage.getItem(
@@ -78,6 +88,7 @@ export default function PracticeTable() {
   const [initialPlayerColor] = useState(() => requestedPlayerColor(searchParams));
   const [initialPlayerAvatar] = useState(() => requestedPlayerAvatar(searchParams));
   const [initialGameType] = useState(() => requestedGameType(searchParams));
+  const [initialBotLevel] = useState(() => requestedBotLevel(searchParams));
   const appliedSearch = useRef(searchParams.toString());
   const [gameType, setGameType] = useState<GameType>(() => {
     if (initialGameType) return initialGameType;
@@ -96,15 +107,18 @@ export default function PracticeTable() {
       initialPlayerCount,
       initialPlayerColor,
       initialPlayerAvatar,
+      initialBotLevel,
     ),
     snakes_and_ladders: load(
       "snakes_and_ladders",
       initialPlayerCount,
       initialPlayerColor,
       initialPlayerAvatar,
+      initialBotLevel,
     ),
   }));
   const session = sessions[gameType];
+  const botLevel = session.botLevel ?? "normal";
   const dispatch = (action: Parameters<typeof practiceReducer>[1]) =>
     setSessions((previous) => ({
       ...previous,
@@ -121,7 +135,8 @@ export default function PracticeTable() {
       const playerColor = requestedPlayerColor(searchParams);
       const playerAvatar = requestedPlayerAvatar(searchParams);
       const requestedGame = requestedGameType(searchParams);
-      if (!playerCount && !playerColor && !playerAvatar && !requestedGame)
+      const botLevel = requestedBotLevel(searchParams);
+      if (!playerCount && !playerColor && !playerAvatar && !requestedGame && !botLevel)
         return;
       const profile = { avatarId: playerAvatar };
       setSessions({
@@ -130,12 +145,14 @@ export default function PracticeTable() {
           playerCount ?? 4,
           playerColor ?? "blue",
           profile,
+          botLevel,
         ),
         snakes_and_ladders: createPractice(
           "snakes_and_ladders",
           playerCount ?? 4,
           playerColor ?? "blue",
           profile,
+          botLevel,
         ),
       });
       if (requestedGame) setGameType(requestedGame);
@@ -200,7 +217,11 @@ export default function PracticeTable() {
             }),
           }));
         else if (state.turnPhase === "awaiting_move") {
-          const move = chooseBotMove(state.legalMoves, state.pawns);
+          const move = chooseMoveForLevel(
+            botLevel,
+            state.legalMoves,
+            state.pawns,
+          );
           if (move)
             setSessions((previous) => ({
               ...previous,
@@ -214,7 +235,7 @@ export default function PracticeTable() {
       gameType === "snakes_and_ladders" ? 5500 : 2100,
     );
     return () => clearTimeout(timer);
-  }, [state, gameType, paused]);
+  }, [state, gameType, paused, botLevel]);
   return (
     <Simulator
       key={generation}
@@ -234,6 +255,7 @@ export default function PracticeTable() {
             playerCount,
             state.players[0].color,
             state.players[0],
+            session.botLevel,
           ),
         }));
         setGeneration((n) => n + 1);

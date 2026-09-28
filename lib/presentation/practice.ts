@@ -8,6 +8,7 @@ import {
 } from "../board/rules";
 import type { GameRoomState, GameType, PlayerColor, RoomRules } from "../board/types";
 import { applySnakeMove, snakeMove } from "../board/snakes";
+import type { BotLevel } from "../board/bot";
 import { DIAGONAL_COLOR } from "./board";
 import type { MatchEventRow } from "../realtime/room-channel";
 
@@ -26,6 +27,8 @@ export const CLOCKWISE_COLORS: readonly PlayerColor[] = [
 export interface PracticeSession {
   state: GameRoomState;
   events: MatchEventRow[];
+  /** How the computers play (docs/COMPETITIVE_ROADMAP.md F1.4). Absent on older saves: Normal. */
+  botLevel?: BotLevel;
 }
 export interface PracticeProfile {
   displayName?: string;
@@ -42,6 +45,7 @@ export function createPractice(
   playerCount: 2 | 3 | 4 = 4,
   playerColor: PlayerColor = "blue",
   profile: PracticeProfile = {},
+  botLevel: BotLevel = "normal",
 ): PracticeSession {
   // A 2-player game seats the two players diagonally across the board
   // (same pairing the SQL room engine uses); 3-4 players fill the bases
@@ -101,6 +105,7 @@ export function createPractice(
       eventSequence: 0,
     },
     events: [],
+    botLevel,
   };
 }
 export type PracticeAction =
@@ -119,6 +124,7 @@ export function practiceReducer(
       session.state.players.length as 2 | 3 | 4,
       session.state.players[0].color,
       session.state.players[0],
+      session.botLevel,
     );
   const { state } = session;
   if (state.status !== "in_game") return session;
@@ -222,7 +228,7 @@ export function practiceReducer(
     else advance();
   }
   next.eventSequence = state.eventSequence + 1;
-  return { state: next, events: [...session.events, event].slice(-100) };
+  return { ...session, state: next, events: [...session.events, event].slice(-100) };
 }
 
 function snakePracticeReducer(
@@ -284,6 +290,7 @@ function snakePracticeReducer(
       placements: winnerIds,
     });
   return {
+    ...session,
     state: {
       ...state,
       pawns,

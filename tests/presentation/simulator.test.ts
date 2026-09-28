@@ -312,6 +312,16 @@ describe("offline practice uses the established rules", () => {
     const next = practiceReducer(rolled, { type: "move", pawnId: "blue-0" });
     expect(next.state.turnPlayerId).toBe("practice-1");
   });
+  it("keeps the computer level through moves and a fresh game", () => {
+    let game = createPractice("ludo", 4, "blue", {}, "hard");
+    game = practiceReducer(game, { type: "roll", value: 6 });
+    game = practiceReducer(game, { type: "move", pawnId: "blue-0" });
+    expect(game.botLevel).toBe("hard");
+    expect(practiceReducer(game, { type: "reset" }).botLevel).toBe("hard");
+    let snakes = createPractice("snakes_and_ladders", 2, "blue", {}, "easy");
+    snakes = practiceReducer(snakes, { type: "roll", value: 3 });
+    expect(snakes.botLevel).toBe("easy");
+  });
   it("needs six to leave the nest, grants a bonus roll, and rejects illegal intents", () => {
     const initial = createPractice();
     expect(practiceReducer(initial, { type: "move", pawnId: "blue-0" })).toBe(

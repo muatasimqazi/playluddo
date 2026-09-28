@@ -4048,3 +4048,7 @@ body.sim-piece-hover .sim-canvas {
   color: var(--sim-ink);
   font-weight: 500;
 }
+/* Offline computer level (app/page.tsx): the player-count picker, labels only. */
+.entrance-bot-level button strong {
+  font-size: 14px;
+}

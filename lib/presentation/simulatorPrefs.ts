@@ -1,3 +1,5 @@
+import { BOT_LEVELS, type BotLevel } from "../board/bot";
+
 export type BoardStyle = "signature" | "classic" | "geometric" | "aladdin";
 
 // Shared with components/simulator/Simulator.tsx's own PREF_KEY/loadPreferences —
@@ -17,5 +19,23 @@ export function setPreferredBoardStyle(boardStyle: BoardStyle) {
       SIMULATOR_PREF_KEY,
       JSON.stringify({ ...existing, boardStyle }),
     );
+  } catch {}
+}
+
+// The offline computer level last picked on this device (F1.4).
+const BOT_LEVEL_KEY = "luddo-bot-level";
+
+export function preferredBotLevel(): BotLevel {
+  try {
+    const saved = localStorage.getItem(BOT_LEVEL_KEY);
+    return BOT_LEVELS.includes(saved as BotLevel) ? (saved as BotLevel) : "normal";
+  } catch {
+    return "normal";
+  }
+}
+
+export function setPreferredBotLevel(level: BotLevel) {
+  try {
+    localStorage.setItem(BOT_LEVEL_KEY, level);
   } catch {}
 }

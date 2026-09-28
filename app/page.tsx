@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,8 @@ import { createRoom, joinRoom, setPlayerColor, setRoomGame } from "@/lib/supabas
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
+import { BOT_LEVELS, type BotLevel } from "@/lib/board/bot";
+import { preferredBotLevel, setPreferredBotLevel } from "@/lib/presentation/simulatorPrefs";
 import { AVATARS, avatarDefinition, photoAvatar } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import {
@@ -43,6 +45,10 @@ type StepId = "game" | "players" | "base" | "avatar" | "board" | "start";
 const LUDO_STEPS: StepId[] = ["game", "players", "base", "avatar", "board", "start"];
 const SNAKES_STEPS: StepId[] = ["game", "players", "base", "avatar", "start"];
 
+const BOT_LEVEL_LABELS: Record<BotLevel, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
+// The saved level only changes through this page's own picker.
+const noSubscription = () => () => {};
+
 export default function Home() {
   const router = useRouter();
   const [friends, setFriends] = useState(false);
@@ -59,6 +65,10 @@ export default function Home() {
   // applies it itself when the link carries no ?avatar=); a string is an
   // explicit pick on this screen and wins over the profile.
   const [pickedAvatar, setPlayerAvatar] = useState<string | null>(null);
+  // Read from the device after hydration; "normal" on the server.
+  const savedBotLevel = useSyncExternalStore(noSubscription, preferredBotLevel, () => "normal" as const);
+  const [pickedBotLevel, setPickedBotLevel] = useState<BotLevel | null>(null);
+  const botLevel = pickedBotLevel ?? savedBotLevel;
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const playerAvatar = pickedAvatar ?? profileAvatar ?? AVATARS[0].id;
   // An uploaded photo isn't one of the presets, so it gets its own tile.
@@ -404,6 +414,27 @@ export default function Home() {
                       ))}
                     </div>
                   )}
+                  {gameType === "ludo" && (
+                    <fieldset className="entrance-player-count entrance-bot-level">
+                      <legend>Offline computer level</legend>
+                      <div>
+                        {BOT_LEVELS.map((level) => (
+                          <button
+                            key={level}
+                            type="button"
+                            className={botLevel === level ? "is-selected" : ""}
+                            aria-pressed={botLevel === level}
+                            onClick={() => {
+                              setPickedBotLevel(level);
+                              setPreferredBotLevel(level);
+                            }}
+                          >
+                            <strong>{BOT_LEVEL_LABELS[level]}</strong>
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                  )}
                   <div className="entrance-buttons">
                     <button
                       className="sim-primary"
@@ -421,7 +452,7 @@ export default function Home() {
                     </button>
                     <Link
                       className="entrance-secondary"
-                      href={`/practice?players=${playerCount}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}`}
+                      href={`/practice?players=${playerCount}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
                     >
                       <span>Offline: Settle in with an offline practice game</span>
                       <Icon name="dice" />

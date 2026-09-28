@@ -14,7 +14,8 @@
     "test": "vitest run tests/rules-engine-ts tests/presentation",
     "test:watch": "vitest tests/rules-engine-ts",
     "test:parity": "vitest run tests/parity",
-    "test:multiplayer": "vitest run tests/integration"
+    "test:multiplayer": "vitest run tests/integration",
+    "test:strength": "vitest run tests/strength"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

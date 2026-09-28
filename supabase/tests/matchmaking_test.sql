@@ -19,6 +19,13 @@ from generate_series(1, 14) n;
 create function pg_temp.as_user(n int) returns void language sql as $$
   select set_config('request.jwt.claim.sub', '66666666-6666-6666-6666-6666666666' || lpad(n::text, 2, '0'), true);
 $$;
+-- Everyone enqueued in this one transaction shares the same now(), so the
+-- queue's enqueued_at order would be a tie. Backdate each searcher to the
+-- order they joined in (run as the table owner; players can't write here).
+create function pg_temp.enqueued_seconds_ago(n int, seconds int) returns void language sql as $$
+  update public.matchmaking_queue set enqueued_at = now() - make_interval(secs => seconds)
+  where user_id = ('66666666-6666-6666-6666-6666666666' || lpad(n::text, 2, '0'))::uuid;
+$$;
 create function pg_temp.room_of(k text) returns uuid language sql as $$
   select (value->>'roomId')::uuid from test_state where key = k;
 $$;
@@ -52,6 +59,9 @@ select is((public.matchmake('ludo', 'Ada', 2)->>'roomId')::uuid, pg_temp.room_of
 -- ---------------------------------------------------------------------------
 select pg_temp.as_user(4);
 select is(public.matchmake('ludo', 'Dee', 4)->>'status', 'waiting', '4-seat searcher waits');
+reset role;
+select pg_temp.enqueued_seconds_ago(4, 3);
+set local role authenticated;
 select pg_temp.as_user(5);
 select is(public.matchmake('ludo', 'Eve', 2)->>'status', 'waiting', 'a 2-seat Ludo searcher is not pulled into 4 seats (separate queues)');
 select pg_temp.as_user(6);
@@ -60,8 +70,14 @@ select is(
   (select (value->>'found')::int || '/' || (value->>'needed') from test_state where key = 'four-wait'),
   '1/3', 'progress reports opponents found so far'
 );
+reset role;
+select pg_temp.enqueued_seconds_ago(6, 2);
+set local role authenticated;
 select pg_temp.as_user(7);
 select is(public.matchmake('ludo', 'Gus', 4)->>'status', 'waiting', 'three of four seated: still waiting');
+reset role;
+select pg_temp.enqueued_seconds_ago(7, 1);
+set local role authenticated;
 select pg_temp.as_user(8);
 insert into test_state values ('four', public.matchmake('ludo', 'Hal', 4));
 select is((select value->>'status' from test_state where key = 'four'), 'matched', 'the fourth searcher fills the table');

@@ -19,6 +19,7 @@ import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
+import { playSoundEffect, preloadSoundEffects } from "@/lib/sound/effects";
 import {
   COLORS,
   HOME_ROTATION,
@@ -438,20 +439,17 @@ export default function Simulator({
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  // Decoded up front so the first roll's sound isn't late either.
+  useEffect(() => {
+    if (prefs.sound) void preloadSoundEffects();
+  }, [prefs.sound]);
   const playedRoll = useRef(frame.rollId);
   useEffect(() => {
     if (playedRoll.current === frame.rollId) return;
     playedRoll.current = frame.rollId;
     if (!prefs.sound) return;
     const rolledSix = frame.dice === 6;
-    const sound = new Audio(
-      rolledSix ? "/audio/dice-six.wav" : "/sounds/dice-roll.wav",
-    );
-    sound.volume = rolledSix ? 0.7 : 0.45;
-    void sound.play().catch(() => {});
-    return () => {
-      sound.pause();
-    };
+    return playSoundEffect(rolledSix ? "diceSix" : "diceRoll", rolledSix ? 0.7 : 0.45);
   }, [frame.dice, frame.rollId, prefs.sound]);
   const setPref = useCallback(
     <K extends keyof Preferences>(key: K, value: Preferences[K]) =>

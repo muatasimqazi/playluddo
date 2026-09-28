@@ -70,6 +70,7 @@ import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
 import { Icon } from "./Icon";
 import { PlayerAvatars3D } from "./PlayerAvatar3D";
 import { TableLoading } from "./TableLoading";
+import { playSoundEffect } from "@/lib/sound/effects";
 
 export interface SceneProps {
   gameType?: GameType;
@@ -230,8 +231,6 @@ function Piece({
   const trailSampleElapsed = useRef(0);
   const trailOpacity = useRef(0);
   const coarse = useCoarsePointer();
-  const moveSound = useRef<HTMLAudioElement>(null);
-  const homeSound = useRef<HTMLAudioElement>(null);
   const soundedStep = useRef(0);
   const previous = useRef(pawn);
   const previousMove = useRef(move);
@@ -249,33 +248,6 @@ function Piece({
     : aladdinPawn
       ? ALADDIN_PAWN_HEIGHT
       : GLASS_PAWN_HEIGHT;
-  useEffect(() => {
-    if (!soundEnabled) {
-      moveSound.current?.pause();
-      homeSound.current?.pause();
-      moveSound.current = null;
-      homeSound.current = null;
-      return;
-    }
-    const audio = new Audio("/audio/ludo_piece_hopping_v2.wav");
-    const homeAudio = new Audio("/audio/piece-home.wav");
-    audio.preload = "auto";
-    audio.volume = 0.46;
-    homeAudio.preload = "auto";
-    homeAudio.volume = 0.7;
-    moveSound.current = audio;
-    homeSound.current = homeAudio;
-    return () => {
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      homeAudio.pause();
-      homeAudio.removeAttribute("src");
-      homeAudio.load();
-      if (moveSound.current === audio) moveSound.current = null;
-      if (homeSound.current === homeAudio) homeSound.current = null;
-    };
-  }, [soundEnabled]);
   const point = (piece: Pawn) => pawnPoint(piece, gameType);
   const [initial] = useState(() => pawnPoint(pawn, gameType));
   const stack = allPawns
@@ -347,20 +319,15 @@ function Piece({
       const t = Math.max(0, m.elapsed - m.delay) / (HOP_MS / 1000),
         index = Math.floor(t);
       const arrivedStep = Math.min(index, m.points.length - 1);
-      if (
-        m.elapsed >= m.delay &&
-        arrivedStep > soundedStep.current &&
-        moveSound.current
-      ) {
+      if (m.elapsed >= m.delay && arrivedStep > soundedStep.current) {
         soundedStep.current = arrivedStep;
         const reachedHome =
           arrivedStep === m.points.length - 1 &&
           move?.pawnId === pawn.id &&
           move.finishesPawn;
-        const sound = reachedHome ? homeSound.current : moveSound.current;
-        if (sound) {
-          sound.currentTime = 0;
-          void sound.play().catch(() => {});
+        if (soundEnabled) {
+          if (reachedHome) playSoundEffect("pawnHome", 0.7);
+          else playSoundEffect("pawnHop", 0.46);
         }
       }
       if (index >= m.points.length - 1) {

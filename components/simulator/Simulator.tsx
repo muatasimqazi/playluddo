@@ -402,7 +402,7 @@ export default function Simulator({
     } catch {}
   }, [prefs, me?.color]);
   useEffect(() => {
-    const audio = new Audio("/audio/background_01.wav");
+    const audio = new Audio("/audio/background_01.mp3");
     audio.loop = true;
     audio.preload = "auto";
     backgroundMusic.current = audio;

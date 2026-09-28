@@ -46,7 +46,12 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Table chat</strong> messages and reactions you send, which the other players at that table
-          can see.
+          can see. Chat is automatically filtered for offensive language.
+        </li>
+        <li>
+          <strong>Reports and blocks</strong>: if you report a player, we keep your report together with that
+          player&rsquo;s recent messages at the table so we can review it. If you block someone, we keep that
+          choice so it applies at future tables too.
         </li>
       </ul>
       <h3>If you sign in</h3>
@@ -95,6 +100,7 @@ export default function PrivacyPage() {
         <li>To keep your profile, wins, teams and leaderboard place when you sign in.</li>
         <li>To send the sign-in codes you ask for.</li>
         <li>To keep the game working, secure and fair, and to improve it.</li>
+        <li>To review reports and remove content or players that break our <a href="/terms">Terms of Use</a>.</li>
       </ul>
       <p>We don&rsquo;t use your information for advertising, and we don&rsquo;t sell or rent it.</p>
 

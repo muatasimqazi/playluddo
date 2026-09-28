@@ -19,9 +19,12 @@ interface RoomStore {
   sessionReplaced: boolean;
   connection: "connected" | "connecting" | "reconnecting";
   messages: TableMessage[];
+  /** Seats held by people this player has blocked: their chat, reactions and voice are hidden. */
+  blockedPlayerIds: string[];
   voiceSignals: QueuedVoiceSignal[];
   setConnection: (status: "connected" | "connecting" | "reconnecting") => void;
   addMessage: (message: TableMessage) => void;
+  setBlockedPlayerIds: (ids: string[]) => void;
   addVoiceSignal: (signal: WebRtcSignal) => void;
   consumeVoiceSignal: (id: number) => void;
   setRoomState: (state: GameRoomState) => void;
@@ -39,8 +42,10 @@ export const useRoomStore = create<RoomStore>((set) => ({
   sessionReplaced: false,
   connection: "connecting",
   messages: [],
+  blockedPlayerIds: [],
   voiceSignals: [],
   setConnection: (connection) => set({ connection }),
+  setBlockedPlayerIds: (blockedPlayerIds) => set({ blockedPlayerIds }),
   addMessage: (message) =>
     set((s) => ({
       messages: s.messages.some((m) => m.id === message.id)
@@ -81,6 +86,7 @@ export const useRoomStore = create<RoomStore>((set) => ({
       sessionReplaced: false,
       connection: "connecting",
       messages: [],
+      blockedPlayerIds: [],
       voiceSignals: [],
     }),
 }));

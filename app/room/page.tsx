@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRoomConnection } from "@/lib/hooks/useRoomConnection";
 import { useVoiceChat } from "@/lib/hooks/useVoiceChat";
@@ -12,6 +12,9 @@ import { TableLoading } from "@/components/simulator/TableLoading";
 import { RoomNotice } from "@/components/lobby/RoomNotice";
 import { JoinTable } from "@/components/lobby/JoinTable";
 import { RpcError } from "@/lib/supabase/rpc";
+import { fetchBlockedPlayerIds } from "@/lib/supabase/moderation";
+import { acceptTableRules, tableRulesAccepted } from "@/lib/community";
+import { TableRules } from "@/components/lobby/TableRules";
 import "@/components/simulator/simulator.css";
 
 // A query param, not a [roomId] path segment: `output: "export"` (the
@@ -31,13 +34,28 @@ export default function RoomPage() {
   );
 }
 
+// localStorage never changes under the page except through acceptTableRules.
+const noSubscription = () => () => {};
+
 function RoomPageContent() {
   const roomId = useSearchParams().get("id");
   // Bumped after a friend joins from the link, remounting the connection so
   // it claims the seat they now hold.
   const [attempt, setAttempt] = useState(0);
   const rejoin = useCallback(() => setAttempt((n) => n + 1), []);
+  const storedAgreement = useSyncExternalStore(noSubscription, tableRulesAccepted, () => true);
+  const [agreed, setAgreed] = useState(false);
   if (!roomId) return <RoomNotice code="ROOM_NOT_FOUND" />;
+  // Online tables have chat and voice with people who may be strangers.
+  if (!storedAgreement && !agreed)
+    return (
+      <TableRules
+        onAgree={() => {
+          acceptTableRules();
+          setAgreed(true);
+        }}
+      />
+    );
   return <ConnectedRoom key={attempt} roomId={roomId} onJoined={rejoin} />;
 }
 
@@ -47,6 +65,12 @@ function ConnectedRoom({ roomId, onJoined }: { roomId: string; onJoined: () => v
   // Instantiated once here (not inside RoomLobby/MatchArena) so a call
   // survives the lobby -> in-game -> summary transition, all one roomId.
   const voice = useVoiceChat(client, roomId);
+  const seated = !loading && !error;
+  useEffect(() => {
+    if (!seated) return;
+    const { setBlockedPlayerIds } = useRoomStore.getState();
+    void fetchBlockedPlayerIds(client, roomId).then(setBlockedPlayerIds).catch(() => {});
+  }, [client, roomId, seated]);
 
   if (loading) return <TableLoading label="Joining the table…" />;
   // Opened someone else's shared link without a seat yet: invite them in

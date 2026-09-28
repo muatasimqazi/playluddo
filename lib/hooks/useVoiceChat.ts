@@ -51,6 +51,7 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
   const players = useRoomStore((s) => s.roomState?.players);
   const voiceSignals = useRoomStore((s) => s.voiceSignals);
   const consumeVoiceSignal = useRoomStore((s) => s.consumeVoiceSignal);
+  const blockedPlayerIds = useRoomStore((s) => s.blockedPlayerIds);
 
   const [joined, setJoined] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -68,6 +69,9 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
   const analysed = useRef(new Map<string, Analysed>());
   const joinedRef = useRef(false);
   const mutedRef = useRef(false);
+  // People this player blocked stay connected (so the call works for
+  // everyone else) but are never heard.
+  const blockedRef = useRef(new Set<string>());
 
   const attachAnalyser = useCallback((id: string, stream: MediaStream) => {
     try {
@@ -141,6 +145,7 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
       connection.ontrack = (e) => {
         const stream = e.streams[0] ?? new MediaStream([e.track]);
         audio.srcObject = stream;
+        audio.muted = blockedRef.current.has(id);
         void audio.play().catch(() => {});
         attachAnalyser(id, stream);
       };
@@ -313,6 +318,13 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
     // Intentionally only on unmount/unload — `leave` closes over the latest refs it needs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    blockedRef.current = new Set(blockedPlayerIds);
+    for (const [id, peer] of peers.current)
+      // eslint-disable-next-line react-hooks/immutability -- live <audio> elements owned by this hook, not React state.
+      peer.audio.muted = blockedRef.current.has(id);
+  }, [blockedPlayerIds]);
 
   return { joined, connecting, muted, speakingPlayerIds, error, join, leave, toggleMute };
 }

@@ -15,6 +15,7 @@ import type { GameRoomState } from "@/lib/board/types";
 import { rankPlayers } from "@/lib/board/rules";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
+import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
@@ -68,6 +69,10 @@ export interface SimulatorProps {
   canPause?: boolean;
   onPause?: (paused: boolean) => Promise<unknown> | void;
   voice?: VoiceChat;
+  /** Seats whose chat, reactions and voice this player has blocked. */
+  blockedPlayerIds?: string[];
+  onBlockPlayer?: (playerId: string, blocked: boolean) => Promise<unknown>;
+  onReportPlayer?: (playerId: string, reason: ReportReason, details: string) => Promise<unknown>;
 }
 interface Preferences {
   quality: Quality;
@@ -251,6 +256,9 @@ export default function Simulator({
   canPause = false,
   onPause,
   voice,
+  blockedPlayerIds = [],
+  onBlockPlayer,
+  onReportPlayer,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
@@ -295,6 +303,13 @@ export default function Simulator({
   );
   const [localError, setLocalError] = useState<string | null>(null);
   const [chat, setChat] = useState("");
+  // Report form for one player at a time (chat panel).
+  const [reporting, setReporting] = useState<string | null>(null);
+  const [reportReason, setReportReason] = useState<ReportReason>("harassment");
+  const [reportDetails, setReportDetails] = useState("");
+  const [alsoBlock, setAlsoBlock] = useState(true);
+  const [moderating, setModerating] = useState(false);
+  const [moderationNote, setModerationNote] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [fullscreen, setFullscreen] = useState(false);
@@ -529,8 +544,25 @@ export default function Simulator({
       setSending(false);
     }
   }
+  const visibleMessages = messages.filter((m) => !blockedPlayerIds.includes(m.playerId));
+  // Other people at the table (not computer players), for block/report.
+  const otherPeople = state.players.filter((p) => !p.isBot && p.id !== myPlayerId);
+  async function moderate(action: () => Promise<unknown>, done: string) {
+    setModerating(true);
+    setModerationNote(null);
+    try {
+      await action();
+      setModerationNote(done);
+      setReporting(null);
+      setReportDetails("");
+    } catch (e) {
+      setModerationNote(e instanceof Error ? e.message : "That didn't go through. Try again.");
+    } finally {
+      setModerating(false);
+    }
+  }
   const reactions: Record<string, string> = {};
-  messages
+  visibleMessages
     .filter(
       (m) =>
         m.kind === "reaction" && now - new Date(m.createdAt).getTime() < 4500,
@@ -1439,7 +1471,105 @@ export default function Simulator({
                     for live conversation.
                   </p>
                 )}
-                {messages
+                {onReportPlayer && otherPeople.length > 0 && (
+                  <div className="chat-people">
+                    <span className="eyebrow">AT THIS TABLE</span>
+                    {otherPeople.map((player) => {
+                      const blocked = blockedPlayerIds.includes(player.id);
+                      return (
+                        <div key={player.id} className="chat-person-block">
+                          <div className="chat-person">
+                            <strong style={{ color: COLORS[player.color] }}>{player.displayName}</strong>
+                            {onBlockPlayer && (
+                              <button
+                                type="button"
+                                disabled={moderating}
+                                onClick={() =>
+                                  void moderate(
+                                    () => onBlockPlayer(player.id, !blocked),
+                                    blocked
+                                      ? `${player.displayName} is unblocked.`
+                                      : `${player.displayName} is blocked. You won’t see their messages or hear them.`,
+                                  )
+                                }
+                              >
+                                {blocked ? "Unblock" : "Block"}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={moderating}
+                              aria-expanded={reporting === player.id}
+                              onClick={() => {
+                                setModerationNote(null);
+                                setReporting(reporting === player.id ? null : player.id);
+                              }}
+                            >
+                              Report
+                            </button>
+                          </div>
+                          {reporting === player.id && (
+                            <form
+                              className="chat-report"
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                void moderate(async () => {
+                                  await onReportPlayer(player.id, reportReason, reportDetails);
+                                  if (alsoBlock && !blocked && onBlockPlayer) await onBlockPlayer(player.id, true);
+                                }, "Thanks — we’ll review your report within 24 hours.");
+                              }}
+                            >
+                              <label>
+                                What happened?
+                                <select
+                                  value={reportReason}
+                                  onChange={(e) => setReportReason(e.target.value as ReportReason)}
+                                >
+                                  {(Object.keys(REPORT_REASONS) as ReportReason[]).map((reason) => (
+                                    <option key={reason} value={reason}>
+                                      {REPORT_REASONS[reason]}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <textarea
+                                aria-label="Details (optional)"
+                                placeholder="Details (optional)"
+                                maxLength={500}
+                                value={reportDetails}
+                                onChange={(e) => setReportDetails(e.target.value)}
+                              />
+                              {!blocked && onBlockPlayer && (
+                                <label className="chat-report-check">
+                                  <input
+                                    type="checkbox"
+                                    checked={alsoBlock}
+                                    onChange={(e) => setAlsoBlock(e.target.checked)}
+                                  />
+                                  Also block {player.displayName}
+                                </label>
+                              )}
+                              <div className="chat-report-actions">
+                                <button type="button" onClick={() => setReporting(null)}>
+                                  Cancel
+                                </button>
+                                <button type="submit" className="is-danger" disabled={moderating}>
+                                  {moderating ? "Sending…" : "Send report"}
+                                </button>
+                              </div>
+                            </form>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {moderationNote && (
+                      <p className="chat-moderation-note" role="status">
+                        {moderationNote}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {visibleMessages
                   .filter((m) => m.kind === "chat")
                   .map((message) => (
                     <div className="chat-message" key={message.id}>
@@ -1487,7 +1617,7 @@ export default function Simulator({
                       </p>
                     </div>
                   ))}
-                {!events.length && !messages.length && (
+                {!events.length && !visibleMessages.length && (
                   <p className="panel-note">
                     The table is ready. Make the first move.
                   </p>

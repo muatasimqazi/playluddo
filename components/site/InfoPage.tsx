@@ -56,6 +56,8 @@ export function InfoPage({
           <span aria-hidden>·</span>
           <Link href="/privacy">Privacy</Link>
           <span aria-hidden>·</span>
+          <Link href="/terms">Terms</Link>
+          <span aria-hidden>·</span>
           <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
         </footer>
       </article>

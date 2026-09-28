@@ -16,5 +16,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BRAND.url}/table-together`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BRAND.url}/support`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${BRAND.url}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${BRAND.url}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
   ];
 }

@@ -14,6 +14,7 @@ import {
   toggleMatchPause,
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
+import { reportPlayer, setPlayerBlocked } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { TableLoading } from "@/components/simulator/TableLoading";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
@@ -44,6 +45,8 @@ export function MatchArena({
   const connection = useRoomStore((s) => s.connection);
   const messages = useRoomStore((s) => s.messages);
   const addMessage = useRoomStore((s) => s.addMessage);
+  const blockedPlayerIds = useRoomStore((s) => s.blockedPlayerIds);
+  const setBlockedPlayerIds = useRoomStore((s) => s.setBlockedPlayerIds);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   async function act(fn: () => Promise<unknown>) {
@@ -112,6 +115,17 @@ export function MatchArena({
         })
       }
       voice={voice}
+      blockedPlayerIds={blockedPlayerIds}
+      onBlockPlayer={async (playerId, blocked) => {
+        await setPlayerBlocked(client, roomId, playerId, blocked);
+        const current = useRoomStore.getState().blockedPlayerIds;
+        setBlockedPlayerIds(
+          blocked ? [...new Set([...current, playerId])] : current.filter((id) => id !== playerId),
+        );
+      }}
+      onReportPlayer={(playerId, reason, details) =>
+        reportPlayer(client, roomId, playerId, reason, details)
+      }
     />
   );
 }

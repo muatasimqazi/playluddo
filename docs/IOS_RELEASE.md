@@ -176,14 +176,28 @@ cd supabase/functions/delete-account && deno test   # Apple revocation tests
 Without the secret, accounts are still deleted but Apple revocation is
 skipped (logged in the function's logs).
 
+## Player safety (guideline 1.2)
+
+Online tables have chat and voice with people who may be strangers (Quick
+match), so the app has:
+- **Filter:** `private.clean_text` masks profanity and slurs in chat, seat
+  names and leaderboard names (migration `20260928010000_moderation.sql`).
+- **Block / Report:** at the table, **Chat → At this table** lists the other
+  people with **Block** (hides their chat and reactions, mutes their voice;
+  by account, so it lasts) and **Report** (reason, optional details, optional
+  block). Reports land in `public.player_reports` with the player's recent
+  messages as evidence.
+- **Terms:** `/terms` (zero tolerance), agreed to once before a player's first
+  online table (`components/lobby/TableRules.tsx`).
+- **Acting on reports within 24 hours** (Apple requires it): review open
+  reports in Supabase → Table Editor → `player_reports` (or
+  `select * from player_reports where status = 'open'`). To remove a player,
+  ban them in Authentication → Users (⋯ → Ban user), then set the report's
+  status to `actioned`. A Database Webhook on `player_reports` inserts can
+  email or post you each new report.
+
 ## Before review — worth deciding
 
-- **Chat moderation (guideline 1.2):** apps with user-to-user chat need a way to
-  report or block people. Table chat and voice are limited to people you invited,
-  which helps, but a "report" option in the table menu is the safe route.
-- **Account deletion (guideline 5.1.1(v)):** apps that let people create an
-  account must let them delete it in-app. Sign-in creates an account, so add a
-  "Delete account" action to the profile panel before submitting.
 - **Universal links (optional):** to have luddohouse.com room links open the app
   instead of Safari, add the Associated Domains capability
   (`applinks:luddohouse.com`) and serve

@@ -1341,11 +1341,17 @@ export default function Simulator({
               )}
               <button
                 className="panel-secondary"
-                onClick={() =>
-                  snakes
-                    ? setPref("snakeOrientation", 0)
-                    : setPref("orientation", HOME_ROTATION[me?.color ?? "blue"])
-                }
+                onClick={() => {
+                  if (snakes) setPref("snakeOrientation", 0);
+                  else setPref("orientation", HOME_ROTATION[me?.color ?? "blue"]);
+                  // A finger drag on a phone orbits the camera rather than
+                  // turning the board, so the board can already be at this
+                  // orientation while the player looks at it from another
+                  // side. Put the camera back too, and close the panel —
+                  // on a phone it covers the board, hiding the turn.
+                  reset();
+                  setPanel(null);
+                }}
               >
                 <Icon name="rotate" />
                 {snakes ? "Face square 1" : "Bring my color closer"}

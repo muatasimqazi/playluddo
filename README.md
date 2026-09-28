@@ -5,6 +5,7 @@ _Let's Play Luddo._
 An immersive 3D Luddo table in a modern apartment, with server-authoritative private multiplayer rooms and offline practice against computers.
 
 - **Product spec:** [`docs/PRD.md`](docs/PRD.md)
+- **Competitive roadmap (Ludo King parity and beyond):** [`docs/COMPETITIVE_ROADMAP.md`](docs/COMPETITIVE_ROADMAP.md)
 - **Engineering handoff (schema, RPC contracts, build sequence):** [`docs/IMPLEMENTATION_HANDOFF.md`](docs/IMPLEMENTATION_HANDOFF.md)
 - **Design references:** [`designs/`](designs/)
 - **Simulator brief:** [`docs/Immersive 3D Multiplayer Luddo Simulator.md`](docs/Immersive%203D%20Multiplayer%20Ludo%20Simulator.md)

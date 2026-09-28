@@ -3662,3 +3662,30 @@ body.sim-piece-hover .sim-canvas {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* iOS app only: Game Center shortcuts on the leaderboard page. */
+.leaderboard-game-center {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.leaderboard-game-center button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  border: 1px solid #d8bd7f55;
+  border-radius: 10px;
+  background: #26372ec4;
+  color: #f1ead7;
+  font-size: 12px;
+  backdrop-filter: blur(18px);
+}
+.leaderboard-game-center-note {
+  margin: -6px 0 16px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #c0c8b5;
+}

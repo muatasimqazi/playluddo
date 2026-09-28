@@ -6,6 +6,7 @@ import { App } from "@capacitor/app";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar } from "@capacitor/status-bar";
 import { isNativeApp } from "@/lib/native";
+import { signInToGameCenter } from "@/lib/gameCenter";
 
 /**
  * App-shell behavior that only applies inside the iOS/Android app
@@ -24,6 +25,9 @@ export function NativeShell() {
     document.documentElement.classList.add("native-app");
     void StatusBar.hide().catch(() => {});
     void SplashScreen.hide().catch(() => {});
+    // Game Center sign-in early, as Apple recommends: returning players get
+    // the "Welcome back" banner; new ones can sign in or skip.
+    void signInToGameCenter();
     const listener = App.addListener("appUrlOpen", ({ url }) => {
       try {
         const { pathname, search } = new URL(url);

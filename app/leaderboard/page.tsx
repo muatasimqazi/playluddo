@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +14,15 @@ import {
 import { getMyTeams, type Team } from "@/lib/supabase/teams";
 import { LeaderboardPanel } from "@/components/leaderboard/LeaderboardPanel";
 import { Icon } from "@/components/simulator/Icon";
+import {
+  gameCenterAvailable,
+  showGameCenterAchievements,
+  showGameCenterLeaderboard,
+} from "@/lib/gameCenter";
 import "@/components/simulator/simulator.css";
+
+// Platform never changes while the page is open.
+const noSubscription = () => () => {};
 
 export default function LeaderboardPage() {
   const client = useMemo(() => createClient(), []);
@@ -27,6 +35,15 @@ export default function LeaderboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const authenticated = !!user && !user.is_anonymous;
+  // Only in the iOS app; false while prerendering so hydration matches.
+  const gameCenter = useSyncExternalStore(noSubscription, gameCenterAvailable, () => false);
+  const [gameCenterNote, setGameCenterNote] = useState<string | null>(null);
+  async function openGameCenter(show: () => Promise<boolean>) {
+    setGameCenterNote(null);
+    // false = the player isn't signed in to Game Center on this device.
+    if (!(await show()))
+      setGameCenterNote("Sign in to Game Center in the Settings app to see your ranking and achievements.");
+  }
 
   useEffect(() => {
     void ensureSession(client).then(() =>
@@ -116,6 +133,20 @@ export default function LeaderboardPage() {
             </div>
           )}
         </div>
+
+        {gameCenter && (
+          <div className="leaderboard-game-center">
+            <button type="button" onClick={() => void openGameCenter(showGameCenterLeaderboard)}>
+              <Icon name="trophy" size={15} />
+              Game Center
+            </button>
+            <button type="button" onClick={() => void openGameCenter(showGameCenterAchievements)}>
+              <Icon name="check" size={15} />
+              Achievements
+            </button>
+          </div>
+        )}
+        {gameCenterNote && <p className="leaderboard-game-center-note">{gameCenterNote}</p>}
 
         {scopes.length > 1 && (
           <div className="leaderboard-scopes" role="tablist" aria-label="Leaderboard">

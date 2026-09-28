@@ -18,6 +18,7 @@ import type { TableMessage } from "@/lib/realtime/table-messages";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { recordGameCenterWin } from "@/lib/gameCenter";
 import {
   COLORS,
   HOME_ROTATION,
@@ -355,6 +356,18 @@ export default function Simulator({
     const timer = setTimeout(() => void onMoveRef.current(forcedMove), 550);
     return () => clearTimeout(timer);
   }, [forcedMove]);
+  // Game Center (iOS app; no-op elsewhere): count a win the moment this
+  // player finishes first — the others may keep playing for places. Not in
+  // Table Together, where one device is shared by several people. Resets
+  // when a new game starts (no winners yet).
+  const winReported = useRef(false);
+  const wonFirst = !localPlay && !!myPlayerId && state.winnerIds[0] === myPlayerId;
+  useEffect(() => {
+    if (state.winnerIds.length === 0) winReported.current = false;
+    if (!wonFirst || winReported.current) return;
+    winReported.current = true;
+    void recordGameCenterWin({ gameType: state.gameType, online: !practice });
+  }, [wonFirst, state.winnerIds.length, state.gameType, practice]);
   useEffect(() => {
     timeline.receive(events, state);
   }, [timeline, events, state]);

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GameRoomState, GameType, PlayerColor, RoomRules } from "../board/types";
+import type { GameRoomState, GameType, MatchResult, PlayerColor, RoomRules } from "../board/types";
 
 /**
  * Typed wrappers around the RPC surface in docs/IMPLEMENTATION_HANDOFF.md
@@ -177,6 +177,11 @@ export function setRoomGame(
     p_room_id: roomId,
     p_game_type: gameType,
   });
+}
+
+/** Every seat's result for the room's latest match; empty until it ends. */
+export function getMatchResults(client: SupabaseClient, roomId: string) {
+  return call<MatchResult[]>(client, "get_match_results", { p_room_id: roomId });
 }
 
 /** Host-only, lobby-only. Sends every rule; the server rejects unknown ones. */

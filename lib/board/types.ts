@@ -79,6 +79,34 @@ export interface RoomRules {
   bonusRollOnFinish: boolean;
 }
 
+/**
+ * One seat's stats for a match, derived on the server from the match's
+ * events (private.match_stats in supabase/migrations/20260928050000_match_stats.sql).
+ */
+export interface MatchStats {
+  rolls: number;
+  sixes: number;
+  /** How often each face came up: index 0 is face 1, index 5 is face 6. */
+  faces: number[];
+  turns: number;
+  capturesMade: number;
+  pawnsLost: number;
+  pawnsFinished: number;
+  missedDecisions: number;
+  longestRunWithoutSix: number;
+}
+
+/** A seat's result, as get_match_results returns it. */
+export interface MatchResult {
+  playerId: string;
+  seatIndex: number;
+  color: PlayerColor;
+  isBot: boolean;
+  /** 1 = first. Null when the match was abandoned. */
+  placement: number | null;
+  stats: MatchStats;
+}
+
 export interface GameRoomState {
   roomId: string;
   /** Present for server rooms; practice identifies its host by seat zero. */

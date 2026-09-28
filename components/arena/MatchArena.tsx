@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   RpcError,
+  getMatchResults,
   requestMove,
   requestRoll,
   toggleAutoRoll,
@@ -16,6 +17,7 @@ import {
 import { useRoomStore } from "@/lib/store/room-store";
 import { reportPlayer, setPlayerBlocked } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
+import type { MatchResult } from "@/lib/board/types";
 import { TableLoading } from "@/components/simulator/TableLoading";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
 // loading fallback's own styling (the die animation) is available
@@ -49,6 +51,24 @@ export function MatchArena({
   const setBlockedPlayerIds = useRoomStore((s) => s.setBlockedPlayerIds);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<MatchResult[] | null>(null);
+  const ended = state?.status === "summary" || state?.status === "abandoned";
+  // The server records results in the same transaction that ends the match,
+  // so they're ready as soon as the ended state arrives. A rematch returns
+  // to the lobby, which unmounts this arena, so results never go stale.
+  // Without them (an older server) the summary just shows no stats.
+  useEffect(() => {
+    if (!ended) return;
+    let cancelled = false;
+    getMatchResults(client, roomId)
+      .then((next) => {
+        if (!cancelled) setResults(next);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [client, roomId, ended]);
   async function act(fn: () => Promise<unknown>) {
     if (pending || sessionReplaced) return;
     setPending(true);
@@ -115,6 +135,7 @@ export function MatchArena({
         })
       }
       voice={voice}
+      matchResults={ended ? results : null}
       blockedPlayerIds={blockedPlayerIds}
       onBlockPlayer={async (playerId, blocked) => {
         await setPlayerBlocked(client, roomId, playerId, blocked);

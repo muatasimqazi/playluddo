@@ -11,13 +11,14 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import type { GameRoomState } from "@/lib/board/types";
+import type { GameRoomState, MatchStats, MatchResult } from "@/lib/board/types";
 import { rankPlayers } from "@/lib/board/rules";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
 import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { MatchDice } from "@/components/summary/MatchDice";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
 import { playSoundEffect, preloadSoundEffects } from "@/lib/sound/effects";
@@ -73,6 +74,25 @@ export interface SimulatorProps {
   blockedPlayerIds?: string[];
   onBlockPlayer?: (playerId: string, blocked: boolean) => Promise<unknown>;
   onReportPlayer?: (playerId: string, reason: ReportReason, details: string) => Promise<unknown>;
+  /** Every seat's result once an online match ends; absent offline. */
+  matchResults?: MatchResult[] | null;
+}
+
+function plural(count: number, one: string, many = `${one}s`) {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+/** One short line per player on the victory panel. */
+function statsLine(stats: MatchStats, snakes: boolean) {
+  const parts = snakes
+    ? [plural(stats.sixes, "six", "sixes"), plural(stats.turns, "turn")]
+    : [
+        plural(stats.capturesMade, "capture"),
+        plural(stats.sixes, "six", "sixes"),
+        plural(stats.turns, "turn"),
+      ];
+  if (stats.missedDecisions > 0) parts.push(`${stats.missedDecisions} timed out`);
+  return parts.join(" · ");
 }
 interface Preferences {
   quality: Quality;
@@ -259,6 +279,7 @@ export default function Simulator({
   blockedPlayerIds = [],
   onBlockPlayer,
   onReportPlayer,
+  matchResults,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
@@ -1697,33 +1718,42 @@ export default function Simulator({
             <div className="menu-players">
               {[...state.players]
                 .sort((a, b) => ranking.indexOf(a.id) - ranking.indexOf(b.id))
-                .map((p, index) => (
-                  <div key={p.id}>
-                    <PlayerAvatar
-                      player={p}
-                      size={30}
-                      placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
-                    />
-                    <span>{p.displayName}</span>
-                    <small>
-                      {snakes ? (
-                        `${state.pawns.find((piece) => piece.color === p.color)?.pathIndex ?? 0}/100`
-                      ) : (
-                        <>
-                          {
-                            state.pawns.filter(
-                              (piece) =>
-                                piece.color === p.color &&
-                                piece.state === "finished",
-                            ).length
-                          }
-                          /4 home
-                        </>
-                      )}
-                    </small>
-                  </div>
-                ))}
+                .map((p, index) => {
+                  const stats = matchResults?.find((r) => r.playerId === p.id)?.stats;
+                  return (
+                    <div key={p.id}>
+                      <PlayerAvatar
+                        player={p}
+                        size={30}
+                        placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
+                      />
+                      <span className="victory-name">
+                        {p.displayName}
+                        {stats && <em>{statsLine(stats, snakes)}</em>}
+                      </span>
+                      <small>
+                        {snakes ? (
+                          `${state.pawns.find((piece) => piece.color === p.color)?.pathIndex ?? 0}/100`
+                        ) : (
+                          <>
+                            {
+                              state.pawns.filter(
+                                (piece) =>
+                                  piece.color === p.color &&
+                                  piece.state === "finished",
+                              ).length
+                            }
+                            /4 home
+                          </>
+                        )}
+                      </small>
+                    </div>
+                  );
+                })}
             </div>
+            {matchResults && matchResults.length > 0 && (
+              <MatchDice results={matchResults} players={state.players} />
+            )}
             {onRestart && (
               <button className="sim-primary" onClick={onRestart}>
                 Play another round

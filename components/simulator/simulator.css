@@ -1408,6 +1408,132 @@ body.sim-piece-hover .sim-canvas {
   font-size: 12px;
   margin-bottom: 25px;
 }
+/* The summary grew stats and dice charts: keep it inside the screen on
+   phones, scrolling within the panel rather than off its edges. */
+.sim-victory {
+  width: min(470px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+@media (max-width: 480px) {
+  .sim-victory {
+    min-width: 0;
+    padding: 28px 18px;
+  }
+  .sim-victory h1 {
+    font-size: 30px;
+  }
+}
+.victory-name {
+  text-align: left;
+}
+.victory-name em {
+  display: block;
+  margin-top: 3px;
+  color: var(--sim-muted);
+  font-size: 9px;
+  font-style: normal;
+}
+.match-dice {
+  margin: 0 0 20px;
+  text-align: left;
+}
+.match-dice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.match-dice-header button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--sim-line);
+  border-radius: 7px;
+  color: var(--sim-ink);
+  font-size: 10px;
+}
+.match-dice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+/* A darker well than the panel, so every player color clears 3:1. */
+.match-dice-chart,
+.match-dice-table {
+  margin: 0;
+  padding: 10px 10px 6px;
+  border-radius: 9px;
+  background: #1b251c;
+}
+.match-dice-chart figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 10px;
+}
+.match-dice-chart figcaption strong {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.match-dice-chart figcaption small {
+  flex: 0 0 auto;
+  color: var(--sim-muted);
+  font-size: 9px;
+}
+.match-dice-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.match-dice-baseline {
+  stroke: var(--sim-line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.match-dice-expected {
+  stroke: var(--sim-muted);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.match-dice-face {
+  fill: var(--sim-muted);
+  font-size: 9px;
+  text-anchor: middle;
+}
+.match-dice-table {
+  width: 100%;
+  border-collapse: separate;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.match-dice-table th,
+.match-dice-table td {
+  padding: 4px 3px;
+  text-align: right;
+}
+.match-dice-table th[scope="row"],
+.match-dice-table thead th:first-child {
+  max-width: 90px;
+  overflow: hidden;
+  font-weight: 500;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.match-dice-table thead th {
+  color: var(--sim-muted);
+  font-weight: 400;
+}
+.match-dice-note {
+  margin: 8px 0 0 !important;
+  color: var(--sim-muted) !important;
+  font-size: 9px !important;
+}
 .table-loading,
 .sim-fallback {
   position: absolute;

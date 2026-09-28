@@ -1,15 +1,29 @@
 import { Capacitor } from "@capacitor/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { SocialLogin, type AppleProviderResponse } from "@capgo/capacitor-social-login";
+import {
+  SocialLogin,
+  type AppleProviderResponse,
+  type GoogleLoginResponseOnline,
+} from "@capgo/capacitor-social-login";
 
 /**
- * Native Sign in with Apple in the iOS app (@capgo/capacitor-social-login).
- * Apple's own sheet returns an ID token that Supabase verifies directly
- * (auth.signInWithIdToken), so — unlike the website — there's no redirect
- * through a browser. Supabase's Apple provider lists the bundle ID
- * (com.luddohouse.app) as an allowed client ID for these tokens.
+ * Native Sign in with Apple and Google in the iOS app
+ * (@capgo/capacitor-social-login). Each provider's own sheet returns an ID
+ * token that Supabase verifies directly (auth.signInWithIdToken), so —
+ * unlike the website — there's no redirect through a browser (Google blocks
+ * its web sign-in inside the app's web view anyway).
+ *
+ * Supabase must list these tokens' audiences as allowed client IDs: the
+ * bundle ID (com.luddohouse.app) for Apple, and GOOGLE_IOS_CLIENT_ID for
+ * Google. Google's reversed client ID is also a URL scheme in Info.plist.
  */
+const GOOGLE_IOS_CLIENT_ID = "1026111066835-o0o0docc4rthuaefvijv1nv0eik4aohk.apps.googleusercontent.com";
+
 export function nativeAppleSignInAvailable() {
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+}
+
+export function nativeGoogleSignInAvailable() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
 }
 
@@ -27,7 +41,10 @@ async function sha256Hex(value: string) {
 
 async function initialize() {
   try {
-    initialized ??= SocialLogin.initialize({ apple: { clientId: "com.luddohouse.app" } });
+    initialized ??= SocialLogin.initialize({
+      apple: { clientId: "com.luddohouse.app" },
+      google: { iOSClientId: GOOGLE_IOS_CLIENT_ID, mode: "online" },
+    });
     await initialized;
     return true;
   } catch {
@@ -77,6 +94,39 @@ export async function signInWithAppleNative(client: SupabaseClient): Promise<Nat
     await client.auth.updateUser({ data: { display_name: name.slice(0, 24) } }).catch(() => {});
   }
   return { status: "signed-in" };
+}
+
+export async function signInWithGoogleNative(client: SupabaseClient): Promise<NativeSignIn> {
+  if (!(await initialize())) {
+    return { status: "failed", message: "Google sign-in isn't available right now." };
+  }
+
+  // Same replay protection as Apple: Google embeds the hashed nonce in the
+  // ID token and Supabase checks it against the raw value.
+  const nonce = crypto.randomUUID();
+  let google: GoogleLoginResponseOnline;
+  try {
+    const login = await SocialLogin.login({
+      provider: "google",
+      options: { scopes: ["email", "profile"], nonce: await sha256Hex(nonce) },
+    });
+    google = login.result as GoogleLoginResponseOnline;
+  } catch (error) {
+    if (isCancel(error)) return { status: "cancelled" };
+    return { status: "failed", message: "Google sign-in didn't finish. Try again in a moment." };
+  }
+  if (!google.idToken) {
+    return { status: "failed", message: "Google sign-in didn't finish. Try again in a moment." };
+  }
+
+  const { error } = await client.auth.signInWithIdToken({
+    provider: "google",
+    token: google.idToken,
+    // Google's ID token carries an at_hash of the access token.
+    access_token: google.accessToken?.token,
+    nonce,
+  });
+  return error ? { status: "failed", message: error.message } : { status: "signed-in" };
 }
 
 /**

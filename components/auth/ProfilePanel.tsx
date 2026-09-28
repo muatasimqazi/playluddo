@@ -27,7 +27,9 @@ import { gameCenterAvailable, signInWithGameCenter } from "@/lib/gameCenter";
 import {
   appleAuthorizationCode,
   nativeAppleSignInAvailable,
+  nativeGoogleSignInAvailable,
   signInWithAppleNative,
+  signInWithGoogleNative,
 } from "@/lib/nativeAuth";
 import { deleteAccount } from "@/lib/supabase/account";
 
@@ -168,6 +170,8 @@ export function ProfilePanel({
   // in the Android app (it would need the web flow's redirect back into
   // the app).
   const apple = !native || nativeAppleSignInAvailable();
+  // Website: Google's redirect flow. iOS app: Google's native sheet.
+  const google = !native || nativeGoogleSignInAvailable();
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
   const [destination, setDestination] = useState("");
@@ -253,6 +257,13 @@ export function ProfilePanel({
   async function signInWithGoogle() {
     setPending("google");
     setMessage(null);
+    if (native) {
+      const result = await signInWithGoogleNative(client);
+      setPending(null);
+      if (result.status === "failed") setMessage(result.message);
+      if (result.status === "signed-in") setOpen(false);
+      return;
+    }
     const { error } = await client.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: webUrl("/") },
@@ -811,12 +822,12 @@ export function ProfilePanel({
             ) : (
               <>
                 <p>Save your name and return to the same identity on any device.</p>
-                {/* Google only on the web for now: it blocks its sign-in inside
-                    embedded web views, so the apps need its native SDK. Apple
+                {/* In the apps Apple and Google use their native sheets (Google
+                    blocks its web sign-in inside embedded web views). Apple
                     comes first — App Store guideline 4.8 wants it offered
                     alongside any other social sign-in. Email/phone codes work
                     everywhere. */}
-                {(apple || gameCenter || !native) && (
+                {(apple || google || gameCenter) && (
                   <>
                     <div className="profile-socials">
                       {apple && (
@@ -830,9 +841,10 @@ export function ProfilePanel({
                           {pending === "apple" ? "Signing in…" : "Continue with Apple"}
                         </button>
                       )}
-                      {!native && (
+                      {google && (
                         <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
-                          <b>G</b> Continue with Google
+                          <b>G</b>
+                          {pending === "google" && native ? "Signing in…" : "Continue with Google"}
                         </button>
                       )}
                       {gameCenter && (

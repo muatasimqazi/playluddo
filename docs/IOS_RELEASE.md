@@ -144,6 +144,19 @@ Center; the bundle ID it accepts is `com.luddohouse.app`.
   only Apple and Google — `facebook: false` keeps the Facebook SDK out of the
   app (applied on `npx cap sync`, which `ios:archive` runs).
 
+## Google sign-in in the iOS app
+
+Google blocks its web sign-in inside the app's web view, so the app uses
+Google's native sheet (same plugin as Apple) and `signInWithIdToken`.
+- Google Cloud Console: iOS OAuth client
+  `1026111066835-o0o0docc4rthuaefvijv1nv0eik4aohk.apps.googleusercontent.com`
+  (bundle ID `com.luddohouse.app`), set as `GOOGLE_IOS_CLIENT_ID` in
+  `lib/nativeAuth.ts`.
+- Its reversed ID is a URL scheme in `ios/App/App/Info.plist`
+  (`com.googleusercontent.apps.1026111066835-…`).
+- Supabase → Auth → Providers → Google → **Client IDs**: the web client ID
+  first, then the iOS one, comma-separated. Keep "Skip nonce checks" off.
+
 ## Account deletion
 
 Profile panel → **Delete account** (with a confirmation) calls the

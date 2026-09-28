@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { createRoom, joinRoom, setPlayerColor, setRoomGame } from "@/lib/supabase/rpc";
+import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { AVATARS, avatarDefinition, photoAvatar } from "@/lib/avatars/catalog";
@@ -65,6 +66,7 @@ export default function Home() {
     profileAvatar && !avatarDefinition(profileAvatar) ? photoAvatar(profileAvatar) : null;
   const [boardStyle, setBoardStyleChoice] = useState<BoardStyle>("signature");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
+  const age = useAgeCheck();
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [step, setStep] = useState(0);
@@ -101,10 +103,11 @@ export default function Home() {
         await setRoomGame(client, room.roomId, gameType);
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
+      setPending(null);
+      if (age.handle(e, () => void enter(kind))) return;
       setError(
         e instanceof Error ? e.message : "Could not connect. Please try again.",
       );
-      setPending(null);
     }
   }
   // Skips the manual player-count/color form and code-sharing dance
@@ -128,10 +131,11 @@ export default function Home() {
         await setRoomGame(client, room.roomId, gameType);
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
+      setPending(null);
+      if (age.handle(e, () => void goToRoom(kind, action))) return;
       setError(
         e instanceof Error ? e.message : "Could not connect. Please try again.",
       );
-      setPending(null);
     }
   }
   function startForTeam(teamId: string) {
@@ -142,6 +146,7 @@ export default function Home() {
   }
   return (
     <main className="sim-entrance">
+      {age.gate}
       {/* A static image, not the live 3D scene — this page is the very
           first thing anyone sees, so it shouldn't wait on a Three.js/WebGL
           bundle and a render just to show a decorative background. */}

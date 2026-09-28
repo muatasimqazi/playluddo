@@ -7,6 +7,7 @@ import { ensureSession } from "@/lib/supabase/auth";
 import { cancelMatchmaking, matchmake } from "@/lib/supabase/rpc";
 import type { GameType } from "@/lib/board/types";
 import { Icon } from "@/components/simulator/Icon";
+import { useAgeCheck } from "@/components/lobby/AgeCheck";
 
 const POLL_MS = 2000;
 const TIMEOUT_SECONDS = 45;
@@ -54,6 +55,8 @@ export function QuickMatch({
     inFlight: Promise<unknown> | null;
   } | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const age = useAgeCheck();
+  const handleAge = age.handle;
 
   useEffect(() => {
     const client = createClient();
@@ -82,9 +85,20 @@ export function QuickMatch({
         timer = setTimeout(poll, POLL_MS);
       } catch (error) {
         if (current.stopped) return;
+        // The age check runs before the player is queued, so there's no
+        // queue entry to cancel; answering it starts the search again.
+        const askedForAge = handleAge(error, () => {
+          setPhase({ kind: "searching" });
+          setElapsed(0);
+          setAttempt((n) => n + 1);
+        });
         setPhase({
           kind: "error",
-          message: error instanceof Error ? error.message : "Could not reach the table.",
+          message: askedForAge
+            ? "Online tables need your birth month and year first."
+            : error instanceof Error
+              ? error.message
+              : "Could not reach the table.",
         });
       }
     }
@@ -116,7 +130,7 @@ export function QuickMatch({
           .then(() => cancelMatchmaking(client))
           .catch(() => {});
     };
-  }, [gameType, playerCount, displayName, router, attempt]);
+  }, [gameType, playerCount, displayName, router, attempt, handleAge]);
 
   useEffect(() => {
     if (phase.kind !== "searching") return;
@@ -155,91 +169,94 @@ export function QuickMatch({
   const needed = playerCount - 1;
 
   return (
-    <div className="quick-match" role="status" aria-live="polite">
-      <span className="eyebrow">QUICK MATCH · {gameName.toUpperCase()}</span>
-      {phase.kind === "matched" ? (
-        <>
-          <h1 style={{ fontSize: 44 }}>{matchedHeadline(phase.players, phase.computers)}</h1>
-          <p className="quick-match-note">
-            {matchedLineup(phase.players, phase.computers)} Setting the table…
-          </p>
-        </>
-      ) : phase.kind === "error" ? (
-        <>
-          <h1 style={{ fontSize: 40 }}>
-            Couldn&apos;t reach
-            <br />
-            the <em>table.</em>
-          </h1>
-          <p className="quick-match-note">{phase.message}</p>
-          <div className="quick-match-actions">
-            <button
-              type="button"
-              className="sim-primary"
-              onClick={() => {
-                setPhase({ kind: "searching" });
-                setElapsed(0);
-                setAttempt((n) => n + 1);
-              }}
-            >
-              <span>Try again</span>
-              <Icon name="arrow" />
-            </button>
-            <button type="button" className="back-button" onClick={onCancel}>
-              ← Back
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <h1 style={{ fontSize: 44 }}>
-            Finding you
-            <br />
-            {needed === 1 ? (
-              <>
-                an <em>opponent.</em>
-              </>
-            ) : (
-              <>
-                a <em>table.</em>
-              </>
-            )}
-          </h1>
-          <div className="quick-match-timer">
-            <svg viewBox="0 0 100 100" aria-hidden>
-              <circle cx="50" cy="50" r="44" className="quick-match-track" />
-              <circle
-                cx="50"
-                cy="50"
-                r="44"
-                className="quick-match-progress"
-                style={{ strokeDashoffset: 276.46 * progress }}
-              />
-            </svg>
-            <strong>{remaining}</strong>
-            <small>sec</small>
-          </div>
-          <div className="quick-match-seats" aria-label={`${found} of ${needed} opponents found`}>
-            {Array.from({ length: needed }, (_, i) => (
-              <i key={i} className={i < found ? "is-filled" : undefined} />
-            ))}
-            <span>
-              {found} of {needed} {needed === 1 ? "opponent" : "opponents"} found
-            </span>
-          </div>
-          <p className="quick-match-note">
-            Looking for {needed === 1 ? "someone else" : `${needed} others`} starting a{" "}
-            {playerCount}-player {gameName} game. The table starts as soon as it fills — or
-            after {TIMEOUT_SECONDS} seconds, with computer players in any empty seats.
-          </p>
-          <div className="quick-match-actions">
-            <button type="button" className="back-button" onClick={() => void cancel()}>
-              ← Cancel
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+    <>
+      {age.gate}
+      <div className="quick-match" role="status" aria-live="polite">
+        <span className="eyebrow">QUICK MATCH · {gameName.toUpperCase()}</span>
+        {phase.kind === "matched" ? (
+          <>
+            <h1 style={{ fontSize: 44 }}>{matchedHeadline(phase.players, phase.computers)}</h1>
+            <p className="quick-match-note">
+              {matchedLineup(phase.players, phase.computers)} Setting the table…
+            </p>
+          </>
+        ) : phase.kind === "error" ? (
+          <>
+            <h1 style={{ fontSize: 40 }}>
+              Couldn&apos;t reach
+              <br />
+              the <em>table.</em>
+            </h1>
+            <p className="quick-match-note">{phase.message}</p>
+            <div className="quick-match-actions">
+              <button
+                type="button"
+                className="sim-primary"
+                onClick={() => {
+                  setPhase({ kind: "searching" });
+                  setElapsed(0);
+                  setAttempt((n) => n + 1);
+                }}
+              >
+                <span>Try again</span>
+                <Icon name="arrow" />
+              </button>
+              <button type="button" className="back-button" onClick={onCancel}>
+                ← Back
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 style={{ fontSize: 44 }}>
+              Finding you
+              <br />
+              {needed === 1 ? (
+                <>
+                  an <em>opponent.</em>
+                </>
+              ) : (
+                <>
+                  a <em>table.</em>
+                </>
+              )}
+            </h1>
+            <div className="quick-match-timer">
+              <svg viewBox="0 0 100 100" aria-hidden>
+                <circle cx="50" cy="50" r="44" className="quick-match-track" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  className="quick-match-progress"
+                  style={{ strokeDashoffset: 276.46 * progress }}
+                />
+              </svg>
+              <strong>{remaining}</strong>
+              <small>sec</small>
+            </div>
+            <div className="quick-match-seats" aria-label={`${found} of ${needed} opponents found`}>
+              {Array.from({ length: needed }, (_, i) => (
+                <i key={i} className={i < found ? "is-filled" : undefined} />
+              ))}
+              <span>
+                {found} of {needed} {needed === 1 ? "opponent" : "opponents"} found
+              </span>
+            </div>
+            <p className="quick-match-note">
+              Looking for {needed === 1 ? "someone else" : `${needed} others`} starting a{" "}
+              {playerCount}-player {gameName} game. The table starts as soon as it fills — or
+              after {TIMEOUT_SECONDS} seconds, with computer players in any empty seats.
+            </p>
+            <div className="quick-match-actions">
+              <button type="button" className="back-button" onClick={() => void cancel()}>
+                ← Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 

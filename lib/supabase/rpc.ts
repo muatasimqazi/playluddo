@@ -32,6 +32,10 @@ export type RpcErrorCode =
   | "NOT_TEAM_MEMBER"
   | "INVALID_GAME_TYPE"
   | "INVALID_RULES"
+  | "AGE_REQUIRED"
+  | "AGE_RESTRICTED"
+  | "AGE_ALREADY_DECLARED"
+  | "INVALID_BIRTH_DATE"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -58,6 +62,10 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "NOT_TEAM_MEMBER",
   "INVALID_GAME_TYPE",
   "INVALID_RULES",
+  "AGE_REQUIRED",
+  "AGE_RESTRICTED",
+  "AGE_ALREADY_DECLARED",
+  "INVALID_BIRTH_DATE",
 ]);
 
 export class RpcError extends Error {
@@ -176,6 +184,29 @@ export function setRoomGame(
   return call<GameRoomState>(client, "set_room_game", {
     p_room_id: roomId,
     p_game_type: gameType,
+  });
+}
+
+/** What the signed-in player may do (docs/COMPETITIVE_ROADMAP.md F0.4). Never carries birth data. */
+export interface AgeEligibility {
+  /** False while the server's age check is switched off: never ask. */
+  required: boolean;
+  declared: boolean;
+  online: boolean;
+  video: boolean;
+  /** Set only for an under-13 answer: the day the block lifts (YYYY-MM-DD). */
+  eligibleFrom: string | null;
+}
+
+export function getAgeEligibility(client: SupabaseClient) {
+  return call<AgeEligibility>(client, "get_age_eligibility");
+}
+
+/** Once per account; the server rejects a second answer. */
+export function declareAge(client: SupabaseClient, birthYear: number, birthMonth: number) {
+  return call<AgeEligibility>(client, "declare_age", {
+    p_birth_year: birthYear,
+    p_birth_month: birthMonth,
   });
 }
 

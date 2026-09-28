@@ -3741,6 +3741,48 @@ body.sim-piece-hover .sim-canvas {
   color: #b6baac;
   font-size: 13px;
 }
+/* The 13+ age check (AgeCheck.tsx): covers whatever page raised it. */
+.sim-entrance.age-check {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+.age-check .table-rules-back {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+.age-check .age-check-secondary {
+  color: var(--sim-ink);
+}
+.age-check-fields {
+  display: flex;
+  gap: 10px;
+  margin: 18px 0 16px;
+}
+.age-check-fields label {
+  display: grid;
+  flex: 1;
+  gap: 7px;
+}
+.age-check-fields select {
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid var(--sim-line);
+  border-radius: 7px;
+  background: #374334;
+  color: var(--sim-ink);
+  font-size: 14px;
+}
+.age-check-error {
+  margin: 0 0 12px;
+  color: #f0b2a6;
+  font-size: 13px;
+}
 
 /* Room lobby ("Play with friends"): the whole page scrolls instead of the
    form scrolling inside a fixed-height box, with the backdrop photo and

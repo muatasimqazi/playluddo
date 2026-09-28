@@ -19,6 +19,7 @@ import { reportPlayer, setPlayerBlocked } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import type { MatchResult } from "@/lib/board/types";
 import { TableLoading } from "@/components/simulator/TableLoading";
+import { useAgeCheck } from "@/components/lobby/AgeCheck";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
 // loading fallback's own styling (the die animation) is available
 // immediately instead of arriving with the same lazy chunk it stands in for.
@@ -52,6 +53,8 @@ export function MatchArena({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<MatchResult[] | null>(null);
+  // Rematches and reclaiming a seat check age (docs/COMPETITIVE_ROADMAP.md F0.4).
+  const age = useAgeCheck();
   const ended = state?.status === "summary" || state?.status === "abandoned";
   // The server records results in the same transaction that ends the match,
   // so they're ready as soon as the ended state arrives. A rematch returns
@@ -76,6 +79,7 @@ export function MatchArena({
     try {
       await fn();
     } catch (e) {
+      if (age.handle(e, () => void act(fn))) return;
       if (e instanceof RpcError && e.code === "SESSION_REPLACED")
         setSessionReplaced();
       else
@@ -88,65 +92,68 @@ export function MatchArena({
   }
   if (!state) return null;
   return (
-    <Simulator
-      state={state}
-      events={events}
-      myPlayerId={myPlayerId}
-      pending={pending}
-      error={error}
-      readOnly={sessionReplaced}
-      connection={connection}
-      messages={messages}
-      onMessage={async (text, kind) => {
-        const { data, error } = await client.rpc("send_table_message", {
-          p_room_id: roomId,
-          p_text: text,
-          p_kind: kind,
-        });
-        if (error)
-          throw new Error(
-            error.code === "PGRST202"
-              ? "Table chat needs the latest database migration."
-              : error.message,
+    <>
+      {age.gate}
+      <Simulator
+        state={state}
+        events={events}
+        myPlayerId={myPlayerId}
+        pending={pending}
+        error={error}
+        readOnly={sessionReplaced}
+        connection={connection}
+        messages={messages}
+        onMessage={async (text, kind) => {
+          const { data, error } = await client.rpc("send_table_message", {
+            p_room_id: roomId,
+            p_text: text,
+            p_kind: kind,
+          });
+          if (error)
+            throw new Error(
+              error.code === "PGRST202"
+                ? "Table chat needs the latest database migration."
+                : error.message,
+            );
+          addMessage(data);
+        }}
+        onRoll={() => act(() => requestRoll(client, roomId, connectionToken))}
+        onMove={(id) =>
+          act(() => requestMove(client, roomId, id, connectionToken))
+        }
+        onRematch={() =>
+          act(() =>
+            state.players.some((p) => p.rematchReady)
+              ? acceptRematch(client, roomId)
+              : requestRematch(client, roomId),
+          )
+        }
+        onReclaim={() => act(() => reclaimSeat(client, roomId))}
+        onAutoRoll={(enabled) =>
+          act(() => toggleAutoRoll(client, roomId, enabled))
+        }
+        paused={state.paused}
+        canPause={state.hostPlayerId === myPlayerId}
+        onPause={(paused) =>
+          act(async () => {
+            const next = await toggleMatchPause(client, roomId, paused);
+            useRoomStore.getState().setRoomState(next);
+          })
+        }
+        voice={voice}
+        matchResults={ended ? results : null}
+        blockedPlayerIds={blockedPlayerIds}
+        onBlockPlayer={async (playerId, blocked) => {
+          await setPlayerBlocked(client, roomId, playerId, blocked);
+          const current = useRoomStore.getState().blockedPlayerIds;
+          setBlockedPlayerIds(
+            blocked ? [...new Set([...current, playerId])] : current.filter((id) => id !== playerId),
           );
-        addMessage(data);
-      }}
-      onRoll={() => act(() => requestRoll(client, roomId, connectionToken))}
-      onMove={(id) =>
-        act(() => requestMove(client, roomId, id, connectionToken))
-      }
-      onRematch={() =>
-        act(() =>
-          state.players.some((p) => p.rematchReady)
-            ? acceptRematch(client, roomId)
-            : requestRematch(client, roomId),
-        )
-      }
-      onReclaim={() => act(() => reclaimSeat(client, roomId))}
-      onAutoRoll={(enabled) =>
-        act(() => toggleAutoRoll(client, roomId, enabled))
-      }
-      paused={state.paused}
-      canPause={state.hostPlayerId === myPlayerId}
-      onPause={(paused) =>
-        act(async () => {
-          const next = await toggleMatchPause(client, roomId, paused);
-          useRoomStore.getState().setRoomState(next);
-        })
-      }
-      voice={voice}
-      matchResults={ended ? results : null}
-      blockedPlayerIds={blockedPlayerIds}
-      onBlockPlayer={async (playerId, blocked) => {
-        await setPlayerBlocked(client, roomId, playerId, blocked);
-        const current = useRoomStore.getState().blockedPlayerIds;
-        setBlockedPlayerIds(
-          blocked ? [...new Set([...current, playerId])] : current.filter((id) => id !== playerId),
-        );
-      }}
-      onReportPlayer={(playerId, reason, details) =>
-        reportPlayer(client, roomId, playerId, reason, details)
-      }
-    />
+        }}
+        onReportPlayer={(playerId, reason, details) =>
+          reportPlayer(client, roomId, playerId, reason, details)
+        }
+      />
+    </>
   );
 }

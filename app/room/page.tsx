@@ -15,6 +15,7 @@ import { RpcError } from "@/lib/supabase/rpc";
 import { fetchBlockedPlayerIds } from "@/lib/supabase/moderation";
 import { acceptTableRules, tableRulesAccepted } from "@/lib/community";
 import { TableRules } from "@/components/lobby/TableRules";
+import { AgeRequired, UnderAgeNotice } from "@/components/lobby/AgeCheck";
 import "@/components/simulator/simulator.css";
 
 // A query param, not a [roomId] path segment: `output: "export"` (the
@@ -77,6 +78,9 @@ function ConnectedRoom({ roomId, onJoined }: { roomId: string; onJoined: () => v
   // with just a name instead of an error (no sign-in required).
   if (error instanceof RpcError && error.code === "SEAT_NOT_CONTROLLED")
     return <JoinTable roomId={roomId} onJoined={onJoined} />;
+  // Returning to a lobby for a new match (docs/COMPETITIVE_ROADMAP.md F0.4).
+  if (error instanceof RpcError && error.code === "AGE_REQUIRED") return <AgeRequired onEligible={onJoined} />;
+  if (error instanceof RpcError && error.code === "AGE_RESTRICTED") return <UnderAgeNotice />;
   if (error) return <RoomNotice code={error.message} />;
   if (!roomState) return <RoomNotice code="ROOM_NOT_FOUND" />;
 

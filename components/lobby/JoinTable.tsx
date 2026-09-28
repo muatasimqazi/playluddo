@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { getRoomInvite, joinRoomById, RpcError, type RoomInvite } from "@/lib/supabase/rpc";
+import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { Icon } from "@/components/simulator/Icon";
@@ -34,6 +35,7 @@ export function JoinTable({ roomId, onJoined }: { roomId: string; onJoined: () =
   const [name, setName] = useState(rememberedName);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const age = useAgeCheck();
   // Stable: ProfilePanel re-subscribes to auth whenever this changes. A
   // signed-in profile name only fills an empty field, never overwrites.
   const fillNameFromProfile = useCallback(
@@ -76,6 +78,10 @@ export function JoinTable({ roomId, onJoined }: { roomId: string; onJoined: () =
       }
       onJoined();
     } catch (err) {
+      if (age.handle(err, () => void join())) {
+        setPending(false);
+        return;
+      }
       const code = err instanceof RpcError ? err.code : "UNKNOWN";
       if (code === "ROOM_FULL" || code === "ALREADY_STARTED" || code === "ROOM_NOT_FOUND") {
         setLoadError(code);
@@ -94,6 +100,7 @@ export function JoinTable({ roomId, onJoined }: { roomId: string; onJoined: () =
   const gameName = invite.gameType === "ludo" ? "Ludo" : "Snakes & Ladders";
   return (
     <main className="sim-entrance room-lobby-page">
+      {age.gate}
       {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
       <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
       <div className="entrance-shade" />

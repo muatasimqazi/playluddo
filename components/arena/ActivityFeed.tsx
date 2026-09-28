@@ -106,6 +106,8 @@ function describeEvent(event: MatchEventRow): string {
       return "match ended — no active players remained";
     case "player_reconnected":
       return "reconnected";
+    case "decision_timed_out":
+      return "ran out of time";
     case "rematch_requested":
       return "requested a rematch";
     case "rematch_accepted_vote":

@@ -19,6 +19,7 @@ import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { MatchDice } from "@/components/summary/MatchDice";
+import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
 import { playSoundEffect, preloadSoundEffects } from "@/lib/sound/effects";
@@ -76,6 +77,8 @@ export interface SimulatorProps {
   onReportPlayer?: (playerId: string, reason: ReportReason, details: string) => Promise<unknown>;
   /** Every seat's result once an online match ends; absent offline. */
   matchResults?: MatchResult[] | null;
+  /** The ended match's dice proof, for "Check the dice"; absent offline. */
+  diceProof?: DiceProof | null;
 }
 
 function plural(count: number, one: string, many = `${one}s`) {
@@ -280,6 +283,7 @@ export default function Simulator({
   onBlockPlayer,
   onReportPlayer,
   matchResults,
+  diceProof,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
@@ -1752,7 +1756,7 @@ export default function Simulator({
                 })}
             </div>
             {matchResults && matchResults.length > 0 && (
-              <MatchDice results={matchResults} players={state.players} />
+              <MatchDice results={matchResults} players={state.players} proof={diceProof} />
             )}
             {onRestart && (
               <button className="sim-primary" onClick={onRestart}>

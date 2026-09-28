@@ -4028,3 +4028,23 @@ body.sim-piece-hover .sim-canvas {
   line-height: 1.5;
   color: #c0c8b5;
 }
+/* "Check the dice" under the summary's dice charts (MatchDice.tsx). */
+.match-dice-check {
+  min-height: 36px;
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 1px solid var(--sim-line);
+  border-radius: 7px;
+  color: var(--sim-ink);
+  font-size: 11px;
+}
+.match-dice-verdict {
+  margin: 12px 0 0 !important;
+  color: var(--sim-muted) !important;
+  font-size: 10px !important;
+  line-height: 1.5;
+}
+.match-dice-verdict strong {
+  color: var(--sim-ink);
+  font-weight: 500;
+}

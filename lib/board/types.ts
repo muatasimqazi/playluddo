@@ -120,6 +120,10 @@ export interface GameRoomState {
   maxPlayers?: number;
   /** The room's resolved house rules. Absent on older snapshots — treat as the defaults. */
   rules?: RoomRules;
+  /** The current or latest match. Absent on older snapshots. */
+  matchId?: string | null;
+  /** That match's dice commitment (lib/presentation/diceProof.ts), published before its first roll. */
+  diceCommitment?: string | null;
   players: Player[];
   pawns: Pawn[];
   turnPlayerId: string | null;

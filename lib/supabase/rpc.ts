@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GameRoomState, GameType, MatchResult, PlayerColor, RoomRules } from "../board/types";
+import type { DiceProof } from "../presentation/diceProof";
 
 /**
  * Typed wrappers around the RPC surface in docs/IMPLEMENTATION_HANDOFF.md
@@ -208,6 +209,11 @@ export function declareAge(client: SupabaseClient, birthYear: number, birthMonth
     p_birth_year: birthYear,
     p_birth_month: birthMonth,
   });
+}
+
+/** The latest match's dice; the seed is null until the match ends. Null for a match without one. */
+export function getDiceProof(client: SupabaseClient, roomId: string) {
+  return call<DiceProof | null>(client, "get_dice_proof", { p_room_id: roomId });
 }
 
 /** Every seat's result for the room's latest match; empty until it ends. */

@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { COLORS } from "@/lib/presentation/board";
 import type { MatchResult, Player } from "@/lib/board/types";
+import {
+  rememberedCommitment,
+  verifyDiceProof,
+  type DiceCheck,
+  type DiceProof,
+} from "@/lib/presentation/diceProof";
 
 /**
  * How each player's die landed this match (docs/COMPETITIVE_ROADMAP.md
@@ -29,12 +35,67 @@ function timesLabel(count: number) {
   return count === 1 ? "once" : count === 2 ? "twice" : `${count} times`;
 }
 
+/**
+ * "Check the dice" (F1.2): recomputes every roll from the revealed seed.
+ * The copy claims only what the check shows: rolls weren't changed during
+ * or after the game. It can't show how the seed was picked.
+ */
+function DiceCheckResult({ proof }: { proof: DiceProof }) {
+  const [state, setState] = useState<
+    { kind: "idle" } | { kind: "checking" } | { kind: "done"; check: DiceCheck; sawStart: boolean }
+  >({ kind: "idle" });
+
+  async function run() {
+    setState({ kind: "checking" });
+    const remembered = rememberedCommitment(proof.matchId);
+    const check = await verifyDiceProof(proof, remembered).catch(
+      (): DiceCheck => ({ ok: false, reason: "protocol" }),
+    );
+    setState({ kind: "done", check, sawStart: remembered !== null });
+  }
+
+  if (state.kind === "idle")
+    return (
+      <button type="button" className="match-dice-check" onClick={() => void run()}>
+        Check the dice
+      </button>
+    );
+  if (state.kind === "checking")
+    return (
+      <p className="match-dice-verdict" role="status">
+        Checking every roll…
+      </p>
+    );
+  const { check, sawStart } = state;
+  return (
+    <p className="match-dice-verdict" role="status">
+      {check.ok ? (
+        <>
+          <strong>✓ All {check.rolls} rolls check out.</strong> Each one follows from a secret seed
+          that was fingerprinted before the first roll, so none were changed during or after the
+          game.
+          {!sawStart && " This device joined after the start, so it used the fingerprint the server shows now."}{" "}
+          It can&apos;t show how the seed was picked.
+        </>
+      ) : check.reason === "roll" ? (
+        <strong>✗ Roll {check.rollIndex! + 1} doesn&apos;t match the seed. Please report this game.</strong>
+      ) : check.reason === "commitment" || check.reason === "remembered" ? (
+        <strong>✗ The revealed seed doesn&apos;t match the fingerprint shared before the first roll. Please report this game.</strong>
+      ) : (
+        <strong>This game&apos;s dice can&apos;t be checked.</strong>
+      )}
+    </p>
+  );
+}
+
 export function MatchDice({
   results,
   players,
+  proof,
 }: {
   results: MatchResult[];
   players: Player[];
+  proof?: DiceProof | null;
 }) {
   const [asTable, setAsTable] = useState(false);
   const rows = results
@@ -137,6 +198,7 @@ export function MatchDice({
         </div>
       )}
       <p className="match-dice-note">The line marks what a fair die gives on average for that many rolls.</p>
+      {proof?.seed && <DiceCheckResult proof={proof} />}
     </section>
   );
 }

@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   RpcError,
+  getDiceProof,
   getMatchResults,
   requestMove,
   requestRoll,
@@ -18,6 +19,7 @@ import { useRoomStore } from "@/lib/store/room-store";
 import { reportPlayer, setPlayerBlocked } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import type { MatchResult } from "@/lib/board/types";
+import { rememberCommitment, type DiceProof } from "@/lib/presentation/diceProof";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
@@ -53,6 +55,14 @@ export function MatchArena({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<MatchResult[] | null>(null);
+  const [diceProof, setDiceProof] = useState<DiceProof | null>(null);
+  const matchId = state?.matchId;
+  const diceCommitment = state?.diceCommitment;
+  // Remember the commitment the first time this device sees it, so the
+  // after-game check can confirm it never changed.
+  useEffect(() => {
+    if (matchId && diceCommitment) rememberCommitment(matchId, diceCommitment);
+  }, [matchId, diceCommitment]);
   // Rematches and reclaiming a seat check age (docs/COMPETITIVE_ROADMAP.md F0.4).
   const age = useAgeCheck();
   const ended = state?.status === "summary" || state?.status === "abandoned";
@@ -66,6 +76,11 @@ export function MatchArena({
     getMatchResults(client, roomId)
       .then((next) => {
         if (!cancelled) setResults(next);
+      })
+      .catch(() => {});
+    getDiceProof(client, roomId)
+      .then((next) => {
+        if (!cancelled) setDiceProof(next);
       })
       .catch(() => {});
     return () => {
@@ -142,6 +157,7 @@ export function MatchArena({
         }
         voice={voice}
         matchResults={ended ? results : null}
+      diceProof={ended ? diceProof : null}
         blockedPlayerIds={blockedPlayerIds}
         onBlockPlayer={async (playerId, blocked) => {
           await setPlayerBlocked(client, roomId, playerId, blocked);

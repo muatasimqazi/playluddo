@@ -46,16 +46,23 @@ select is(
   'roll_die returns every face and nothing else'
 );
 
+-- Since 20260928070000_verifiable_dice.sql, both games roll through
+-- roll_match_die, which maps seeded bytes with the same die_face_from_byte
+-- and falls back to roll_die for a match without a seed.
 select ok(
-  (select prosrc like '%private.roll_die()%' and prosrc not like '%gen_random_bytes%'
-   from pg_proc where oid = 'private.ludo_perform_ludo_roll(uuid,uuid)'::regprocedure),
-  'Ludo rolls use roll_die'
+  (select prosrc like '%private.roll_match_die(p_room_id)%' and prosrc not like '%gen_random_bytes%'
+   from pg_proc where oid = 'private.ludo_perform_ludo_roll(uuid,uuid)'::regprocedure)
+  and (select prosrc like '%private.roll_match_die(p_room_id)%' and prosrc not like '%gen_random_bytes%'
+       from pg_proc where oid = 'private.ludo_perform_roll(uuid,uuid)'::regprocedure),
+  'Ludo and Snakes & Ladders rolls go through roll_match_die'
 );
 
 select ok(
-  (select prosrc like '%private.roll_die()%' and prosrc not like '%gen_random_bytes%'
-   from pg_proc where oid = 'private.ludo_perform_roll(uuid,uuid)'::regprocedure),
-  'Snakes & Ladders rolls use roll_die'
+  (select prosrc like '%private.dice_face(%' and prosrc like '%private.roll_die()%'
+   from pg_proc where oid = 'private.roll_match_die(uuid)'::regprocedure)
+  and (select prosrc like '%private.die_face_from_byte(%'
+       from pg_proc where oid = 'private.dice_face(bytea,uuid,integer)'::regprocedure),
+  'roll_match_die uses the unbiased byte mapping, and roll_die without a seed'
 );
 
 select ok(

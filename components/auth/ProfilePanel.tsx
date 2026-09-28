@@ -24,7 +24,12 @@ import {
 import { BRAND } from "@/lib/brand";
 import { isNativeApp, webUrl } from "@/lib/native";
 import { gameCenterAvailable, signInWithGameCenter } from "@/lib/gameCenter";
-import { nativeAppleSignInAvailable, signInWithAppleNative } from "@/lib/nativeAuth";
+import {
+  appleAuthorizationCode,
+  nativeAppleSignInAvailable,
+  signInWithAppleNative,
+} from "@/lib/nativeAuth";
+import { deleteAccount } from "@/lib/supabase/account";
 
 type LoginMethod = "email" | "phone";
 
@@ -179,6 +184,7 @@ export function ProfilePanel({
   const [teamName, setTeamName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [sharedTeamId, setSharedTeamId] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     const applyUser = (nextUser: User | null) => {
@@ -406,6 +412,40 @@ export function ProfilePanel({
     }
     setUser(null);
     setMessage(null);
+  }
+
+  // Apple requires revoking Sign in with Apple on deletion; in the iOS app
+  // the player confirms with Apple once more to get a code for that.
+  const confirmWithApple =
+    native &&
+    nativeAppleSignInAvailable() &&
+    !!user?.identities?.some((identity) => identity.provider === "apple");
+
+  async function removeAccount() {
+    setPending("delete");
+    setMessage(null);
+    let appleCode: string | undefined;
+    if (confirmWithApple) {
+      const apple = await appleAuthorizationCode();
+      if (apple.status === "cancelled") {
+        setPending(null);
+        return;
+      }
+      // If Apple can't be reached, still delete: the player's request for
+      // their data to be gone mustn't depend on it.
+      if (apple.status === "ok") appleCode = apple.code;
+    }
+    const problem = await deleteAccount(client, { appleAuthorizationCode: appleCode });
+    setPending(null);
+    if (problem) {
+      setMessage(problem);
+      return;
+    }
+    setConfirmingDelete(false);
+    setUser(null);
+    setTeams([]);
+    setWins(null);
+    setMessage("Your account and its data have been deleted.");
   }
 
   async function makeTeam() {
@@ -731,6 +771,42 @@ export function ProfilePanel({
                 >
                   Sign out
                 </button>
+                {confirmingDelete ? (
+                  <div className="profile-delete" role="group" aria-labelledby="delete-heading">
+                    <strong id="delete-heading">Delete your account?</strong>
+                    <p>
+                      This permanently deletes your account, profile, photo, wins and the teams you own. Games
+                      you&rsquo;ve played stay in the other players&rsquo; history. This can&rsquo;t be undone.
+                      {confirmWithApple && " You’ll confirm with Apple first."}
+                    </p>
+                    <div className="profile-delete-actions">
+                      <button
+                        type="button"
+                        disabled={pending !== null}
+                        onClick={() => setConfirmingDelete(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="is-danger"
+                        disabled={pending !== null}
+                        onClick={() => void removeAccount()}
+                      >
+                        {pending === "delete" ? "Deleting…" : "Delete my account"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className="profile-delete-link"
+                    type="button"
+                    disabled={pending !== null}
+                    onClick={() => setConfirmingDelete(true)}
+                  >
+                    Delete account
+                  </button>
+                )}
               </>
             ) : (
               <>

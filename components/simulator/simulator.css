@@ -2076,6 +2076,53 @@ body.sim-piece-hover .sim-canvas {
 .profile-panel button:disabled {
   opacity: 0.55;
 }
+/* Account deletion: a quiet link that opens an explicit confirmation. */
+.profile-delete-link {
+  display: block;
+  margin: 14px auto 0;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: #e39a8a;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.profile-delete {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #e0786445;
+  border-radius: 8px;
+  background: #5a2a2233;
+}
+.profile-delete strong {
+  display: block;
+  color: #f3d5cc;
+  font-size: 14px;
+}
+.profile-delete p {
+  margin: 6px 0 12px;
+  color: #d8c9c2;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.profile-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.profile-delete-actions button {
+  min-height: 42px;
+  border: 1px solid #ffffff25;
+  border-radius: 8px;
+  color: #d6ddcf;
+  font-size: 12px;
+}
+.profile-delete-actions button.is-danger {
+  border-color: #c9533f;
+  background: #b8452f;
+  color: #fff;
+}
 .profile-guest-note {
   display: block;
   margin-top: 14px;

@@ -148,10 +148,12 @@ export default function PrivacyPage() {
         <li>Edit your name, avatar, photo and country from your profile.</li>
         <li>Leave or delete teams from your profile.</li>
         <li>
-          <strong>Delete your account and data</strong>: email{" "}
-          <a href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20account`}>{SUPPORT_EMAIL}</a> from the
-          address or with the phone number you signed in with (for a Game Center account, include your display
-          name), and we&rsquo;ll delete your account, profile, photo, wins and teams.
+          <strong>Delete your account and data</strong> at any time: open your profile and tap{" "}
+          <strong>Delete account</strong>. This immediately deletes your account, profile, photo, wins and the
+          teams you own, and, if you used Sign in with Apple in the app, revokes our access to your Apple ID.
+          Games you played stay in the other players&rsquo; history without your account attached. You can
+          also email <a href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20account`}>{SUPPORT_EMAIL}</a> and
+          we&rsquo;ll do it for you.
         </li>
         <li>
           Ask for a copy of your data, or to correct it, by emailing us. Depending on where you live, you may

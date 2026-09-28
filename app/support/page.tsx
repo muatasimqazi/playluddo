@@ -85,9 +85,11 @@ export default function SupportPage() {
       </p>
       <h3>How do I delete my account?</h3>
       <p>
-        Email <a href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20account`}>{SUPPORT_EMAIL}</a> from
-        the email address, or with the phone number, you signed in with, and we&rsquo;ll delete your
-        account, profile, photo, wins and teams. See the <a href="/privacy">privacy policy</a> for details.
+        Open your profile, tap <strong>Delete account</strong> at the bottom and confirm. Your account,
+        profile, photo, wins and the teams you own are deleted right away. If you can&rsquo;t sign in anymore,
+        email <a href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20account`}>{SUPPORT_EMAIL}</a> from the
+        email address, or with the phone number, you signed in with. See the{" "}
+        <a href="/privacy">privacy policy</a> for details.
       </p>
 
       <h2>Safety</h2>

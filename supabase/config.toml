@@ -403,6 +403,11 @@ deno_version = 2
 [functions.game-center-sign-in]
 verify_jwt = false
 
+# In-app account deletion. The caller's session is checked inside the
+# function (auth.getUser), which works with any JWT signing key setup.
+[functions.delete-account]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

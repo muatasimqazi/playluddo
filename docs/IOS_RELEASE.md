@@ -144,6 +144,25 @@ Center; the bundle ID it accepts is `com.luddohouse.app`.
   only Apple and Google — `facebook: false` keeps the Facebook SDK out of the
   app (applied on `npx cap sync`, which `ios:archive` runs).
 
+## Account deletion
+
+Profile panel → **Delete account** (with a confirmation) calls the
+`delete-account` Edge Function (`supabase/functions/delete-account/`), which
+removes the player's profile photos and deletes the auth user; foreign keys
+delete their teams, memberships, wins and matchmaking rows and detach their
+game seats. For Sign in with Apple accounts in the iOS app, the player
+confirms with Apple once more and the function revokes the Apple token, as
+Apple requires. Setup (once):
+
+```sh
+supabase functions deploy delete-account
+supabase secrets set APPLE_PRIVATE_KEY="$(cat path/to/AuthKey_UQC983N63K.p8)"
+cd supabase/functions/delete-account && deno test   # Apple revocation tests
+```
+
+Without the secret, accounts are still deleted but Apple revocation is
+skipped (logged in the function's logs).
+
 ## Before review — worth deciding
 
 - **Chat moderation (guideline 1.2):** apps with user-to-user chat need a way to

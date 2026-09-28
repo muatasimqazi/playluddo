@@ -23,6 +23,7 @@
     "@capacitor/ios": "^8.5.2",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@capgo/capacitor-social-login": "^8.5.11",
     "@pixiv/three-vrm": "^3.5.5",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",

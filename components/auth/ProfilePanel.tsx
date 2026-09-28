@@ -24,6 +24,7 @@ import {
 import { BRAND } from "@/lib/brand";
 import { isNativeApp, webUrl } from "@/lib/native";
 import { gameCenterAvailable, signInWithGameCenter } from "@/lib/gameCenter";
+import { nativeAppleSignInAvailable, signInWithAppleNative } from "@/lib/nativeAuth";
 
 type LoginMethod = "email" | "phone";
 
@@ -83,6 +84,18 @@ function countryOptions() {
   const names = new Intl.DisplayNames(["en"], { type: "region" });
   return COUNTRY_CODES.map((code) => ({ code, name: names.of(code) ?? code })).sort((a, b) =>
     a.name.localeCompare(b.name),
+  );
+}
+
+/** Apple's logo for the Sign in with Apple button (Apple's HIG allows it there). */
+function AppleLogo() {
+  return (
+    <svg className="profile-apple-logo" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
+      />
+    </svg>
   );
 }
 
@@ -146,6 +159,10 @@ export function ProfilePanel({
   // Only affects the sign-in dialog, which never renders on the server.
   const native = isNativeApp();
   const gameCenter = native && gameCenterAvailable();
+  // Website: Apple's redirect flow. iOS app: Apple's native sheet. Not yet
+  // in the Android app (it would need the web flow's redirect back into
+  // the app).
+  const apple = !native || nativeAppleSignInAvailable();
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
   const [destination, setDestination] = useState("");
@@ -238,6 +255,26 @@ export function ProfilePanel({
       setMessage(error.message);
       setPending(null);
     }
+  }
+
+  async function continueWithApple() {
+    setPending("apple");
+    setMessage(null);
+    if (!native) {
+      const { error } = await client.auth.signInWithOAuth({
+        provider: "apple",
+        options: { redirectTo: webUrl("/") },
+      });
+      if (error) {
+        setMessage(error.message);
+        setPending(null);
+      }
+      return;
+    }
+    const result = await signInWithAppleNative(client);
+    setPending(null);
+    if (result.status === "failed") setMessage(result.message);
+    if (result.status === "signed-in") setOpen(false);
   }
 
   async function continueWithGameCenter() {
@@ -698,14 +735,31 @@ export function ProfilePanel({
             ) : (
               <>
                 <p>Save your name and return to the same identity on any device.</p>
-                {/* Google only on the web: it blocks its sign-in inside embedded
-                    web views, and App Store guideline 4.8 would then require
-                    Sign in with Apple alongside it. The iOS app offers Game
-                    Center instead. Email/phone codes work everywhere. */}
-                {(!native || gameCenter) && (
+                {/* Google only on the web for now: it blocks its sign-in inside
+                    embedded web views, so the apps need its native SDK. Apple
+                    comes first — App Store guideline 4.8 wants it offered
+                    alongside any other social sign-in. Email/phone codes work
+                    everywhere. */}
+                {(apple || gameCenter || !native) && (
                   <>
                     <div className="profile-socials">
-                      {gameCenter ? (
+                      {apple && (
+                        <button
+                          type="button"
+                          className="profile-apple"
+                          disabled={pending !== null}
+                          onClick={() => void continueWithApple()}
+                        >
+                          <AppleLogo />
+                          {pending === "apple" ? "Signing in…" : "Continue with Apple"}
+                        </button>
+                      )}
+                      {!native && (
+                        <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
+                          <b>G</b> Continue with Google
+                        </button>
+                      )}
+                      {gameCenter && (
                         <button
                           type="button"
                           disabled={pending !== null}
@@ -713,10 +767,6 @@ export function ProfilePanel({
                         >
                           <Icon name="trophy" size={16} />
                           {pending === "game-center" ? "Signing in…" : "Continue with Game Center"}
-                        </button>
-                      ) : (
-                        <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
-                          <b>G</b> Continue with Google
                         </button>
                       )}
                     </div>

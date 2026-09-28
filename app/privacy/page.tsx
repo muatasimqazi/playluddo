@@ -56,6 +56,11 @@ export default function PrivacyPage() {
           recognize your account.
         </li>
         <li>
+          If you <strong>continue with Apple or Google</strong>: the email address (with Apple, this can be a
+          private relay address that hides your real one) and, the first time, the name they share with us,
+          plus an ID that recognizes your account. We never see your Apple or Google password.
+        </li>
+        <li>
           <strong>Your profile</strong>: display name, chosen avatar, country (optional), and a profile photo
           if you upload one. Uploaded photos are stored at a public web address so other players can see
           your avatar.
@@ -103,8 +108,8 @@ export default function PrivacyPage() {
           <strong>Twilio</strong> — sends sign-in codes by text message, if you sign in with a phone number.
         </li>
         <li>
-          <strong>Apple</strong> — Game Center sign-in, leaderboard and achievements, in the iPhone and iPad
-          app only.
+          <strong>Apple</strong> — only if you choose &ldquo;Continue with Apple&rdquo;, and for Game Center
+          sign-in, leaderboard and achievements in the iPhone and iPad app.
         </li>
         <li>
           <strong>Vercel</strong> — hosts the website.
@@ -114,7 +119,7 @@ export default function PrivacyPage() {
           analytics.
         </li>
         <li>
-          <strong>Google</strong> — only if you choose &ldquo;Continue with Google&rdquo; on the website.
+          <strong>Google</strong> — only if you choose &ldquo;Continue with Google&rdquo;.
         </li>
       </ul>
       <p>

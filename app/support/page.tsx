@@ -72,9 +72,9 @@ export default function SupportPage() {
       <h2>Your account</h2>
       <h3>Do I need an account?</h3>
       <p>
-        No. You can play every mode without one. Signing in (with an email or phone code, or with Game Center
-        in the iPhone and iPad app) keeps your name, avatar, wins and teams across devices and puts you on the
-        leaderboard.
+        No. You can play every mode without one. Signing in (with Apple, Google, an email or phone code, or
+        Game Center in the iPhone and iPad app) keeps your name, avatar, wins and teams across devices and puts
+        you on the leaderboard.
       </p>
       <h3>Can I sign in with Game Center?</h3>
       <p>

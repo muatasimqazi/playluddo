@@ -125,6 +125,25 @@ cd supabase/functions/game-center-sign-in && deno test --allow-net   # proof ver
 Sign-in only works in a signed build on a real device signed in to Game
 Center; the bundle ID it accepts is `com.luddohouse.app`.
 
+## Sign in with Apple
+
+- **iOS app:** Apple's native sheet via `@capgo/capacitor-social-login`
+  (`lib/nativeAuth.ts`), token verified by Supabase with
+  `signInWithIdToken`. Needs the Sign In with Apple capability on the
+  `com.luddohouse.app` App ID and the `com.apple.developer.applesignin`
+  entitlement (in `App.entitlements`).
+- **Website:** Supabase's Apple OAuth redirect using the Services ID
+  `com.luddohouse.web` (return URL
+  `https://mnhxjuivtegezhzhiswp.supabase.co/auth/v1/callback`).
+- **Supabase → Auth → Providers → Apple:** Client IDs
+  `com.luddohouse.web,com.luddohouse.app`; the secret key is a JWT that
+  **expires every 6 months** (current one: 2027-03-27). Regenerate it with
+  `node scripts/apple-client-secret.mjs path/to/AuthKey_UQC983N63K.p8` (copies
+  it to the clipboard) and paste it in. Only the website's flow uses it.
+- The social-login plugin is configured in `capacitor.config.ts` to bundle
+  only Apple and Google — `facebook: false` keeps the Facebook SDK out of the
+  app (applied on `npx cap sync`, which `ios:archive` runs).
+
 ## Before review — worth deciding
 
 - **Chat moderation (guideline 1.2):** apps with user-to-user chat need a way to

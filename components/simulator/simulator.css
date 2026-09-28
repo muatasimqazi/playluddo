@@ -1719,6 +1719,16 @@ body.sim-piece-hover .sim-canvas {
   font-size: 16px;
   text-align: center;
 }
+/* Sign in with Apple: Apple's black button style (HIG). */
+.profile-socials button.profile-apple {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+.profile-apple-logo {
+  flex: none;
+  margin-top: -2px;
+}
 .profile-divider {
   display: flex;
   align-items: center;

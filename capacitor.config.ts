@@ -35,6 +35,13 @@ const config: CapacitorConfig = {
       backgroundColor: "#1e2720",
       showSpinner: false,
     },
+    // Native Sign in with Apple and Google (lib/nativeAuth.ts). Only the
+    // providers the app uses are bundled — `false` keeps the Facebook SDK
+    // out of the app entirely. Rerun `npx cap sync` after changing this.
+    SocialLogin: {
+      providers: { apple: true, google: true, facebook: false, twitter: false },
+      logLevel: 1,
+    },
   },
 };
 

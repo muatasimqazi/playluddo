@@ -191,7 +191,8 @@ export function practiceReducer(
       // 3-4 player matches wait for literally everyone to finish (deciding
       // 2nd/3rd/4th place too), but that degenerates for exactly 2 players
       // into "wait for the loser too" — the match never completes on a
-      // win at all. See supabase/migrations/20260920010000_fix_two_player_match_end.sql.
+      // win at all. Mirrors the server's
+      // supabase/migrations/20260928030000_two_player_ludo_ends_on_first_win.sql.
       const complete =
         (state.players.length === 2 && winnerIds.length >= 1) ||
         winnerIds.length >= state.players.length;

@@ -63,7 +63,19 @@ export default function PrivacyPage() {
         <li>
           <strong>Your wins</strong>, shown on the leaderboard, and <strong>teams</strong> you create or join.
         </li>
+        <li>
+          If you sign in with <strong>Game Center</strong> in the iPhone or iPad app: an ID Apple gives us for
+          your Game Center account, used only to recognize your account, and your Game Center nickname as
+          your starting display name. We don&rsquo;t receive your Apple ID, email or contacts.
+        </li>
       </ul>
+      <h3>Game Center</h3>
+      <p>
+        In the iPhone and iPad app, if you&rsquo;re signed in to Game Center, your win total and achievements
+        are sent to Apple&rsquo;s Game Center, where Game Center players can see them. Apple handles that
+        information under its own privacy policy. You can turn Game Center off in your device&rsquo;s
+        Settings.
+      </p>
       <h3>Usage analytics</h3>
       <p>
         We use PostHog to understand how the game is used — for example which screens are visited and which
@@ -89,6 +101,10 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Twilio</strong> — sends sign-in codes by text message, if you sign in with a phone number.
+        </li>
+        <li>
+          <strong>Apple</strong> — Game Center sign-in, leaderboard and achievements, in the iPhone and iPad
+          app only.
         </li>
         <li>
           <strong>Vercel</strong> — hosts the website.
@@ -129,8 +145,8 @@ export default function PrivacyPage() {
         <li>
           <strong>Delete your account and data</strong>: email{" "}
           <a href={`mailto:${SUPPORT_EMAIL}?subject=Delete%20my%20account`}>{SUPPORT_EMAIL}</a> from the
-          address or with the phone number you signed in with, and we&rsquo;ll delete your account, profile,
-          photo, wins and teams.
+          address or with the phone number you signed in with (for a Game Center account, include your display
+          name), and we&rsquo;ll delete your account, profile, photo, wins and teams.
         </li>
         <li>
           Ask for a copy of your data, or to correct it, by emailing us. Depending on where you live, you may

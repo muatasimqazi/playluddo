@@ -98,8 +98,32 @@ add them to the version:
 | Achievement | Ten Wins | `com.luddohouse.ten_wins` | Win 10 games (reports progress along the way) |
 
 Each achievement needs a point value (total ≤ 1000), a title/description and a
-512×512 or 1024×1024 image. Anything not created yet just fails silently in the
-app — it's safe to ship before they exist, but players won't see them.
+512×512 or 1024×1024 image — ready-made ones are in `designs/game-center/`
+(`python3 designs/game-center/render.py` regenerates them). Anything not
+created yet just fails silently in the app — it's safe to ship before they
+exist, but players won't see them.
+
+### Game Center sign-in
+
+In the iOS app the profile panel offers **Continue with Game Center**, which
+signs in to (or, the first time, creates) a Luddo House account for that Game
+Center player. The app sends GameKit's Apple-signed identity proof to the
+`game-center-sign-in` Supabase Edge Function
+(`supabase/functions/game-center-sign-in/`), which verifies it against
+Apple's key and returns a one-time magic-link token the app redeems for a
+normal session. Accounts carry `app_metadata.game_center = true` and a private
+placeholder email (`gamecenter+<hash>@luddohouse.com`) that never receives
+mail.
+
+The function must be deployed before a build that uses it ships:
+
+```sh
+supabase functions deploy game-center-sign-in   # verify_jwt=false comes from supabase/config.toml
+cd supabase/functions/game-center-sign-in && deno test --allow-net   # proof verification tests
+```
+
+Sign-in only works in a signed build on a real device signed in to Game
+Center; the bundle ID it accepts is `com.luddohouse.app`.
 
 ## Before review — worth deciding
 

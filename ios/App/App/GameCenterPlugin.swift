@@ -12,6 +12,7 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKGameCenterControll
     public let jsName = "GameCenter"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "identityProof", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "submitScore", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getScore", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "reportAchievement", returnType: CAPPluginReturnPromise),
@@ -66,6 +67,30 @@ public class GameCenterPlugin: CAPPlugin, CAPBridgedPlugin, GKGameCenterControll
         if GKLocalPlayer.local.isAuthenticated { return true }
         call.reject("Game Center player is not signed in", "NOT_AUTHENTICATED")
         return false
+    }
+
+    /// Apple-signed proof of the local player's identity, for signing in to
+    /// the player's Luddo House account (verified server-side by the
+    /// game-center-sign-in Edge Function).
+    @objc func identityProof(_ call: CAPPluginCall) {
+        guard requireAuthenticated(call) else { return }
+        let player = GKLocalPlayer.local
+        player.fetchItems(forIdentityVerificationSignature: { publicKeyURL, signature, salt, timestamp, error in
+            guard let publicKeyURL = publicKeyURL, let signature = signature, let salt = salt,
+                  let bundleId = Bundle.main.bundleIdentifier else {
+                call.reject(error?.localizedDescription ?? "Game Center could not verify this player")
+                return
+            }
+            call.resolve([
+                "publicKeyUrl": publicKeyURL.absoluteString,
+                "signature": signature.base64EncodedString(),
+                "salt": salt.base64EncodedString(),
+                "timestamp": Double(timestamp), // milliseconds; exact in a Double
+                "teamPlayerId": player.teamPlayerID,
+                "bundleId": bundleId,
+                "displayName": player.displayName,
+            ])
+        })
     }
 
     @objc func submitScore(_ call: CAPPluginCall) {

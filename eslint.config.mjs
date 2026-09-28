@@ -20,6 +20,9 @@ const eslintConfig = defineConfig([
     // gitignored via supabase/.gitignore, but ESLint doesn't read that.
     "supabase/.temp/**",
     "supabase/.branches/**",
+    // Edge Functions run on Deno (npm:/jsr: imports, Deno globals) and are
+    // checked with `deno check` / `deno test` instead.
+    "supabase/functions/**",
   ]),
 ]);
 

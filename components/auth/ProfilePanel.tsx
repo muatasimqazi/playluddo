@@ -23,6 +23,7 @@ import {
 } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
 import { isNativeApp, webUrl } from "@/lib/native";
+import { gameCenterAvailable, signInWithGameCenter } from "@/lib/gameCenter";
 
 type LoginMethod = "email" | "phone";
 
@@ -120,7 +121,8 @@ function profileName(user: User | null) {
     user.user_metadata?.display_name ||
     user.user_metadata?.full_name ||
     user.user_metadata?.name ||
-    user.email?.split("@")[0] ||
+    // A Game Center account's email is a private placeholder, not a name.
+    (!user.app_metadata?.game_center && user.email?.split("@")[0]) ||
     user.phone ||
     "Player"
   );
@@ -143,6 +145,7 @@ export function ProfilePanel({
   const [open, setOpen] = useState(false);
   // Only affects the sign-in dialog, which never renders on the server.
   const native = isNativeApp();
+  const gameCenter = native && gameCenterAvailable();
   const [user, setUser] = useState<User | null>(null);
   const [method, setMethod] = useState<LoginMethod>("email");
   const [destination, setDestination] = useState("");
@@ -220,7 +223,9 @@ export function ProfilePanel({
   }, [open, avatarId]);
 
   const authenticated = !!user && !user.is_anonymous;
-  const identity = user?.email || user?.phone || "Signed-in player";
+  const identity = user?.app_metadata?.game_center
+    ? "Signed in with Game Center"
+    : user?.email || user?.phone || "Signed-in player";
 
   async function signInWithGoogle() {
     setPending("google");
@@ -233,6 +238,18 @@ export function ProfilePanel({
       setMessage(error.message);
       setPending(null);
     }
+  }
+
+  async function continueWithGameCenter() {
+    setPending("game-center");
+    setMessage(null);
+    const problem = await signInWithGameCenter(client);
+    setPending(null);
+    if (problem) {
+      setMessage(problem);
+      return;
+    }
+    setOpen(false);
   }
 
   async function sendCode() {
@@ -681,16 +698,27 @@ export function ProfilePanel({
             ) : (
               <>
                 <p>Save your name and return to the same identity on any device.</p>
-                {/* Not in the iOS app: Google blocks its sign-in inside embedded
+                {/* Google only on the web: it blocks its sign-in inside embedded
                     web views, and App Store guideline 4.8 would then require
-                    Sign in with Apple alongside it. Email/phone codes work
-                    everywhere. */}
-                {!native && (
+                    Sign in with Apple alongside it. The iOS app offers Game
+                    Center instead. Email/phone codes work everywhere. */}
+                {(!native || gameCenter) && (
                   <>
                     <div className="profile-socials">
-                      <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
-                        <b>G</b> Continue with Google
-                      </button>
+                      {gameCenter ? (
+                        <button
+                          type="button"
+                          disabled={pending !== null}
+                          onClick={() => void continueWithGameCenter()}
+                        >
+                          <Icon name="trophy" size={16} />
+                          {pending === "game-center" ? "Signing in…" : "Continue with Game Center"}
+                        </button>
+                      ) : (
+                        <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
+                          <b>G</b> Continue with Google
+                        </button>
+                      )}
                     </div>
                     <span className="profile-divider">or use a code</span>
                   </>

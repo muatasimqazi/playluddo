@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   applyMove,
+  DEFAULT_ROOM_RULES,
   earnsBonusRoll,
   evaluateSixRoll,
   getLegalMoves,
   isMatchWon,
   rankPlayers,
+  resolveRoomRules,
 } from "../../lib/board/rules";
 import type { EnginePawn } from "../../lib/board/engine-types";
 import type { LegalMove, PlayerColor } from "../../lib/board/types";
@@ -148,26 +150,46 @@ describe("earnsBonusRoll", () => {
   };
   const captureMove: LegalMove = { ...plainMove, capturesPawnIds: ["y"] };
   const finishMove: LegalMove = { ...plainMove, finishesPawn: true };
+  const rulesOff = { bonusRollOnFinish: false };
 
   it("grants a bonus roll on a six", () => {
-    expect(earnsBonusRoll(6, plainMove)).toBe(true);
+    expect(earnsBonusRoll(6, plainMove, DEFAULT_ROOM_RULES)).toBe(true);
   });
 
   it("grants a bonus roll on a capture", () => {
-    expect(earnsBonusRoll(3, captureMove)).toBe(true);
+    expect(earnsBonusRoll(3, captureMove, DEFAULT_ROOM_RULES)).toBe(true);
   });
 
   it("does not stack when a roll is both a six and a capture", () => {
     // earnsBonusRoll is boolean by construction — there is no "count" to stack.
-    expect(earnsBonusRoll(6, captureMove)).toBe(true);
+    expect(earnsBonusRoll(6, captureMove, DEFAULT_ROOM_RULES)).toBe(true);
   });
 
-  it("does not grant a bonus roll for finishing a pawn alone (confirmed, PRD 4.2)", () => {
-    expect(earnsBonusRoll(3, finishMove)).toBe(false);
+  it("grants a bonus roll for getting a pawn home under the default rules", () => {
+    expect(earnsBonusRoll(3, finishMove, DEFAULT_ROOM_RULES)).toBe(true);
+  });
+
+  it("grants one bonus roll, not two, for getting a pawn home with a six", () => {
+    expect(earnsBonusRoll(6, finishMove, DEFAULT_ROOM_RULES)).toBe(true);
+  });
+
+  it("does not grant a bonus roll for getting a pawn home when the host turned the rule off", () => {
+    expect(earnsBonusRoll(3, finishMove, rulesOff)).toBe(false);
   });
 
   it("grants no bonus roll for a plain non-six, non-capture move", () => {
-    expect(earnsBonusRoll(3, plainMove)).toBe(false);
+    expect(earnsBonusRoll(3, plainMove, DEFAULT_ROOM_RULES)).toBe(false);
+  });
+});
+
+describe("resolveRoomRules", () => {
+  it("fills in the defaults when a snapshot has no rules", () => {
+    expect(resolveRoomRules(undefined)).toEqual(DEFAULT_ROOM_RULES);
+    expect(resolveRoomRules(null)).toEqual(DEFAULT_ROOM_RULES);
+  });
+
+  it("keeps a rule the host set", () => {
+    expect(resolveRoomRules({ bonusRollOnFinish: false })).toEqual({ bonusRollOnFinish: false });
   });
 });
 

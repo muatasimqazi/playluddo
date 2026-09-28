@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GameRoomState, GameType, PlayerColor } from "../board/types";
+import type { GameRoomState, GameType, PlayerColor, RoomRules } from "../board/types";
 
 /**
  * Typed wrappers around the RPC surface in docs/IMPLEMENTATION_HANDOFF.md
@@ -31,6 +31,7 @@ export type RpcErrorCode =
   | "INVALID_SIGNAL_TARGET"
   | "NOT_TEAM_MEMBER"
   | "INVALID_GAME_TYPE"
+  | "INVALID_RULES"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -56,6 +57,7 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "INVALID_SIGNAL_TARGET",
   "NOT_TEAM_MEMBER",
   "INVALID_GAME_TYPE",
+  "INVALID_RULES",
 ]);
 
 export class RpcError extends Error {
@@ -174,6 +176,18 @@ export function setRoomGame(
   return call<GameRoomState>(client, "set_room_game", {
     p_room_id: roomId,
     p_game_type: gameType,
+  });
+}
+
+/** Host-only, lobby-only. Sends every rule; the server rejects unknown ones. */
+export function setRoomRules(
+  client: SupabaseClient,
+  roomId: string,
+  rules: RoomRules,
+) {
+  return call<GameRoomState>(client, "set_room_rules", {
+    p_room_id: roomId,
+    p_rules: rules,
   });
 }
 

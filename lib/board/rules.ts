@@ -7,7 +7,7 @@ import {
   pathIndexToTileId,
   tileIdToPathIndex,
 } from "./geometry";
-import type { LegalMove, PawnState, PlayerColor } from "./types";
+import type { LegalMove, PawnState, PlayerColor, RoomRules } from "./types";
 
 /**
  * Authoritative-equivalent Luddo rules, per docs/PRD.md Section 4. This is
@@ -113,13 +113,37 @@ export function applyMove(pawns: EnginePawn[], move: LegalMove): EnginePawn[] {
   });
 }
 
+/** Mirrors the SQL private.ludo_default_rules(). */
+export const DEFAULT_ROOM_RULES: RoomRules = { bonusRollOnFinish: true };
+
 /**
- * PRD 4.2: a roll grants one bonus follow-up roll on a six OR a capture —
- * NOT on finishing a pawn (confirmed), and never stacked (this returns a
- * boolean, not a count, by construction).
+ * Defaults, overlaid with whichever known keys `rules` sets. Mirrors the SQL
+ * private.ludo_resolve_rules(), so older snapshots without rules resolve to
+ * the same thing on both sides.
  */
-export function earnsBonusRoll(dieValue: number, move: LegalMove): boolean {
-  return dieValue === 6 || move.capturesPawnIds.length > 0;
+export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
+  const resolved = { ...DEFAULT_ROOM_RULES };
+  if (typeof rules?.bonusRollOnFinish === "boolean")
+    resolved.bonusRollOnFinish = rules.bonusRollOnFinish;
+  return resolved;
+}
+
+/**
+ * PRD 4.2 plus F1.5: a roll grants one bonus follow-up roll on a six, a
+ * capture, or (when the room's rule is on) a pawn reaching home. Never
+ * stacked: this returns a boolean, not a count, by construction. A player's
+ * final pawn never reaches this — finishing the match is handled first.
+ */
+export function earnsBonusRoll(
+  dieValue: number,
+  move: LegalMove,
+  rules: RoomRules,
+): boolean {
+  return (
+    dieValue === 6 ||
+    move.capturesPawnIds.length > 0 ||
+    (rules.bonusRollOnFinish && move.finishesPawn)
+  );
 }
 
 export interface SixRollEvaluation {

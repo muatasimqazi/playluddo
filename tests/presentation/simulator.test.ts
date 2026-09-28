@@ -277,6 +277,41 @@ describe("offline practice uses the established rules", () => {
     expect(next.state.matchEndReason).toBe("completed");
     expect(next.state.winnerIds).toEqual(["practice-0"]);
   });
+  it("grants another roll for getting a pawn home that isn't the last one", () => {
+    const initial = createPractice();
+    initial.state.pawns = initial.state.pawns.map((piece) =>
+      piece.id === "blue-0" ? { ...piece, state: "home_lane", pathIndex: 53 } : piece,
+    );
+    const rolled = practiceReducer(initial, { type: "roll", value: 3 });
+    const next = practiceReducer(rolled, { type: "move", pawnId: "blue-0" });
+    expect(next.state.pawns[0].state).toBe("finished");
+    expect(next.state.turnPlayerId).toBe("practice-0");
+    expect(next.state.turnPhase).toBe("awaiting_roll");
+  });
+  it("resets the six streak when a pawn gets home after two sixes", () => {
+    let game = createPractice();
+    game.state.pawns = game.state.pawns.map((piece) =>
+      piece.id === "blue-0" ? { ...piece, state: "home_lane", pathIndex: 53 } : piece,
+    );
+    for (let i = 0; i < 2; i++) {
+      game = practiceReducer(game, { type: "roll", value: 6 });
+      game = practiceReducer(game, { type: "move", pawnId: "blue-1" });
+    }
+    game = practiceReducer(game, { type: "roll", value: 3 });
+    game = practiceReducer(game, { type: "move", pawnId: "blue-0" });
+    expect(game.state.turnPlayerId).toBe("practice-0");
+    expect(game.state.consecutiveSixes).toBe(0);
+  });
+  it("keeps a game saved before room rules on the rules it started with", () => {
+    const initial = createPractice();
+    delete initial.state.rules;
+    initial.state.pawns = initial.state.pawns.map((piece) =>
+      piece.id === "blue-0" ? { ...piece, state: "home_lane", pathIndex: 53 } : piece,
+    );
+    const rolled = practiceReducer(initial, { type: "roll", value: 3 });
+    const next = practiceReducer(rolled, { type: "move", pawnId: "blue-0" });
+    expect(next.state.turnPlayerId).toBe("practice-1");
+  });
   it("needs six to leave the nest, grants a bonus roll, and rejects illegal intents", () => {
     const initial = createPractice();
     expect(practiceReducer(initial, { type: "move", pawnId: "blue-0" })).toBe(

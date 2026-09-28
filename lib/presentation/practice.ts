@@ -1,11 +1,12 @@
 import {
   applyMove,
+  DEFAULT_ROOM_RULES,
   earnsBonusRoll,
   evaluateSixRoll,
   getLegalMoves,
   isMatchWon,
 } from "../board/rules";
-import type { GameRoomState, GameType, PlayerColor } from "../board/types";
+import type { GameRoomState, GameType, PlayerColor, RoomRules } from "../board/types";
 import { applySnakeMove, snakeMove } from "../board/snakes";
 import { DIAGONAL_COLOR } from "./board";
 import type { MatchEventRow } from "../realtime/room-channel";
@@ -31,6 +32,11 @@ export interface PracticeProfile {
   avatarId?: string;
   country?: string;
 }
+// A game saved on this device before room rules existed keeps the rules it
+// started with, which had no extra roll for getting home. Mirrors the
+// server's rollout in supabase/migrations/20260928040000_room_rules.sql.
+const RULES_BEFORE_ROOM_RULES: RoomRules = { bonusRollOnFinish: false };
+
 export function createPractice(
   gameType: GameType = "ludo",
   playerCount: 2 | 3 | 4 = 4,
@@ -57,6 +63,7 @@ export function createPractice(
       code: "LOCAL",
       gameType,
       status: "in_game",
+      rules: DEFAULT_ROOM_RULES,
       players: colors.map((color, i) => ({
         id: `practice-${i}`,
         seatIndex: i,
@@ -208,7 +215,9 @@ export function practiceReducer(
           : {}),
       };
       if (!complete) advance();
-    } else if (earnsBonusRoll(state.activeDiceValue!, move))
+    } else if (
+      earnsBonusRoll(state.activeDiceValue!, move, state.rules ?? RULES_BEFORE_ROOM_RULES)
+    )
       next.turnPhase = "awaiting_roll";
     else advance();
   }

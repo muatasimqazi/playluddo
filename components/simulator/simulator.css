@@ -376,6 +376,12 @@
   color: var(--sim-muted);
   font-size: 9px;
 }
+.lobby-house-rule input {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  accent-color: #d3bd86;
+}
 .lobby-player-count select {
   flex: 0 0 auto;
   padding: 9px 11px;

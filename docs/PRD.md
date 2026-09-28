@@ -91,7 +91,7 @@ This is the concrete ruleset engineering should implement. Flagged items need a 
 ### 4.2 Turn Structure
 - Each player has 4 pawns assigned to one color: red, green, yellow, or blue. Pawns begin in the `nest`.
 - A roll of **6** is required to move a pawn from the nest to that player's entry cell.
-- A turn is one or more **rolls**. A roll grants one bonus follow-up roll when either of the following is true: the die shows **6**, or the resulting move **captures** an opponent pawn. **Finishing a pawn (reaching the final home cell) does not grant a bonus roll** — confirmed. Multiple qualifying conditions on the same roll (e.g., a 6 that also captures) still grant only **one** bonus roll, not a stacked total.
+- A turn is one or more **rolls**. A roll grants one bonus follow-up roll when either of the following is true: the die shows **6**, the resulting move **captures** an opponent pawn, or the move gets a pawn **home** (reaches the final home cell) while the room's `bonusRollOnFinish` rule is on. That rule is **on by default** and a private-room host can turn it off. *(Changed 2026-09-28, docs/COMPETITIVE_ROADMAP.md decision 1; originally finishing a pawn granted no bonus.)* A player's last pawn getting home ends their play, so it never earns a roll. Multiple qualifying conditions on the same roll (e.g., a 6 that also captures) still grant only **one** bonus roll, not a stacked total.
 - **Three consecutive sixes** ends the turn immediately and cancels the third roll's move. Moves made on the first two sixes remain valid.
 - If a player has no legal move after a roll, the turn advances automatically after a **1.5-second** acknowledgement delay so the result is still readable.
 
@@ -432,7 +432,7 @@ Every analytics event carries: `eventType`, `roomId`, `matchId`, `playerId` (pse
 These are called out inline above; consolidated here so nothing gets implemented on a silent assumption:
 
 1. ~~Safe tile placement~~ — **Resolved.** 8-cell (4 entry + 4 star) default confirmed against the `modern_boardroom` design mockups.
-2. ~~Bonus roll on finishing a pawn~~ — **Resolved.** Finishing a pawn does **not** grant a bonus roll; only six and capture do (4.2).
+2. ~~Bonus roll on finishing a pawn~~ — **Resolved, then changed (2026-09-28).** Finishing a pawn now grants a bonus roll by default, as a room rule hosts can turn off (4.2; docs/COMPETITIVE_ROADMAP.md decision 1).
 3. ~~Blockade rule~~ — **Resolved.** MVP ships with no blockade effect, as recommended (4.3).
 4. ~~Stake feature gating~~ — **Resolved.** PRD's stricter non-goal is authoritative over the pot/rake/payout design exploration (3.3). Legal review owner/timeline still to be assigned.
 5. ~~Abandonment window~~ — **Resolved.** 3-minute all-bot cutoff confirmed as the right value (5.2).

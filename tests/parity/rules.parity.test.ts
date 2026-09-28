@@ -5,14 +5,16 @@ import { snakeMove } from "../../lib/board/snakes";
 import type { EnginePawn } from "../../lib/board/engine-types";
 import {
   applyMove,
+  DEFAULT_ROOM_RULES,
   earnsBonusRoll,
   evaluateSixRoll,
   getLegalMoves,
   isMatchWon,
   rankPlayers,
+  resolveRoomRules,
   type PlayerProgress,
 } from "../../lib/board/rules";
-import type { LegalMove, PlayerColor } from "../../lib/board/types";
+import type { LegalMove, PlayerColor, RoomRules } from "../../lib/board/types";
 
 /**
  * Golden-vector parity suite: the same fixture inputs run through the
@@ -127,12 +129,21 @@ async function sqlEvaluateSixRoll(before: number, dieValue: number) {
 async function sqlEarnsBonusRoll(
   dieValue: number,
   move: LegalMove,
+  rules: RoomRules,
 ): Promise<boolean> {
   const { rows } = await client.query(
-    "select private.ludo_earns_bonus_roll($1, $2::jsonb) as result",
-    [dieValue, JSON.stringify(move)],
+    "select private.ludo_earns_bonus_roll($1, $2::jsonb, $3::jsonb) as result",
+    [dieValue, JSON.stringify(move), JSON.stringify(rules)],
   );
   return rows[0].result as boolean;
+}
+
+async function sqlResolveRules(rules: unknown): Promise<RoomRules> {
+  const { rows } = await client.query(
+    "select private.ludo_resolve_rules($1::jsonb) as result",
+    [rules === undefined ? null : JSON.stringify(rules)],
+  );
+  return rows[0].result as RoomRules;
 }
 
 async function sqlIsMatchWon(
@@ -310,16 +321,37 @@ describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
     }
   });
 
-  it("agree on bonus-roll eligibility", async () => {
-    const move: LegalMove = {
+  it("agree on bonus-roll eligibility for every die, move kind and rule setting", async () => {
+    const plain: LegalMove = {
       pawnId: "x",
       fromTileId: "track:1",
       toTileId: "track:2",
-      capturesPawnIds: ["y"],
+      capturesPawnIds: [],
       finishesPawn: false,
     };
-    expect(await sqlEarnsBonusRoll(3, move)).toBe(earnsBonusRoll(3, move));
-    expect(await sqlEarnsBonusRoll(6, move)).toBe(earnsBonusRoll(6, move));
+    const moves = [
+      plain,
+      { ...plain, capturesPawnIds: ["y"] },
+      { ...plain, fromTileId: "home:red:4", toTileId: "home:red:5", finishesPawn: true },
+    ];
+    const ruleSets: RoomRules[] = [DEFAULT_ROOM_RULES, { bonusRollOnFinish: false }];
+    for (const rules of ruleSets)
+      for (const move of moves)
+        for (let dieValue = 1; dieValue <= 6; dieValue++)
+          expect(await sqlEarnsBonusRoll(dieValue, move, rules)).toBe(
+            earnsBonusRoll(dieValue, move, rules),
+          );
+  });
+
+  it("agree on resolving room rules", async () => {
+    const inputs = [
+      undefined,
+      {},
+      { bonusRollOnFinish: false },
+      { bonusRollOnFinish: true },
+    ];
+    for (const input of inputs)
+      expect(await sqlResolveRules(input)).toEqual(resolveRoomRules(input));
   });
 });
 

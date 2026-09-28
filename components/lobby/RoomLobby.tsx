@@ -8,8 +8,10 @@ import {
   setPlayerColor,
   setRoomGame,
   setRoomMaxPlayers,
+  setRoomRules,
   startMatch,
 } from "@/lib/supabase/rpc";
+import { resolveRoomRules } from "@/lib/board/rules";
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
@@ -41,6 +43,7 @@ export function RoomLobby({
   const occupiedCount = state?.players.length ?? 1;
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
+  const rules = resolveRoomRules(state.rules);
   // For 2 players, the seats aren't a fixed {0,1} range — the second seat
   // is whichever base sits diagonally across the board from the first
   // (mirrors the SQL engine's (seat + 2) % 4 pairing). The host is always
@@ -192,9 +195,36 @@ export function RoomLobby({
         </div>
         <p className="lobby-game-rules">
           {state.gameType === "ludo"
-            ? "Four pieces each. Bring your color home."
+            ? `Four pieces each. Bring your color home. ${
+                rules.bonusRollOnFinish
+                  ? "Getting a piece home earns another roll."
+                  : "No extra roll for getting a piece home."
+              }`
             : "One piece each. Climb ladders, slide down snakes. Reach 100 with an exact roll."}
         </p>
+        {host && state.gameType === "ludo" && (
+          <label className="lobby-player-count lobby-house-rule">
+            <span>
+              <span className="eyebrow">HOUSE RULE</span>
+              <strong>Extra roll for getting a piece home</strong>
+              <small>A six or a capture always earns another roll</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={rules.bonusRollOnFinish}
+              disabled={pending}
+              onChange={(event) =>
+                void run(async () => {
+                  const next = await setRoomRules(client, roomId, {
+                    ...rules,
+                    bonusRollOnFinish: event.target.checked,
+                  });
+                  useRoomStore.getState().setRoomState(next);
+                })
+              }
+            />
+          </label>
+        )}
         {me && !me.isBot && (
           <div className="lobby-color-choice">
             <span>

@@ -4,7 +4,7 @@
 -- Run with `supabase test db` (requires `supabase start`).
 
 begin;
-select plan(12);
+select plan(13);
 
 create function private.ludo_test_pawn(p_id text, p_color text, p_index int, p_state text, p_path_index int)
 returns jsonb language sql immutable as $$
@@ -33,33 +33,41 @@ begin
 end;
 $$;
 
--- bonus-roll triggers (PRD 4.2): six or capture, never stacked, never on finish alone
+-- bonus-roll triggers (PRD 4.2 + F1.5): six, capture, or a pawn getting home
+-- when the room's rule is on (the default). Never stacked.
 select ok(
   private.ludo_earns_bonus_roll(6, jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '[]'::jsonb, 'finishesPawn', false
-  )),
+  ), '{}'::jsonb),
   'grants a bonus roll on a six'
 );
 
 select ok(
   private.ludo_earns_bonus_roll(3, jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '["y"]'::jsonb, 'finishesPawn', false
-  )),
+  ), '{}'::jsonb),
   'grants a bonus roll on a capture'
 );
 
 select ok(
   private.ludo_earns_bonus_roll(6, jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '["y"]'::jsonb, 'finishesPawn', false
-  )),
+  ), '{}'::jsonb),
   'still a single bonus roll when both six and capture apply (no stacking)'
+);
+
+select ok(
+  private.ludo_earns_bonus_roll(3, jsonb_build_object(
+    'pawnId', 'x', 'fromTileId', 'home:red:4', 'toTileId', 'home:red:5', 'capturesPawnIds', '[]'::jsonb, 'finishesPawn', true
+  ), '{}'::jsonb),
+  'grants a bonus roll for getting a pawn home under the default rules'
 );
 
 select ok(
   not private.ludo_earns_bonus_roll(3, jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'home:red:4', 'toTileId', 'home:red:5', 'capturesPawnIds', '[]'::jsonb, 'finishesPawn', true
-  )),
-  'does not grant a bonus roll for finishing a pawn alone (confirmed, PRD 4.2)'
+  ), '{"bonusRollOnFinish": false}'::jsonb),
+  'does not grant a bonus roll for getting a pawn home when the host turned the rule off'
 );
 
 -- consecutive sixes (PRD 4.2)

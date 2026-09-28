@@ -70,6 +70,15 @@ export interface LegalMove {
   landingSquare?: number;
 }
 
+/**
+ * A room's house rules (docs/COMPETITIVE_ROADMAP.md F0.2). Mirrors the SQL
+ * private.ludo_default_rules(); every key the server accepts appears here.
+ */
+export interface RoomRules {
+  /** An extra roll when a pawn gets home (F1.5). On by default. */
+  bonusRollOnFinish: boolean;
+}
+
 export interface GameRoomState {
   roomId: string;
   /** Present for server rooms; practice identifies its host by seat zero. */
@@ -81,6 +90,8 @@ export interface GameRoomState {
   paused?: boolean;
   /** Seats the room was created for (2-4). Absent on older snapshots — treat as 4. */
   maxPlayers?: number;
+  /** The room's resolved house rules. Absent on older snapshots — treat as the defaults. */
+  rules?: RoomRules;
   players: Player[];
   pawns: Pawn[];
   turnPlayerId: string | null;

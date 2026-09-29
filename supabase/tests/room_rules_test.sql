@@ -36,7 +36,9 @@ select 'joinB', public.join_room((select value->>'code' from test_state where ke
 reset role;
 select is(
   private.ludo_room_state_json(((select value->>'roomId' from test_state where key = 'roomA'))::uuid)->'rules',
-  '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb,
+  -- The one place that pins every key, so a new rule has to be added here
+  -- on purpose. Everywhere else asserts only the keys it cares about.
+  '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4, "captureToEnterHome": false}'::jsonb,
   'a new room shows the default rules, with the extra roll for getting home on'
 );
 set local role authenticated;
@@ -72,9 +74,9 @@ select throws_ok(
   'rules must be an object'
 );
 
-select is(
-  public.set_room_rules(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, '{"bonusRollOnFinish": false}')->'rules',
-  '{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb,
+select ok(
+  public.set_room_rules(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, '{"bonusRollOnFinish": false}')->'rules'
+    @> '{"bonusRollOnFinish": false}'::jsonb,
   'the host can turn the extra roll for getting home off'
 );
 
@@ -107,20 +109,18 @@ select throws_ok(
 reset role;
 
 select results_eq(
-  $$select match_rules from public.rooms
+  $$select (match_rules->>'bonusRollOnFinish')::boolean from public.rooms
     where id in (((select value->>'roomId' from test_state where key = 'roomA'))::uuid,
                  ((select value->>'roomId' from test_state where key = 'roomB'))::uuid)
     order by (id = ((select value->>'roomId' from test_state where key = 'roomA'))::uuid) desc$$,
-  $$values ('{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb),
-           ('{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb)$$,
+  $$values (true), (false)$$,
   'start_match freezes each room''s resolved rules for the match'
 );
 
-select is(
+select ok(
   (select payload->'rules' from public.match_events
    where room_id = ((select value->>'roomId' from test_state where key = 'roomB'))::uuid
-     and event_type = 'match_started'),
-  '{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb,
+     and event_type = 'match_started') @> '{"bonusRollOnFinish": false}'::jsonb,
   'the match_started event records the rules played'
 );
 

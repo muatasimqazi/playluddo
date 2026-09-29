@@ -259,6 +259,29 @@ export function RoomLobby({
           <label className="lobby-player-count lobby-house-rule">
             <span>
               <span className="eyebrow">HOUSE RULE</span>
+              <strong>Capture before going home</strong>
+              <small>No piece enters your home column until you&rsquo;ve captured someone</small>
+            </span>
+            <input
+              type="checkbox"
+              checked={rules.captureToEnterHome}
+              disabled={pending}
+              onChange={(event) =>
+                void run(async () => {
+                  const next = await setRoomRules(client, roomId, {
+                    ...rules,
+                    captureToEnterHome: event.target.checked,
+                  });
+                  useRoomStore.getState().setRoomState(next);
+                })
+              }
+            />
+          </label>
+        )}
+        {host && state.gameType === "ludo" && (
+          <label className="lobby-player-count lobby-house-rule">
+            <span>
+              <span className="eyebrow">HOUSE RULE</span>
               <strong>Extra roll for getting a piece home</strong>
               <small>A six or a capture always earns another roll</small>
             </span>

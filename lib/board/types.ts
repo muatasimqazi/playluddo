@@ -36,6 +36,8 @@ export interface Player {
   rematchReady: boolean;
   /** Room voice chat: has this seat joined the call. */
   inVoice: boolean;
+  /** Master mode (F2.2): this seat has captured, so its pieces can go home. */
+  hasCaptured?: boolean;
   /** Party Mode: this seat is playing from somewhere else, not the living room (P8). */
   partyRemote?: boolean;
   /** Curated VRM avatar identifier stored in Supabase Auth metadata. */
@@ -83,6 +85,8 @@ export interface RoomRules {
   startOnBoard: number;
   /** Quick mode (F2.1): pieces that have to get home to win, 1-4. */
   pawnsToWin: number;
+  /** Master mode (F2.2): a piece only enters the home column once its player has captured. */
+  captureToEnterHome: boolean;
 }
 
 /**

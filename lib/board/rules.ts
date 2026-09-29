@@ -32,8 +32,13 @@ export function getLegalMoves(
   pawns: EnginePawn[],
   color: PlayerColor,
   dieValue: number,
+  /** The room's rules and whether this player has captured yet (F2.2). */
+  context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
 ): LegalMove[] {
   const moves: LegalMove[] = [];
+  // Master mode: this player has to capture before any piece goes home.
+  const heldBack =
+    resolveRoomRules(context?.rules).captureToEnterHome && !context?.hasCaptured;
 
   for (const pawn of pawns) {
     if (pawn.color !== color) continue;
@@ -54,8 +59,17 @@ export function getLegalMoves(
 
     const current = pawn.pathIndex;
     if (current === null) continue; // unreachable given state !== "nest", guards TS narrowing
-    const target = current + dieValue;
+    // Held back, a piece stops on the last shared square instead of passing
+    // it. Only one still on the shared track: a piece already in the home
+    // column has passed that point and carries on.
+    const target =
+      heldBack &&
+      current <= PATH_INDEX.LAST_TRACK_CELL &&
+      current + dieValue > PATH_INDEX.LAST_TRACK_CELL
+        ? PATH_INDEX.LAST_TRACK_CELL
+        : current + dieValue;
     if (target > PATH_INDEX.FINISHED) continue; // overshoot — illegal, excluded from legalMoves
+    if (target === current) continue; // held back with nowhere to go
 
     const captures =
       target <= PATH_INDEX.LAST_TRACK_CELL ? capturesAt(pawns, color, target) : [];
@@ -118,6 +132,7 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   bonusRollOnFinish: true,
   startOnBoard: 0,
   pawnsToWin: 4,
+  captureToEnterHome: false,
 };
 
 /**
@@ -131,6 +146,8 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
     resolved.bonusRollOnFinish = rules.bonusRollOnFinish;
   if (typeof rules?.startOnBoard === "number") resolved.startOnBoard = rules.startOnBoard;
   if (typeof rules?.pawnsToWin === "number") resolved.pawnsToWin = rules.pawnsToWin;
+  if (typeof rules?.captureToEnterHome === "boolean")
+    resolved.captureToEnterHome = rules.captureToEnterHome;
   return resolved;
 }
 

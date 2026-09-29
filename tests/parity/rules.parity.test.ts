@@ -99,10 +99,21 @@ async function sqlLegalMoves(
   pawns: EnginePawn[],
   color: PlayerColor,
   dieValue: number,
+  context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
 ): Promise<LegalMove[]> {
   const { rows } = await client.query(
-    "select private.ludo_legal_moves($1::jsonb, $2, $3) as result",
-    [JSON.stringify(pawns), color, dieValue],
+    context === undefined
+      ? "select private.ludo_legal_moves($1::jsonb, $2, $3) as result"
+      : "select private.ludo_legal_moves($1::jsonb, $2, $3, $4::jsonb, $5) as result",
+    context === undefined
+      ? [JSON.stringify(pawns), color, dieValue]
+      : [
+          JSON.stringify(pawns),
+          color,
+          dieValue,
+          context.rules == null ? null : JSON.stringify(context.rules),
+          context.hasCaptured ?? false,
+        ],
   );
   return rows[0].result as LegalMove[];
 }
@@ -435,5 +446,43 @@ describe("parity: chooseBotMove", () => {
     const tsResult = chooseBotMove(legalMoves, pawns);
     const sqlResult = await sqlChooseBotMove(legalMoves, pawns);
     expect(sqlResult).toEqual(tsResult);
+  });
+});
+
+describe("parity: Master mode (F2.2)", () => {
+  it("agree on pieces held back until their player has captured", async () => {
+    // Red is spread across the track, the home lane's doorstep, and inside it.
+    const pawns = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 48),
+      "red-1": pawn("red-1", "red", 1, "track", 50),
+      "red-2": pawn("red-2", "red", 2, "home_lane", 52),
+      "red-3": pawn("red-3", "red", 3, "nest", null),
+    });
+    const rules = { captureToEnterHome: true };
+    for (const hasCaptured of [false, true])
+      for (let dieValue = 1; dieValue <= 6; dieValue++) {
+        const context = { rules, hasCaptured };
+        expect(await sqlLegalMoves(pawns, "red", dieValue, context)).toEqual(
+          getLegalMoves(pawns, "red", dieValue, context),
+        );
+      }
+  });
+
+  it("agree that the classic game is untouched", async () => {
+    const pawns = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 48),
+      "red-1": pawn("red-1", "red", 1, "track", 50),
+      "red-2": pawn("red-2", "red", 2, "home_lane", 52),
+      "red-3": pawn("red-3", "red", 3, "nest", null),
+    });
+    for (let dieValue = 1; dieValue <= 6; dieValue++) {
+      const context = { rules: { captureToEnterHome: false }, hasCaptured: false };
+      expect(await sqlLegalMoves(pawns, "red", dieValue, context)).toEqual(
+        getLegalMoves(pawns, "red", dieValue, context),
+      );
+      expect(getLegalMoves(pawns, "red", dieValue, context)).toEqual(
+        getLegalMoves(pawns, "red", dieValue),
+      );
+    }
   });
 });

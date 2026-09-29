@@ -200,7 +200,18 @@ export function RoomLobby({
                   ? "Getting a piece home earns another roll."
                   : "No extra roll for getting a piece home."
               }`
-            : "One piece each. Climb ladders, slide down snakes. Reach 100 with an exact roll."}
+            : "One piece each. Climb ladders, slide down snakes. Reach 100 with an exact roll."}{" "}
+          {/* A new tab, so the table and your seat stay put. */}
+          <Link
+            className="lobby-how-to"
+            href={`/how-to-play?homeRoll=${rules.bonusRollOnFinish ? "on" : "off"}#${
+              state.gameType === "ludo" ? "ludo" : "snakes-and-ladders"
+            }`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            How to play
+          </Link>
         </p>
         {host && state.gameType === "ludo" && (
           <label className="lobby-player-count lobby-house-rule">

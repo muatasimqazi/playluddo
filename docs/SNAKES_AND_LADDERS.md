@@ -7,7 +7,7 @@ Practice saves both games independently on the device. Flipping pauses the curre
 ## Rules and artwork
 
 - One glass piece per player, beginning off the board at square 0.
-- Any die value enters. Pieces move automatically along the numbered, alternating rows.
+- A six is needed to enter, and the piece goes straight to square 6 (`20260921010000_snakes_six_to_enter_and_two_player_win.sql`). Pieces move automatically along the numbered, alternating rows.
 - Land on a ladder's foot to climb; land on a snake's head to slide.
 - Rolling a six grants another roll. Pieces can share squares without capturing.
 - An exact roll is required to reach 100; overshooting leaves the piece where it is and ends the turn.

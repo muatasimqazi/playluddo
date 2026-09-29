@@ -52,6 +52,8 @@ export function InfoPage({
         {intro && <p className="info-intro">{intro}</p>}
         <div className="info-body">{children}</div>
         <footer className="info-footer">
+          <Link href="/how-to-play">How to play</Link>
+          <span aria-hidden>·</span>
           <Link href="/support">Support</Link>
           <span aria-hidden>·</span>
           <Link href="/privacy">Privacy</Link>

@@ -19,6 +19,8 @@ import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { MatchDice } from "@/components/summary/MatchDice";
+import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
+import { FirstGameTips } from "./FirstGameTips";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
@@ -790,7 +792,7 @@ export default function Simulator({
           ))}
           <Tool
             icon="help"
-            label="Controls & shortcuts"
+            label="Rules & controls"
             active={panel === "help"}
             onClick={() => togglePanel("help")}
           />
@@ -1038,7 +1040,7 @@ export default function Simulator({
                       : panel === "chat"
                         ? "Table talk"
                         : panel === "help"
-                          ? "Controls & shortcuts"
+                          ? "Rules & controls"
                           : "Your evening, your game"}
               </h2>
             </div>
@@ -1176,6 +1178,17 @@ export default function Simulator({
                 On touch, drag with one finger to look around. To rotate the
                 board, tap Rotate above, then drag.
               </p>
+              <div className="panel-rules">
+                <span className="eyebrow">{snakes ? "SNAKES & LADDERS RULES" : "LUDO RULES"}</span>
+                {snakes ? (
+                  <SnakesRules />
+                ) : (
+                  // A game with no rules on record predates room rules, when
+                  // getting a piece home earned no extra roll.
+                  <LudoRules rules={state.rules ?? { bonusRollOnFinish: false }} />
+                )}
+                {!practice && !localPlay && <OnlineTableRules />}
+              </div>
             </>
           )}
           {panel === "preferences" && (
@@ -1483,7 +1496,7 @@ export default function Simulator({
                 onClick={() => setPanel("help")}
               >
                 <Icon name="help" />
-                Controls & shortcuts
+                Rules & controls
               </button>
             </>
           )}
@@ -1783,6 +1796,7 @@ export default function Simulator({
             </Link>
           </div>
         )}
+      {practice && <FirstGameTips state={state} myPlayerId={myPlayerId} />}
       {frame.move?.finishesPawn && frame.phase === "move" && (
         <div className="sim-event-toast">
           {snakes

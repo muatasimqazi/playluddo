@@ -4052,3 +4052,93 @@ body.sim-piece-hover .sim-canvas {
 .entrance-bot-level button strong {
   font-size: 14px;
 }
+/* /how-to-play, opened from a table: that table's house rules. */
+.info-callout {
+  margin: 20px 0 0 !important;
+  padding: 12px 14px;
+  border: 1px solid #d8bd7f55;
+  border-radius: 9px;
+  background: #3a3a2a66;
+}
+/* The rules inside the table's Rules & controls panel (GameRules.tsx). */
+.panel-rules {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--sim-line);
+}
+.panel-rules h3 {
+  margin: 14px 0 4px;
+  color: var(--sim-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+.panel-rules ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #c9cfbd;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.panel-rules li {
+  margin-bottom: 3px;
+}
+.panel-rules strong {
+  color: var(--sim-ink);
+  font-weight: 600;
+}
+.lobby-how-to {
+  color: var(--sim-gold, #dbbf86);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* First-game tips in practice (FirstGameTips.tsx): just above the roll
+   controls they talk about, clear of the board and the event toasts. */
+.sim-tip {
+  position: absolute;
+  bottom: calc(128px + env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: 61;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 10px 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid #ddc38680;
+  border-radius: 10px;
+  background: #263426f2;
+  box-shadow: 0 12px 40px #15201450;
+  color: var(--sim-ink);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.sim-tip p {
+  margin: 0;
+}
+.sim-tip button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--sim-line);
+  border-radius: 7px;
+  color: var(--sim-ink);
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  .sim-tip {
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sim-tip {
+    animation: sim-tip-in 240ms ease-out;
+  }
+  @keyframes sim-tip-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 6px);
+    }
+  }
+}

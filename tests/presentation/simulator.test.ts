@@ -10,6 +10,7 @@ import {
   shortestAngle,
 } from "../../lib/presentation/board";
 import {
+  canUndoLastMove,
   createPractice,
   practiceReducer,
 } from "../../lib/presentation/practice";
@@ -380,5 +381,59 @@ describe("offline practice uses the established rules", () => {
     expect(continued.state.winnerIds).toEqual(["practice-0"]);
     expect(continued.state.turnPlayerId).toBe("practice-1");
     expect(continued.state.turnPhase).toBe("awaiting_roll");
+  });
+});
+
+describe("offline undo (F4.5)", () => {
+  it("takes back your last piece choice, keeping the dice you rolled", () => {
+    const initial = createPractice();
+    const six = practiceReducer(initial, { type: "roll", value: 6 });
+    const moved = practiceReducer(six, { type: "move", pawnId: "blue-0" });
+    expect(moved.state.pawns.find((p) => p.id === "blue-0")?.pathIndex).toBe(0);
+    expect(canUndoLastMove(moved)).toBe(true);
+
+    const undone = practiceReducer(moved, { type: "undo" });
+    // Back to awaiting_move with the same six, ready to re-pick a piece.
+    expect(undone.state).toBe(six.state);
+    expect(undone.state.turnPhase).toBe("awaiting_move");
+    expect(undone.state.activeDiceValue).toBe(6);
+    expect(canUndoLastMove(undone)).toBe(false);
+  });
+
+  it("rewinds past the computers' replies to your last move", () => {
+    let game = createPractice();
+    game = practiceReducer(game, { type: "roll", value: 6 });
+    game = practiceReducer(game, { type: "move", pawnId: "blue-0" }); // bonus roll
+    const rolled = practiceReducer(game, { type: "roll", value: 3 });
+    const humanDone = practiceReducer(rolled, { type: "move", pawnId: "blue-0" });
+    expect(humanDone.state.turnPlayerId).toBe("practice-1"); // a computer's turn
+
+    const botRolled = practiceReducer(humanDone, { type: "roll", value: 6 });
+    const botMoved = practiceReducer(botRolled, { type: "move", pawnId: "red-0" });
+    expect(botMoved.state.pawns.find((p) => p.id === "red-0")?.pathIndex).not.toBeNull();
+
+    // Undo skips both computer actions and lands on your own move decision.
+    const undone = practiceReducer(botMoved, { type: "undo" });
+    expect(undone.state).toBe(rolled.state);
+    expect(undone.state.turnPlayerId).toBe("practice-0");
+    expect(undone.state.turnPhase).toBe("awaiting_move");
+  });
+
+  it("does nothing when there is no move to take back", () => {
+    const fresh = createPractice();
+    expect(canUndoLastMove(fresh)).toBe(false);
+    expect(practiceReducer(fresh, { type: "undo" })).toBe(fresh);
+    // A roll on its own is not a take-back point (undo never re-rolls the dice).
+    const rolled = practiceReducer(fresh, { type: "roll", value: 6 });
+    expect(canUndoLastMove(rolled)).toBe(false);
+    expect(practiceReducer(rolled, { type: "undo" })).toBe(rolled);
+  });
+
+  it("offers no take-back in Snakes & Ladders, where the die fixes the move", () => {
+    let snakes = createPractice("snakes_and_ladders", 2, "blue");
+    snakes = practiceReducer(snakes, { type: "roll", value: 6 }); // 6 enters the track
+    expect(snakes.state.pawns.find((p) => p.color === "blue")?.pathIndex).not.toBeNull();
+    expect(canUndoLastMove(snakes)).toBe(false);
+    expect(practiceReducer(snakes, { type: "undo" })).toBe(snakes);
   });
 });

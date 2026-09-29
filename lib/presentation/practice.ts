@@ -24,11 +24,29 @@ export const CLOCKWISE_COLORS: readonly PlayerColor[] = [
   "blue",
 ];
 
+/**
+ * One take-back step (docs/COMPETITIVE_ROADMAP.md F4.5): the whole session as
+ * it stood *before* an action was applied. Snapshots are cheap for local play
+ * and let undo rewind not just your move but everything the computers did in
+ * response to it.
+ */
+export interface PracticeHistoryEntry {
+  state: GameRoomState;
+  events: MatchEventRow[];
+  actionType: PracticeAction["type"];
+  /** True when the seat that was about to act is a computer. */
+  actorIsBot: boolean;
+}
+/** How many take-back steps we keep. Enough for a full match; bounds the save. */
+const HISTORY_LIMIT = 50;
+
 export interface PracticeSession {
   state: GameRoomState;
   events: MatchEventRow[];
   /** How the computers play (docs/COMPETITIVE_ROADMAP.md F1.4). Absent on older saves: Normal. */
   botLevel?: BotLevel;
+  /** Take-back stack (F4.5). Absent on older saves: nothing to undo yet. */
+  history?: PracticeHistoryEntry[];
 }
 export interface PracticeProfile {
   displayName?: string;
@@ -111,6 +129,7 @@ export function createPractice(
 export type PracticeAction =
   | { type: "roll"; value: number }
   | { type: "move"; pawnId: string }
+  | { type: "undo" }
   | { type: "reset" };
 
 /** Used only by the explicitly offline practice route. Online actions always use RPCs. */
@@ -126,10 +145,68 @@ export function practiceReducer(
       session.state.players[0],
       session.botLevel,
     );
+  if (action.type === "undo") return undoLastMove(session);
   const { state } = session;
   if (state.status !== "in_game") return session;
-  if (state.gameType === "snakes_and_ladders")
-    return snakePracticeReducer(session, action);
+  const actor = state.players.find((p) => p.id === state.turnPlayerId);
+  const result =
+    state.gameType === "snakes_and_ladders"
+      ? snakePracticeReducer(session, action)
+      : ludoPracticeReducer(session, action);
+  // The core reducers return the same session object for a rejected action;
+  // don't record a take-back step for a move that never happened.
+  if (result === session) return session;
+  const entry: PracticeHistoryEntry = {
+    state,
+    events: session.events,
+    actionType: action.type,
+    actorIsBot: !!actor?.isBot,
+  };
+  return {
+    ...result,
+    history: [...(session.history ?? []), entry].slice(-HISTORY_LIMIT),
+  };
+}
+
+/**
+ * A take-back point is your own last committed Luddo move (F4.5). Undo rewinds
+ * to just before it — restoring the board, the dice you'd already rolled, and
+ * the piece choice — so you re-pick a piece without re-rolling. Snakes &
+ * Ladders has no piece decision (the die fixes the move), so it records no
+ * "move" steps and there is nothing to take back; likewise a computer's move
+ * is never a take-back point.
+ */
+function isTakeBackStep(entry: PracticeHistoryEntry): boolean {
+  return entry.actionType === "move" && !entry.actorIsBot;
+}
+
+/** Whether {@link PracticeAction} `undo` would change anything — for the UI. */
+export function canUndoLastMove(session: PracticeSession): boolean {
+  return (session.history ?? []).some(isTakeBackStep);
+}
+
+function undoLastMove(session: PracticeSession): PracticeSession {
+  const history = session.history ?? [];
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (!isTakeBackStep(history[i])) continue;
+    const entry = history[i];
+    return {
+      ...session,
+      state: entry.state,
+      events: entry.events,
+      history: history.slice(0, i),
+    };
+  }
+  return session;
+}
+
+function ludoPracticeReducer(
+  session: PracticeSession,
+  action: PracticeAction,
+): PracticeSession {
+  const { state } = session;
+  // undo/reset are resolved by the wrapper; only roll and move reach here.
+  if (action.type !== "roll" && action.type !== "move") return session;
   const player = state.players.find((p) => p.id === state.turnPlayerId)!;
   let next = { ...state };
   let event: MatchEventRow;

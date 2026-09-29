@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { BOT_LEVELS, chooseMoveForLevel, type BotLevel } from "@/lib/board/bot";
 import {
+  canUndoLastMove,
   createPractice,
   practiceReducer,
   randomDie,
@@ -273,6 +274,8 @@ export default function PracticeTable() {
         if (state.turnPlayerId === "practice-0")
           dispatch({ type: "move", pawnId });
       }}
+      canUndo={canUndoLastMove(session)}
+      onUndo={() => dispatch({ type: "undo" })}
       onRestart={() => {
         dispatch({ type: "reset" });
         setGeneration((n) => n + 1);

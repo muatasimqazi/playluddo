@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { GameType } from "@/lib/board/types";
 import {
+  canUndoLastMove,
   createPractice,
   practiceReducer,
   randomDie,
@@ -166,6 +167,15 @@ export default function TableTogether() {
         onPause={(next) => setPaused(next)}
         onRoll={() => dispatch({ type: "roll", value: randomDie() })}
         onMove={(pawnId) => dispatch({ type: "move", pawnId })}
+        canUndo={canUndoLastMove(session)}
+        onUndo={() => {
+          const undone = practiceReducer(session, { type: "undo" });
+          if (undone === session) return;
+          dispatch({ type: "undo" });
+          // The seat whose move we took back is now up again; skip the
+          // pass-the-device prompt so they can re-pick straight away.
+          setReadyPlayerId(undone.state.turnPlayerId);
+        }}
         onFlip={() => {
           setGameType((current) =>
             current === "ludo" ? "snakes_and_ladders" : "ludo",

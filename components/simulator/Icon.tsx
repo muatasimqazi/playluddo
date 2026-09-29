@@ -14,6 +14,7 @@ export type IconName =
   | "menu"
   | "dice"
   | "replay"
+  | "undo"
   | "arrow"
   | "home"
   | "check"
@@ -100,6 +101,12 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <path d="M3 9a9 9 0 1 1 0 7M3 3v6h6" />
       <path d="m10 8 6 4-6 4Z" />
+    </>
+  ),
+  undo: (
+    <>
+      <path d="M9 14 4 9l5-5" />
+      <path d="M4 9h11a6 6 0 0 1 0 12h-4" />
     </>
   ),
   arrow: <path d="M4 12h16m-6-6 6 6-6 6" />,

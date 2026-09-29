@@ -79,6 +79,13 @@ export class PresentationTimeline {
       this.restore(state);
       return;
     }
+    // A local take-back (offline undo, F4.5) rewinds to an earlier snapshot:
+    // the sequence drops below what we've already played out. Snap straight to
+    // the restored board instead of waiting for forward events that won't come.
+    if (state.eventSequence < this.seen) {
+      this.restore(state);
+      return;
+    }
     const fresh = events
       .filter((e) => e.sequence > this.seen)
       .sort((a, b) => a.sequence - b.sequence);

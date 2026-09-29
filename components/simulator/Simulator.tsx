@@ -69,6 +69,12 @@ export interface SimulatorProps {
   messages?: TableMessage[];
   onMessage?: (text: string, kind: "chat" | "reaction") => Promise<unknown>;
   onRestart?: () => void;
+  /**
+   * Take back your last move (docs/COMPETITIVE_ROADMAP.md F4.5). Offline only —
+   * practice and Table Together pass this; online play never does.
+   */
+  onUndo?: () => void;
+  canUndo?: boolean;
   onFlip?: () => void;
   onRematch?: () => Promise<unknown>;
   onReclaim?: () => Promise<unknown>;
@@ -296,6 +302,8 @@ export default function Simulator({
   messages = [],
   onMessage,
   onRestart,
+  onUndo,
+  canUndo = false,
   onFlip,
   onRematch,
   onReclaim,
@@ -1041,6 +1049,17 @@ export default function Simulator({
               <Icon name="replay" />
               {frame.replaying ? "Live table" : "Replay"}
             </button>
+            {onUndo && (
+              <button
+                className="sim-replay"
+                onClick={onUndo}
+                disabled={!canUndo || frame.replaying}
+                title="Take back your last move"
+              >
+                <Icon name="undo" />
+                Undo
+              </button>
+            )}
             {mode !== "play" ? (
               <button className="sim-primary" onClick={reset}>
                 <Icon name="play" />
@@ -1563,6 +1582,19 @@ export default function Simulator({
                 {practice &&
                   " Each side keeps its own practice progress when you flip."}
               </p>
+              {onUndo && (
+                <button
+                  className="panel-secondary"
+                  onClick={() => {
+                    onUndo();
+                    setPanel(null);
+                  }}
+                  disabled={!canUndo || frame.replaying}
+                >
+                  <Icon name="undo" />
+                  Undo last move
+                </button>
+              )}
               {onRestart && (
                 <button className="panel-secondary" onClick={onRestart}>
                   <Icon name="replay" />

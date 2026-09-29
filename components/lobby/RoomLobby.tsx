@@ -301,6 +301,33 @@ export function RoomLobby({
             />
           </label>
         )}
+        {host && state.gameType === "snakes_and_ladders" &&
+          ([
+            ["snakesAnyRollToStart", "Any roll to start", "Your piece joins the board on any roll, not just a six"],
+            ["snakesBounceBack", "Bounce back off 100", "Overshooting 100 bounces back instead of staying put"],
+          ] as const).map(([key, title, note]) => (
+            <label key={key} className="lobby-player-count lobby-house-rule">
+              <span>
+                <span className="eyebrow">HOUSE RULE</span>
+                <strong>{title}</strong>
+                <small>{note}</small>
+              </span>
+              <input
+                type="checkbox"
+                checked={rules[key]}
+                disabled={pending}
+                onChange={(event) =>
+                  void run(async () => {
+                    const next = await setRoomRules(client, roomId, {
+                      ...rules,
+                      [key]: event.target.checked,
+                    });
+                    useRoomStore.getState().setRoomState(next);
+                  })
+                }
+              />
+            </label>
+          ))}
         {me && !me.isBot && (
           <div className="lobby-color-choice">
             <span>

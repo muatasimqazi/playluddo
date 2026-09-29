@@ -71,6 +71,22 @@ it("Snakes & Ladders SQL and practice agree for every square and die", async () 
   expect(rows.map((r) => r.move)).toEqual(
     fixtures.map((f) => snakeMove(f.pawns, "red", f.die)),
   );
+
+  // The variants (F2.6): any roll to start, and bouncing back off 100.
+  for (const rules of [
+    { snakesAnyRollToStart: true },
+    { snakesBounceBack: true },
+    { snakesAnyRollToStart: true, snakesBounceBack: true },
+  ]) {
+    const variant = await client.query(
+      `select private.snakes_move(f->'pawns', 'red', (f->>'die')::int, $2::jsonb) as move
+       from jsonb_array_elements($1::jsonb) with ordinality t(f, n) order by n`,
+      [JSON.stringify(fixtures), JSON.stringify(rules)],
+    );
+    expect(variant.rows.map((r) => r.move)).toEqual(
+      fixtures.map((f) => snakeMove(f.pawns, "red", f.die, rules)),
+    );
+  }
 });
 
 function pawn(

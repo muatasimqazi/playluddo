@@ -87,6 +87,10 @@ export interface RoomRules {
   pawnsToWin: number;
   /** Master mode (F2.2): a piece only enters the home column once its player has captured. */
   captureToEnterHome: boolean;
+  /** Snakes & Ladders (F2.6): any roll puts a piece on the board, not only a six. */
+  snakesAnyRollToStart: boolean;
+  /** Snakes & Ladders (F2.6): overshooting 100 bounces back instead of not moving. */
+  snakesBounceBack: boolean;
 }
 
 /**

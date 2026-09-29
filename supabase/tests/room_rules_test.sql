@@ -38,7 +38,8 @@ select is(
   private.ludo_room_state_json(((select value->>'roomId' from test_state where key = 'roomA'))::uuid)->'rules',
   -- The one place that pins every key, so a new rule has to be added here
   -- on purpose. Everywhere else asserts only the keys it cares about.
-  '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4, "captureToEnterHome": false}'::jsonb,
+  '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4, "captureToEnterHome": false,
+    "snakesAnyRollToStart": false, "snakesBounceBack": false}'::jsonb,
   'a new room shows the default rules, with the extra roll for getting home on'
 );
 set local role authenticated;

@@ -1,4 +1,5 @@
-import type { LegalMove, Pawn, PlayerColor } from "./types";
+import { resolveRoomRules } from "./rules";
+import type { LegalMove, Pawn, PlayerColor, RoomRules } from "./types";
 
 // Endpoints printed on designs/snake-and-ladder/snakes-and-ladders-board.svg
 // (each ladder's foot and snake's head carries a "↑ N" / "↓ N" label).
@@ -27,18 +28,26 @@ export const SNAKES: Readonly<Record<number, number>> = {
   98: 38,
 };
 
-/** One piece each; a six enters the board, exact 100, no captures or bonus rolls. */
+/**
+ * One piece each; a six enters the board, exact 100, no captures or bonus
+ * rolls. The room's rules can let any roll start a piece and bounce a piece
+ * back off 100 instead (F2.6).
+ */
 export function snakeMove(
   pawns: Pawn[],
   color: PlayerColor,
   die: number,
+  rules?: Partial<RoomRules> | null,
 ): LegalMove | null {
+  const { snakesAnyRollToStart, snakesBounceBack } = resolveRoomRules(rules);
   if (!Number.isInteger(die) || die < 1 || die > 6) return null;
   const pawn = pawns.find((p) => p.color === color && p.state !== "finished");
   if (!pawn) return null;
-  if (pawn.pathIndex === null && die !== 6) return null;
-  const landingSquare = (pawn.pathIndex ?? 0) + die;
-  if (landingSquare > 100) return null;
+  if (pawn.pathIndex === null && die !== 6 && !snakesAnyRollToStart) return null;
+  const rolled = (pawn.pathIndex ?? 0) + die;
+  if (rolled > 100 && !snakesBounceBack) return null;
+  // Bounces back off the end.
+  const landingSquare = rolled > 100 ? 200 - rolled : rolled;
   const destination =
     LADDERS[landingSquare] ?? SNAKES[landingSquare] ?? landingSquare;
   return {

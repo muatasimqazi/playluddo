@@ -133,6 +133,8 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   startOnBoard: 0,
   pawnsToWin: 4,
   captureToEnterHome: false,
+  snakesAnyRollToStart: false,
+  snakesBounceBack: false,
 };
 
 /**
@@ -148,6 +150,10 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
   if (typeof rules?.pawnsToWin === "number") resolved.pawnsToWin = rules.pawnsToWin;
   if (typeof rules?.captureToEnterHome === "boolean")
     resolved.captureToEnterHome = rules.captureToEnterHome;
+  if (typeof rules?.snakesAnyRollToStart === "boolean")
+    resolved.snakesAnyRollToStart = rules.snakesAnyRollToStart;
+  if (typeof rules?.snakesBounceBack === "boolean")
+    resolved.snakesBounceBack = rules.snakesBounceBack;
   return resolved;
 }
 

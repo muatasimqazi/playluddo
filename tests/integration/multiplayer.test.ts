@@ -5,6 +5,7 @@ import { Client } from "pg";
 import { expect, it } from "vitest";
 import { applySnakeMove, snakeMove } from "../../lib/board/snakes";
 import type { GameRoomState } from "../../lib/board/types";
+import { realtimeReady } from "./realtime";
 
 /** Isolated local-only clients. Never operates on an existing user's room. */
 it.each(["ludo", "snakes_and_ladders"] as const)(
@@ -104,6 +105,18 @@ it.each(["ludo", "snakes_and_ladders"] as const)(
           chat.push(payload),
         );
       await joined(guestChannel);
+      // Prove broadcasts are flowing before relying on them: join voice
+      // until both clients see it, then leave, which puts the room back.
+      const hostInVoice = (states: Record<string, unknown>[]) =>
+        (states.at(-1)?.players as { id: string; inVoice: boolean }[] | undefined)?.find(
+          (p) => p.id === host.playerId,
+        )?.inVoice;
+      await realtimeReady(
+        () => rpc(a, "join_voice", { p_room_id: roomId }),
+        () => hostInVoice(statesA) === true && hostInVoice(statesB) === true,
+      );
+      await rpc(a, "leave_voice", { p_room_id: roomId });
+      await until(() => hostInVoice(statesA) === false && hostInVoice(statesB) === false);
       const deniedFlip = await b.rpc("set_room_game", {
         p_room_id: roomId,
         p_game_type: gameType,

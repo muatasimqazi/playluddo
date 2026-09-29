@@ -3,6 +3,7 @@ import { parseEnv } from "node:util";
 import { createClient, type RealtimeChannel } from "@supabase/supabase-js";
 import { Client } from "pg";
 import { expect, it } from "vitest";
+import { realtimeReady } from "./realtime";
 
 /** Isolated local-only clients. Never operates on an existing user's room. */
 it("voice roster and signaling: join/leave flip inVoice on state_updated, signals reach only the room, targets are validated", async () => {
@@ -103,9 +104,10 @@ it("voice roster and signaling: join/leave flip inVoice on state_updated, signal
     await joined(guestChannel);
 
     // join_voice flips this seat's inVoice and rides the existing
-    // state_updated broadcast — no separate roster channel needed.
-    await rpc(a, "join_voice", { p_room_id: roomId });
-    await until(
+    // state_updated broadcast — no separate roster channel needed. It's
+    // idempotent, so it doubles as the proof that broadcasts are flowing.
+    await realtimeReady(
+      () => rpc(a, "join_voice", { p_room_id: roomId }),
       () =>
         (statesB.at(-1)?.players as { id: string; inVoice: boolean }[] | undefined)?.find(
           (p) => p.id === host.playerId,

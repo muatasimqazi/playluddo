@@ -199,6 +199,7 @@ export function ProfilePanel({
   const [inviteCode, setInviteCode] = useState("");
   const [sharedTeamId, setSharedTeamId] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [profileHidden, setProfileHidden] = useState(false);
 
   useEffect(() => {
     const applyUser = (nextUser: User | null) => {
@@ -207,6 +208,7 @@ export function ProfilePanel({
       setDisplayName(nextName);
       setAvatarId(nextUser?.user_metadata?.avatar_id ?? "");
       setCountry(nextUser?.user_metadata?.country ?? "");
+      setProfileHidden(nextUser?.user_metadata?.profile_hidden === true);
       if (nextUser && !nextUser.is_anonymous && nextName) onNameChange(nextName);
       onAvatarChange?.(
         nextUser && !nextUser.is_anonymous ? nextUser.user_metadata?.avatar_id || null : null,
@@ -423,6 +425,24 @@ export function ProfilePanel({
     setMessage("Profile saved.");
   }
 
+  // The profile page's stats show to other players from your seat's avatar
+  // (F3.1). This hides them from everyone but you; your name and avatar stay
+  // visible, since they already show at the table.
+  async function toggleProfileHidden() {
+    const next = !profileHidden;
+    setProfileHidden(next);
+    setPending("privacy");
+    setMessage(null);
+    const { data, error } = await client.auth.updateUser({ data: { profile_hidden: next } });
+    setPending(null);
+    if (error) {
+      setProfileHidden(!next);
+      setMessage(error.message);
+      return;
+    }
+    setUser(data.user);
+  }
+
   async function signOut() {
     setPending("signout");
     const { error } = await client.auth.signOut();
@@ -592,12 +612,32 @@ export function ProfilePanel({
                 </div>
                 <Link
                   className="profile-secondary"
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon name="users" />
+                  Your profile and stats
+                </Link>
+                <Link
+                  className="profile-secondary"
                   href="/leaderboard"
                   onClick={() => setOpen(false)}
                 >
                   <Icon name="trophy" />
                   {wins === null ? "Leaderboard" : `${wins} ${wins === 1 ? "win" : "wins"} · Leaderboard`}
                 </Link>
+                <label className="profile-privacy">
+                  <input
+                    type="checkbox"
+                    checked={profileHidden}
+                    disabled={pending !== null}
+                    onChange={() => void toggleProfileHidden()}
+                  />
+                  <span>
+                    <strong>Hide my stats from other players</strong>
+                    <small>Your name and avatar still show at the table.</small>
+                  </span>
+                </label>
                 <label className="profile-field">
                   Display name
                   <input

@@ -30,6 +30,7 @@ import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
 import { useCast } from "@/lib/hooks/useCast";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { BRAND } from "@/lib/brand";
@@ -615,7 +616,13 @@ export function RoomLobby({
                 className={`lobby-seat ${player ? "occupied" : ""}`}
               >
                 {player ? (
-                  <PlayerAvatar player={player} size={44} className="lobby-avatar" />
+                  <PlayerProfileButton
+                    playerId={player.id}
+                    displayName={player.displayName}
+                    isBot={player.isBot}
+                  >
+                    <PlayerAvatar player={player} size={44} className="lobby-avatar" />
+                  </PlayerProfileButton>
                 ) : (
                   <span className="lobby-avatar" style={{ borderColor: COLORS[color] }}>+</span>
                 )}

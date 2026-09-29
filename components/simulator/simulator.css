@@ -5136,3 +5136,198 @@ body.sim-piece-hover .sim-canvas {
 .lobby-house-rule.is-disabled {
   opacity: 0.45;
 }
+
+/* ---------------------------------------------------------------------------
+   Player profile and stats (F3.1): the card shared by the /profile page and
+   the seat-avatar profile modal, plus the tap-a-seat trigger and privacy
+   toggle. Same glass panels, gold accents and serif figures as the rest.
+   --------------------------------------------------------------------------- */
+/* A seat's avatar becomes a button that opens its player's profile. It must
+   not add chrome around the avatar it wraps. */
+.profile-open-trigger {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 999px;
+  line-height: 0;
+}
+.profile-open-trigger:focus-visible {
+  outline: 2px solid #d8bd7f;
+  outline-offset: 2px;
+}
+.profile-view-panel {
+  gap: 0;
+}
+.profile-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 6px;
+}
+.profile-stats-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.profile-stats-head strong {
+  display: block;
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #f1ead7;
+}
+.profile-stats-head small {
+  color: #c0c8b5;
+  font-size: 11px;
+}
+.profile-stats-empty {
+  margin: 0;
+  color: #c0c8b5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 10px;
+  border: 1px solid #d8bd7f2e;
+  border-radius: 10px;
+  background: #26372e73;
+}
+.profile-stat > span {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  color: #f1ead7;
+}
+.profile-stat > small {
+  font-size: 10px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #c0c5a9;
+}
+.profile-stat-colour {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: Georgia, serif;
+  font-size: 16px !important;
+}
+.profile-stat-colour i {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex: none;
+}
+.profile-stat-colour i[data-colour="red"] {
+  background: #c74b43;
+}
+.profile-stat-colour i[data-colour="green"] {
+  background: #43876b;
+}
+.profile-stat-colour i[data-colour="yellow"] {
+  background: #d9ab42;
+}
+.profile-stat-colour i[data-colour="blue"] {
+  background: #487ab3;
+}
+.profile-stats-section .eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #c0c5a9;
+  letter-spacing: 2px;
+  font-size: 9px;
+}
+.profile-modes,
+.profile-rivals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.profile-modes li,
+.profile-rivals li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #ffffff1a;
+  border-radius: 9px;
+  background: #16221b8c;
+  color: #e6e7d6;
+  font-size: 13px;
+}
+.profile-modes li > span,
+.profile-rivals li > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-modes strong,
+.profile-rivals strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-family: Georgia, serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: #f1ead7;
+}
+.profile-modes strong small,
+.profile-rivals strong small {
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+  color: #c0c8b5;
+}
+.profile-comeback {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 12px;
+  border: 1px solid #d8bd7f40;
+  border-radius: 10px;
+  background: #26372e80;
+  color: #d8bd7f;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.profile-comeback strong {
+  color: #f1ead7;
+}
+.profile-privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 6px;
+  cursor: pointer;
+}
+.profile-privacy input {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  accent-color: #d8bd7f;
+}
+.profile-privacy strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e6e7d6;
+}
+.profile-privacy small {
+  color: #c0c8b5;
+  font-size: 11px;
+  line-height: 1.4;
+}

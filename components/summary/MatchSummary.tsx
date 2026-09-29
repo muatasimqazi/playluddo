@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { acceptRematch, requestRematch } from "@/lib/supabase/rpc";
 import { rankPlayers, resolveRoomRules, type PlayerProgress } from "@/lib/board/rules";
 import type { PlayerColor } from "@/lib/board/types";
@@ -157,11 +158,17 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
               return (
                 <div key={playerId} className="flex items-center gap-2">
                   <span className="w-5 text-body-sm font-semibold text-text-secondary">{index + 1}</span>
-                  <PlayerAvatar
-                    player={player}
-                    size={28}
-                    placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
-                  />
+                  <PlayerProfileButton
+                    playerId={player.id}
+                    displayName={player.displayName}
+                    isBot={player.isBot}
+                  >
+                    <PlayerAvatar
+                      player={player}
+                      size={28}
+                      placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
+                    />
+                  </PlayerProfileButton>
                   <span className="flex-1 truncate text-body-sm text-foreground">
                     {player.displayName} {player.id === myPlayerId && "(You)"}
                   </span>

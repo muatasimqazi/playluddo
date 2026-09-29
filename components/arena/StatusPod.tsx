@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { DicePipFace } from "./Dice";
 import { QUADRANT_CLASSES } from "@/components/shared/colors";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import type { GameRoomState, Player } from "@/lib/board/types";
 
@@ -55,6 +56,12 @@ export function StatusPod({
   const isRight = align === "right";
 
   const avatar = (
+    <PlayerProfileButton
+      playerId={player.id}
+      displayName={player.displayName}
+      isBot={player.isBot}
+      className="shrink-0"
+    >
     <div className="relative shrink-0" style={{ width: AVATAR_SIZE + 6, height: AVATAR_SIZE + 6 }}>
       <AnimatePresence>
         {isCurrentTurn && secondsLeft !== null && (
@@ -111,6 +118,7 @@ export function StatusPod({
       </AnimatePresence>
       <PlayerAvatar player={player} size={AVATAR_SIZE} className="absolute inset-0.75" />
     </div>
+    </PlayerProfileButton>
   );
 
   const info = (

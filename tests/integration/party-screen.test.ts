@@ -6,8 +6,9 @@ import { expect, it } from "vitest";
 import { realtimeReady } from "./realtime";
 
 /**
- * Party Mode, P1: a real screen client (no seat) receives its room's live
- * updates while a real phone joins and starts the game. Isolated
+ * Party Mode, P1 and P3: a real screen client (no seat) receives its room's
+ * live updates while a real phone joins and starts the game, and the
+ * reactions that phone sends from its controller. Isolated
  * local-only clients; never touches an existing user's room.
  */
 it("a party screen follows its room live without a seat", async () => {
@@ -48,9 +49,11 @@ it("a party screen follows its room live without a seat", async () => {
     roomId = party.roomId as string;
 
     const states: Record<string, unknown>[] = [];
+    const messages: Record<string, unknown>[] = [];
     const channel = screen
       .channel(`room:${roomId}`, { config: { private: true } })
-      .on("broadcast", { event: "state_updated" }, ({ payload }) => states.push(payload));
+      .on("broadcast", { event: "state_updated" }, ({ payload }) => states.push(payload))
+      .on("broadcast", { event: "table_message" }, ({ payload }) => messages.push(payload));
     channels.push(channel);
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("Realtime subscription timed out")), 12000);
@@ -94,6 +97,10 @@ it("a party screen follows its room live without a seat", async () => {
     await until(() => states.at(-1)?.status === "in_game");
     expect(states.at(-1)).toMatchObject(await rpc(screen, "get_party_screen", { p_room_id: roomId }));
 
+    // A reaction from the phone's controller shows on the screen; chat doesn't exist here.
+    await rpc(phone, "send_table_message", { p_room_id: roomId, p_text: "🎉", p_kind: "reaction" });
+    await until(() => messages.length > 0);
+    expect(messages[0]).toMatchObject({ playerId: seat.playerId, text: "🎉", kind: "reaction" });
   } finally {
     await Promise.all(channels.map((c) => c.unsubscribe()));
     await Promise.all([screen.removeAllChannels(), phone.removeAllChannels()]);

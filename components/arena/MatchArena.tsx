@@ -22,6 +22,7 @@ import type { MatchResult } from "@/lib/board/types";
 import { rememberCommitment, type DiceProof } from "@/lib/presentation/diceProof";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
+import { PartyController } from "@/components/controller/PartyController";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
 // loading fallback's own styling (the die animation) is available
 // immediately instead of arriving with the same lazy chunk it stands in for.
@@ -106,6 +107,59 @@ export function MatchArena({
     }
   }
   if (!state) return null;
+  async function sendMessage(text: string, kind: "chat" | "reaction") {
+    const { data, error } = await client.rpc("send_table_message", {
+      p_room_id: roomId,
+      p_text: text,
+      p_kind: kind,
+    });
+    if (error)
+      throw new Error(
+        error.code === "PGRST202"
+          ? "Table chat needs the latest database migration."
+          : error.message,
+      );
+    addMessage(data);
+  }
+  const onRoll = () => act(() => requestRoll(client, roomId, connectionToken));
+  const onMove = (id: string) =>
+    act(() => requestMove(client, roomId, id, connectionToken));
+  const onRematch = () =>
+    act(() =>
+      state.players.some((p) => p.rematchReady)
+        ? acceptRematch(client, roomId)
+        : requestRematch(client, roomId),
+    );
+  const onReclaim = () => act(() => reclaimSeat(client, roomId));
+  const onAutoRoll = (enabled: boolean) =>
+    act(() => toggleAutoRoll(client, roomId, enabled));
+  const onPause = (paused: boolean) =>
+    act(async () => {
+      const next = await toggleMatchPause(client, roomId, paused);
+      useRoomStore.getState().setRoomState(next);
+    });
+  // Party Mode: the table is on the shared screen; this phone is a controller.
+  if (state.isParty)
+    return (
+      <>
+        {age.gate}
+        <PartyController
+          state={state}
+          myPlayerId={myPlayerId}
+          pending={pending}
+          error={error}
+          connection={connection}
+          sessionReplaced={sessionReplaced}
+          onRoll={() => void onRoll()}
+          onMove={(id) => void onMove(id)}
+          onReact={(text) => sendMessage(text, "reaction")}
+          onReclaim={() => void onReclaim()}
+          onRematch={() => void onRematch()}
+          onAutoRoll={(enabled) => void onAutoRoll(enabled)}
+          onPause={(paused) => void onPause(paused)}
+        />
+      </>
+    );
   return (
     <>
       {age.gate}
@@ -118,46 +172,18 @@ export function MatchArena({
         readOnly={sessionReplaced}
         connection={connection}
         messages={messages}
-        onMessage={async (text, kind) => {
-          const { data, error } = await client.rpc("send_table_message", {
-            p_room_id: roomId,
-            p_text: text,
-            p_kind: kind,
-          });
-          if (error)
-            throw new Error(
-              error.code === "PGRST202"
-                ? "Table chat needs the latest database migration."
-                : error.message,
-            );
-          addMessage(data);
-        }}
-        onRoll={() => act(() => requestRoll(client, roomId, connectionToken))}
-        onMove={(id) =>
-          act(() => requestMove(client, roomId, id, connectionToken))
-        }
-        onRematch={() =>
-          act(() =>
-            state.players.some((p) => p.rematchReady)
-              ? acceptRematch(client, roomId)
-              : requestRematch(client, roomId),
-          )
-        }
-        onReclaim={() => act(() => reclaimSeat(client, roomId))}
-        onAutoRoll={(enabled) =>
-          act(() => toggleAutoRoll(client, roomId, enabled))
-        }
+        onMessage={sendMessage}
+        onRoll={onRoll}
+        onMove={onMove}
+        onRematch={onRematch}
+        onReclaim={onReclaim}
+        onAutoRoll={onAutoRoll}
         paused={state.paused}
         canPause={state.hostPlayerId === myPlayerId}
-        onPause={(paused) =>
-          act(async () => {
-            const next = await toggleMatchPause(client, roomId, paused);
-            useRoomStore.getState().setRoomState(next);
-          })
-        }
+        onPause={onPause}
         voice={voice}
         matchResults={ended ? results : null}
-      diceProof={ended ? diceProof : null}
+        diceProof={ended ? diceProof : null}
         blockedPlayerIds={blockedPlayerIds}
         onBlockPlayer={async (playerId, blocked) => {
           await setPlayerBlocked(client, roomId, playerId, blocked);

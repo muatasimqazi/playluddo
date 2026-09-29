@@ -1,11 +1,12 @@
 -- pgTAP tests for supabase/migrations/20260928090000_party_screen.sql: the
 -- screen can watch its party room and nothing else, the first phone to sit
--- becomes the VIP, and party rooms have no chat or voice. Realtime delivery
+-- becomes the VIP, and party rooms have no chat or voice (reactions only,
+-- from 20260928110000_party_reactions.sql). Realtime delivery
 -- to the screen is covered by tests/integration/party-screen.test.ts.
 -- Run with `supabase test db` (requires `supabase start`).
 
 begin;
-select plan(17);
+select plan(19);
 
 create temporary table party_state (key text primary key, value jsonb);
 grant select, insert on party_state to authenticated;
@@ -107,6 +108,15 @@ select throws_ok(
   format('select public.send_table_message(%L, %L, %L)', pg_temp.room(), 'hello', 'chat'),
   'P0001', 'PARTY_ROOM',
   'party rooms have no chat'
+);
+select lives_ok(
+  format('select public.send_table_message(%L, %L, %L)', pg_temp.room(), '🎉', 'reaction'),
+  'phones can send reactions to the screen'
+);
+select throws_ok(
+  format('select public.send_table_message(%L, %L, %L)', pg_temp.room(), 'free text', 'reaction'),
+  'P0001', 'INVALID_MESSAGE',
+  'a reaction must come from the fixed list'
 );
 select throws_ok(
   format('select public.join_voice(%L)', pg_temp.room()),

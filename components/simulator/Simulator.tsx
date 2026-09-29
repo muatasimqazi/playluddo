@@ -22,6 +22,7 @@ import { MatchDice } from "@/components/summary/MatchDice";
 import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
 import { FirstGameTips } from "./FirstGameTips";
 import { REACTION_EMOJI_ROWS, REACTION_PHRASES, REVENGE } from "@/lib/realtime/reactions";
+import { forcedMovePawnId } from "@/lib/presentation/controller";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
@@ -393,17 +394,7 @@ export default function Simulator({
   // identical ones (a six with every pawn still in base) — play it for
   // the player after a beat instead of making them find and click a pawn.
   const forcedMove =
-    legalPawnIds.length > 0
-      ? state.legalMoves.every(
-          (m) =>
-            m.fromTileId === state.legalMoves[0].fromTileId &&
-            m.toTileId === state.legalMoves[0].toTileId &&
-            m.finishesPawn === state.legalMoves[0].finishesPawn &&
-            m.capturesPawnIds.join() === state.legalMoves[0].capturesPawnIds.join(),
-        )
-        ? state.legalMoves[0].pawnId
-        : null
-      : null;
+    legalPawnIds.length > 0 ? forcedMovePawnId(state.legalMoves) : null;
   // Parents pass onMove inline, so read it through a ref — depending on
   // it directly would restart the delay on every render.
   const onMoveRef = useRef(onMove);

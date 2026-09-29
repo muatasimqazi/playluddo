@@ -4339,3 +4339,307 @@ body.sim-piece-hover .sim-canvas {
 .party-screen .entrance-shade {
   position: fixed;
 }
+
+/* Party Mode's phone controller (components/controller/PartyController.tsx).
+   One-handed and portrait: the table is on the shared screen, so this is
+   only buttons. Every target is at least 44px. */
+.party-pad {
+  --sim-ink: #f0ecdf;
+  --sim-muted: #b6baac;
+  --sim-line: rgba(233, 231, 211, 0.15);
+  --seat: #dbbf86;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  background: #151d17;
+  color: var(--sim-ink);
+  font-size: 15px;
+}
+:where(.party-pad) button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.party-pad button:disabled {
+  cursor: default;
+}
+.party-pad button:focus-visible {
+  outline: 2px solid #e4c385;
+  outline-offset: 3px;
+}
+.party-pad-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--seat);
+  opacity: 0;
+  pointer-events: none;
+  animation: party-pad-flash 700ms ease-out;
+}
+@keyframes party-pad-flash {
+  0% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+.party-pad > :not(.party-pad-flash) {
+  position: relative;
+  z-index: 1;
+}
+.party-pad-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.party-pad-header > div {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.party-pad-header strong {
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.party-pad-header small {
+  color: var(--sim-muted);
+  font-size: 13px;
+}
+.party-pad-header small::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--seat);
+}
+.party-pad-toggle {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--sim-line);
+  border-radius: 999px;
+  color: var(--sim-muted);
+  font-size: 13px;
+}
+.party-pad-toggle.is-on {
+  border-color: var(--seat);
+  color: var(--sim-ink);
+}
+.party-pad-banner {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(233, 231, 211, 0.1);
+  font-size: 14px;
+}
+.party-pad-banner.is-error {
+  background: rgba(199, 75, 67, 0.22);
+  color: #f6cfc8;
+}
+/* Your turn: the phone is the Roll button. Dark ink on the seat colour is
+   at least 3.8:1 for every seat, and the text is large. */
+.party-pad-roll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 60dvh;
+  border-radius: 28px;
+  background: var(--seat);
+  color: #141a14;
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.18);
+  touch-action: manipulation;
+}
+.party-pad-roll span {
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+}
+.party-pad-roll small {
+  font-size: 19px;
+  font-weight: 700;
+}
+.party-pad-roll:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.party-pad-roll:disabled {
+  opacity: 0.8;
+}
+.party-pad-status {
+  display: grid;
+  gap: 10px;
+  padding: 20px 16px;
+  border: 1px solid var(--sim-line);
+  border-radius: 20px;
+  background: rgba(233, 231, 211, 0.05);
+  text-align: center;
+}
+.party-pad-status h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.15;
+}
+.party-pad-status p {
+  margin: 0;
+  color: var(--sim-muted);
+}
+.party-pad-die {
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: #f0ecdf;
+  color: #141a14 !important;
+  font-size: 40px;
+  font-weight: 800;
+}
+.party-pad-primary,
+.party-pad-secondary {
+  min-height: 52px;
+  padding: 0 20px;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 700;
+}
+.party-pad-primary {
+  background: var(--seat);
+  color: #141a14;
+}
+.party-pad-primary:disabled {
+  background: rgba(233, 231, 211, 0.14);
+  color: var(--sim-muted);
+}
+.party-pad-secondary {
+  border: 1px solid var(--sim-line);
+  color: var(--sim-ink);
+}
+.party-pad-pieces ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.party-pad-piece {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--sim-line);
+  border-radius: 14px;
+  text-align: left;
+}
+.party-pad-piece small {
+  grid-column: 1 / -1;
+  color: var(--sim-muted);
+  font-size: 14px;
+}
+.party-pad-piece.is-home {
+  opacity: 0.6;
+}
+.party-pad-piece.is-legal {
+  border-color: var(--seat);
+  box-shadow: 0 0 0 1px var(--seat), 0 0 18px -4px var(--seat);
+}
+.party-pad-piece.is-legal small {
+  color: var(--sim-ink);
+}
+.party-pad-piece.is-selected {
+  background: color-mix(in srgb, var(--seat) 22%, transparent);
+  box-shadow: 0 0 0 3px var(--seat);
+}
+.party-pad-piece-name {
+  font-weight: 700;
+}
+.party-pad-route {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(233, 231, 211, 0.12);
+}
+.party-pad-route-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--seat);
+}
+.party-pad-route-to {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #f0ecdf;
+  border-radius: 50%;
+  background: #151d17;
+  transform: translate(-50%, -50%);
+}
+.party-pad-confirm {
+  width: 100%;
+  margin-top: 12px;
+}
+.party-pad-reactions .reaction-tabs {
+  margin-top: 0;
+}
+.party-pad-reactions .reaction-tabs button {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+}
+.party-pad-emoji {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+  gap: 4px;
+  margin-top: 10px;
+}
+.party-pad-emoji button {
+  min-height: 48px;
+  border-radius: 12px;
+  font-size: 26px;
+}
+.party-pad-phrases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.party-pad-phrases button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--sim-line);
+  border-radius: 999px;
+  font-size: 14px;
+}
+.party-pad-emoji button:disabled,
+.party-pad-phrases button:disabled {
+  opacity: 0.45;
+}
+.party-pad-sent {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  color: var(--sim-muted);
+  font-size: 13px;
+}
+.party-pad-card {
+  margin: auto 0;
+  text-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .party-pad-flash {
+    animation: none;
+  }
+  .party-pad-roll:active:not(:disabled) {
+    transform: none;
+  }
+}

@@ -12,6 +12,7 @@ import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { webUrl } from "@/lib/native";
 import { BRAND } from "@/lib/brand";
 import type { GameRoomState, GameType } from "@/lib/board/types";
+import type { TableMessage } from "@/lib/realtime/table-messages";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { Icon } from "@/components/simulator/Icon";
@@ -100,6 +101,8 @@ function StartScreen() {
 function ConnectedScreen({ roomId }: { roomId: string }) {
   const [state, setState] = useState<GameRoomState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Reactions from the phones (party rooms carry no chat), shown over their seats.
+  const [reactions, setReactions] = useState<TableMessage[]>([]);
 
   useEffect(() => {
     const client = createClient();
@@ -120,6 +123,9 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
         channel = subscribeToRoom(client, roomId, (next) => setState(next), {
           onStatus: (status) => {
             if (status === "SUBSCRIBED") void refresh();
+          },
+          onMessage: (message) => {
+            if (message.kind === "reaction") setReactions((all) => [...all.slice(-19), message]);
           },
         });
         void refresh();
@@ -164,6 +170,7 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
       state={state}
       events={[]}
       myPlayerId={null}
+      messages={reactions}
       readOnly
       onRoll={() => {}}
       onMove={() => {}}

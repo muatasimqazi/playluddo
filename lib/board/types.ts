@@ -97,6 +97,8 @@ export interface RoomRules {
   blockades: boolean;
   /** How long a player has to take their turn (F2.4): 10, 15 or 30 seconds. */
   turnSeconds: number;
+  /** Team Up (F2.5): opposite seats play as red/yellow versus green/blue. */
+  teamUp: boolean;
 }
 
 /**

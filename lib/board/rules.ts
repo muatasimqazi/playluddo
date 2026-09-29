@@ -38,11 +38,13 @@ export function getLegalMoves(
 ): LegalMove[] {
   const moves: LegalMove[] = [];
   const resolved = resolveRoomRules(context?.rules);
+  const friendlyColors = teamColors(color, resolved.teamUp);
+  const controllableColors = controllableTeamColors(pawns, color, resolved.teamUp);
   // Master mode: this player has to capture before any piece goes home.
   const heldBack = resolved.captureToEnterHome && !context?.hasCaptured;
 
   for (const pawn of pawns) {
-    if (pawn.color !== color) continue;
+    if (!controllableColors.has(pawn.color)) continue;
 
     if (pawn.state === "nest") {
       if (dieValue !== 6) continue;
@@ -50,7 +52,7 @@ export function getLegalMoves(
         pawnId: pawn.id,
         fromTileId: pathIndexToTileId(color, null),
         toTileId: pathIndexToTileId(color, PATH_INDEX.ENTRY),
-        capturesPawnIds: capturesAt(pawns, color, PATH_INDEX.ENTRY),
+        capturesPawnIds: capturesAt(pawns, pawn.color, PATH_INDEX.ENTRY, friendlyColors),
         finishesPawn: false,
       });
       continue;
@@ -76,7 +78,9 @@ export function getLegalMoves(
     if (resolved.blockades && blockedBetween(pawns, color, current, target)) continue;
 
     const captures =
-      target <= PATH_INDEX.LAST_TRACK_CELL ? capturesAt(pawns, color, target) : [];
+      target <= PATH_INDEX.LAST_TRACK_CELL
+        ? capturesAt(pawns, pawn.color, target, friendlyColors)
+        : [];
 
     moves.push({
       pawnId: pawn.id,
@@ -115,6 +119,7 @@ function capturesAt(
   pawns: EnginePawn[],
   movingColor: PlayerColor,
   targetPathIndex: number,
+  friendlyColors: ReadonlySet<PlayerColor> = new Set([movingColor]),
 ): string[] {
   const globalCell = pathIndexToGlobalCell(movingColor, targetPathIndex);
   if (isSafeCell(globalCell)) return [];
@@ -122,12 +127,31 @@ function capturesAt(
   return pawns
     .filter(
       (p) =>
-        p.color !== movingColor &&
+        !friendlyColors.has(p.color) &&
         p.state === "track" &&
         p.pathIndex !== null &&
         pathIndexToGlobalCell(p.color, p.pathIndex) === globalCell,
     )
     .map((p) => p.id);
+}
+
+/** The Team Up pair for a seat: red/yellow and green/blue. */
+export function teamColors(color: PlayerColor, teamUp = false): ReadonlySet<PlayerColor> {
+  if (!teamUp) return new Set([color]);
+  return color === "red" || color === "yellow"
+    ? new Set(["red", "yellow"])
+    : new Set(["green", "blue"]);
+}
+
+/** A partner's pawns unlock only after the acting seat finishes its own four. */
+export function controllableTeamColors(
+  pawns: EnginePawn[],
+  color: PlayerColor,
+  teamUp = false,
+): ReadonlySet<PlayerColor> {
+  if (!teamUp) return new Set([color]);
+  const ownFinished = pawns.filter((pawn) => pawn.color === color && pawn.state === "finished").length;
+  return ownFinished === 4 ? teamColors(color, true) : new Set([color]);
 }
 
 /** Applies an already-legal move: relocates the moving pawn, sends captured pawns to nest. */
@@ -163,6 +187,7 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   matchMinutes: 0,
   blockades: false,
   turnSeconds: 15,
+  teamUp: false,
 };
 
 /**
@@ -185,6 +210,7 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
   if (typeof rules?.matchMinutes === "number") resolved.matchMinutes = rules.matchMinutes;
   if (typeof rules?.blockades === "boolean") resolved.blockades = rules.blockades;
   if (typeof rules?.turnSeconds === "number") resolved.turnSeconds = rules.turnSeconds;
+  if (typeof rules?.teamUp === "boolean") resolved.teamUp = rules.teamUp;
   return resolved;
 }
 

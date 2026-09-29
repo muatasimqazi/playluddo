@@ -180,6 +180,44 @@ describe("getLegalMoves — blockades", () => {
   });
 });
 
+describe("getLegalMoves — Team Up", () => {
+  it("unlocks a partner's pawns after the acting seat finishes its own four", () => {
+    const pawns = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "finished", 56),
+      "red-1": pawn("red-1", "red", 1, "finished", 56),
+      "red-2": pawn("red-2", "red", 2, "finished", 56),
+      "red-3": pawn("red-3", "red", 3, "finished", 56),
+      "yellow-0": pawn("yellow-0", "yellow", 0, "track", 6),
+    });
+    expect(getLegalMoves(pawns, "red", 3, { rules: { teamUp: true } })
+      .map((move) => move.pawnId)).toContain("yellow-0");
+    expect(getLegalMoves(pawns, "red", 3).map((move) => move.pawnId)).not.toContain("yellow-0");
+  });
+
+  it("does not unlock the partner before all four own pawns are home", () => {
+    const pawns = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "finished", 56),
+      "red-1": pawn("red-1", "red", 1, "finished", 56),
+      "red-2": pawn("red-2", "red", 2, "finished", 56),
+      "yellow-0": pawn("yellow-0", "yellow", 0, "track", 6),
+    });
+    expect(getLegalMoves(pawns, "red", 3, { rules: { teamUp: true } })
+      .map((move) => move.pawnId)).not.toContain("yellow-0");
+  });
+
+  it("does not capture an allied pawn, while the other side remains capturable", () => {
+    const pawns = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 6),
+      // Yellow path 36 and green path 49 both map to red's target, cell 10.
+      "yellow-0": pawn("yellow-0", "yellow", 0, "track", 36),
+      "green-0": pawn("green-0", "green", 0, "track", 49),
+    });
+    const move = getLegalMoves(pawns, "red", 4, { rules: { teamUp: true } })
+      .find((candidate) => candidate.pawnId === "red-0")!;
+    expect(move.capturesPawnIds).toEqual(["green-0"]);
+  });
+});
+
 describe("earnsBonusRoll", () => {
   const plainMove: LegalMove = {
     pawnId: "x",

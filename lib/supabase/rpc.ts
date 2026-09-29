@@ -37,6 +37,8 @@ export type RpcErrorCode =
   | "AGE_RESTRICTED"
   | "AGE_ALREADY_DECLARED"
   | "INVALID_BIRTH_DATE"
+  | "PARTY_LOCKED"
+  | "PARTY_REMOVED"
   | "PARTY_ROOM"
   | "DISPLAY_CANNOT_SIT"
   | "NOT_PARTY_ROOM"
@@ -77,6 +79,8 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "AGE_RESTRICTED",
   "AGE_ALREADY_DECLARED",
   "INVALID_BIRTH_DATE",
+  "PARTY_LOCKED",
+  "PARTY_REMOVED",
   "PARTY_ROOM",
   "DISPLAY_CANNOT_SIT",
   "NOT_PARTY_ROOM",
@@ -173,6 +177,7 @@ export interface RoomInvite {
   isSeated: boolean;
   /** A Party Mode room. Absent from older servers. */
   isParty?: boolean;
+  partyLocked?: boolean;
   /** This phone is in the party room's audience (P6). */
   isAudience?: boolean;
 }
@@ -394,6 +399,8 @@ export interface PartyMoment {
 /** What the audience adds to a party room (get_party_extras, P6). */
 export interface PartyExtras {
   isAudience: boolean;
+  audienceTopic?: string | null;
+  audienceMembers?: { id: string; name: string; isMe: boolean }[];
   /** Audience names, in the order they joined. */
   audience: string[];
   /** The lobby's picks for the next game. */
@@ -439,4 +446,12 @@ export function predictWinner(client: SupabaseClient, roomId: string, playerId: 
 /** The audience's vote for the moment of the match, once it has ended. */
 export function voteMoment(client: SupabaseClient, roomId: string, sequence: number) {
   return call<void>(client, "vote_moment", { p_room_id: roomId, p_sequence: sequence });
+}
+
+/** P7: only the room's own screen may change the lock after play starts. */
+export function setPartyLocked(client: SupabaseClient, roomId: string, locked: boolean) {
+  return call<void>(client, "set_party_locked", { p_room_id: roomId, p_locked: locked });
+}
+export function roomIdForCode(client: SupabaseClient, code: string) {
+  return call<string>(client, "room_id_for_code", { p_code: code });
 }

@@ -126,6 +126,8 @@ export interface GameRoomState {
   rules?: RoomRules;
   /** A Party Mode room, shown on a shared screen. Absent on older snapshots. */
   isParty?: boolean;
+  partyLocked?: boolean;
+  partyTurnSeconds?: number;
   /** The current or latest match. Absent on older snapshots. */
   matchId?: string | null;
   /** That match's dice commitment (lib/presentation/diceProof.ts), published before its first roll. */

@@ -41,10 +41,12 @@ export function AskAge({
   onEligible,
   onUnderAge,
   onCancel,
+  partyAgreement = false,
 }: {
   onEligible: () => void;
   onUnderAge: () => void;
   onCancel: () => void;
+  partyAgreement?: boolean;
 }) {
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
@@ -126,6 +128,7 @@ export function AskAge({
             </select>
           </label>
         </div>
+        {partyAgreement && <p className="table-rules-terms">Be kind, and use a friendly name. By continuing you agree to the <Link href="/terms">Terms of Use</Link>.</p>}
         {error && (
           <p className="age-check-error" role="alert">
             {error}

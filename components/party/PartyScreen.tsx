@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import {
   createPartyRoom,
+  setPartyLocked,
   getPartyExtras,
   getPartyScreen,
   RpcError,
@@ -106,6 +107,7 @@ function StartScreen() {
             {error}
           </p>
         )}
+        <p className="party-hint">Family defaults: 30-second turns, a pause for a quiet phone, and an extra Ludo roll for getting home.</p>
         <p className="party-hint">Best on a TV or a laptop everyone can see. No sign-in needed here.</p>
       </section>
     </main>
@@ -236,7 +238,7 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
         <AudienceCheers cheers={cheers} />
       </>
     );
-  // The shared table, watched: no seat, nothing to press.
+  // P7: the screen may lock seats; phones still do all the playing.
   return (
     <>
       <Simulator
@@ -255,6 +257,7 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
         onRoll={() => {}}
         onMove={() => {}}
       />
+      <PartyLock roomId={roomId} locked={!!state.partyLocked} />
       <AudienceOverlay state={state} extras={extras} roomId={roomId} />
       <AudienceCheers cheers={cheers} />
     </>
@@ -404,4 +407,19 @@ export function PartyLobby({
       </section>
     </main>
   );
+}
+
+export function PartyLock({ roomId, locked }: { roomId: string; locked: boolean }) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState(false);
+  return <aside className="party-lock">
+    <button type="button" disabled={pending} aria-pressed={locked} onClick={async () => {
+      setPending(true); setError(false);
+      try { await setPartyLocked(createClient(), roomId, !locked); }
+      catch { setError(true); }
+      finally { setPending(false); }
+    }}>{pending ? "One moment…" : locked ? "Unlock seats" : "Lock seats"}</button>
+    <small>{locked ? "Audience can still join" : "Lock stays on between games"}</small>
+    {error && <small role="alert">Couldn’t change the lock. Try again.</small>}
+  </aside>;
 }

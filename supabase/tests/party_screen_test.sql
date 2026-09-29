@@ -1,5 +1,5 @@
 -- pgTAP tests for supabase/migrations/20260928090000_party_screen.sql: the
--- screen can watch its party room and nothing else, the first phone to sit
+-- screen can watch its party room and lock seats after play starts (P7), the first phone to sit
 -- becomes the VIP, and party rooms have no chat or voice (reactions only,
 -- from 20260928110000_party_reactions.sql). Realtime delivery
 -- to the screen is covered by tests/integration/party-screen.test.ts.

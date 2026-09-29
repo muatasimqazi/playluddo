@@ -4722,20 +4722,23 @@ body.sim-piece-hover .sim-canvas {
    sized with the display like the TV view. */
 .party-cheers,
 .party-audience-join,
-.party-audience-card {
+.party-audience-card,
+.party-lock {
   --tv-zoom: 1.2;
 }
 @media (min-width: 1600px) {
   .party-cheers,
   .party-audience-join,
-  .party-audience-card {
+  .party-audience-card,
+  .party-lock {
     --tv-zoom: 1.6;
   }
 }
 @media (min-width: 2400px) {
   .party-cheers,
   .party-audience-join,
-  .party-audience-card {
+  .party-audience-card,
+  .party-lock {
     --tv-zoom: 2.4;
   }
 }
@@ -4864,4 +4867,75 @@ body.sim-piece-hover .sim-canvas {
   .party-cheers li {
     animation: none;
   }
+}
+
+/* P7: reachable safety controls on phones and the screen's one management action. */
+.party-pad-safety {
+  width: 100%;
+  color: var(--sim-ink);
+}
+.party-pad-safety-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 16px;
+  border: 1px solid var(--sim-line);
+  border-radius: 16px;
+  background: rgba(233, 231, 211, 0.05);
+}
+.party-pad-safety-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.party-pad-safety-form select,
+.party-pad-safety-form textarea {
+  min-height: 44px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--sim-line);
+  border-radius: 8px;
+  background: #253026;
+  color: var(--sim-ink);
+  font: inherit;
+}
+.party-pad-safety-form textarea {
+  min-height: 80px;
+}
+.party-pad-safety-form p {
+  margin: 0;
+  color: var(--sim-muted);
+  font-size: 13px;
+}
+/* Top right, under the room code: the bottom corners hold the branding
+   and the audience QR code. */
+.party-lock {
+  position: fixed;
+  z-index: 35;
+  top: 96px;
+  right: 28px;
+  display: grid;
+  gap: 6px;
+  padding: 12px 16px;
+  border: 1px solid rgba(233, 231, 211, 0.15);
+  border-radius: 14px;
+  background: rgba(28, 36, 30, 0.9);
+  color: #f0ecdf;
+  text-align: right;
+  zoom: var(--tv-zoom, 1.2);
+}
+.party-lock button {
+  min-width: 120px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid rgba(233, 231, 211, 0.3);
+  border-radius: 8px;
+  background: rgba(233, 231, 211, 0.08);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.party-lock small {
+  color: #d9d3bf;
+  font-size: 12px;
 }

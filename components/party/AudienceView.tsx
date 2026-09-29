@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { PartySafety } from "@/components/party/PartySafety";
+
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
@@ -61,9 +64,17 @@ export function AudienceView({ roomId }: { roomId: string }) {
           if (!cancelled) setLoadError(e instanceof RpcError ? e.code : "UNKNOWN");
         });
     ensureSession(client)
-      .then(() => {
+      .then(() => getPartyExtras(client, roomId))
+      .then((initial) => {
         if (cancelled) return;
+        if (!initial.audienceTopic) throw new Error("Missing audience membership");
+        setExtras(initial);
         channel = subscribeToRoom(client, roomId, receive, {
+          audienceTopic: initial.audienceTopic,
+          onAudienceRemoved: () => {
+            setLoadError("PARTY_REMOVED");
+            if (channel) void client.removeChannel(channel);
+          },
           onStatus: (status) => {
             setConnected(status === "SUBSCRIBED");
             if (status === "SUBSCRIBED") {
@@ -104,6 +115,7 @@ export function AudienceView({ roomId }: { roomId: string }) {
     }
   }
 
+  if (loadError === "PARTY_REMOVED") return <main className="party-pad"><p role="alert">The VIP removed you from this party table.</p><Link href="/">Back to the entrance</Link></main>;
   if (loadError) return <RoomNotice code={loadError === "NOT_AUDIENCE" ? "ROOM_NOT_FOUND" : loadError} />;
   if (!state || !extras) return <TableLoading label="Finding your seat in the audience…" />;
   return (
@@ -240,6 +252,7 @@ export function AudienceScreen({
       {state.status !== "abandoned" && (
         <Reactions onReact={onReact} disabled={!connected} />
       )}
+      <PartySafety state={state} myPlayerId={null} />
     </main>
   );
 }

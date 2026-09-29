@@ -1,5 +1,7 @@
 "use client";
 
+import { PartySafety } from "@/components/party/PartySafety";
+
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { GameRoomState, Pawn } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
@@ -232,6 +234,7 @@ export function PartyController({
       )}
 
       {!yourTurn && <Reactions onReact={onReact} disabled={offline} />}
+      <PartySafety state={state} myPlayerId={myPlayerId} />
     </main>
   );
 }

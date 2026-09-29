@@ -78,7 +78,7 @@ export function JoinTable({
     !!invite?.isParty &&
     !!onAudience &&
     invite.status !== "abandoned" &&
-    (seatsGone || invite.status !== "lobby" || invite.seatsTaken >= invite.maxPlayers);
+    (invite.partyLocked || seatsGone || invite.status !== "lobby" || invite.seatsTaken >= invite.maxPlayers);
 
   async function join() {
     const displayName = name.trim();
@@ -104,9 +104,11 @@ export function JoinTable({
         return;
       }
       const code = err instanceof RpcError ? err.code : "UNKNOWN";
-      if (invite?.isParty && onAudience && (code === "ROOM_FULL" || code === "ALREADY_STARTED")) {
+      if (invite?.isParty && onAudience && (code === "ROOM_FULL" || code === "ALREADY_STARTED" || code === "PARTY_LOCKED")) {
         setSeatsGone(true);
         setError("The last seat just went. You can still join the audience.");
+      } else if (code === "PARTY_REMOVED") {
+        setError("The VIP removed you from this party table.");
       } else if (code === "SEATS_OPEN") {
         // A seat opened up meanwhile: take it instead.
         setSeatsGone(false);
@@ -115,7 +117,11 @@ export function JoinTable({
       } else if (code === "ROOM_FULL" || code === "ALREADY_STARTED" || code === "ROOM_NOT_FOUND") {
         setLoadError(code);
       } else {
-        setError("Couldn't take your seat. Check your connection and try again.");
+        setError(
+          audience
+            ? "Couldn't get you into the audience. Check your connection and try again."
+            : "Couldn't take your seat. Check your connection and try again.",
+        );
       }
       setPending(false);
     }
@@ -158,7 +164,7 @@ export function JoinTable({
               <em>audience.</em>
             </h1>
             <p className="join-table-host">
-              {invite.status === "lobby" ? "Every seat is taken" : "The game has started"}, but you can still
+              {invite.partyLocked ? "The seats are locked" : invite.status === "lobby" ? "Every seat is taken" : "The game has started"}, but you can still
               join in: react on the TV, pick a winner and vote for the moment of the match.
             </p>
           </>

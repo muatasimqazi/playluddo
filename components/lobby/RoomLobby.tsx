@@ -1,5 +1,7 @@
 "use client";
 
+import { PartySafety } from "@/components/party/PartySafety";
+
 import { useState } from "react";
 import Link from "next/link";
 import { usePartyHeartbeat } from "@/lib/hooks/usePartyHeartbeat";
@@ -424,6 +426,7 @@ export function RoomLobby({
             {error}
           </p>
         )}
+        {state.isParty && <PartySafety state={state} myPlayerId={myPlayerId} />}
       </section>
       <footer className="entrance-footer">
         <Link href="/">← BACK TO THE ENTRANCE</Link>

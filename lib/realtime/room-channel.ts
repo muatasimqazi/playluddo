@@ -17,6 +17,8 @@ export function subscribeToRoom(
   roomId: string,
   onState: (state: GameRoomState) => void,
   options?: {
+    audienceTopic?: string;
+    onAudienceRemoved?: () => void;
     onStatus?: (status: string) => void;
     onMessage?: (message: TableMessage) => void;
     onSignal?: (signal: WebRtcSignal) => void;
@@ -26,7 +28,7 @@ export function subscribeToRoom(
     onPartyExtras?: () => void;
   },
 ): RealtimeChannel {
-  const channel = client.channel(`room:${roomId}`, {
+  const channel = client.channel(options?.audienceTopic ?? `room:${roomId}`, {
     config: { private: true },
   });
 
@@ -57,6 +59,7 @@ export function subscribeToRoom(
       options?.onAudienceReaction?.({ id: r.id, name: r.name, text: r.text });
   });
   channel.on("broadcast", { event: "party_extras" }, () => options?.onPartyExtras?.());
+  channel.on("broadcast", { event: "audience_removed" }, () => options?.onAudienceRemoved?.());
   channel.subscribe(status => options?.onStatus?.(status));
 
   return channel;

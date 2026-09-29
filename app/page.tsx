@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
-import { createRoom, joinRoom, setPlayerColor, setRoomGame } from "@/lib/supabase/rpc";
+import { createRoom, joinRoom, roomIdForCode, setPlayerColor, setRoomGame } from "@/lib/supabase/rpc";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
@@ -103,10 +103,13 @@ export default function Home() {
     try {
       const client = createClient();
       await ensureSession(client);
-      const room =
-        kind === "create"
-          ? await createRoom(client, name.trim(), undefined, playerCount)
-          : await joinRoom(client, code.trim(), name.trim());
+      if (kind === "join") {
+        const roomId = await roomIdForCode(client, code.trim());
+        try { localStorage.setItem("luddo-player-name", name.trim()); } catch { /* Optional. */ }
+        router.push(`/room?id=${roomId}`);
+        return;
+      }
+      const room = await createRoom(client, name.trim(), undefined, playerCount);
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
       if (kind === "create" && gameType !== "ludo")

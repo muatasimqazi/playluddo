@@ -52,3 +52,14 @@ export function blockDeviceUntil(eligibleFrom: string) {
     // Private mode: the server still refuses this account.
   }
 }
+
+// P7 / decision 7: short acceptance never grants chat or voice acceptance.
+const PARTY_RULES_KEY = "luddo-party-rules-v1";
+export function partyRulesAccepted() {
+  try { return localStorage.getItem(PARTY_RULES_KEY) !== null; }
+  catch { return false; }
+}
+export function acceptPartyRules() {
+  try { localStorage.setItem(PARTY_RULES_KEY, new Date().toISOString()); }
+  catch { /* Private mode: ask again next visit. */ }
+}

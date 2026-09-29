@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRoomConnection } from "@/lib/hooks/useRoomConnection";
 import { useVoiceChat } from "@/lib/hooks/useVoiceChat";
@@ -11,11 +11,14 @@ import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { RoomNotice } from "@/components/lobby/RoomNotice";
 import { JoinTable } from "@/components/lobby/JoinTable";
-import { RpcError } from "@/lib/supabase/rpc";
+import { getRoomInvite, RpcError } from "@/lib/supabase/rpc";
 import { fetchBlockedPlayerIds } from "@/lib/supabase/moderation";
 import { acceptTableRules, tableRulesAccepted } from "@/lib/community";
 import { TableRules } from "@/components/lobby/TableRules";
 import { AgeRequired, UnderAgeNotice } from "@/components/lobby/AgeCheck";
+import { PartyAgreement } from "@/components/party/PartyAgreement";
+import { createClient } from "@/lib/supabase/client";
+import { ensureSession } from "@/lib/supabase/auth";
 import { AudienceView } from "@/components/party/AudienceView";
 import "@/components/simulator/simulator.css";
 
@@ -36,23 +39,39 @@ export default function RoomPage() {
   );
 }
 
-// localStorage never changes under the page except through acceptTableRules.
-const noSubscription = () => () => {};
-
 function RoomPageContent() {
   const roomId = useSearchParams().get("id");
+  return roomId ? <RoomAccess key={roomId} roomId={roomId} /> : <RoomNotice code="ROOM_NOT_FOUND" />;
+}
+
+function RoomAccess({ roomId }: { roomId: string }) {
   // Bumped after a friend joins from the link, remounting the connection so
   // it claims the seat they now hold.
   const [attempt, setAttempt] = useState(0);
   const rejoin = useCallback(() => setAttempt((n) => n + 1), []);
-  const storedAgreement = useSyncExternalStore(noSubscription, tableRulesAccepted, () => true);
+  const [kind, setKind] = useState<{ roomId: string; party: boolean } | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+    const client = createClient();
+    void ensureSession(client).then(() => getRoomInvite(client, roomId)).then((invite) => {
+      if (!cancelled) setKind({ roomId, party: !!invite.isParty });
+    }).catch((e: unknown) => {
+      if (!cancelled) setInviteError(e instanceof RpcError ? e.code : "UNKNOWN");
+    });
+    return () => { cancelled = true; };
+  }, [roomId]);
   const [agreed, setAgreed] = useState(false);
   // Party Mode (P6): this phone joined the room's audience rather than a seat.
   const [audience, setAudience] = useState(false);
   const joinedAudience = useCallback(() => setAudience(true), []);
   if (!roomId) return <RoomNotice code="ROOM_NOT_FOUND" />;
-  // Online tables have chat and voice with people who may be strangers.
-  if (!storedAgreement && !agreed)
+  if (inviteError) return <RoomNotice code={inviteError} />;
+  if (kind?.roomId !== roomId) return <TableLoading label="Opening your invitation…" />;
+  if (kind.party && !agreed) return <PartyAgreement onAgree={() => setAgreed(true)} />;
+  // Short Party acceptance never bypasses an ordinary table's full agreement.
+  if (!kind.party && !tableRulesAccepted() && !agreed)
     return (
       <TableRules
         onAgree={() => {

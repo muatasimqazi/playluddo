@@ -105,6 +105,12 @@ it("a party screen follows its room live without a seat", async () => {
     await until(() => states.at(-1)?.status === "in_game");
     expect(states.at(-1)).toMatchObject(await rpc(screen, "get_party_screen", { p_room_id: roomId }));
 
+    // P7: the screen may lock seats, but the phone cannot manage the lock.
+    expect((await phone.rpc("set_party_locked", { p_room_id: roomId, p_locked: true })).error?.message).toBe("ROOM_NOT_FOUND");
+    await rpc(screen, "set_party_locked", { p_room_id: roomId, p_locked: true });
+    await until(() => states.at(-1)?.partyLocked === true);
+    expect(states.at(-1)?.partyTurnSeconds).toBe(30);
+
     // A reaction from the phone's controller shows on the screen; chat doesn't exist here.
     await rpc(phone, "send_table_message", { p_room_id: roomId, p_text: "🎉", p_kind: "reaction" });
     await until(() => messages.length > 0);
@@ -160,9 +166,12 @@ it("a party screen follows its room live without a seat", async () => {
 
     // A late arrival joins the audience mid-game and follows the table live.
     await rpc(fan, "join_party_audience", { p_room_id: roomId, p_display_name: "Fan" });
+    const fanExtras = await rpc(fan, "get_party_extras", { p_room_id: roomId });
     const fanStates: Record<string, unknown>[] = [];
+    let removed = false;
     const fanChannel = fan
-      .channel(`room:${roomId}`, { config: { private: true } })
+      .channel(fanExtras.audienceTopic, { config: { private: true } })
+      .on("broadcast", { event: "audience_removed" }, () => { removed = true; })
       .on("broadcast", { event: "state_updated" }, ({ payload }) => fanStates.push(payload));
     channels.push(fanChannel);
     await new Promise<void>((resolve, reject) => {
@@ -192,6 +201,23 @@ it("a party screen follows its room live without a seat", async () => {
     await rpc(fan, "audience_react", { p_room_id: roomId, p_text: "👏" });
     await until(() => cheers.length > 0);
     expect(cheers[0]).toMatchObject({ name: "Fan", text: "👏" });
+
+    await rpc(fan, "report_player", { p_room_id: roomId, p_player_id: seat.playerId, p_reason: "other" });
+    const memberId = fanExtras.audienceMembers.find((m: { isMe: boolean }) => m.isMe).id;
+    await rpc(phone, "report_party_audience", { p_room_id: roomId, p_member_id: memberId, p_reason: "other" });
+    await rpc(phone, "remove_party_audience", { p_room_id: roomId, p_member_id: memberId });
+    await until(() => removed);
+    const afterRemoval = fanStates.length;
+    // Keep the removed socket open. Repeated delivered screen updates must
+    // no longer be sent to that membership, even with cached authorization.
+    for (let n = 0; n < 3; n++) {
+      const before = states.length;
+      await rpc(screen, "set_party_locked", { p_room_id: roomId, p_locked: n % 2 === 0 });
+      await until(() => states.length > before);
+    }
+    expect(fanStates.length).toBe(afterRemoval);
+    expect((await fan.rpc("get_audience_state", { p_room_id: roomId })).error?.message).toBe("NOT_AUDIENCE");
+    expect((await fan.rpc("join_party_audience", { p_room_id: roomId, p_display_name: "Back" })).error?.message).toBe("PARTY_REMOVED");
   } finally {
     await Promise.all(channels.map((c) => c.unsubscribe()));
     await Promise.all([screen.removeAllChannels(), phone.removeAllChannels(), fan.removeAllChannels()]);

@@ -99,7 +99,7 @@ export function OnlineTableRules() {
     <>
       <h3>At an online table</h3>
       <ul>
-        <li>You have 15 seconds for each roll and each move. If time runs out, the game plays for you.</li>
+        <li>You have 15 seconds for each roll and each move (30 seconds at new Party tables). If time runs out, the game plays for you.</li>
         <li>
           Run out of time three times in a row, or once after being away for 45 seconds, and a computer
           keeps your seat warm. Come back any time to take it back.

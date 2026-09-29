@@ -38,12 +38,13 @@ const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [
   { value: "aladdin", label: "Aladdin", desc: "An Arabian-nights table" },
 ];
 
-// One fieldset visible at a time instead of a long scroll — "board" only
-// applies to Ludo's skins, so it drops out of the sequence entirely for
-// Snakes & Ladders rather than showing empty or irrelevant.
-type StepId = "game" | "players" | "base" | "avatar" | "board" | "start";
-const LUDO_STEPS: StepId[] = ["game", "players", "base", "avatar", "board", "start"];
-const SNAKES_STEPS: StepId[] = ["game", "players", "base", "avatar", "start"];
+// One step visible at a time instead of a long scroll. "setup" gathers the
+// three quick table choices — player count, base color, and avatar — onto a
+// single step. "board" only applies to Ludo's skins, so it drops out of the
+// sequence entirely for Snakes & Ladders rather than showing empty or irrelevant.
+type StepId = "game" | "setup" | "board" | "start";
+const LUDO_STEPS: StepId[] = ["game", "setup", "board", "start"];
+const SNAKES_STEPS: StepId[] = ["game", "setup", "start"];
 
 const BOT_LEVEL_LABELS: Record<BotLevel, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
 // The saved level only changes through this page's own picker.
@@ -255,7 +256,8 @@ export default function Home() {
                   </div>
                 </fieldset>
               )}
-              {currentStep === "players" && (
+              {currentStep === "setup" && (
+                <>
                 <fieldset className="entrance-player-count">
                   <legend>How many players?</legend>
                   <div>
@@ -290,8 +292,6 @@ export default function Home() {
                   </div>
                   <small>Open seats can be friends or computer players.</small>
                 </fieldset>
-              )}
-              {currentStep === "base" && (
                 <fieldset className="entrance-color-choice">
                   <legend>Choose your base</legend>
                   <div>
@@ -313,8 +313,6 @@ export default function Home() {
                     ))}
                   </div>
                 </fieldset>
-              )}
-              {currentStep === "avatar" && (
                 <fieldset className="entrance-avatar-choice">
                   <legend>Choose your avatar</legend>
                   <div>
@@ -354,6 +352,7 @@ export default function Home() {
                       : "Sign in from your profile to keep a photo avatar."}
                   </small>
                 </fieldset>
+                </>
               )}
               {currentStep === "board" && (
                 <fieldset className="entrance-board-choice">

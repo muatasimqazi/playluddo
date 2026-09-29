@@ -407,7 +407,7 @@ function Pieces({
   );
 }
 
-function Reactions({ onReact, disabled }: { onReact: (text: string) => Promise<unknown>; disabled: boolean }) {
+export function Reactions({ onReact, disabled }: { onReact: (text: string) => Promise<unknown>; disabled: boolean }) {
   const [tab, setTab] = useState<"emoji" | "phrases">("emoji");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState<string | null>(null);

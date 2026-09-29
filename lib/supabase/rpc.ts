@@ -39,6 +39,14 @@ export type RpcErrorCode =
   | "INVALID_BIRTH_DATE"
   | "PARTY_ROOM"
   | "DISPLAY_CANNOT_SIT"
+  | "NOT_PARTY_ROOM"
+  | "ALREADY_SEATED"
+  | "SEATS_OPEN"
+  | "INVALID_NAME"
+  | "AUDIENCE_FULL"
+  | "NOT_AUDIENCE"
+  | "PLAYER_NOT_FOUND"
+  | "MOMENT_NOT_FOUND"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -71,6 +79,14 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "INVALID_BIRTH_DATE",
   "PARTY_ROOM",
   "DISPLAY_CANNOT_SIT",
+  "NOT_PARTY_ROOM",
+  "ALREADY_SEATED",
+  "SEATS_OPEN",
+  "INVALID_NAME",
+  "AUDIENCE_FULL",
+  "NOT_AUDIENCE",
+  "PLAYER_NOT_FOUND",
+  "MOMENT_NOT_FOUND",
 ]);
 
 export class RpcError extends Error {
@@ -155,6 +171,10 @@ export interface RoomInvite {
   seatsTaken: number;
   hostName: string | null;
   isSeated: boolean;
+  /** A Party Mode room. Absent from older servers. */
+  isParty?: boolean;
+  /** This phone is in the party room's audience (P6). */
+  isAudience?: boolean;
 }
 
 /** What a shared room link shows before joining (host, game, open seats). */
@@ -357,4 +377,66 @@ export function sendWebrtcSignal(
     p_to_player_id: toPlayerId,
     p_signal: signal,
   });
+}
+
+/** A candidate for Party Mode's moment of the match (private.party_moments). */
+export interface PartyMoment {
+  sequence: number;
+  playerId: string;
+  kind: "capture" | "finished" | "ladder" | "snake";
+  place: number | null;
+  capturedPlayerIds: string[];
+  /** Snakes & Ladders: the square landed on, and where the ladder or snake led. */
+  from: number | null;
+  to: number | null;
+}
+
+/** What the audience adds to a party room (get_party_extras, P6). */
+export interface PartyExtras {
+  isAudience: boolean;
+  /** Audience names, in the order they joined. */
+  audience: string[];
+  /** The lobby's picks for the next game. */
+  predictions: { playerId: string; count: number }[];
+  myPrediction: string | null;
+  /** This phone's pick for the current game, locked in at the start. */
+  lockedPrediction: string | null;
+  /** Once the game has ended: who picked the winner. */
+  calledIt: string[] | null;
+  predictionCount: number;
+  moments: PartyMoment[];
+  votes: { sequence: number; count: number }[];
+  myVote: number | null;
+}
+
+/** Join a party room's audience, once its seats are full or the game has started. */
+export function joinPartyAudience(client: SupabaseClient, roomId: string, displayName: string) {
+  return call<{ roomId: string }>(client, "join_party_audience", {
+    p_room_id: roomId,
+    p_display_name: displayName,
+  });
+}
+
+/** The table as an audience phone sees it. NOT_AUDIENCE unless it joined. */
+export function getAudienceState(client: SupabaseClient, roomId: string) {
+  return call<GameRoomState>(client, "get_audience_state", { p_room_id: roomId });
+}
+
+export function getPartyExtras(client: SupabaseClient, roomId: string) {
+  return call<PartyExtras>(client, "get_party_extras", { p_room_id: roomId });
+}
+
+/** A reaction from the audience, shown on the screen with the sender's name. */
+export function audienceReact(client: SupabaseClient, roomId: string, text: string) {
+  return call<void>(client, "audience_react", { p_room_id: roomId, p_text: text });
+}
+
+/** The audience's pick to win, before the game starts. Bragging rights only. */
+export function predictWinner(client: SupabaseClient, roomId: string, playerId: string) {
+  return call<void>(client, "predict_winner", { p_room_id: roomId, p_player_id: playerId });
+}
+
+/** The audience's vote for the moment of the match, once it has ended. */
+export function voteMoment(client: SupabaseClient, roomId: string, sequence: number) {
+  return call<void>(client, "vote_moment", { p_room_id: roomId, p_sequence: sequence });
 }

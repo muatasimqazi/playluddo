@@ -1,18 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
-import { createPartyRoom, getPartyScreen, RpcError } from "@/lib/supabase/rpc";
+import {
+  createPartyRoom,
+  getPartyExtras,
+  getPartyScreen,
+  RpcError,
+  type PartyExtras,
+} from "@/lib/supabase/rpc";
 import {
   fetchRecentEvents,
   subscribeToRoom,
+  type AudienceReaction,
   type MatchEventRow,
   type MovePreviewSignal,
 } from "@/lib/realtime/room-channel";
+import { describeMoment, picksFor, topMoment } from "@/lib/presentation/party";
+import { isPhrase } from "@/lib/realtime/reactions";
 import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { webUrl } from "@/lib/native";
 import { BRAND } from "@/lib/brand";
@@ -111,6 +120,22 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
   // The event log animates each roll and move, as on the phones.
   const [events, setEvents] = useState<MatchEventRow[]>([]);
   const [preview, setPreview] = useState<MovePreviewSignal | null>(null);
+  // The audience (P6): who's watching, their picks and votes, and reactions.
+  const [extras, setExtras] = useState<PartyExtras | null>(null);
+  const [cheers, setCheers] = useState<AudienceReaction[]>([]);
+  const loadExtras = useCallback(() => {
+    void getPartyExtras(createClient(), roomId)
+      .then(setExtras)
+      .catch(() => {});
+  }, [roomId]);
+  const cheer = useCallback((reaction: AudienceReaction) => {
+    setCheers((all) => [...all.slice(-5), reaction]);
+    setTimeout(() => setCheers((all) => all.filter((r) => r.id !== reaction.id)), 5000);
+  }, []);
+  const status = state?.status;
+  useEffect(() => {
+    if (status) loadExtras();
+  }, [status, loadExtras]);
 
   useEffect(() => {
     const client = createClient();
@@ -163,6 +188,8 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
             if (status === "SUBSCRIBED") void refresh();
           },
           onMovePreview: setPreview,
+          onPartyExtras: loadExtras,
+          onAudienceReaction: cheer,
           onMessage: (message) => {
             if (message.kind === "reaction") setReactions((all) => [...all.slice(-19), message]);
           },
@@ -176,7 +203,7 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
       cancelled = true;
       if (channel) void client.removeChannel(channel);
     };
-  }, [roomId]);
+  }, [roomId, loadExtras, cheer]);
 
   if (error)
     return (
@@ -202,29 +229,108 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
       </main>
     );
   if (!state) return <TableLoading label="Finding your table…" />;
-  if (state.status === "lobby") return <PartyLobby state={state} roomId={roomId} />;
+  if (state.status === "lobby")
+    return (
+      <>
+        <PartyLobby state={state} roomId={roomId} extras={extras} />
+        <AudienceCheers cheers={cheers} />
+      </>
+    );
   // The shared table, watched: no seat, nothing to press.
   return (
-    <Simulator
-      state={state}
-      events={events}
-      myPlayerId={null}
-      messages={reactions}
-      paused={state.paused}
-      screen
-      previewPawnId={
-        preview && preview.eventSequence === state.eventSequence && preview.playerId === state.turnPlayerId
-          ? preview.pawnId
-          : null
-      }
-      readOnly
-      onRoll={() => {}}
-      onMove={() => {}}
-    />
+    <>
+      <Simulator
+        state={state}
+        events={events}
+        myPlayerId={null}
+        messages={reactions}
+        paused={state.paused}
+        screen
+        previewPawnId={
+          preview && preview.eventSequence === state.eventSequence && preview.playerId === state.turnPlayerId
+            ? preview.pawnId
+            : null
+        }
+        readOnly
+        onRoll={() => {}}
+        onMove={() => {}}
+      />
+      <AudienceOverlay state={state} extras={extras} roomId={roomId} />
+      <AudienceCheers cheers={cheers} />
+    </>
   );
 }
 
-export function PartyLobby({ state, roomId }: { state: GameRoomState; roomId: string }) {
+/** Audience reactions (P6) rise up the side of the screen with the sender's name. */
+function AudienceCheers({ cheers }: { cheers: AudienceReaction[] }) {
+  if (cheers.length === 0) return null;
+  return (
+    <ul className="party-cheers" aria-label="Audience reactions">
+      {cheers.map((c) => (
+        <li key={c.id} className={isPhrase(c.text) ? "is-phrase" : ""}>
+          <span>{c.text}</span>
+          <small>{c.name}</small>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The audience on the TV (P6): during the game, a QR code in the corner
+ * for late arrivals and how many are watching; at the end, the leading
+ * moment of the match and who called the winner.
+ */
+function AudienceOverlay({
+  state,
+  extras,
+  roomId,
+}: {
+  state: GameRoomState;
+  extras: PartyExtras | null;
+  roomId: string;
+}) {
+  if (state.status === "in_game")
+    return (
+      <aside className="party-audience-join" aria-label="Join the audience">
+        <QrCode value={webUrl(`/room?id=${roomId}`)} label="QR code to join the audience" />
+        <p>
+          <strong>Join the audience</strong>
+          <small>
+            {extras?.audience.length ? `${extras.audience.length} watching · ` : ""}code {state.code}
+          </small>
+        </p>
+      </aside>
+    );
+  if (state.status !== "summary" || !extras || extras.audience.length === 0) return null;
+  const top = topMoment(extras);
+  return (
+    <aside className="party-audience-card" aria-label="The audience">
+      <span className="eyebrow">MOMENT OF THE MATCH</span>
+      <strong>
+        {top ? describeMoment(top.moment, state.players) : extras.moments.length ? "The audience is voting…" : "No big moments this time"}
+      </strong>
+      {top && <small>{top.votes === 1 ? "1 vote" : `${top.votes} votes`} so far</small>}
+      {extras.calledIt && extras.predictionCount > 0 && (
+        <p>
+          {extras.calledIt.length
+            ? `Called it: ${extras.calledIt.join(", ")}`
+            : "Nobody in the audience called it."}
+        </p>
+      )}
+    </aside>
+  );
+}
+
+export function PartyLobby({
+  state,
+  roomId,
+  extras = null,
+}: {
+  state: GameRoomState;
+  roomId: string;
+  extras?: PartyExtras | null;
+}) {
   const joinUrl = webUrl(`/room?id=${roomId}`);
   const domain = new URL(BRAND.url).host;
   const maxPlayers = state.maxPlayers ?? 4;
@@ -270,6 +376,11 @@ export function PartyLobby({ state, roomId }: { state: GameRoomState; roomId: st
                     <small>
                       {player.id === vip?.id ? "Picks the game · starts it" : player.isBot ? "Computer" : "Ready"}
                     </small>
+                    {extras && picksFor(extras, player.id) > 0 && (
+                      <small className="party-seat-picks">
+                        {picksFor(extras, player.id) === 1 ? "1 pick" : `${picksFor(extras, player.id)} picks`} to win
+                      </small>
+                    )}
                   </>
                 ) : (
                   <>
@@ -287,6 +398,8 @@ export function PartyLobby({ state, roomId }: { state: GameRoomState; roomId: st
           {vip
             ? `Waiting for ${vip.displayName} to start the game…`
             : "Waiting for the first player to join…"}
+          {extras && extras.audience.length > 0 &&
+            ` ${extras.audience.length} in the audience: scan the code to join them.`}
         </p>
       </section>
     </main>

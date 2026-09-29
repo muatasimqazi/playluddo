@@ -4716,3 +4716,152 @@ body.sim-piece-hover .sim-canvas {
     animation: none;
   }
 }
+
+/* Party Mode's audience (P6). On the screen: reactions rising on the right,
+   and a corner QR code during play or the moment of the match at the end;
+   sized with the display like the TV view. */
+.party-cheers,
+.party-audience-join,
+.party-audience-card {
+  --tv-zoom: 1.2;
+}
+@media (min-width: 1600px) {
+  .party-cheers,
+  .party-audience-join,
+  .party-audience-card {
+    --tv-zoom: 1.6;
+  }
+}
+@media (min-width: 2400px) {
+  .party-cheers,
+  .party-audience-join,
+  .party-audience-card {
+    --tv-zoom: 2.4;
+  }
+}
+.party-cheers {
+  position: fixed;
+  z-index: 70;
+  right: 32px;
+  bottom: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+  zoom: var(--tv-zoom);
+}
+.party-cheers li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border: 1px solid var(--sim-line, rgba(233, 231, 211, 0.15));
+  border-radius: 999px;
+  background: rgba(28, 36, 30, 0.88);
+  color: #f0ecdf;
+  animation: party-cheer 5s ease-out forwards;
+}
+.party-cheers li span {
+  font-size: 30px;
+  line-height: 1;
+}
+.party-cheers li.is-phrase span {
+  font-size: 16px;
+  font-weight: 700;
+}
+.party-cheers li small {
+  color: #d9d3bf;
+  font-size: 13px;
+}
+/* Visible from the first frame: on a slow TV browser a fade-in can stall,
+   and a reaction nobody sees is worse than one that pops in. */
+@keyframes party-cheer {
+  0% { translate: 0 16px; }
+  8% { translate: 0 0; }
+  80% { opacity: 1; }
+  100% { opacity: 0; translate: 0 -24px; }
+}
+.party-audience-join,
+.party-audience-card {
+  position: fixed;
+  z-index: 60;
+  right: 28px;
+  bottom: 28px;
+  border: 1px solid rgba(233, 231, 211, 0.15);
+  border-radius: 16px;
+  background: rgba(28, 36, 30, 0.9);
+  color: #f0ecdf;
+  zoom: var(--tv-zoom);
+}
+.party-audience-join {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px 10px 10px;
+}
+.party-audience-join .qr-code {
+  width: 96px;
+  height: 96px;
+  border-radius: 6px;
+}
+.party-audience-join p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.party-audience-join strong {
+  font-size: 15px;
+}
+.party-audience-join small {
+  color: #d9d3bf;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.party-audience-card {
+  display: grid;
+  gap: 6px;
+  width: min(360px, calc(100vw - 56px));
+  padding: 16px 18px;
+}
+.party-audience-card strong {
+  font-size: 18px;
+  line-height: 1.25;
+}
+.party-audience-card small,
+.party-audience-card p {
+  margin: 0;
+  color: #d9d3bf;
+  font-size: 13px;
+}
+.party-seat-picks {
+  color: #e4c385 !important;
+}
+/* On an audience phone. */
+.party-audience-choices {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.party-audience-choice {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  border-color: var(--seat);
+}
+.party-audience-choice small {
+  grid-column: auto;
+}
+.party-audience-heading {
+  margin: 4px 0 10px;
+  font-size: 18px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .party-cheers li {
+    animation: none;
+  }
+}

@@ -6,11 +6,12 @@ import { expect, it } from "vitest";
 import { realtimeReady } from "./realtime";
 
 /**
- * Party Mode, P1, P3, P4 and P5: a real screen client (no seat) receives its
- * room's live updates while a real phone joins and starts the game, reads
- * the event log it animates from, gets the reactions and piece previews
- * that phone sends from its controller, and sees the table wait for the
- * phone when it goes quiet and resume when it's back. Isolated
+ * Party Mode, P1, P3–P6: a real screen client (no seat) receives its room's
+ * live updates while a real phone joins and starts the game, reads the
+ * event log it animates from, gets the reactions and piece previews that
+ * phone sends from its controller, and sees the table wait for the phone
+ * when it goes quiet and resume when it's back. A real audience phone
+ * joins mid-game, follows the table live and cheers on the screen. Isolated
  * local-only clients; never touches an existing user's room.
  */
 it("a party screen follows its room live without a seat", async () => {
@@ -23,6 +24,7 @@ it("a party screen follows its room live without a seat", async () => {
   const options = { auth: { persistSession: false, autoRefreshToken: false } };
   const screen = createClient(url, anonKey, options);
   const phone = createClient(url, anonKey, options);
+  const fan = createClient(url, anonKey, options);
   const userIds: string[] = [];
   let roomId: string | undefined;
   const channels: RealtimeChannel[] = [];
@@ -41,7 +43,7 @@ it("a party screen follows its room live without a seat", async () => {
   }
 
   try {
-    for (const client of [screen, phone]) {
+    for (const client of [screen, phone, fan]) {
       const { data, error } = await client.auth.signInAnonymously();
       if (error || !data.user) throw new Error(error?.message ?? "No test identity");
       userIds.push(data.user.id);
@@ -53,11 +55,13 @@ it("a party screen follows its room live without a seat", async () => {
     const states: Record<string, unknown>[] = [];
     const messages: Record<string, unknown>[] = [];
     const previews: Record<string, unknown>[] = [];
+    const cheers: Record<string, unknown>[] = [];
     const channel = screen
       .channel(`room:${roomId}`, { config: { private: true } })
       .on("broadcast", { event: "state_updated" }, ({ payload }) => states.push(payload))
       .on("broadcast", { event: "table_message" }, ({ payload }) => messages.push(payload))
-      .on("broadcast", { event: "move_preview" }, ({ payload }) => previews.push(payload));
+      .on("broadcast", { event: "move_preview" }, ({ payload }) => previews.push(payload))
+      .on("broadcast", { event: "audience_reaction" }, ({ payload }) => cheers.push(payload));
     channels.push(channel);
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("Realtime subscription timed out")), 12000);
@@ -153,11 +157,47 @@ it("a party screen follows its room live without a seat", async () => {
     await rpc(phone, "party_heartbeat", { p_room_id: roomId });
     await until(() => states.at(-1)?.paused === false);
     expect(states.at(-1)?.pausedForPlayerId).toBeNull();
+
+    // A late arrival joins the audience mid-game and follows the table live.
+    await rpc(fan, "join_party_audience", { p_room_id: roomId, p_display_name: "Fan" });
+    const fanStates: Record<string, unknown>[] = [];
+    const fanChannel = fan
+      .channel(`room:${roomId}`, { config: { private: true } })
+      .on("broadcast", { event: "state_updated" }, ({ payload }) => fanStates.push(payload));
+    channels.push(fanChannel);
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Audience subscription timed out")), 12000);
+      fanChannel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          clearTimeout(timeout);
+          resolve();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          clearTimeout(timeout);
+          reject(new Error(status));
+        }
+      });
+    });
+    let autoRoll = false;
+    await realtimeReady(
+      () => {
+        autoRoll = !autoRoll;
+        return rpc(phone, "toggle_auto_roll", { p_room_id: roomId, p_enabled: autoRoll });
+      },
+      () => fanStates.length > 0,
+    );
+    expect(fanStates.at(-1)?.roomId).toBe(roomId);
+    expect((await rpc(fan, "get_audience_state", { p_room_id: roomId })).status).toBe("in_game");
+
+    // Their reaction shows on the screen with their name.
+    await rpc(fan, "audience_react", { p_room_id: roomId, p_text: "👏" });
+    await until(() => cheers.length > 0);
+    expect(cheers[0]).toMatchObject({ name: "Fan", text: "👏" });
   } finally {
     await Promise.all(channels.map((c) => c.unsubscribe()));
-    await Promise.all([screen.removeAllChannels(), phone.removeAllChannels()]);
+    await Promise.all([screen.removeAllChannels(), phone.removeAllChannels(), fan.removeAllChannels()]);
     screen.realtime.disconnect();
     phone.realtime.disconnect();
+    fan.realtime.disconnect();
     if (roomId || userIds.length) {
       const db = new Client({
         connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",

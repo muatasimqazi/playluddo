@@ -16,6 +16,7 @@ import { fetchBlockedPlayerIds } from "@/lib/supabase/moderation";
 import { acceptTableRules, tableRulesAccepted } from "@/lib/community";
 import { TableRules } from "@/components/lobby/TableRules";
 import { AgeRequired, UnderAgeNotice } from "@/components/lobby/AgeCheck";
+import { AudienceView } from "@/components/party/AudienceView";
 import "@/components/simulator/simulator.css";
 
 // A query param, not a [roomId] path segment: `output: "export"` (the
@@ -46,6 +47,9 @@ function RoomPageContent() {
   const rejoin = useCallback(() => setAttempt((n) => n + 1), []);
   const storedAgreement = useSyncExternalStore(noSubscription, tableRulesAccepted, () => true);
   const [agreed, setAgreed] = useState(false);
+  // Party Mode (P6): this phone joined the room's audience rather than a seat.
+  const [audience, setAudience] = useState(false);
+  const joinedAudience = useCallback(() => setAudience(true), []);
   if (!roomId) return <RoomNotice code="ROOM_NOT_FOUND" />;
   // Online tables have chat and voice with people who may be strangers.
   if (!storedAgreement && !agreed)
@@ -57,10 +61,19 @@ function RoomPageContent() {
         }}
       />
     );
-  return <ConnectedRoom key={attempt} roomId={roomId} onJoined={rejoin} />;
+  if (audience) return <AudienceView roomId={roomId} />;
+  return <ConnectedRoom key={attempt} roomId={roomId} onJoined={rejoin} onAudience={joinedAudience} />;
 }
 
-function ConnectedRoom({ roomId, onJoined }: { roomId: string; onJoined: () => void }) {
+function ConnectedRoom({
+  roomId,
+  onJoined,
+  onAudience,
+}: {
+  roomId: string;
+  onJoined: () => void;
+  onAudience: () => void;
+}) {
   const { client, loading, error } = useRoomConnection(roomId);
   const roomState = useRoomStore((s) => s.roomState);
   // Instantiated once here (not inside RoomLobby/MatchArena) so a call
@@ -77,7 +90,7 @@ function ConnectedRoom({ roomId, onJoined }: { roomId: string; onJoined: () => v
   // Opened someone else's shared link without a seat yet: invite them in
   // with just a name instead of an error (no sign-in required).
   if (error instanceof RpcError && error.code === "SEAT_NOT_CONTROLLED")
-    return <JoinTable roomId={roomId} onJoined={onJoined} />;
+    return <JoinTable roomId={roomId} onJoined={onJoined} onAudience={onAudience} />;
   // Returning to a lobby for a new match (docs/COMPETITIVE_ROADMAP.md F0.4).
   if (error instanceof RpcError && error.code === "AGE_REQUIRED") return <AgeRequired onEligible={onJoined} />;
   if (error instanceof RpcError && error.code === "AGE_RESTRICTED") return <UnderAgeNotice />;

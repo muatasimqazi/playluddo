@@ -21,6 +21,9 @@ export function subscribeToRoom(
     onMessage?: (message: TableMessage) => void;
     onSignal?: (signal: WebRtcSignal) => void;
     onMovePreview?: (preview: MovePreviewSignal) => void;
+    onAudienceReaction?: (reaction: AudienceReaction) => void;
+    /** The audience's picks or votes changed: fetch get_party_extras again. */
+    onPartyExtras?: () => void;
   },
 ): RealtimeChannel {
   const channel = client.channel(`room:${roomId}`, {
@@ -48,6 +51,12 @@ export function subscribeToRoom(
         eventSequence: p.eventSequence,
       });
   });
+  channel.on("broadcast", { event: "audience_reaction" }, ({ payload }) => {
+    const r = payload as Partial<AudienceReaction> | null;
+    if (typeof r?.id === "string" && typeof r.name === "string" && typeof r.text === "string")
+      options?.onAudienceReaction?.({ id: r.id, name: r.name, text: r.text });
+  });
+  channel.on("broadcast", { event: "party_extras" }, () => options?.onPartyExtras?.());
   channel.subscribe(status => options?.onStatus?.(status));
 
   return channel;
@@ -59,6 +68,13 @@ export interface MovePreviewSignal {
   pawnId: string | null;
   /** The room state it was picked in; a newer state makes it stale. */
   eventSequence: number;
+}
+
+/** A reaction from a Party Mode audience phone (audience_react). */
+export interface AudienceReaction {
+  id: string;
+  name: string;
+  text: string;
 }
 
 export interface MatchEventRow {

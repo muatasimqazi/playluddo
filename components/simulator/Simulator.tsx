@@ -374,6 +374,18 @@ export default function Simulator({
   const root = useRef<HTMLElement>(null);
   const backgroundMusic = useRef<HTMLAudioElement>(null);
   const seconds = useCountdown(state.turnDeadlineAt);
+  // Rush mode (F2.3): the match clock, if this match has one.
+  const matchLeft = useCountdown(state.status === "in_game" && !paused ? (state.matchEndsAt ?? null) : null);
+  const playedFinalCall = useRef(false);
+  useEffect(() => {
+    if (matchLeft === null || matchLeft > 30) {
+      playedFinalCall.current = false;
+      return;
+    }
+    if (playedFinalCall.current || !prefs.sound) return;
+    playedFinalCall.current = true;
+    return playSoundEffect("diceSix", 0.5);
+  }, [matchLeft, prefs.sound]);
   // Party Mode (P5): the phone the table is waiting for, and how long it has.
   const waitingFor = state.players.find((p) => p.id === state.pausedForPlayerId);
   const waitLeft = useCountdown(partyWaitEndsAt(state));
@@ -788,6 +800,11 @@ export default function Simulator({
                     ? "PARTY TABLE"
                     : "PRIVATE TABLE"}
           </span>
+          {matchLeft !== null && (
+            <time className={`sim-match-clock${matchLeft <= 30 ? " urgent" : ""}`} aria-label="Time left in this match">
+              {clock(matchLeft)}
+            </time>
+          )}
           {seconds !== null &&
             state.status === "in_game" &&
             !paused &&

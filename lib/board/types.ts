@@ -91,6 +91,8 @@ export interface RoomRules {
   snakesAnyRollToStart: boolean;
   /** Snakes & Ladders (F2.6): overshooting 100 bounces back instead of not moving. */
   snakesBounceBack: boolean;
+  /** Rush mode (F2.3): minutes on the match clock — 0 for no clock, or 5 or 10. */
+  matchMinutes: number;
 }
 
 /**
@@ -134,6 +136,8 @@ export interface GameRoomState {
   pausedForPlayerId?: string | null;
   /** When the current pause began. A wait for a phone ends 2 minutes on. */
   pausedAt?: string | null;
+  /** Rush mode (F2.3): when the match clock runs out, if it has one. */
+  matchEndsAt?: string | null;
   /** Seats the room was created for (2-4). Absent on older snapshots — treat as 4. */
   maxPlayers?: number;
   /** The room's resolved house rules. Absent on older snapshots — treat as the defaults. */

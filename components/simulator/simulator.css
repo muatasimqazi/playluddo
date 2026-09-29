@@ -5052,3 +5052,15 @@ body.sim-piece-hover .sim-canvas {
   background: rgba(216, 189, 127, 0.12);
   color: var(--sim-ink);
 }
+
+/* Rush mode (F2.3): the match clock, beside the turn timer. */
+.sim-match-clock {
+  border-left: 1px solid var(--sim-line);
+  padding-left: 12px;
+  color: #e4d7b8;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sim-match-clock.urgent {
+  color: #f2a18f;
+}

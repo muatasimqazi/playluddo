@@ -301,6 +301,38 @@ export function RoomLobby({
             />
           </label>
         )}
+        {host && (
+          <div className="lobby-player-count lobby-house-rule lobby-length">
+            <span>
+              <span className="eyebrow">MATCH CLOCK</span>
+              <strong>{rules.matchMinutes ? `${rules.matchMinutes} minutes` : "No clock"}</strong>
+              <small>
+                {rules.matchMinutes
+                  ? "When time is up, whoever got furthest wins"
+                  : "The match runs until someone wins"}
+              </small>
+            </span>
+            <div className="lobby-length-choices">
+              {[0, 5, 10].map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  className={rules.matchMinutes === minutes ? "is-selected" : ""}
+                  aria-pressed={rules.matchMinutes === minutes}
+                  disabled={pending}
+                  onClick={() =>
+                    void run(async () => {
+                      const next = await setRoomRules(client, roomId, { ...rules, matchMinutes: minutes });
+                      useRoomStore.getState().setRoomState(next);
+                    })
+                  }
+                >
+                  {minutes ? `${minutes} min` : "Off"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {host && state.gameType === "snakes_and_ladders" &&
           ([
             ["snakesAnyRollToStart", "Any roll to start", "Your piece joins the board on any roll, not just a six"],

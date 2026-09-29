@@ -1918,6 +1918,15 @@ export default function Simulator({
             {matchResults && matchResults.length > 0 && (
               <MatchDice results={matchResults} players={state.players} proof={diceProof} />
             )}
+            {!practice && !localPlay && state.matchId && state.status === "summary" && (
+              <Link
+                className="panel-secondary"
+                href={`/replay?match=${state.matchId}`}
+              >
+                <Icon name="replay" />
+                Watch the replay
+              </Link>
+            )}
             {onRestart && (
               <button className="sim-primary" onClick={onRestart}>
                 Play another round

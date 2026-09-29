@@ -28,6 +28,10 @@ export interface VisibleProfile {
   /** Account level and total XP (F3.2). */
   level: number;
   xp: number;
+  /** Daily streak (F3.3). */
+  currentStreak: number;
+  longestStreak: number;
+  streakFreezes: number;
   gamesPlayed: number;
   wins: number;
   winRateByMode: WinRateByMode[];

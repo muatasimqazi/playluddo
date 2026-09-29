@@ -57,6 +57,9 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
     avatarId,
     level,
     xp,
+    currentStreak,
+    longestStreak,
+    streakFreezes,
     gamesPlayed,
     wins,
     winRateByMode,
@@ -92,6 +95,23 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
       </div>
 
       <ProfileXpBar level={level} xp={xp} />
+
+      {currentStreak > 0 && (
+        <p className="profile-streak">
+          <span className="profile-streak-flame" aria-hidden="true">🔥</span>
+          <span>
+            <strong>
+              {currentStreak}-day streak
+            </strong>
+            <small>
+              Longest {longestStreak}
+              {isSelf && streakFreezes > 0
+                ? ` · ${streakFreezes} freeze${streakFreezes === 1 ? "" : "s"}`
+                : ""}
+            </small>
+          </span>
+        </p>
+      )}
 
       {!played ? (
         <p className="profile-stats-empty">

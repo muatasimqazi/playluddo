@@ -5233,6 +5233,31 @@ body.sim-piece-hover .sim-canvas {
   font-size: 11px;
   color: #c0c8b5;
 }
+.profile-streak {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #d8814022;
+  border-radius: 10px;
+  background: #3a241680;
+}
+.profile-streak-flame {
+  font-size: 20px;
+  line-height: 1;
+}
+.profile-streak strong {
+  display: block;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #f1ead7;
+}
+.profile-streak small {
+  color: #c9b199;
+  font-size: 11px;
+}
 .profile-stats-empty {
   margin: 0;
   color: #c0c8b5;

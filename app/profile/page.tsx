@@ -8,6 +8,7 @@ import { ensureSession } from "@/lib/supabase/auth";
 import { getMyProfile, type PlayerProfile } from "@/lib/supabase/profile";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import { CosmeticsLocker } from "@/components/profile/CosmeticsLocker";
+import { FriendsPanel } from "@/components/profile/FriendsPanel";
 import { Icon } from "@/components/simulator/Icon";
 import "@/components/simulator/simulator.css";
 
@@ -103,6 +104,7 @@ export default function ProfilePage() {
         ) : profile && profile.visibility === "visible" ? (
           <>
             <ProfileCard profile={profile} />
+            <FriendsPanel />
             <CosmeticsLocker />
           </>
         ) : (

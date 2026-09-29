@@ -20,6 +20,7 @@ import {
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { QuickMatch } from "@/components/lobby/QuickMatch";
+import { PlayAgain } from "@/components/lobby/PlayAgain";
 import type { Team } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
 import "@/components/simulator/simulator.css";
@@ -198,6 +199,7 @@ export default function Home() {
         </div>
       </header>
       <section className="entrance-content">
+        {!quickMatch && <PlayAgain name={name} onJoin={joinTeamRoom} />}
         {quickMatch ? (
           <QuickMatch
             gameType={gameType}

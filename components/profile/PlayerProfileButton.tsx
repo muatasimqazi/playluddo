@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getPlayerProfile, type PlayerProfile } from "@/lib/supabase/profile";
+import { addFriendFromSeat } from "@/lib/supabase/friends";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import "@/components/simulator/simulator.css";
 
@@ -30,6 +31,17 @@ export function PlayerProfileButton({
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [friendState, setFriendState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+
+  async function addFriend() {
+    setFriendState("sending");
+    try {
+      await addFriendFromSeat(client, playerId);
+      setFriendState("sent");
+    } catch {
+      setFriendState("failed");
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -37,6 +49,7 @@ export function PlayerProfileButton({
     async function load() {
       setProfile(null);
       setError(null);
+      setFriendState("idle");
       try {
         const data = await getPlayerProfile(client, playerId);
         if (!cancelled) setProfile(data);
@@ -107,6 +120,24 @@ export function PlayerProfileButton({
               ) : (
                 <p className="profile-message">No profile for this seat.</p>
               )}
+              {profile &&
+                ((profile.visibility === "visible" && !profile.isSelf) ||
+                  profile.visibility === "hidden") && (
+                  <button
+                    type="button"
+                    className="profile-add-friend"
+                    disabled={friendState === "sending" || friendState === "sent"}
+                    onClick={() => void addFriend()}
+                  >
+                    {friendState === "sent"
+                      ? "Friend request sent"
+                      : friendState === "sending"
+                        ? "Sending…"
+                        : friendState === "failed"
+                          ? "Couldn't add — try again"
+                          : "Add friend"}
+                  </button>
+                )}
             </section>
           </div>,
           document.body,

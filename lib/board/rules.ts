@@ -154,6 +154,13 @@ export function controllableTeamColors(
   return ownFinished === 4 ? teamColors(color, true) : new Set([color]);
 }
 
+/** Team Up ends only when both opposite-color partners have all four home. */
+export function isTeamUpWon(pawns: EnginePawn[], color: PlayerColor): boolean {
+  const colors = teamColors(color, true);
+  const sidePawns = pawns.filter((pawn) => colors.has(pawn.color));
+  return sidePawns.length === 8 && sidePawns.every((pawn) => pawn.state === "finished");
+}
+
 /** Applies an already-legal move: relocates the moving pawn, sends captured pawns to nest. */
 export function applyMove(pawns: EnginePawn[], move: LegalMove): EnginePawn[] {
   const movingPawn = pawns.find((p) => p.id === move.pawnId);

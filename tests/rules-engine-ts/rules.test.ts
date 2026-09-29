@@ -6,6 +6,7 @@ import {
   evaluateSixRoll,
   getLegalMoves,
   isMatchWon,
+  isTeamUpWon,
   rankPlayers,
   resolveRoomRules,
 } from "../../lib/board/rules";
@@ -215,6 +216,21 @@ describe("getLegalMoves — Team Up", () => {
     const move = getLegalMoves(pawns, "red", 4, { rules: { teamUp: true } })
       .find((candidate) => candidate.pawnId === "red-0")!;
     expect(move.capturesPawnIds).toEqual(["green-0"]);
+  });
+});
+
+describe("isTeamUpWon", () => {
+  it("requires all eight pawns belonging to a side", () => {
+    const pawns = makeBoard();
+    for (const pawn of pawns)
+      if (pawn.color === "red" || pawn.color === "yellow") {
+        pawn.state = "finished";
+        pawn.pathIndex = 56;
+      }
+    expect(isTeamUpWon(pawns, "red")).toBe(true);
+    pawns.find((pawn) => pawn.id === "yellow-3")!.state = "track";
+    pawns.find((pawn) => pawn.id === "yellow-3")!.pathIndex = 50;
+    expect(isTeamUpWon(pawns, "red")).toBe(false);
   });
 });
 

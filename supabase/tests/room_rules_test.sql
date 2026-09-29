@@ -40,7 +40,7 @@ select is(
   -- on purpose. Everywhere else asserts only the keys it cares about.
   '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4, "captureToEnterHome": false,
     "snakesAnyRollToStart": false, "snakesBounceBack": false, "matchMinutes": 0,
-    "blockades": false, "turnSeconds": 15}'::jsonb,
+    "blockades": false, "turnSeconds": 15, "teamUp": false}'::jsonb,
   'a new room shows the default rules, with the extra roll for getting home on'
 );
 set local role authenticated;

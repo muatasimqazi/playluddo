@@ -79,6 +79,10 @@ export interface LegalMove {
 export interface RoomRules {
   /** An extra roll when a pawn gets home (F1.5). On by default. */
   bonusRollOnFinish: boolean;
+  /** Quick mode (F2.1): pieces that begin on the board instead of in base, 0-4. */
+  startOnBoard: number;
+  /** Quick mode (F2.1): pieces that have to get home to win, 1-4. */
+  pawnsToWin: number;
 }
 
 /**

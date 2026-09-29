@@ -36,7 +36,7 @@ select 'joinB', public.join_room((select value->>'code' from test_state where ke
 reset role;
 select is(
   private.ludo_room_state_json(((select value->>'roomId' from test_state where key = 'roomA'))::uuid)->'rules',
-  '{"bonusRollOnFinish": true}'::jsonb,
+  '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb,
   'a new room shows the default rules, with the extra roll for getting home on'
 );
 set local role authenticated;
@@ -74,7 +74,7 @@ select throws_ok(
 
 select is(
   public.set_room_rules(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, '{"bonusRollOnFinish": false}')->'rules',
-  '{"bonusRollOnFinish": false}'::jsonb,
+  '{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb,
   'the host can turn the extra roll for getting home off'
 );
 
@@ -111,7 +111,8 @@ select results_eq(
     where id in (((select value->>'roomId' from test_state where key = 'roomA'))::uuid,
                  ((select value->>'roomId' from test_state where key = 'roomB'))::uuid)
     order by (id = ((select value->>'roomId' from test_state where key = 'roomA'))::uuid) desc$$,
-  $$values ('{"bonusRollOnFinish": true}'::jsonb), ('{"bonusRollOnFinish": false}'::jsonb)$$,
+  $$values ('{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb),
+           ('{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb)$$,
   'start_match freezes each room''s resolved rules for the match'
 );
 
@@ -119,7 +120,7 @@ select is(
   (select payload->'rules' from public.match_events
    where room_id = ((select value->>'roomId' from test_state where key = 'roomB'))::uuid
      and event_type = 'match_started'),
-  '{"bonusRollOnFinish": false}'::jsonb,
+  '{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb,
   'the match_started event records the rules played'
 );
 

@@ -150,7 +150,7 @@ describe("earnsBonusRoll", () => {
   };
   const captureMove: LegalMove = { ...plainMove, capturesPawnIds: ["y"] };
   const finishMove: LegalMove = { ...plainMove, finishesPawn: true };
-  const rulesOff = { bonusRollOnFinish: false };
+  const rulesOff = { ...DEFAULT_ROOM_RULES, bonusRollOnFinish: false };
 
   it("grants a bonus roll on a six", () => {
     expect(earnsBonusRoll(6, plainMove, DEFAULT_ROOM_RULES)).toBe(true);
@@ -189,7 +189,18 @@ describe("resolveRoomRules", () => {
   });
 
   it("keeps a rule the host set", () => {
-    expect(resolveRoomRules({ bonusRollOnFinish: false })).toEqual({ bonusRollOnFinish: false });
+    expect(resolveRoomRules({ bonusRollOnFinish: false })).toEqual({
+      ...DEFAULT_ROOM_RULES,
+      bonusRollOnFinish: false,
+    });
+  });
+
+  it("keeps a shorter game the host set (F2.1)", () => {
+    expect(resolveRoomRules({ startOnBoard: 1, pawnsToWin: 2 })).toEqual({
+      ...DEFAULT_ROOM_RULES,
+      startOnBoard: 1,
+      pawnsToWin: 2,
+    });
   });
 });
 
@@ -238,6 +249,17 @@ describe("applyMove", () => {
 });
 
 describe("isMatchWon", () => {
+  it("ends a quick game as soon as enough pieces are home (F2.1)", () => {
+    const pawns = [
+      { id: "a", color: "red" as const, index: 0, state: "finished" as const, pathIndex: 56 },
+      { id: "b", color: "red" as const, index: 1, state: "finished" as const, pathIndex: 56 },
+      { id: "c", color: "red" as const, index: 2, state: "track" as const, pathIndex: 10 },
+      { id: "d", color: "red" as const, index: 3, state: "nest" as const, pathIndex: null },
+    ];
+    expect(isMatchWon(pawns, "red", { pawnsToWin: 2 })).toBe(true);
+    expect(isMatchWon(pawns, "red")).toBe(false);
+  });
+
   it("is false until all 4 pawns of a color are finished", () => {
     const pawns = makeBoard({
       "red-0": pawn("red-0", "red", 0, "finished", 56),

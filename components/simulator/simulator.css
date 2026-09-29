@@ -5029,3 +5029,26 @@ body.sim-piece-hover .sim-canvas {
   margin-bottom: 4px;
   border-bottom: 1px solid rgba(233, 231, 211, 0.15);
 }
+
+/* Quick mode (F2.1): the lobby's game-length choice. */
+.lobby-length-choices {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+/* The unselected side still has to read over the board photo behind the
+   panel, so it carries its own surface rather than muted text alone. */
+.lobby-length-choices button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--sim-line);
+  border-radius: 999px;
+  background: rgba(24, 32, 26, 0.55);
+  color: #d9d3bf;
+  font-size: 12px;
+}
+.lobby-length-choices button.is-selected {
+  border-color: #d8bd7f;
+  background: rgba(216, 189, 127, 0.12);
+  color: var(--sim-ink);
+}

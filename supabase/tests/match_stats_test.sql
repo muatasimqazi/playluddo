@@ -70,7 +70,7 @@ select results_eq(
   $$select room_id, game_type, rules, ended_at is null from public.matches
     where id = ((select value->>'matchA' from test_state where key = 'ids'))::uuid$$,
   $$values (((select value->>'roomA' from test_state where key = 'ids'))::uuid, 'ludo'::text,
-            '{"bonusRollOnFinish": false}'::jsonb, true)$$,
+            '{"bonusRollOnFinish": false, "startOnBoard": 0, "pawnsToWin": 4}'::jsonb, true)$$,
   'start_match creates an open match with the room''s frozen rules'
 );
 

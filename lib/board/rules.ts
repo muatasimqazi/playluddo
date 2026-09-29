@@ -114,7 +114,11 @@ export function applyMove(pawns: EnginePawn[], move: LegalMove): EnginePawn[] {
 }
 
 /** Mirrors the SQL private.ludo_default_rules(). */
-export const DEFAULT_ROOM_RULES: RoomRules = { bonusRollOnFinish: true };
+export const DEFAULT_ROOM_RULES: RoomRules = {
+  bonusRollOnFinish: true,
+  startOnBoard: 0,
+  pawnsToWin: 4,
+};
 
 /**
  * Defaults, overlaid with whichever known keys `rules` sets. Mirrors the SQL
@@ -125,6 +129,8 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
   const resolved = { ...DEFAULT_ROOM_RULES };
   if (typeof rules?.bonusRollOnFinish === "boolean")
     resolved.bonusRollOnFinish = rules.bonusRollOnFinish;
+  if (typeof rules?.startOnBoard === "number") resolved.startOnBoard = rules.startOnBoard;
+  if (typeof rules?.pawnsToWin === "number") resolved.pawnsToWin = rules.pawnsToWin;
   return resolved;
 }
 
@@ -161,9 +167,17 @@ export function evaluateSixRoll(
   return { consecutiveSixesAfter: after, cancelMove: after === 3 };
 }
 
-/** A color earns its placement once all 4 of its pawns are finished. */
-export function isMatchWon(pawns: EnginePawn[], color: PlayerColor): boolean {
-  return pawns.filter((p) => p.color === color && p.state === "finished").length === 4;
+/**
+ * A colour earns its placement once enough of its pawns are home — all four
+ * in the classic game, fewer in Quick mode (F2.1).
+ */
+export function isMatchWon(
+  pawns: EnginePawn[],
+  color: PlayerColor,
+  rules?: Partial<RoomRules> | null,
+): boolean {
+  const { pawnsToWin } = resolveRoomRules(rules);
+  return pawns.filter((p) => p.color === color && p.state === "finished").length >= pawnsToWin;
 }
 
 export interface PlayerProgress {

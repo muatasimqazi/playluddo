@@ -12,7 +12,7 @@ import {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { GameRoomState, MatchStats, MatchResult } from "@/lib/board/types";
-import { rankPlayers } from "@/lib/board/rules";
+import { DEFAULT_ROOM_RULES, rankPlayers } from "@/lib/board/rules";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
 import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
@@ -1235,7 +1235,7 @@ export default function Simulator({
                 ) : (
                   // A game with no rules on record predates room rules, when
                   // getting a piece home earned no extra roll.
-                  <LudoRules rules={state.rules ?? { bonusRollOnFinish: false }} />
+                  <LudoRules rules={state.rules ?? { ...DEFAULT_ROOM_RULES, bonusRollOnFinish: false }} />
                 )}
                 {!practice && !localPlay && <OnlineTableRules />}
               </div>

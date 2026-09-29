@@ -38,7 +38,7 @@ export interface PracticeProfile {
 // A game saved on this device before room rules existed keeps the rules it
 // started with, which had no extra roll for getting home. Mirrors the
 // server's rollout in supabase/migrations/20260928040000_room_rules.sql.
-const RULES_BEFORE_ROOM_RULES: RoomRules = { bonusRollOnFinish: false };
+const RULES_BEFORE_ROOM_RULES: RoomRules = { ...DEFAULT_ROOM_RULES, bonusRollOnFinish: false };
 
 export function createPractice(
   gameType: GameType = "ludo",

@@ -50,6 +50,7 @@ export function RoomLobby({
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);
+  const quick = rules.pawnsToWin < 4 || rules.startOnBoard > 0;
   // For 2 players, the seats aren't a fixed {0,1} range — the second seat
   // is whichever base sits diagonally across the board from the first
   // (mirrors the SQL engine's (seat + 2) % 4 pairing). The host is always
@@ -201,7 +202,7 @@ export function RoomLobby({
         </div>
         <p className="lobby-game-rules">
           {state.gameType === "ludo"
-            ? `Four pieces each. Bring your color home. ${
+            ? `${quick ? "Quick game: first to get 2 pieces home wins, and one starts on the board." : "Four pieces each. Bring your color home."} ${
                 rules.bonusRollOnFinish
                   ? "Getting a piece home earns another roll."
                   : "No extra roll for getting a piece home."
@@ -219,6 +220,41 @@ export function RoomLobby({
             How to play
           </Link>
         </p>
+        {host && state.gameType === "ludo" && (
+          <div className="lobby-player-count lobby-house-rule lobby-length">
+            <span>
+              <span className="eyebrow">GAME LENGTH</span>
+              <strong>{quick ? "Quick" : "Classic"}</strong>
+              <small>
+                {quick
+                  ? "One piece starts on the board · first to get 2 home wins"
+                  : "Every piece starts in base · all 4 have to get home"}
+              </small>
+            </span>
+            <div className="lobby-length-choices">
+              {([
+                ["Classic", { startOnBoard: 0, pawnsToWin: 4 }],
+                ["Quick", { startOnBoard: 1, pawnsToWin: 2 }],
+              ] as const).map(([label, length]) => (
+                <button
+                  key={label}
+                  type="button"
+                  className={(label === "Quick") === quick ? "is-selected" : ""}
+                  aria-pressed={(label === "Quick") === quick}
+                  disabled={pending}
+                  onClick={() =>
+                    void run(async () => {
+                      const next = await setRoomRules(client, roomId, { ...rules, ...length });
+                      useRoomStore.getState().setRoomState(next);
+                    })
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {host && state.gameType === "ludo" && (
           <label className="lobby-player-count lobby-house-rule">
             <span>

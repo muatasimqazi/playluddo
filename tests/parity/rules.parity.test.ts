@@ -149,10 +149,15 @@ async function sqlResolveRules(rules: unknown): Promise<RoomRules> {
 async function sqlIsMatchWon(
   pawns: EnginePawn[],
   color: PlayerColor,
+  rules?: Partial<RoomRules> | null,
 ): Promise<boolean> {
   const { rows } = await client.query(
-    "select private.ludo_is_match_won($1::jsonb, $2) as result",
-    [JSON.stringify(pawns), color],
+    rules === undefined
+      ? "select private.ludo_is_match_won($1::jsonb, $2) as result"
+      : "select private.ludo_is_match_won($1::jsonb, $2, $3::jsonb) as result",
+    rules === undefined
+      ? [JSON.stringify(pawns), color]
+      : [JSON.stringify(pawns), color, rules === null ? null : JSON.stringify(rules)],
   );
   return rows[0].result as boolean;
 }
@@ -334,7 +339,10 @@ describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
       { ...plain, capturesPawnIds: ["y"] },
       { ...plain, fromTileId: "home:red:4", toTileId: "home:red:5", finishesPawn: true },
     ];
-    const ruleSets: RoomRules[] = [DEFAULT_ROOM_RULES, { bonusRollOnFinish: false }];
+    const ruleSets: RoomRules[] = [
+      DEFAULT_ROOM_RULES,
+      { ...DEFAULT_ROOM_RULES, bonusRollOnFinish: false },
+    ];
     for (const rules of ruleSets)
       for (const move of moves)
         for (let dieValue = 1; dieValue <= 6; dieValue++)
@@ -349,6 +357,12 @@ describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
       {},
       { bonusRollOnFinish: false },
       { bonusRollOnFinish: true },
+      // Quick mode (F2.1), and values the server would reject, so both
+      // engines agree on what an old or odd snapshot resolves to.
+      { startOnBoard: 1, pawnsToWin: 2 },
+      { pawnsToWin: 1 },
+      { startOnBoard: 4, pawnsToWin: 4 },
+      { unknownKey: true },
     ];
     for (const input of inputs)
       expect(await sqlResolveRules(input)).toEqual(resolveRoomRules(input));
@@ -364,6 +378,25 @@ describe("parity: isMatchWon / rankPlayers", () => {
       "red-3": pawn("red-3", "red", 3, "finished", 56),
     });
     expect(await sqlIsMatchWon(pawns, "red")).toBe(isMatchWon(pawns, "red"));
+  });
+
+  it("agree on how many pieces have to get home", async () => {
+    // Red has two home, one in its home lane, one still on the track.
+    const pawns = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "finished", 56),
+      "red-1": pawn("red-1", "red", 1, "finished", 56),
+      "red-2": pawn("red-2", "red", 2, "home_lane", 54),
+      "red-3": pawn("red-3", "red", 3, "track", 20),
+    });
+    for (const rules of [
+      undefined,
+      { pawnsToWin: 1 },
+      { pawnsToWin: 2 },
+      { pawnsToWin: 3 },
+      { pawnsToWin: 4 },
+      { startOnBoard: 1, pawnsToWin: 2 },
+    ] as (Partial<RoomRules> | undefined)[])
+      expect(await sqlIsMatchWon(pawns, "red", rules)).toBe(isMatchWon(pawns, "red", rules));
   });
 
   it("agree on ranking order", async () => {

@@ -14,6 +14,7 @@ import {
   resolveRoomRules,
   type PlayerProgress,
 } from "../../lib/board/rules";
+import { RULE_PRESETS, rulesAllowed } from "../../lib/board/presets";
 import type { LegalMove, PlayerColor, RoomRules } from "../../lib/board/types";
 
 /**
@@ -499,6 +500,71 @@ describe("parity: Master mode (F2.2)", () => {
       expect(getLegalMoves(pawns, "red", dieValue, context)).toEqual(
         getLegalMoves(pawns, "red", dieValue),
       );
+    }
+  });
+});
+
+describe("parity: blockades (F2.4)", () => {
+  it("agree on what a blockade stops", async () => {
+    // Green holds cell 8 with two pieces (unsafe for red passing it), and
+    // yellow has a lone piece further on. Red runs the gauntlet.
+    const pawns = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 5),
+      "red-1": pawn("red-1", "red", 1, "track", 9),
+      "green-0": pawn("green-0", "green", 0, "track", 22),
+      "green-1": pawn("green-1", "green", 1, "track", 22),
+      "yellow-0": pawn("yellow-0", "yellow", 0, "track", 35),
+    });
+    for (const blockades of [false, true])
+      for (let dieValue = 1; dieValue <= 6; dieValue++) {
+        const context = { rules: { blockades } };
+        expect(await sqlLegalMoves(pawns, "red", dieValue, context)).toEqual(
+          getLegalMoves(pawns, "red", dieValue, context),
+        );
+      }
+  });
+
+  it("agree that a colour is never stopped by its own pieces", async () => {
+    const pawns = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 5),
+      "red-1": pawn("red-1", "red", 1, "track", 9),
+      "red-2": pawn("red-2", "red", 2, "track", 9),
+    });
+    for (let dieValue = 1; dieValue <= 6; dieValue++) {
+      const context = { rules: { blockades: true } };
+      expect(await sqlLegalMoves(pawns, "red", dieValue, context)).toEqual(
+        getLegalMoves(pawns, "red", dieValue, context),
+      );
+    }
+  });
+});
+
+describe("parity: house rules presets and allow-list (F2.4)", () => {
+  it("agree on the presets", async () => {
+    const { rows } = await client.query("select private.ludo_rule_presets() as presets");
+    expect(rows[0].presets).toEqual(RULE_PRESETS);
+  });
+
+  it("agree on which combinations a host may pick", async () => {
+    const candidates: Partial<RoomRules>[] = [
+      {},
+      { blockades: true },
+      { bonusRollOnFinish: false },
+      { turnSeconds: 10 },
+      { turnSeconds: 30 },
+      { startOnBoard: 1, pawnsToWin: 2 },
+      { captureToEnterHome: true },
+      { blockades: true, captureToEnterHome: true },
+      { startOnBoard: 3 },
+      { pawnsToWin: 1 },
+      { blockades: true, matchMinutes: 10, snakesBounceBack: true },
+      { turnSeconds: 30, blockades: true },
+    ];
+    for (const rules of candidates) {
+      const { rows } = await client.query("select private.ludo_rules_allowed($1::jsonb) as allowed", [
+        JSON.stringify(rules),
+      ]);
+      expect([rules, rows[0].allowed]).toEqual([rules, rulesAllowed(rules)]);
     }
   });
 });

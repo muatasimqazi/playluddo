@@ -19,8 +19,9 @@ import type { LegalMove, PawnState, PlayerColor, RoomRules } from "./types";
 
 /**
  * Legal moves for one color given a die roll. Mirrors PRD 4.2-4.3:
- * - nest pawns need a 6 to enter (no blockade check — own/opponent pawns
- *   never block movement in MVP).
+ * - nest pawns need a 6 to enter. When the optional blockade rule is on,
+ *   two opposing pawns on an unsafe shared-track cell block passing and
+ *   landing; safe cells and a player's own pawns never block movement.
  * - track/home_lane pawns need `current + dieValue` to not overshoot the
  *   final home cell (56); an overshooting pawn is simply excluded, not
  *   "moved and bounced".
@@ -36,9 +37,9 @@ export function getLegalMoves(
   context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
 ): LegalMove[] {
   const moves: LegalMove[] = [];
+  const resolved = resolveRoomRules(context?.rules);
   // Master mode: this player has to capture before any piece goes home.
-  const heldBack =
-    resolveRoomRules(context?.rules).captureToEnterHome && !context?.hasCaptured;
+  const heldBack = resolved.captureToEnterHome && !context?.hasCaptured;
 
   for (const pawn of pawns) {
     if (pawn.color !== color) continue;
@@ -70,6 +71,9 @@ export function getLegalMoves(
         : current + dieValue;
     if (target > PATH_INDEX.FINISHED) continue; // overshoot — illegal, excluded from legalMoves
     if (target === current) continue; // held back with nowhere to go
+    // Blockades: two pieces of one colour on an unsafe square stop everyone
+    // else, both from passing it and from landing on it.
+    if (resolved.blockades && blockedBetween(pawns, color, current, target)) continue;
 
     const captures =
       target <= PATH_INDEX.LAST_TRACK_CELL ? capturesAt(pawns, color, target) : [];
@@ -84,6 +88,27 @@ export function getLegalMoves(
   }
 
   return moves;
+}
+
+/** True if another colour holds a blockade on any shared square this move crosses. */
+function blockedBetween(
+  pawns: EnginePawn[],
+  movingColor: PlayerColor,
+  from: number,
+  to: number,
+): boolean {
+  for (let step = from + 1; step <= Math.min(to, PATH_INDEX.LAST_TRACK_CELL); step++) {
+    const cell = pathIndexToGlobalCell(movingColor, step);
+    if (isSafeCell(cell)) continue;
+    const byColor = new Map<PlayerColor, number>();
+    for (const p of pawns) {
+      if (p.color === movingColor || p.state !== "track" || p.pathIndex === null) continue;
+      if (pathIndexToGlobalCell(p.color, p.pathIndex) !== cell) continue;
+      byColor.set(p.color, (byColor.get(p.color) ?? 0) + 1);
+    }
+    for (const count of byColor.values()) if (count >= 2) return true;
+  }
+  return false;
 }
 
 function capturesAt(
@@ -136,6 +161,8 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   snakesAnyRollToStart: false,
   snakesBounceBack: false,
   matchMinutes: 0,
+  blockades: false,
+  turnSeconds: 15,
 };
 
 /**
@@ -156,6 +183,8 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
   if (typeof rules?.snakesBounceBack === "boolean")
     resolved.snakesBounceBack = rules.snakesBounceBack;
   if (typeof rules?.matchMinutes === "number") resolved.matchMinutes = rules.matchMinutes;
+  if (typeof rules?.blockades === "boolean") resolved.blockades = rules.blockades;
+  if (typeof rules?.turnSeconds === "number") resolved.turnSeconds = rules.turnSeconds;
   return resolved;
 }
 

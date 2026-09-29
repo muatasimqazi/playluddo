@@ -93,6 +93,10 @@ export interface RoomRules {
   snakesBounceBack: boolean;
   /** Rush mode (F2.3): minutes on the match clock — 0 for no clock, or 5 or 10. */
   matchMinutes: number;
+  /** Blockades (F2.4): two pieces of one colour on an unsafe square stop everyone else. */
+  blockades: boolean;
+  /** How long a player has to take their turn (F2.4): 10, 15 or 30 seconds. */
+  turnSeconds: number;
 }
 
 /**

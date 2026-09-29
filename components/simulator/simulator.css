@@ -5064,3 +5064,42 @@ body.sim-piece-hover .sim-canvas {
 .sim-match-clock.urgent {
   color: #f2a18f;
 }
+
+/* The house rules panel (F2.4): a preset, then single changes to Classic. */
+.lobby-rules-panel {
+  display: grid;
+  gap: 10px;
+}
+.lobby-rules-head strong {
+  font-size: 17px;
+}
+.lobby-preset-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.lobby-preset {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--sim-line);
+  border-radius: 14px;
+  background: rgba(24, 32, 26, 0.55);
+  color: var(--sim-muted);
+  text-align: left;
+}
+.lobby-preset strong {
+  color: var(--sim-ink);
+  font-size: 15px;
+}
+.lobby-preset small {
+  font-size: 12px;
+  line-height: 1.3;
+}
+.lobby-preset.is-selected {
+  border-color: #d8bd7f;
+  background: rgba(216, 189, 127, 0.14);
+}
+.lobby-house-rule.is-disabled {
+  opacity: 0.45;
+}

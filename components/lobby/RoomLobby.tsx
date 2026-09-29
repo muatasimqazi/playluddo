@@ -15,6 +15,14 @@ import {
   startMatch,
 } from "@/lib/supabase/rpc";
 import { resolveRoomRules } from "@/lib/board/rules";
+import {
+  describeRules,
+  PRESET_LABELS,
+  presetOf,
+  RULE_PRESETS,
+  rulesAllowed,
+  type PresetName,
+} from "@/lib/board/presets";
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
@@ -50,7 +58,7 @@ export function RoomLobby({
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);
-  const quick = rules.pawnsToWin < 4 || rules.startOnBoard > 0;
+  const preset = presetOf(rules);
   // For 2 players, the seats aren't a fixed {0,1} range — the second seat
   // is whichever base sits diagonally across the board from the first
   // (mirrors the SQL engine's (seat + 2) % 4 pairing). The host is always
@@ -202,11 +210,7 @@ export function RoomLobby({
         </div>
         <p className="lobby-game-rules">
           {state.gameType === "ludo"
-            ? `${quick ? "Quick game: first to get 2 pieces home wins, and one starts on the board." : "Four pieces each. Bring your color home."} ${
-                rules.bonusRollOnFinish
-                  ? "Getting a piece home earns another roll."
-                  : "No extra roll for getting a piece home."
-              }`
+            ? describeRules(rules, "ludo")
             : "One piece each. Climb ladders, slide down snakes. Reach 100 with an exact roll."}{" "}
           {/* A new tab, so the table and your seat stay put. */}
           <Link
@@ -221,85 +225,100 @@ export function RoomLobby({
           </Link>
         </p>
         {host && state.gameType === "ludo" && (
-          <div className="lobby-player-count lobby-house-rule lobby-length">
-            <span>
-              <span className="eyebrow">GAME LENGTH</span>
-              <strong>{quick ? "Quick" : "Classic"}</strong>
-              <small>
-                {quick
-                  ? "One piece starts on the board · first to get 2 home wins"
-                  : "Every piece starts in base · all 4 have to get home"}
-              </small>
-            </span>
-            <div className="lobby-length-choices">
-              {([
-                ["Classic", { startOnBoard: 0, pawnsToWin: 4 }],
-                ["Quick", { startOnBoard: 1, pawnsToWin: 2 }],
-              ] as const).map(([label, length]) => (
+          <div className="lobby-rules-panel">
+            <div className="lobby-house-rule lobby-rules-head">
+              <span>
+                <span className="eyebrow">GAME RULES</span>
+                <strong>{preset ? PRESET_LABELS[preset].name : "House rules"}</strong>
+                <small>{describeRules(rules, "ludo")}</small>
+              </span>
+            </div>
+            <div className="lobby-preset-choices">
+              {(Object.keys(RULE_PRESETS) as PresetName[]).map((name) => (
                 <button
-                  key={label}
+                  key={name}
                   type="button"
-                  className={(label === "Quick") === quick ? "is-selected" : ""}
-                  aria-pressed={(label === "Quick") === quick}
+                  className={`lobby-preset${preset === name ? " is-selected" : ""}`}
+                  aria-pressed={preset === name}
                   disabled={pending}
                   onClick={() =>
                     void run(async () => {
-                      const next = await setRoomRules(client, roomId, { ...rules, ...length });
+                      const next = await setRoomRules(client, roomId, { ...rules, ...RULE_PRESETS[name] });
                       useRoomStore.getState().setRoomState(next);
                     })
                   }
                 >
-                  {label}
+                  <strong>{PRESET_LABELS[name].name}</strong>
+                  <small>{PRESET_LABELS[name].note}</small>
                 </button>
               ))}
             </div>
+            {/* Single changes to Classic (decision 14): each is offered only
+                when the resulting combination is one the server allows, so a
+                choice that isn't on the list is greyed out rather than
+                refused after the fact. */}
+            {([
+              ["blockades", "Blockades", "Two of your pieces on a square stop everyone else"],
+              ["bonusRollOnFinish", "Extra roll for getting a piece home", "A six or a capture always earns another roll"],
+            ] as const).map(([key, title, note]) => {
+              const candidate = { ...rules, [key]: !rules[key] };
+              const canToggle = rulesAllowed(candidate);
+              return (
+                <label
+                  key={key}
+                  className={`lobby-player-count lobby-house-rule${canToggle ? "" : " is-disabled"}`}
+                  title={canToggle ? undefined : "Start from Classic to change this"}
+                >
+                  <span>
+                    <strong>{title}</strong>
+                    <small>{note}</small>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={rules[key]}
+                    disabled={pending || !canToggle}
+                    onChange={() =>
+                      void run(async () => {
+                        const next = await setRoomRules(client, roomId, candidate);
+                        useRoomStore.getState().setRoomState(next);
+                      })
+                    }
+                  />
+                </label>
+              );
+            })}
+            <div className="lobby-player-count lobby-house-rule lobby-length">
+              <span>
+                <span className="eyebrow">TURN TIMER</span>
+                <strong>{rules.turnSeconds} seconds a turn</strong>
+                <small>How long each player has to roll and move</small>
+              </span>
+              <div className="lobby-length-choices">
+                {[10, 15, 30].map((seconds) => {
+                  const candidate = { ...rules, turnSeconds: seconds };
+                  const canPick = rulesAllowed(candidate);
+                  return (
+                    <button
+                      key={seconds}
+                      type="button"
+                      className={rules.turnSeconds === seconds ? "is-selected" : ""}
+                      aria-pressed={rules.turnSeconds === seconds}
+                      disabled={pending || !canPick}
+                      title={canPick ? undefined : "Start from Classic to change this"}
+                      onClick={() =>
+                        void run(async () => {
+                          const next = await setRoomRules(client, roomId, candidate);
+                          useRoomStore.getState().setRoomState(next);
+                        })
+                      }
+                    >
+                      {seconds}s
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        )}
-        {host && state.gameType === "ludo" && (
-          <label className="lobby-player-count lobby-house-rule">
-            <span>
-              <span className="eyebrow">HOUSE RULE</span>
-              <strong>Capture before going home</strong>
-              <small>No piece enters your home column until you&rsquo;ve captured someone</small>
-            </span>
-            <input
-              type="checkbox"
-              checked={rules.captureToEnterHome}
-              disabled={pending}
-              onChange={(event) =>
-                void run(async () => {
-                  const next = await setRoomRules(client, roomId, {
-                    ...rules,
-                    captureToEnterHome: event.target.checked,
-                  });
-                  useRoomStore.getState().setRoomState(next);
-                })
-              }
-            />
-          </label>
-        )}
-        {host && state.gameType === "ludo" && (
-          <label className="lobby-player-count lobby-house-rule">
-            <span>
-              <span className="eyebrow">HOUSE RULE</span>
-              <strong>Extra roll for getting a piece home</strong>
-              <small>A six or a capture always earns another roll</small>
-            </span>
-            <input
-              type="checkbox"
-              checked={rules.bonusRollOnFinish}
-              disabled={pending}
-              onChange={(event) =>
-                void run(async () => {
-                  const next = await setRoomRules(client, roomId, {
-                    ...rules,
-                    bonusRollOnFinish: event.target.checked,
-                  });
-                  useRoomStore.getState().setRoomState(next);
-                })
-              }
-            />
-          </label>
         )}
         {host && (
           <div className="lobby-player-count lobby-house-rule lobby-length">

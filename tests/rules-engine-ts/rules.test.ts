@@ -129,7 +129,7 @@ describe("getLegalMoves — capture", () => {
   });
 });
 
-describe("getLegalMoves — no blockade rule", () => {
+describe("getLegalMoves — blockades", () => {
   it("allows 2+ pawns of the same color to occupy one tile and still move independently", () => {
     const pawns = makeBoard({
       "red-0": pawn("red-0", "red", 0, "track", 5),
@@ -137,6 +137,46 @@ describe("getLegalMoves — no blockade rule", () => {
     });
     const moves = getLegalMoves(pawns, "red", 3);
     expect(moves.map((m) => m.pawnId).sort()).toEqual(["red-0", "red-1"]);
+  });
+
+  it("does not block movement by default", () => {
+    const pawns = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 6),
+      // Green path 48 maps to shared-track cell 9, red's target below.
+      "green-0": pawn("green-0", "green", 0, "track", 48),
+      "green-1": pawn("green-1", "green", 1, "track", 48),
+    });
+    expect(getLegalMoves(pawns, "red", 3).some((move) => move.pawnId === "red-0")).toBe(true);
+  });
+
+  it("prevents landing on or crossing an opposing blockade when enabled", () => {
+    const pawns = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 6),
+      "green-0": pawn("green-0", "green", 0, "track", 48),
+      "green-1": pawn("green-1", "green", 1, "track", 48),
+    });
+    const rules = { blockades: true };
+    expect(getLegalMoves(pawns, "red", 3, { rules }).some((move) => move.pawnId === "red-0")).toBe(false);
+    expect(getLegalMoves(pawns, "red", 4, { rules }).some((move) => move.pawnId === "red-0")).toBe(false);
+  });
+
+  it("never treats own stacks or a stack on a safe cell as a blockade", () => {
+    const ownStack = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 6),
+      "red-1": pawn("red-1", "red", 1, "track", 9),
+      "red-2": pawn("red-2", "red", 2, "track", 9),
+    });
+    expect(getLegalMoves(ownStack, "red", 3, { rules: { blockades: true } })
+      .some((move) => move.pawnId === "red-0")).toBe(true);
+
+    const safeStack = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "track", 6),
+      // Green path 47 maps to shared-track cell 8, a safe cell.
+      "green-0": pawn("green-0", "green", 0, "track", 47),
+      "green-1": pawn("green-1", "green", 1, "track", 47),
+    });
+    expect(getLegalMoves(safeStack, "red", 2, { rules: { blockades: true } })
+      .some((move) => move.pawnId === "red-0")).toBe(true);
   });
 });
 

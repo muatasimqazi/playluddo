@@ -39,7 +39,8 @@ select is(
   -- The one place that pins every key, so a new rule has to be added here
   -- on purpose. Everywhere else asserts only the keys it cares about.
   '{"bonusRollOnFinish": true, "startOnBoard": 0, "pawnsToWin": 4, "captureToEnterHome": false,
-    "snakesAnyRollToStart": false, "snakesBounceBack": false, "matchMinutes": 0}'::jsonb,
+    "snakesAnyRollToStart": false, "snakesBounceBack": false, "matchMinutes": 0,
+    "blockades": false, "turnSeconds": 15}'::jsonb,
   'a new room shows the default rules, with the extra roll for getting home on'
 );
 set local role authenticated;
@@ -55,7 +56,8 @@ select throws_ok(
 set local request.jwt.claim.sub = '66666666-6666-6666-6666-666666666603';
 
 select throws_ok(
-  $$select public.set_room_rules(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, '{"blockades": true}')$$,
+  -- Blockades became a real rule in F2.4, so this needs a key that never will be.
+  $$select public.set_room_rules(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, '{"noSuchRule": true}')$$,
   'P0001',
   'INVALID_RULES',
   'unknown rule keys are rejected'

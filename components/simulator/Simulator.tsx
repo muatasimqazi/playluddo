@@ -21,6 +21,7 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { MatchDice } from "@/components/summary/MatchDice";
 import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
 import { FirstGameTips } from "./FirstGameTips";
+import { REACTION_EMOJI_ROWS, REACTION_PHRASES, REVENGE } from "@/lib/realtime/reactions";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
@@ -295,6 +296,20 @@ export default function Simulator({
   );
   useEffect(() => () => clearTimeout(flipTimer.current), []);
   const me = state.players.find((p) => p.id === myPlayerId);
+  // "Revenge!" is on offer once someone captures one of my pieces, until I
+  // next move.
+  const revengeReady = (() => {
+    if (!me) return false;
+    const mine = new Set(state.pawns.filter((p) => p.color === me.color).map((p) => p.id));
+    for (let i = events.length - 1; i >= 0; i--) {
+      const event = events[i];
+      if (event.event_type !== "legal_move_selected") continue;
+      if (event.player_id === me.id) return false;
+      const captured = event.payload?.capturesPawnIds;
+      if (Array.isArray(captured) && captured.some((id) => mine.has(String(id)))) return true;
+    }
+    return false;
+  })();
   const progressRanking = rankPlayers(
     state.players.map((player) => {
       const pawns = state.pawns.filter((p) => p.color === player.color);
@@ -338,6 +353,7 @@ export default function Simulator({
   const [moderating, setModerating] = useState(false);
   const [moderationNote, setModerationNote] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [reactionTab, setReactionTab] = useState<"emoji" | "phrases">("emoji");
   const [now, setNow] = useState(() => Date.now());
   const [fullscreen, setFullscreen] = useState(false);
   const root = useRef<HTMLElement>(null);
@@ -1663,18 +1679,51 @@ export default function Simulator({
               </div>
               {onMessage && (
                 <>
-                  <div className="reaction-picker">
-                    {["👋", "👏", "🎲", "😅", "🔥", "💛"].map((emoji) => (
+                  <div className="reaction-tabs" role="tablist" aria-label="Reactions">
+                    {(["emoji", "phrases"] as const).map((tab) => (
                       <button
-                        key={emoji}
-                        disabled={sending}
-                        aria-label={`React ${emoji}`}
-                        onClick={() => void sendMessage(emoji, "reaction")}
+                        key={tab}
+                        type="button"
+                        role="tab"
+                        aria-selected={reactionTab === tab}
+                        className={reactionTab === tab ? "is-selected" : ""}
+                        onClick={() => setReactionTab(tab)}
                       >
-                        {emoji}
+                        {tab === "emoji" ? "Emoji" : "Phrases"}
                       </button>
                     ))}
                   </div>
+                  {reactionTab === "emoji" ? (
+                    <div className="reaction-picker" role="tabpanel" aria-label="Emoji">
+                      {REACTION_EMOJI_ROWS.flat().map((emoji) => (
+                        <button
+                          key={emoji}
+                          disabled={sending}
+                          aria-label={`React ${emoji}`}
+                          onClick={() => void sendMessage(emoji, "reaction")}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="reaction-phrases" role="tabpanel" aria-label="Phrases">
+                      {/* "Revenge!" only right after one of your pieces was captured, and first. */}
+                      {(revengeReady
+                        ? [REVENGE, ...REACTION_PHRASES.filter((phrase) => phrase !== REVENGE)]
+                        : REACTION_PHRASES.filter((phrase) => phrase !== REVENGE)
+                      ).map((phrase) => (
+                        <button
+                          key={phrase}
+                          disabled={sending}
+                          className={phrase === REVENGE ? "is-highlighted" : ""}
+                          onClick={() => void sendMessage(phrase, "reaction")}
+                        >
+                          {phrase}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <form
                     className="chat-form"
                     onSubmit={(e) => {

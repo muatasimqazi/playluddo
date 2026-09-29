@@ -4142,3 +4142,59 @@ body.sim-piece-hover .sim-canvas {
     }
   }
 }
+/* Reactions (F1.3): Emoji and Phrases tabs in the chat panel. */
+.reaction-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 18px;
+}
+.reaction-tabs button {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--sim-line);
+  border-radius: 999px;
+  color: var(--sim-muted);
+  font-size: 10px;
+}
+.reaction-tabs button.is-selected {
+  border-color: #d8bd7f;
+  color: var(--sim-ink);
+}
+.reaction-tabs + .reaction-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  margin-top: 10px;
+}
+.reaction-tabs + .reaction-picker button {
+  min-height: 36px;
+}
+.reaction-phrases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.reaction-phrases button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--sim-line);
+  border-radius: 999px;
+  color: var(--sim-ink);
+  font-size: 11px;
+}
+.reaction-phrases button.is-highlighted {
+  border-color: #d8bd7f;
+  background: rgba(116, 104, 68, 0.42);
+}
+/* A phrase floats over the seat as a small speech bubble. */
+.seat-reaction.is-phrase {
+  padding: 6px 11px;
+  transform: translateX(-50%);
+  border: 1px solid #ddc38680;
+  border-radius: 12px;
+  background: #263426f2;
+  color: var(--sim-ink);
+  font-size: 12px;
+  white-space: nowrap;
+}

@@ -71,6 +71,7 @@ import { Icon } from "./Icon";
 import { PlayerAvatars3D } from "./PlayerAvatar3D";
 import { TableLoading } from "./TableLoading";
 import { playSoundEffect } from "@/lib/sound/effects";
+import { isPhrase } from "@/lib/realtime/reactions";
 
 export interface SceneProps {
   gameType?: GameType;
@@ -1386,7 +1387,9 @@ function Seats({
               }
             >
               {reactions?.[player.id] && (
-                <span className="seat-reaction">{reactions[player.id]}</span>
+                <span className={`seat-reaction${isPhrase(reactions[player.id]) ? " is-phrase" : ""}`}>
+                  {reactions[player.id]}
+                </span>
               )}
               <PlayerAvatar player={player} size={34} className="seat-avatar" />
               {player.inVoice && (

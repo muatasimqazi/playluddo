@@ -630,7 +630,10 @@ export function RoomLobby({
         {host ? (
           <button
             className="sim-primary"
-            disabled={pending || state.players.length < 2}
+            // Enabled even when the host is alone: the label offers "add a
+            // computer", and the handler fills the open seats with bots before
+            // starting, so a solo host can begin against computers.
+            disabled={pending}
             onClick={() =>
               void run(async () => {
                 const openSeats = relevantSeats.filter(

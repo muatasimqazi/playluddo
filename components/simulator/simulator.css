@@ -400,6 +400,10 @@
   --sim-gold: #dbbf86;
   position: relative;
   width: 100%;
+  /* vh fallback first: LG webOS / older TV browsers (pre-Chromium 108) don't
+     understand dvh, drop the whole declaration, and the container collapses
+     to min-height, cutting off the 3D scene. vh keeps them full-height. */
+  height: 100vh;
   height: 100dvh;
   min-height: 320px;
   overflow: hidden;
@@ -1412,6 +1416,7 @@ body.sim-piece-hover .sim-canvas {
    phones, scrolling within the panel rather than off its edges. */
 .sim-victory {
   width: min(470px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-y: auto;
   scrollbar-width: thin;
@@ -1874,6 +1879,7 @@ body.sim-piece-hover .sim-canvas {
 .profile-panel {
   position: relative;
   width: min(410px, 100%);
+  max-height: min(720px, calc(100vh - 40px));
   max-height: min(720px, calc(100dvh - 40px));
   overflow-y: auto;
   padding: 30px;
@@ -2593,6 +2599,7 @@ body.sim-piece-hover .sim-canvas {
   font-size: 11px;
 }
 .together-setup {
+  min-height: 100vh;
   min-height: 100dvh;
   display: grid;
   place-items: center;
@@ -3049,6 +3056,7 @@ body.sim-piece-hover .sim-canvas {
     display: none;
   }
   .profile-panel {
+    max-height: calc(100vh - 20px);
     max-height: calc(100dvh - 20px);
     padding: 25px 20px;
   }
@@ -3188,6 +3196,7 @@ body.sim-piece-hover .sim-canvas {
   width: 390px;
   top: 50%;
   transform: translateY(-50%);
+  max-height: calc(100vh - 160px);
   max-height: calc(100dvh - 160px);
   overflow-y: auto;
   scrollbar-width: thin;
@@ -3793,6 +3802,7 @@ body.sim-piece-hover .sim-canvas {
   flex-direction: column;
   justify-content: center;
   height: auto;
+  min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
   padding: 108px 0 48px 9%;
@@ -3881,6 +3891,7 @@ body.sim-piece-hover .sim-canvas {
    Scroll as a page over the pinned apartment backdrop, like the lobby. */
 .sim-entrance.info-page {
   height: auto;
+  min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
   padding: 116px 24px 64px 9%;
@@ -4224,6 +4235,7 @@ body.sim-piece-hover .sim-canvas {
   gap: 32px 56px;
   align-items: center;
   width: min(1180px, calc(100vw - 64px));
+  min-height: 100vh;
   min-height: 100dvh;
   margin: 0 auto;
   padding: 64px 0;
@@ -4332,6 +4344,7 @@ body.sim-piece-hover .sim-canvas {
    with the backdrop pinned behind it (as .room-lobby-page does). */
 .sim-entrance.party-screen {
   height: auto;
+  min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
 }
@@ -4352,6 +4365,7 @@ body.sim-piece-hover .sim-canvas {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 100vh;
   min-height: 100dvh;
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   overflow-x: hidden;
@@ -4450,6 +4464,7 @@ body.sim-piece-hover .sim-canvas {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  min-height: 60vh;
   min-height: 60dvh;
   border-radius: 28px;
   background: var(--seat);

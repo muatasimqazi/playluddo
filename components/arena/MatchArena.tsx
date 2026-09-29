@@ -70,6 +70,7 @@ export function MatchArena({
   const age = useAgeCheck();
   // Party phones keep saying they're here, so a table waits for them if they go (P5).
   usePartyHeartbeat(client, roomId, !!state?.isParty && state.status === "in_game");
+  const iAmRemote = !!state?.players.find((p) => p.id === myPlayerId)?.partyRemote;
   const ended = state?.status === "summary" || state?.status === "abandoned";
   // The server records results in the same transaction that ends the match,
   // so they're ready as soon as the ended state arrives. A rematch returns
@@ -142,8 +143,10 @@ export function MatchArena({
       const next = await toggleMatchPause(client, roomId, paused);
       useRoomStore.getState().setRoomState(next);
     });
+  const mySeat = state.players.find((p) => p.id === myPlayerId);
+  const livingRoom = state.isParty && !mySeat?.partyRemote;
   // Party Mode: the table is on the shared screen; this phone is a controller.
-  if (state.isParty)
+  if (livingRoom)
     return (
       <>
         {age.gate}
@@ -187,7 +190,7 @@ export function MatchArena({
         paused={state.paused}
         canPause={state.hostPlayerId === myPlayerId}
         onPause={onPause}
-        voice={voice}
+        voice={!state.isParty || iAmRemote ? voice : undefined}
         matchResults={ended ? results : null}
         diceProof={ended ? diceProof : null}
         blockedPlayerIds={blockedPlayerIds}

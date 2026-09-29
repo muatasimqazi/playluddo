@@ -229,6 +229,11 @@ export function partyHeartbeat(client: SupabaseClient, roomId: string) {
   return call<void>(client, "party_heartbeat", { p_room_id: roomId });
 }
 
+/** Where a party seat is playing from: the living room, or somewhere else (P8). */
+export function setPartyRemote(client: SupabaseClient, roomId: string, remote: boolean) {
+  return call<void>(client, "set_party_remote", { p_room_id: roomId, p_remote: remote });
+}
+
 /** Shows the piece a phone has picked on the party screen, before it confirms; null clears it. */
 export function partyPreviewMove(client: SupabaseClient, roomId: string, pawnId: string | null) {
   return call<void>(client, "party_preview_move", { p_room_id: roomId, p_pawn_id: pawnId });

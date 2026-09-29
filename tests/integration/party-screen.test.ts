@@ -6,12 +6,14 @@ import { expect, it } from "vitest";
 import { realtimeReady } from "./realtime";
 
 /**
- * Party Mode, P1, P3–P6: a real screen client (no seat) receives its room's
+ * Party Mode, P1 and P3–P8: a real screen client (no seat) receives its room's
  * live updates while a real phone joins and starts the game, reads the
  * event log it animates from, gets the reactions and piece previews that
  * phone sends from its controller, and sees the table wait for the phone
  * when it goes quiet and resume when it's back. A real audience phone
- * joins mid-game, follows the table live and cheers on the screen. Isolated
+ * joins mid-game, follows the table live and cheers on the screen, and a
+ * player who joined from elsewhere sets up a call the living room never
+ * sees. Isolated
  * local-only clients; never touches an existing user's room.
  */
 it("a party screen follows its room live without a seat", async () => {
@@ -25,6 +27,7 @@ it("a party screen follows its room live without a seat", async () => {
   const screen = createClient(url, anonKey, options);
   const phone = createClient(url, anonKey, options);
   const fan = createClient(url, anonKey, options);
+  const away = createClient(url, anonKey, options);
   const userIds: string[] = [];
   let roomId: string | undefined;
   const channels: RealtimeChannel[] = [];
@@ -43,7 +46,7 @@ it("a party screen follows its room live without a seat", async () => {
   }
 
   try {
-    for (const client of [screen, phone, fan]) {
+    for (const client of [screen, phone, fan, away]) {
       const { data, error } = await client.auth.signInAnonymously();
       if (error || !data.user) throw new Error(error?.message ?? "No test identity");
       userIds.push(data.user.id);
@@ -100,7 +103,46 @@ it("a party screen follows its room live without a seat", async () => {
     expect(sit.error?.message).toBe("DISPLAY_CANNOT_SIT");
 
     // As the lobby's start button does for a lone player: add a computer, then start.
-    await rpc(phone, "fill_bot", { p_room_id: roomId, p_seat_index: 1 });
+    // Mixed rooms (P8): a second player joins from elsewhere and takes a
+    // call. Their signals reach their own channel and not the screen's.
+    const awaySeat = await rpc(away, "join_room", { p_code: party.code, p_display_name: "Away" });
+    await rpc(away, "set_party_remote", { p_room_id: roomId, p_remote: true });
+    const roomSignals: Record<string, unknown>[] = [];
+    channel.on("broadcast", { event: "webrtc_signal" }, ({ payload }) => roomSignals.push(payload));
+    const mySignals: Record<string, unknown>[] = [];
+    const awayChannel = away
+      .channel(`player:${awaySeat.playerId}`, { config: { private: true } })
+      .on("broadcast", { event: "webrtc_signal" }, ({ payload }) => mySignals.push(payload));
+    channels.push(awayChannel);
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Call channel timed out")), 12000);
+      awayChannel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          clearTimeout(timeout);
+          resolve();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          clearTimeout(timeout);
+          reject(new Error(status));
+        }
+      });
+    });
+    // The living-room phone is not in the call, so it cannot signal at all.
+    const blocked = await phone.rpc("send_webrtc_signal", {
+      p_room_id: roomId,
+      p_to_player_id: awaySeat.playerId,
+      p_signal: { type: "offer" },
+    });
+    expect(blocked.error?.message).toBe("PARTY_ROOM");
+    await realtimeReady(
+      () => rpc(away, "send_webrtc_signal", { p_room_id: roomId, p_to_player_id: awaySeat.playerId, p_signal: { type: "offer" } }),
+      () => mySignals.length > 0,
+    );
+    expect(mySignals[0]).toMatchObject({ from: awaySeat.playerId, to: awaySeat.playerId });
+    expect(roomSignals).toEqual([]);
+    await rpc(away, "set_party_remote", { p_room_id: roomId, p_remote: false });
+
+    // Seat 1 is taken by the player from elsewhere, so the computer takes 2.
+    await rpc(phone, "fill_bot", { p_room_id: roomId, p_seat_index: 2 });
     await rpc(phone, "start_match", { p_room_id: roomId });
     await until(() => states.at(-1)?.status === "in_game");
     expect(states.at(-1)).toMatchObject(await rpc(screen, "get_party_screen", { p_room_id: roomId }));
@@ -150,8 +192,8 @@ it("a party screen follows its room live without a seat", async () => {
     await sweeper.connect();
     try {
       await sweeper.query(
-        "update public.rooms set turn_phase='awaiting_roll', active_dice_value=null, turn_deadline_at=now()-interval '1 second' where id=$1",
-        [roomId],
+        "update public.rooms set turn_player_id=$2, turn_phase='awaiting_roll', active_dice_value=null, turn_deadline_at=now()-interval '1 second' where id=$1",
+        [roomId, seat.playerId],
       );
       await sweeper.query("update public.players set last_seen_at=now()-interval '40 seconds' where id=$1", [seat.playerId]);
       await sweeper.query("select public.sweep_expired_turns()");
@@ -220,10 +262,16 @@ it("a party screen follows its room live without a seat", async () => {
     expect((await fan.rpc("join_party_audience", { p_room_id: roomId, p_display_name: "Back" })).error?.message).toBe("PARTY_REMOVED");
   } finally {
     await Promise.all(channels.map((c) => c.unsubscribe()));
-    await Promise.all([screen.removeAllChannels(), phone.removeAllChannels(), fan.removeAllChannels()]);
+    await Promise.all([
+      screen.removeAllChannels(),
+      phone.removeAllChannels(),
+      fan.removeAllChannels(),
+      away.removeAllChannels(),
+    ]);
     screen.realtime.disconnect();
     phone.realtime.disconnect();
     fan.realtime.disconnect();
+    away.realtime.disconnect();
     if (roomId || userIds.length) {
       const db = new Client({
         connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",

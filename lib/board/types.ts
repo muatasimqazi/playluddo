@@ -36,6 +36,8 @@ export interface Player {
   rematchReady: boolean;
   /** Room voice chat: has this seat joined the call. */
   inVoice: boolean;
+  /** Party Mode: this seat is playing from somewhere else, not the living room (P8). */
+  partyRemote?: boolean;
   /** Curated VRM avatar identifier stored in Supabase Auth metadata. */
   avatarId?: string;
   /** ISO 3166-1 alpha-2 country code from the player's profile. */

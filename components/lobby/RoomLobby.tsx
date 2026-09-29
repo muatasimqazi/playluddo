@@ -45,6 +45,7 @@ export function RoomLobby({
   >(null);
   const occupiedCount = state?.players.length ?? 1;
   const isParty = state?.isParty ?? false;
+  const meRemote = !!state?.players.find((p) => p.id === myPlayerId)?.partyRemote;
   usePartyHeartbeat(client, roomId, isParty);
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
@@ -314,7 +315,7 @@ export function RoomLobby({
             </select>
           </label>
         )}
-        {voice && (
+        {voice && (!isParty || meRemote) && (
           <div className="lobby-voice">
             <button
               className={voice.joined ? "is-active" : ""}

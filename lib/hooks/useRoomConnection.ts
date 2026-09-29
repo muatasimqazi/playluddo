@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "../supabase/client";
 import { ensureSession } from "../supabase/auth";
 import { claimSeat, getRoomState, RpcError } from "../supabase/rpc";
-import { fetchRecentEvents, subscribeToRoom } from "../realtime/room-channel";
+import { fetchRecentEvents, subscribeToPlayerSignals, subscribeToRoom } from "../realtime/room-channel";
 import { fetchTableMessages } from "../realtime/table-messages";
 import { useRoomStore } from "../store/room-store";
 import type { GameRoomState } from "../board/types";
@@ -18,6 +18,7 @@ export function useRoomConnection(roomId: string) {
   useEffect(() => {
     let cancelled = false;
     let channel: ReturnType<typeof subscribeToRoom> | null = null;
+    let signalChannel: ReturnType<typeof subscribeToPlayerSignals> | null = null;
     let refreshing = false;
     let refreshAgain = false;
     let subscribed = false;
@@ -100,6 +101,10 @@ export function useRoomConnection(roomId: string) {
         const { playerId, connectionToken } = await claimSeat(client, roomId);
         if (cancelled) return;
         store().setIdentity(playerId, connectionToken);
+        // Party rooms deliver this seat's call signals privately (P8).
+        signalChannel = subscribeToPlayerSignals(client, playerId, (signal) => {
+          if (!cancelled) store().addVoiceSignal(signal);
+        });
         channel = subscribeToRoom(
           client,
           roomId,
@@ -168,6 +173,7 @@ export function useRoomConnection(roomId: string) {
       window.removeEventListener("online", resume);
       document.removeEventListener("visibilitychange", resume);
       void channel?.unsubscribe();
+      void signalChannel?.unsubscribe();
       store().reset();
     };
   }, [client, roomId]);

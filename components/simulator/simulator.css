@@ -4939,3 +4939,38 @@ body.sim-piece-hover .sim-canvas {
   color: #d9d3bf;
   font-size: 12px;
 }
+
+/* Mixed party rooms (P8): where are you playing from? */
+.party-where h1 {
+  font-size: 34px;
+}
+.party-where-choices {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 18px;
+}
+/* Opaque, not a tint: these sit over the board photo, and the second line
+   is the part a player actually reads. */
+.party-where-choices button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid var(--sim-line);
+  border-radius: 16px;
+  background: rgba(24, 32, 26, 0.92);
+  color: var(--sim-ink);
+  text-align: left;
+}
+.party-where-choices button:hover {
+  border-color: var(--sim-gold);
+}
+.party-where-choices strong {
+  font-size: 17px;
+}
+.party-where-choices small {
+  grid-column: 2;
+  color: #d9d3bf;
+  font-size: 14px;
+}

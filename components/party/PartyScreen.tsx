@@ -377,7 +377,13 @@ export function PartyLobby({
                     <PlayerAvatar player={player} size={88} crowned={player.id === vip?.id} />
                     <strong>{player.displayName}</strong>
                     <small>
-                      {player.id === vip?.id ? "Picks the game · starts it" : player.isBot ? "Computer" : "Ready"}
+                      {player.id === vip?.id
+                        ? "Picks the game · starts it"
+                        : player.isBot
+                          ? "Computer"
+                          : player.partyRemote
+                            ? "Joining from elsewhere"
+                            : "Ready"}
                     </small>
                     {extras && picksFor(extras, player.id) > 0 && (
                       <small className="party-seat-picks">

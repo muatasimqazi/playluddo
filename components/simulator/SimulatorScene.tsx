@@ -1406,9 +1406,11 @@ function Seats({
                 <small>
                   {player.isBot
                     ? "Computer"
-                    : player.status === "connected"
-                      ? "At the table"
-                      : "Reconnecting"}
+                    : player.status !== "connected"
+                      ? "Reconnecting"
+                      : player.partyRemote
+                        ? "From elsewhere"
+                        : "At the table"}
                   <span>
                     {" "}
                     ·{" "}

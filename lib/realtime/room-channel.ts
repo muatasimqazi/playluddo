@@ -80,6 +80,24 @@ export interface AudienceReaction {
   text: string;
 }
 
+/**
+ * This seat's own call signals. Party rooms send WebRTC offers and answers
+ * here rather than to the room topic, which the shared screen also receives.
+ */
+export function subscribeToPlayerSignals(
+  client: SupabaseClient,
+  playerId: string,
+  onSignal: (signal: WebRtcSignal) => void,
+): RealtimeChannel {
+  const channel = client.channel(`player:${playerId}`, { config: { private: true } });
+  channel.on("broadcast", { event: "webrtc_signal" }, ({ payload }) => {
+    const signal = parseWebRtcSignal(payload);
+    if (signal) onSignal(signal);
+  });
+  channel.subscribe();
+  return channel;
+}
+
 export interface MatchEventRow {
   id: number;
   sequence: number;

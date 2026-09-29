@@ -11,12 +11,13 @@ import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { RoomNotice } from "@/components/lobby/RoomNotice";
 import { JoinTable } from "@/components/lobby/JoinTable";
-import { getRoomInvite, RpcError } from "@/lib/supabase/rpc";
+import { getRoomInvite, RpcError, setPartyRemote } from "@/lib/supabase/rpc";
 import { fetchBlockedPlayerIds } from "@/lib/supabase/moderation";
-import { acceptTableRules, tableRulesAccepted } from "@/lib/community";
+import { acceptTableRules, partyRulesAccepted, tableRulesAccepted } from "@/lib/community";
 import { TableRules } from "@/components/lobby/TableRules";
 import { AgeRequired, UnderAgeNotice } from "@/components/lobby/AgeCheck";
 import { PartyAgreement } from "@/components/party/PartyAgreement";
+import { PartyWhere } from "@/components/party/PartyWhere";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { AudienceView } from "@/components/party/AudienceView";
@@ -49,14 +50,16 @@ function RoomAccess({ roomId }: { roomId: string }) {
   // it claims the seat they now hold.
   const [attempt, setAttempt] = useState(0);
   const rejoin = useCallback(() => setAttempt((n) => n + 1), []);
-  const [kind, setKind] = useState<{ roomId: string; party: boolean } | null>(null);
+  const [kind, setKind] = useState<{ roomId: string; party: boolean; seated: boolean } | null>(null);
+  // Mixed party rooms (P8): the living room, or somewhere else.
+  const [remote, setRemote] = useState<boolean | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   useEffect(() => {
     if (!roomId) return;
     let cancelled = false;
     const client = createClient();
     void ensureSession(client).then(() => getRoomInvite(client, roomId)).then((invite) => {
-      if (!cancelled) setKind({ roomId, party: !!invite.isParty });
+      if (!cancelled) setKind({ roomId, party: !!invite.isParty, seated: invite.isSeated });
     }).catch((e: unknown) => {
       if (!cancelled) setInviteError(e instanceof RpcError ? e.code : "UNKNOWN");
     });
@@ -69,7 +72,21 @@ function RoomAccess({ roomId }: { roomId: string }) {
   if (!roomId) return <RoomNotice code="ROOM_NOT_FOUND" />;
   if (inviteError) return <RoomNotice code={inviteError} />;
   if (kind?.roomId !== roomId) return <TableLoading label="Opening your invitation…" />;
-  if (kind.party && !agreed) return <PartyAgreement onAgree={() => setAgreed(true)} />;
+  // A player joining from elsewhere has voice, so they get the full table
+  // agreement rather than the short Party one (decision 7). Someone who
+  // already holds a seat and has agreed once isn't asked again.
+  if (kind.party && remote === null && !(kind.seated && (partyRulesAccepted() || tableRulesAccepted())))
+    return <PartyWhere onChoose={setRemote} />;
+  if (kind.party && !remote && !agreed) return <PartyAgreement onAgree={() => setAgreed(true)} />;
+  if (kind.party && remote && !tableRulesAccepted() && !agreed)
+    return (
+      <TableRules
+        onAgree={() => {
+          acceptTableRules();
+          setAgreed(true);
+        }}
+      />
+    );
   // Short Party acceptance never bypasses an ordinary table's full agreement.
   if (!kind.party && !tableRulesAccepted() && !agreed)
     return (
@@ -81,17 +98,28 @@ function RoomAccess({ roomId }: { roomId: string }) {
       />
     );
   if (audience) return <AudienceView roomId={roomId} />;
-  return <ConnectedRoom key={attempt} roomId={roomId} onJoined={rejoin} onAudience={joinedAudience} />;
+  return (
+    <ConnectedRoom
+      key={attempt}
+      roomId={roomId}
+      onJoined={rejoin}
+      onAudience={joinedAudience}
+      wantsRemote={kind.party ? remote : null}
+    />
+  );
 }
 
 function ConnectedRoom({
   roomId,
   onJoined,
   onAudience,
+  wantsRemote,
 }: {
   roomId: string;
   onJoined: () => void;
   onAudience: () => void;
+  /** Party Mode (P8): where this player said they'd be playing from. */
+  wantsRemote: boolean | null;
 }) {
   const { client, loading, error } = useRoomConnection(roomId);
   const roomState = useRoomStore((s) => s.roomState);
@@ -104,6 +132,16 @@ function ConnectedRoom({
     const { setBlockedPlayerIds } = useRoomStore.getState();
     void fetchBlockedPlayerIds(client, roomId).then(setBlockedPlayerIds).catch(() => {});
   }, [client, roomId, seated]);
+  // Tell the table where this player is, once they hold a seat. The server
+  // only accepts it in the lobby, which is also the only place it's asked.
+  const myPlayerId = useRoomStore((s) => s.myPlayerId);
+  const mySeatRemote = roomState?.players.find((p) => p.id === myPlayerId)?.partyRemote;
+  const inLobby = roomState?.status === "lobby";
+  useEffect(() => {
+    if (!seated || !inLobby || wantsRemote === null || mySeatRemote === undefined) return;
+    if (mySeatRemote === wantsRemote) return;
+    void setPartyRemote(client, roomId, wantsRemote).catch(() => {});
+  }, [client, roomId, seated, inLobby, wantsRemote, mySeatRemote]);
 
   if (loading) return <TableLoading label="Joining the table…" />;
   // Opened someone else's shared link without a seat yet: invite them in

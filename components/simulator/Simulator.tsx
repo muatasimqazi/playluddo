@@ -22,7 +22,7 @@ import { MatchDice } from "@/components/summary/MatchDice";
 import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
 import { FirstGameTips } from "./FirstGameTips";
 import { REACTION_EMOJI_ROWS, REACTION_PHRASES, REVENGE } from "@/lib/realtime/reactions";
-import { describeMove, forcedMovePawnId } from "@/lib/presentation/controller";
+import { clock, describeMove, forcedMovePawnId, partyWaitEndsAt } from "@/lib/presentation/controller";
 import { useAdaptiveQuality } from "@/lib/hooks/useAdaptiveQuality";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
@@ -374,6 +374,9 @@ export default function Simulator({
   const root = useRef<HTMLElement>(null);
   const backgroundMusic = useRef<HTMLAudioElement>(null);
   const seconds = useCountdown(state.turnDeadlineAt);
+  // Party Mode (P5): the phone the table is waiting for, and how long it has.
+  const waitingFor = state.players.find((p) => p.id === state.pausedForPlayerId);
+  const waitLeft = useCountdown(partyWaitEndsAt(state));
   const activePlayer = state.players.find(
     (p) => p.id === (frame.actorId ?? state.turnPlayerId),
   );
@@ -787,6 +790,7 @@ export default function Simulator({
           </span>
           {seconds !== null &&
             state.status === "in_game" &&
+            !paused &&
             !frame.replaying &&
             (!frame.busy || frame.actorId === state.turnPlayerId) && (
               <time className={seconds < 6 ? "urgent" : ""}>
@@ -874,8 +878,14 @@ export default function Simulator({
         <div className="sim-paused" role="status">
           <Icon name="pause" size={22} />
           <div>
-            <strong>Game paused</strong>
-            <span>{canPause ? "Resume when everyone is ready." : "The host will resume the table."}</span>
+            <strong>{waitingFor ? `Waiting for ${waitingFor.displayName}` : "Game paused"}</strong>
+            <span>
+              {waitingFor
+                ? `Their phone went quiet. A computer takes their turn${waitLeft !== null ? ` in ${clock(waitLeft)}` : ""} if they're not back.`
+                : canPause
+                  ? "Resume when everyone is ready."
+                  : "The host will resume the table."}
+            </span>
           </div>
           {canPause && onPause && (
             <button className="sim-primary" onClick={() => void onPause(false)}>

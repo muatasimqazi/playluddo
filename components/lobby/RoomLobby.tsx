@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { usePartyHeartbeat } from "@/lib/hooks/usePartyHeartbeat";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   fillBot,
   setPlayerColor,
   setRoomGame,
   setRoomMaxPlayers,
-  partyHeartbeat,
   setRoomRules,
   startMatch,
 } from "@/lib/supabase/rpc";
@@ -43,15 +43,7 @@ export function RoomLobby({
   >(null);
   const occupiedCount = state?.players.length ?? 1;
   const isParty = state?.isParty ?? false;
-  // Party rooms (docs/COMPETITIVE_ROADMAP.md Section 6, P2): tell the server
-  // this phone is still here, so the VIP role moves on if the VIP leaves.
-  useEffect(() => {
-    if (!isParty) return;
-    const beat = () => void partyHeartbeat(client, roomId).catch(() => {});
-    beat();
-    const timer = setInterval(beat, 10_000);
-    return () => clearInterval(timer);
-  }, [client, roomId, isParty]);
+  usePartyHeartbeat(client, roomId, isParty);
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);

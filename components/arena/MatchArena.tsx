@@ -24,6 +24,7 @@ import { rememberCommitment, type DiceProof } from "@/lib/presentation/diceProof
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import { PartyController } from "@/components/controller/PartyController";
+import { usePartyHeartbeat } from "@/lib/hooks/usePartyHeartbeat";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
 // loading fallback's own styling (the die animation) is available
 // immediately instead of arriving with the same lazy chunk it stands in for.
@@ -67,6 +68,8 @@ export function MatchArena({
   }, [matchId, diceCommitment]);
   // Rematches and reclaiming a seat check age (docs/COMPETITIVE_ROADMAP.md F0.4).
   const age = useAgeCheck();
+  // Party phones keep saying they're here, so a table waits for them if they go (P5).
+  usePartyHeartbeat(client, roomId, !!state?.isParty && state.status === "in_game");
   const ended = state?.status === "summary" || state?.status === "abandoned";
   // The server records results in the same transaction that ends the match,
   // so they're ready as soon as the ended state arrives. A rematch returns

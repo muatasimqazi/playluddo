@@ -6,10 +6,11 @@ import { expect, it } from "vitest";
 import { realtimeReady } from "./realtime";
 
 /**
- * Party Mode, P1, P3 and P4: a real screen client (no seat) receives its
+ * Party Mode, P1, P3, P4 and P5: a real screen client (no seat) receives its
  * room's live updates while a real phone joins and starts the game, reads
- * the event log it animates from, and gets the reactions and piece previews
- * that phone sends from its controller. Isolated
+ * the event log it animates from, gets the reactions and piece previews
+ * that phone sends from its controller, and sees the table wait for the
+ * phone when it goes quiet and resume when it's back. Isolated
  * local-only clients; never touches an existing user's room.
  */
 it("a party screen follows its room live without a seat", async () => {
@@ -130,6 +131,28 @@ it("a party screen follows its room live without a seat", async () => {
     await rpc(phone, "party_preview_move", { p_room_id: roomId, p_pawn_id: pawnId });
     await until(() => previews.length > 0);
     expect(previews[0]).toMatchObject({ playerId: seat.playerId, pawnId });
+
+    // The phone goes quiet on its turn: the table waits for it, and the
+    // screen says so. Its next heartbeat picks the game back up.
+    const sweeper = new Client({
+      connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+    await sweeper.connect();
+    try {
+      await sweeper.query(
+        "update public.rooms set turn_phase='awaiting_roll', active_dice_value=null, turn_deadline_at=now()-interval '1 second' where id=$1",
+        [roomId],
+      );
+      await sweeper.query("update public.players set last_seen_at=now()-interval '40 seconds' where id=$1", [seat.playerId]);
+      await sweeper.query("select public.sweep_expired_turns()");
+    } finally {
+      await sweeper.end();
+    }
+    await until(() => states.at(-1)?.pausedForPlayerId === seat.playerId);
+    expect(states.at(-1)?.paused).toBe(true);
+    await rpc(phone, "party_heartbeat", { p_room_id: roomId });
+    await until(() => states.at(-1)?.paused === false);
+    expect(states.at(-1)?.pausedForPlayerId).toBeNull();
   } finally {
     await Promise.all(channels.map((c) => c.unsubscribe()));
     await Promise.all([screen.removeAllChannels(), phone.removeAllChannels()]);

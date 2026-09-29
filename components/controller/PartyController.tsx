@@ -7,6 +7,8 @@ import {
   controllerPhase,
   describeMove,
   forcedMovePawnId,
+  partyWaitEndsAt,
+  clock,
   pieceSteps,
   pieceWhere,
   placementOf,
@@ -91,6 +93,24 @@ export function PartyController({
 
   const shake = useShakeToRoll(phase === "roll" && canAct, onRoll);
   const secondsLeft = useCountdown(yourTurn ? state.turnDeadlineAt : null);
+  const waitLeft = useCountdown(partyWaitEndsAt(state));
+
+  // Back after a computer took the seat (P5): take it back without asking,
+  // once per return. The phone is at the table, so its player is too.
+  const reclaimed = useRef(false);
+  const onReclaimRef = useRef(onReclaim);
+  useEffect(() => {
+    onReclaimRef.current = onReclaim;
+  });
+  useEffect(() => {
+    if (phase !== "reclaim") {
+      reclaimed.current = false;
+      return;
+    }
+    if (reclaimed.current || !canAct) return;
+    reclaimed.current = true;
+    onReclaimRef.current();
+  }, [phase, canAct]);
 
   if (!me)
     return (
@@ -170,6 +190,7 @@ export function PartyController({
             turnName={turnPlayer?.displayName}
             forced={!!forced}
             secondsLeft={secondsLeft}
+            waitLeft={waitLeft}
           />
           {phase === "auto_roll" && (
             <button type="button" className="party-pad-secondary" disabled={!canAct} onClick={() => onAutoRoll(false)}>
@@ -181,9 +202,9 @@ export function PartyController({
               Take my seat back
             </button>
           )}
-          {phase === "paused" && state.hostPlayerId === me.id && (
+          {phase === "paused" && state.hostPlayerId === me.id && state.pausedForPlayerId !== me.id && (
             <button type="button" className="party-pad-primary" disabled={!canAct} onClick={() => onPause(false)}>
-              Resume the game
+              {state.pausedForPlayerId ? "Carry on without them" : "Resume the game"}
             </button>
           )}
           {phase === "ended" && state.status === "summary" && (
@@ -222,6 +243,7 @@ function Status({
   turnName,
   forced,
   secondsLeft,
+  waitLeft,
 }: {
   phase: ReturnType<typeof controllerPhase>;
   state: GameRoomState;
@@ -229,6 +251,7 @@ function Status({
   turnName?: string;
   forced: boolean;
   secondsLeft: number | null;
+  waitLeft: number | null;
 }) {
   const die = state.activeDiceValue;
   switch (phase) {
@@ -253,8 +276,23 @@ function Status({
           {die !== null && state.turnPhase !== "awaiting_roll" && <p>They rolled {die}</p>}
         </>
       );
-    case "paused":
-      return <h1>The game is paused</h1>;
+    case "paused": {
+      const waitingFor = state.players.find((p) => p.id === state.pausedForPlayerId);
+      if (!waitingFor) return <h1>The game is paused</h1>;
+      if (waitingFor.id === meId)
+        return (
+          <>
+            <h1>Welcome back</h1>
+            <p>Picking up where you left off…</p>
+          </>
+        );
+      return (
+        <>
+          <h1>Waiting for {waitingFor.displayName}&rsquo;s phone</h1>
+          {waitLeft !== null && <p>If they&rsquo;re not back, a computer takes their turn in {clock(waitLeft)}.</p>}
+        </>
+      );
+    }
     case "reclaim":
       return (
         <>

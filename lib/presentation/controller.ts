@@ -112,6 +112,20 @@ export function describeMove(state: GameRoomState, move: LegalMove): MovePreview
   return { pawnId: move.pawnId, toSteps, text };
 }
 
+/** How long a party table waits for a missing phone before a computer takes over (P5). */
+export const PARTY_WAIT_MS = 2 * 60_000;
+
+/** When a party table's wait for a phone ends, or null if it isn't waiting. */
+export function partyWaitEndsAt(state: Pick<GameRoomState, "pausedForPlayerId" | "pausedAt">): string | null {
+  if (!state.pausedForPlayerId || !state.pausedAt) return null;
+  return new Date(Date.parse(state.pausedAt) + PARTY_WAIT_MS).toISOString();
+}
+
+/** 95 → "1:35". */
+export function clock(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
 /** Finishing order so far (1 = first), for the phone's end screen. */
 export function placementOf(state: GameRoomState, playerId: string): number | null {
   const index = state.winnerIds.indexOf(playerId);

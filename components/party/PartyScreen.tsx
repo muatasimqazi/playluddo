@@ -210,6 +210,7 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
       events={events}
       myPlayerId={null}
       messages={reactions}
+      paused={state.paused}
       screen
       previewPawnId={
         preview && preview.eventSequence === state.eventSequence && preview.playerId === state.turnPlayerId

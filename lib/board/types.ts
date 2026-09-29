@@ -116,6 +116,10 @@ export interface GameRoomState {
   gameType: GameType;
   status: "lobby" | "in_game" | "summary" | "abandoned";
   paused?: boolean;
+  /** Party Mode: the player whose phone the table is waiting for (P5), if any. */
+  pausedForPlayerId?: string | null;
+  /** When the current pause began. A wait for a phone ends 2 minutes on. */
+  pausedAt?: string | null;
   /** Seats the room was created for (2-4). Absent on older snapshots — treat as 4. */
   maxPlayers?: number;
   /** The room's resolved house rules. Absent on older snapshots — treat as the defaults. */

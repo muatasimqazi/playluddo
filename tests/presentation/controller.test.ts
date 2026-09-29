@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  clock,
   controllerPhase,
+  partyWaitEndsAt,
   describeMove,
   forcedMovePawnId,
   pieceSteps,
@@ -163,5 +165,22 @@ describe("placement", () => {
     expect(placementOf(state, "Alex")).toBe(1);
     expect(placementOf(state, "Sam")).toBe(2);
     expect(placementOf(state, "Nobody")).toBeNull();
+  });
+});
+
+describe("waiting for a phone", () => {
+  it("ends two minutes after the table paused for it", () => {
+    expect(partyWaitEndsAt({ pausedForPlayerId: "Sam", pausedAt: "2026-09-28T12:00:00.000Z" })).toBe(
+      "2026-09-28T12:02:00.000Z",
+    );
+  });
+  it("isn't a wait when the VIP paused, or nothing is paused", () => {
+    expect(partyWaitEndsAt({ pausedForPlayerId: null, pausedAt: "2026-09-28T12:00:00.000Z" })).toBeNull();
+    expect(partyWaitEndsAt({})).toBeNull();
+  });
+  it("shows minutes and seconds", () => {
+    expect(clock(95)).toBe("1:35");
+    expect(clock(120)).toBe("2:00");
+    expect(clock(7)).toBe("0:07");
   });
 });

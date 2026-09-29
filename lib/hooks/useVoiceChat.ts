@@ -184,8 +184,18 @@ export function useVoiceChat(client: SupabaseClient, roomId: string): VoiceChat 
   const join = useCallback(() => {
     if (joinedRef.current || connecting) return;
     setError(null);
+    // navigator.mediaDevices only exists in a secure context (https or
+    // localhost). Over plain http — e.g. a LAN IP on a TV, or an insecure
+    // deploy — it's undefined, so guard it rather than throwing
+    // "Cannot read properties of undefined (reading 'getUserMedia')".
+    const media =
+      typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
+    if (!media?.getUserMedia) {
+      setError("Voice chat needs a secure (https) connection with microphone support.");
+      return;
+    }
     setConnecting(true);
-    void navigator.mediaDevices
+    void media
       .getUserMedia({ audio: true })
       .then(async (stream) => {
         stream.getAudioTracks().forEach((t) => (t.enabled = !mutedRef.current));

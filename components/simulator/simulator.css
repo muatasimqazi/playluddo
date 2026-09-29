@@ -400,11 +400,12 @@
   --sim-gold: #dbbf86;
   position: relative;
   width: 100%;
-  /* vh fallback first: LG webOS / older TV browsers (pre-Chromium 108) don't
-     understand dvh, drop the whole declaration, and the container collapses
-     to min-height, cutting off the 3D scene. vh keeps them full-height. */
+  /* Height comes from --app-height (window.innerHeight, set in app/layout.tsx),
+     with a 100vh fallback. NOT dvh: some TV browsers (LG webOS) parse dvh as a
+     valid unit but compute it to 0, silently overriding vh and collapsing the
+     container to min-height — which cut the scene off at ~320px. */
   height: 100vh;
-  height: 100dvh;
+  height: var(--app-height, 100vh);
   min-height: 320px;
   overflow: hidden;
   background: #949c8e;
@@ -1417,7 +1418,7 @@ body.sim-piece-hover .sim-canvas {
 .sim-victory {
   width: min(470px, calc(100vw - 32px));
   max-height: calc(100vh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: calc(var(--app-height, 100vh) - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -1880,7 +1881,7 @@ body.sim-piece-hover .sim-canvas {
   position: relative;
   width: min(410px, 100%);
   max-height: min(720px, calc(100vh - 40px));
-  max-height: min(720px, calc(100dvh - 40px));
+  max-height: min(720px, calc(var(--app-height, 100vh) - 40px));
   overflow-y: auto;
   padding: 30px;
   border: 1px solid #e4dbc347;
@@ -2600,7 +2601,7 @@ body.sim-piece-hover .sim-canvas {
 }
 .together-setup {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   display: grid;
   place-items: center;
   padding: 24px;
@@ -2870,19 +2871,19 @@ body.sim-piece-hover .sim-canvas {
     margin-top: 11px;
   }
 }
-/* Large landscape displays, including LG/webOS TV browsers, which report
-   ~1920x1080 and so fall PAST the 1366px-capped block above, keeping the
-   default top:50% centering with no bottom bound. The tall "setup" wizard
-   step centered inside .sim-entrance's overflow:hidden then clips at both
-   top and bottom, hiding the game options and the Continue button. Cap the
-   panel to the viewport and let it scroll internally instead of being cut
-   off; steps that already fit still sit centered with no scrollbar, so
-   ordinary 1080p+ desktops are unaffected. vh fallback first for TV
-   browsers that predate dvh. */
+/* Large landscape displays, including LG/webOS TV browsers (which report a
+   ~1536x856 CSS viewport at their 1.25 device pixel ratio) that fall PAST the
+   1366px-capped block above, keeping the default top:50% centering with no
+   bottom bound. The tall "setup" wizard step centered inside .sim-entrance's
+   overflow:hidden then clips at both top and bottom, hiding the game options
+   and the Continue button. Cap the panel to the viewport and let it scroll
+   internally instead of being cut off; steps that already fit still sit
+   centered with no scrollbar, so ordinary 1080p+ desktops are unaffected.
+   Uses --app-height (see app/layout.tsx) with a 100vh fallback, never dvh. */
 @media (min-width: 1367px) {
   .entrance-content {
     max-height: calc(100vh - 48px);
-    max-height: calc(100dvh - 48px);
+    max-height: calc(var(--app-height, 100vh) - 48px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -3074,7 +3075,7 @@ body.sim-piece-hover .sim-canvas {
   }
   .profile-panel {
     max-height: calc(100vh - 20px);
-    max-height: calc(100dvh - 20px);
+    max-height: calc(var(--app-height, 100vh) - 20px);
     padding: 25px 20px;
   }
   .profile-avatars {
@@ -3214,7 +3215,7 @@ body.sim-piece-hover .sim-canvas {
   top: 50%;
   transform: translateY(-50%);
   max-height: calc(100vh - 160px);
-  max-height: calc(100dvh - 160px);
+  max-height: calc(var(--app-height, 100vh) - 160px);
   overflow-y: auto;
   scrollbar-width: thin;
   padding: 4px 4px 8px 0;
@@ -3820,7 +3821,7 @@ body.sim-piece-hover .sim-canvas {
   justify-content: center;
   height: auto;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   overflow: visible;
   padding: 108px 0 48px 9%;
 }
@@ -3909,7 +3910,7 @@ body.sim-piece-hover .sim-canvas {
 .sim-entrance.info-page {
   height: auto;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   overflow: visible;
   padding: 116px 24px 64px 9%;
 }
@@ -4253,7 +4254,7 @@ body.sim-piece-hover .sim-canvas {
   align-items: center;
   width: min(1180px, calc(100vw - 64px));
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   margin: 0 auto;
   padding: 64px 0;
 }
@@ -4362,7 +4363,7 @@ body.sim-piece-hover .sim-canvas {
 .sim-entrance.party-screen {
   height: auto;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   overflow: visible;
 }
 .party-screen .entrance-bg-image,
@@ -4383,7 +4384,7 @@ body.sim-piece-hover .sim-canvas {
   flex-direction: column;
   gap: 14px;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100vh);
   padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   overflow-x: hidden;
   background: #151d17;
@@ -4482,7 +4483,7 @@ body.sim-piece-hover .sim-canvas {
   justify-content: center;
   gap: 10px;
   min-height: 60vh;
-  min-height: 60dvh;
+  min-height: calc(var(--app-height, 100vh) * 0.6);
   border-radius: 28px;
   background: var(--seat);
   color: #141a14;

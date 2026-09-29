@@ -2,6 +2,13 @@
   "name": "luddo-house",
   "version": "0.1.0",
   "private": true,
+  "comment:browserslist": "Lowers Next's default Chrome 111 floor to Chrome 79 so the bundle parses on LG webOS TV browsers (NetCast, Chromium 79). The oldest listed browser drives SWC down-leveling of modern syntax (class static blocks, optional chaining, nullish, logical assignment). Runtime-only APIs newer than Chrome 79 still need explicit polyfills.",
+  "browserslist": [
+    "chrome 79",
+    "edge 111",
+    "firefox 111",
+    "safari 16.4"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

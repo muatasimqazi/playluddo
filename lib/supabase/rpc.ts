@@ -49,6 +49,9 @@ export type RpcErrorCode =
   | "NOT_AUDIENCE"
   | "PLAYER_NOT_FOUND"
   | "MOMENT_NOT_FOUND"
+  | "NO_ROUND"
+  | "ROUND_CLOSED"
+  | "INVALID_GUESS"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -91,6 +94,9 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "NOT_AUDIENCE",
   "PLAYER_NOT_FOUND",
   "MOMENT_NOT_FOUND",
+  "NO_ROUND",
+  "ROUND_CLOSED",
+  "INVALID_GUESS",
 ]);
 
 export class RpcError extends Error {
@@ -401,6 +407,18 @@ export interface PartyMoment {
   to: number | null;
 }
 
+/** The between-game round (P8): one question about the game that just ended. */
+export interface PartyRound {
+  question: string;
+  closesAt: string;
+  closed: boolean;
+  guessCount: number;
+  myGuess: number | null;
+  /** Given only once the minute is up. */
+  answer: number | null;
+  closest: { name: string; guess: number }[] | null;
+}
+
 /** What the audience adds to a party room (get_party_extras, P6). */
 export interface PartyExtras {
   isAudience: boolean;
@@ -419,6 +437,8 @@ export interface PartyExtras {
   moments: PartyMoment[];
   votes: { sequence: number; count: number }[];
   myVote: number | null;
+  /** Absent until the screen opens the between-game round. */
+  round: PartyRound | null;
 }
 
 /** Join a party room's audience, once its seats are full or the game has started. */
@@ -446,6 +466,16 @@ export function audienceReact(client: SupabaseClient, roomId: string, text: stri
 /** The audience's pick to win, before the game starts. Bragging rights only. */
 export function predictWinner(client: SupabaseClient, roomId: string, playerId: string) {
   return call<void>(client, "predict_winner", { p_room_id: roomId, p_player_id: playerId });
+}
+
+/** The screen opens the between-game round as the podium goes up (P8). */
+export function openPartyRound(client: SupabaseClient, roomId: string) {
+  return call<void>(client, "open_party_round", { p_room_id: roomId });
+}
+
+/** One answer to the between-game round, from a player or the audience. */
+export function guessPartyRound(client: SupabaseClient, roomId: string, guess: number) {
+  return call<void>(client, "guess_party_round", { p_room_id: roomId, p_guess: guess });
 }
 
 /** The audience's vote for the moment of the match, once it has ended. */

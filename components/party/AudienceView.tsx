@@ -10,6 +10,7 @@ import {
   audienceReact,
   getAudienceState,
   getPartyExtras,
+  guessPartyRound,
   predictWinner,
   RpcError,
   voteMoment,
@@ -25,6 +26,7 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { RoomNotice } from "@/components/lobby/RoomNotice";
 import { Reactions } from "@/components/controller/PartyController";
+import { PartyRound } from "@/components/party/PartyRound";
 import "@/components/simulator/simulator.css";
 
 /**
@@ -127,6 +129,7 @@ export function AudienceView({ roomId }: { roomId: string }) {
       onPredict={(playerId) => void act(() => predictWinner(client, roomId, playerId))}
       onVote={(sequence) => void act(() => voteMoment(client, roomId, sequence))}
       onReact={(text) => audienceReact(client, roomId, text)}
+      onGuess={(guess) => guessPartyRound(client, roomId, guess)}
     />
   );
 }
@@ -140,6 +143,7 @@ export function AudienceScreen({
   onPredict,
   onVote,
   onReact,
+  onGuess,
 }: {
   state: GameRoomState;
   extras: PartyExtras;
@@ -148,6 +152,7 @@ export function AudienceScreen({
   onPredict: (playerId: string) => void;
   onVote: (sequence: number) => void;
   onReact: (text: string) => Promise<unknown>;
+  onGuess?: (guess: number) => Promise<unknown>;
 }) {
 
   const winner = state.players.find((p) => p.id === state.winnerIds[0]);
@@ -214,6 +219,9 @@ export function AudienceScreen({
               <p>{picked.id === winner?.id ? "You called it!" : `Not this time. You picked ${picked.displayName}.`}</p>
             )}
           </section>
+          {extras.round && onGuess && (
+            <PartyRound round={extras.round} onGuess={onGuess} disabled={!connected} />
+          )}
           {extras.moments.length > 0 && (
             <section className="party-pad-pieces" aria-labelledby="moment-heading">
               <h2 id="moment-heading" className="party-audience-heading">

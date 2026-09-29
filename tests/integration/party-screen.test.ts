@@ -244,6 +244,41 @@ it("a party screen follows its room live without a seat", async () => {
     await until(() => cheers.length > 0);
     expect(cheers[0]).toMatchObject({ name: "Fan", text: "👏" });
 
+    // The between-game round (P8): the screen opens it as the podium goes
+    // up, and a phone's answer reaches the screen live.
+    const ended = new Client({
+      connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+    await ended.connect();
+    try {
+      await ended.query(
+        "update public.rooms set status='summary', turn_phase='complete', turn_player_id=null, turn_deadline_at=null, winner_ids=array[$2::uuid] where id=$1",
+        [roomId, seat.playerId],
+      );
+    } finally {
+      await ended.end();
+    }
+    await rpc(screen, "open_party_round", { p_room_id: roomId });
+    const opened = await rpc(screen, "get_party_extras", { p_room_id: roomId });
+    expect(opened.round.question).toBeTruthy();
+    expect(opened.round.answer).toBeNull();
+    const before = messages.length;
+    await rpc(fan, "guess_party_round", { p_room_id: roomId, p_guess: 12 });
+    const answered = await rpc(fan, "get_party_extras", { p_room_id: roomId });
+    expect(answered.round.myGuess).toBe(12);
+    expect(answered.round.guessCount).toBe(1);
+    expect(messages.length).toBe(before);
+    // Back to a running game for the rest of the checks.
+    const resume = new Client({
+      connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+    await resume.connect();
+    try {
+      await resume.query("update public.rooms set status='in_game', winner_ids='{}' where id=$1", [roomId]);
+    } finally {
+      await resume.end();
+    }
+
     await rpc(fan, "report_player", { p_room_id: roomId, p_player_id: seat.playerId, p_reason: "other" });
     const memberId = fanExtras.audienceMembers.find((m: { isMe: boolean }) => m.isMe).id;
     await rpc(phone, "report_party_audience", { p_room_id: roomId, p_member_id: memberId, p_reason: "other" });

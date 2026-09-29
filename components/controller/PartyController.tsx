@@ -24,6 +24,8 @@ import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
 import { useShakeToRoll } from "./useShakeToRoll";
+import { PartyRound } from "@/components/party/PartyRound";
+import type { PartyRound as PartyRoundData } from "@/lib/supabase/rpc";
 
 /**
  * A Party Mode phone (docs/COMPETITIVE_ROADMAP.md Section 6, P3): the table
@@ -46,6 +48,8 @@ export function PartyController({
   onAutoRoll,
   onPause,
   onPreview,
+  round,
+  onGuess,
 }: {
   state: GameRoomState;
   myPlayerId: string | null;
@@ -62,6 +66,9 @@ export function PartyController({
   onPause: (paused: boolean) => void;
   /** Shows the picked piece on the shared screen before it's confirmed. */
   onPreview?: (pawnId: string) => void;
+  /** The between-game round, once the screen has opened it (P8). */
+  round?: PartyRoundData | null;
+  onGuess?: (guess: number) => Promise<unknown>;
 }) {
   useWakeLock();
   const me = state.players.find((p) => p.id === myPlayerId);
@@ -231,6 +238,10 @@ export function PartyController({
           onMove={onMove}
           onPreview={onPreview}
         />
+      )}
+
+      {phase === "ended" && round && onGuess && (
+        <PartyRound round={round} onGuess={onGuess} disabled={offline} />
       )}
 
       {!yourTurn && <Reactions onReact={onReact} disabled={offline} />}

@@ -22,7 +22,10 @@ interface RoomStore {
   /** Seats held by people this player has blocked: their chat, reactions and voice are hidden. */
   blockedPlayerIds: string[];
   voiceSignals: QueuedVoiceSignal[];
+  /** Bumped when a party room's extras change (P6, P8), so phones re-read them. */
+  partyExtrasVersion: number;
   setConnection: (status: "connected" | "connecting" | "reconnecting") => void;
+  partyExtrasChanged: () => void;
   addMessage: (message: TableMessage) => void;
   setBlockedPlayerIds: (ids: string[]) => void;
   addVoiceSignal: (signal: WebRtcSignal) => void;
@@ -44,7 +47,9 @@ export const useRoomStore = create<RoomStore>((set) => ({
   messages: [],
   blockedPlayerIds: [],
   voiceSignals: [],
+  partyExtrasVersion: 0,
   setConnection: (connection) => set({ connection }),
+  partyExtrasChanged: () => set((s) => ({ partyExtrasVersion: s.partyExtrasVersion + 1 })),
   setBlockedPlayerIds: (blockedPlayerIds) => set({ blockedPlayerIds }),
   addMessage: (message) =>
     set((s) => ({
@@ -88,5 +93,6 @@ export const useRoomStore = create<RoomStore>((set) => ({
       messages: [],
       blockedPlayerIds: [],
       voiceSignals: [],
+      partyExtrasVersion: 0,
     }),
 }));

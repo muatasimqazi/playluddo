@@ -7,6 +7,8 @@ import {
   RpcError,
   getDiceProof,
   getMatchResults,
+  getPartyExtras,
+  guessPartyRound,
   partyPreviewMove,
   requestMove,
   requestRoll,
@@ -20,6 +22,7 @@ import { useRoomStore } from "@/lib/store/room-store";
 import { reportPlayer, setPlayerBlocked } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import type { MatchResult } from "@/lib/board/types";
+import type { PartyRound } from "@/lib/supabase/rpc";
 import { rememberCommitment, type DiceProof } from "@/lib/presentation/diceProof";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
@@ -59,6 +62,9 @@ export function MatchArena({
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<MatchResult[] | null>(null);
   const [diceProof, setDiceProof] = useState<DiceProof | null>(null);
+  // The between-game round, once the screen opens it (P8).
+  const [round, setRound] = useState<PartyRound | null>(null);
+  const extrasVersion = useRoomStore((s) => s.partyExtrasVersion);
   const matchId = state?.matchId;
   const diceCommitment = state?.diceCommitment;
   // Remember the commitment the first time this device sees it, so the
@@ -66,6 +72,21 @@ export function MatchArena({
   useEffect(() => {
     if (matchId && diceCommitment) rememberCommitment(matchId, diceCommitment);
   }, [matchId, diceCommitment]);
+  // The between-game round, while the podium is up (P8).
+  const isParty = state?.isParty ?? false;
+  const roundPhase = state?.status;
+  useEffect(() => {
+    if (!isParty || roundPhase !== "summary") return;
+    let cancelled = false;
+    getPartyExtras(client, roomId)
+      .then((extras) => {
+        if (!cancelled) setRound(extras.round);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [client, roomId, isParty, roundPhase, extrasVersion]);
   // Rematches and reclaiming a seat check age (docs/COMPETITIVE_ROADMAP.md F0.4).
   const age = useAgeCheck();
   // Party phones keep saying they're here, so a table waits for them if they go (P5).
@@ -166,6 +187,8 @@ export function MatchArena({
           onPause={(paused) => void onPause(paused)}
           // Best effort: the move itself doesn't depend on it.
           onPreview={(pawnId) => void partyPreviewMove(client, roomId, pawnId).catch(() => {})}
+          round={roundPhase === "summary" ? round : null}
+          onGuess={(guess) => guessPartyRound(client, roomId, guess)}
         />
       </>
     );

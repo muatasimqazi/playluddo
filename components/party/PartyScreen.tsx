@@ -11,6 +11,7 @@ import {
   setPartyLocked,
   getPartyExtras,
   getPartyScreen,
+  openPartyRound,
   RpcError,
   type PartyExtras,
 } from "@/lib/supabase/rpc";
@@ -138,6 +139,14 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
   useEffect(() => {
     if (status) loadExtras();
   }, [status, loadExtras]);
+  // While the podium is up, everyone's phone gets one question (P8).
+  const hasRound = !!extras?.round;
+  useEffect(() => {
+    if (status !== "summary" || hasRound) return;
+    void openPartyRound(createClient(), roomId)
+      .then(loadExtras)
+      .catch(() => {});
+  }, [status, hasRound, roomId, loadExtras]);
 
   useEffect(() => {
     const client = createClient();
@@ -307,8 +316,25 @@ function AudienceOverlay({
     );
   if (state.status !== "summary" || !extras || extras.audience.length === 0) return null;
   const top = topMoment(extras);
+  const round = extras.round;
   return (
     <aside className="party-audience-card" aria-label="The audience">
+      {round && (
+        <div className="party-screen-round">
+          <span className="eyebrow">{round.closed ? "THE ANSWER" : "EVERYONE ANSWER ON YOUR PHONE"}</span>
+          <strong>{round.question}</strong>
+          {round.closed ? (
+            <p>
+              {round.answer}
+              {round.closest?.length
+                ? ` · Closest: ${round.closest.map((c) => c.name).join(", ")}`
+                : " · Nobody answered"}
+            </p>
+          ) : (
+            <p>{round.guessCount === 1 ? "1 answer" : `${round.guessCount} answers`} so far</p>
+          )}
+        </div>
+      )}
       <span className="eyebrow">MOMENT OF THE MATCH</span>
       <strong>
         {top ? describeMoment(top.moment, state.players) : extras.moments.length ? "The audience is voting…" : "No big moments this time"}

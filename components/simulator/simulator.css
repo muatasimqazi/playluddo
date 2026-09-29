@@ -3678,6 +3678,108 @@ body.sim-piece-hover .sim-canvas {
   border-color: #e0806b66;
   color: #f0b8a8;
 }
+/* Team seasons (F4.2) */
+.season-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.season-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.season-head .eyebrow {
+  display: block;
+  color: #a9b6a0;
+}
+.season-head strong {
+  font-size: 15px;
+  color: #f3f4e8;
+}
+.season-champion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #d8bd7f40, #26372eb3);
+  border: 1px solid #d8bd7f66;
+  color: #e8c766;
+  font-size: 11px;
+  font-weight: 600;
+}
+.season-headline {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #e6e7d6;
+}
+.season-standings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.season-standings li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #e9e7d31f;
+  border-radius: 10px;
+  background: #26372e80;
+}
+.season-standings li.is-me {
+  border-color: #d8bd7f80;
+  background: #d8bd7f1a;
+}
+.season-rank {
+  width: 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #a9b6a0;
+}
+.season-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #f3f4e8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.season-record {
+  font-size: 12px;
+  color: #a9b6a0;
+}
+.season-record strong {
+  color: #f3f4e8;
+}
+.season-share {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 30px;
+  border: 1px solid #e7ebdc38;
+  background: #dcca9f;
+  color: #263324;
+  font-size: 12px;
+  font-weight: 600;
+}
+.season-share:disabled {
+  opacity: 0.6;
+}
 .leaderboard-loading {
   display: flex;
   flex-direction: column;

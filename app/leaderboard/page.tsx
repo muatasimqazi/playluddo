@@ -13,6 +13,7 @@ import {
 } from "@/lib/supabase/leaderboard";
 import { getMyTeams, type Team } from "@/lib/supabase/teams";
 import { LeaderboardPanel } from "@/components/leaderboard/LeaderboardPanel";
+import { TeamSeasonPanel } from "@/components/leaderboard/TeamSeasonPanel";
 import { Icon } from "@/components/simulator/Icon";
 import {
   gameCenterAvailable,
@@ -29,6 +30,8 @@ export default function LeaderboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [scope, setScope] = useState<"global" | string>("global");
+  // For a team scope: null = all-time wins, 0 = this week's season, 1 = last week.
+  const [seasonWeeks, setSeasonWeeks] = useState<number | null>(null);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [myWins, setMyWins] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -157,7 +160,10 @@ export default function LeaderboardPage() {
                 role="tab"
                 aria-selected={scope === option.id}
                 className={scope === option.id ? "is-selected" : undefined}
-                onClick={() => setScope(option.id)}
+                onClick={() => {
+                  setScope(option.id);
+                  setSeasonWeeks(null);
+                }}
               >
                 {option.name}
               </button>
@@ -165,7 +171,38 @@ export default function LeaderboardPage() {
           </div>
         )}
 
-        {error ? (
+        {scope !== "global" && (
+          <div className="leaderboard-scopes" role="tablist" aria-label="Team view">
+            {(
+              [
+                ["All-time", null],
+                ["This week", 0],
+                ["Last week", 1],
+              ] as const
+            ).map(([label, weeks]) => (
+              <button
+                key={label}
+                type="button"
+                role="tab"
+                aria-selected={seasonWeeks === weeks}
+                className={seasonWeeks === weeks ? "is-selected" : undefined}
+                onClick={() => setSeasonWeeks(weeks)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {scope !== "global" && seasonWeeks !== null ? (
+          <TeamSeasonPanel
+            client={client}
+            teamId={scope}
+            teamName={teams.find((team) => team.id === scope)?.name ?? "Team"}
+            weeksAgo={seasonWeeks}
+            myUserId={user?.id ?? null}
+          />
+        ) : error ? (
           <p role="alert" className="leaderboard-message is-error">
             {error}
           </p>

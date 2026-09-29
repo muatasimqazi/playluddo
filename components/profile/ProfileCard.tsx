@@ -68,8 +68,10 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
     favouriteColour,
     bestComeback,
     headToHead,
+    achievements,
     isSelf,
   } = profile;
+  const unlockedCount = achievements.filter((a) => a.unlocked).length;
   const played = gamesPlayed > 0;
 
   return (
@@ -203,6 +205,31 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
                       {rival.wins}
                       <small>–{rival.games - rival.wins}</small>
                     </strong>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {achievements.length > 0 && (
+            <section className="profile-stats-section">
+              <span className="eyebrow">
+                ACHIEVEMENTS · {unlockedCount} of {achievements.length}
+              </span>
+              <ul className="profile-achievements">
+                {achievements.map((a) => (
+                  <li
+                    key={a.id}
+                    className={a.unlocked ? "is-unlocked" : "is-locked"}
+                    title={a.description}
+                  >
+                    <span className="profile-achievement-mark" aria-hidden="true">
+                      {a.unlocked ? "★" : "☆"}
+                    </span>
+                    <span>
+                      <strong>{a.name}</strong>
+                      <small>{a.description}</small>
+                    </span>
                   </li>
                 ))}
               </ul>

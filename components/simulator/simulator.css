@@ -5258,6 +5258,45 @@ body.sim-piece-hover .sim-canvas {
   color: #c9b199;
   font-size: 11px;
 }
+.profile-achievements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.profile-achievements li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #ffffff1a;
+  border-radius: 9px;
+  background: #16221b8c;
+}
+.profile-achievements li.is-locked {
+  opacity: 0.5;
+}
+.profile-achievement-mark {
+  font-size: 18px;
+  line-height: 1;
+  color: #6d7466;
+}
+.profile-achievements li.is-unlocked .profile-achievement-mark {
+  color: #d8bd7f;
+}
+.profile-achievements strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #f1ead7;
+}
+.profile-achievements small {
+  color: #c0c8b5;
+  font-size: 11px;
+  line-height: 1.35;
+}
 .profile-stats-empty {
   margin: 0;
   color: #c0c8b5;

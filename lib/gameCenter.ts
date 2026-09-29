@@ -1,5 +1,7 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import { getMyWins } from "@/lib/supabase/leaderboard";
 
 /**
  * Game Center, iOS app only (native plugin: ios/App/App/GameCenterPlugin.swift).
@@ -11,13 +13,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * App Store Connect → Luddo House → Features → Game Center.
  */
 export const GAME_CENTER = {
-  leaderboards: { wins: "com.luddohouse.wins" },
+  leaderboards: {
+    // Historical all-wins board (kept as-is; it holds past offline scores that
+    // can't be removed). No longer written to -- see decision 17.
+    wins: "com.luddohouse.wins",
+    // Online wins only, going forward (F3.4, decision 17).
+    onlineWins: "com.luddohouse.online_wins",
+  },
   achievements: {
-    firstWin: "com.luddohouse.first_win",
-    ludoWin: "com.luddohouse.ludo_win",
-    snakesWin: "com.luddohouse.snakes_win",
+    // Any online win, reported alongside the server-unlocked ones below.
     onlineWin: "com.luddohouse.online_win",
-    tenWins: "com.luddohouse.ten_wins",
   },
 } as const;
 
@@ -85,61 +90,36 @@ export async function signInWithGameCenter(client: SupabaseClient): Promise<stri
   return verifyError ? verifyError.message : null;
 }
 
-// A local tally alongside Game Center's own, so a win reported while offline
-// or before the leaderboard existed isn't lost from the running total.
-const LOCAL_WINS_KEY = "luddo-gc-wins";
-
-function localWins() {
-  try {
-    return Number(localStorage.getItem(LOCAL_WINS_KEY)) || 0;
-  } catch {
-    return 0;
-  }
-}
-
 /**
- * Records a win: bumps the Wins leaderboard (a running total) and reports the
- * matching achievements. `online` is any table played over the network
- * (friends or quick match), as opposed to offline practice.
+ * Mirrors the signed-in account's server-confirmed online results to Game
+ * Center after a match (iOS only; no-op elsewhere). Per decision 17, only
+ * online results are mirrored, and offline practice never reports here.
+ *
+ * Everything is server truth: the online-wins total comes from the account's
+ * recorded wins, and the achievements are the ones the server has unlocked
+ * (get_game_center_unlocks). Game Center ignores duplicate reports, so this is
+ * safe to call after every match. Guests (no account) mirror nothing.
  */
-export async function recordGameCenterWin({
-  gameType,
-  online,
-}: {
-  gameType: "ludo" | "snakes_and_ladders";
-  online: boolean;
-}) {
+export async function mirrorGameCenterOnlineResults() {
   if (!(await signInToGameCenter())) return;
-  const leaderboardId = GAME_CENTER.leaderboards.wins;
-  const reported = await GameCenter.getScore({ leaderboardId })
-    .then((result) => result.score)
-    .catch(() => 0);
-  const total = Math.max(reported, localWins()) + 1;
-  try {
-    localStorage.setItem(LOCAL_WINS_KEY, String(total));
-  } catch {
-    // The tally is a convenience; Game Center keeps the real score.
-  }
-  const { achievements } = GAME_CENTER;
+  const client = createClient();
+  const wins = await getMyWins(client).catch(() => 0);
+  const { data } = await client.rpc("get_game_center_unlocks");
+  const gcIds = Array.isArray(data) ? (data as string[]) : [];
+
   const reports: Promise<void>[] = [
-    GameCenter.submitScore({ leaderboardId, score: total }),
-    GameCenter.reportAchievement({ achievementId: achievements.firstWin }),
-    GameCenter.reportAchievement({
-      achievementId: gameType === "ludo" ? achievements.ludoWin : achievements.snakesWin,
-    }),
-    GameCenter.reportAchievement({
-      achievementId: achievements.tenWins,
-      percentComplete: Math.min(100, total * 10),
-    }),
+    GameCenter.submitScore({ leaderboardId: GAME_CENTER.leaderboards.onlineWins, score: wins }),
+    ...gcIds.map((achievementId) => GameCenter.reportAchievement({ achievementId })),
   ];
-  if (online) reports.push(GameCenter.reportAchievement({ achievementId: achievements.onlineWin }));
+  if (wins >= 1)
+    reports.push(GameCenter.reportAchievement({ achievementId: GAME_CENTER.achievements.onlineWin }));
   await Promise.allSettled(reports);
 }
 
 /** Opens Apple's Game Center leaderboard screen (signing in first if needed). */
 export async function showGameCenterLeaderboard() {
   if (!(await signInToGameCenter())) return false;
-  return GameCenter.showLeaderboard({ leaderboardId: GAME_CENTER.leaderboards.wins })
+  return GameCenter.showLeaderboard({ leaderboardId: GAME_CENTER.leaderboards.onlineWins })
     .then(() => true)
     .catch(() => false);
 }

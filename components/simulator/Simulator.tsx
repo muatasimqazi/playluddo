@@ -26,7 +26,7 @@ import { clock, describeMove, forcedMovePawnId, partyWaitEndsAt } from "@/lib/pr
 import { useAdaptiveQuality } from "@/lib/hooks/useAdaptiveQuality";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
-import { recordGameCenterWin } from "@/lib/gameCenter";
+import { mirrorGameCenterOnlineResults } from "@/lib/gameCenter";
 import { playSoundEffect, preloadSoundEffects } from "@/lib/sound/effects";
 import {
   COLORS,
@@ -441,18 +441,18 @@ export default function Simulator({
     const timer = setTimeout(() => void onMoveRef.current(forcedMove), 550);
     return () => clearTimeout(timer);
   }, [forcedMove]);
-  // Game Center (iOS app; no-op elsewhere): count a win the moment this
-  // player finishes first — the others may keep playing for places. Not in
-  // Table Together, where one device is shared by several people. Resets
-  // when a new game starts (no winners yet).
-  const winReported = useRef(false);
-  const wonFirst = !localPlay && !!myPlayerId && state.winnerIds[0] === myPlayerId;
+  // Game Center (iOS app; no-op elsewhere): once a match has fully finished
+  // online, mirror the account's server-confirmed results (online-wins total
+  // and unlocked achievements) to Game Center. Per decision 17 (F3.4), offline
+  // practice and Table Together never report. Resets for the next match.
+  const mirrored = useRef(false);
+  const matchDone = !localPlay && !practice && !!myPlayerId && state.matchEndReason === "completed";
   useEffect(() => {
-    if (state.winnerIds.length === 0) winReported.current = false;
-    if (!wonFirst || winReported.current) return;
-    winReported.current = true;
-    void recordGameCenterWin({ gameType: state.gameType, online: !practice });
-  }, [wonFirst, state.winnerIds.length, state.gameType, practice]);
+    if (!state.matchEndReason) mirrored.current = false;
+    if (!matchDone || mirrored.current) return;
+    mirrored.current = true;
+    void mirrorGameCenterOnlineResults();
+  }, [matchDone, state.matchEndReason]);
   useEffect(() => {
     timeline.receive(events, state);
   }, [timeline, events, state]);

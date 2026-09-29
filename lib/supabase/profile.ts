@@ -9,6 +9,15 @@ export interface HeadToHead {
   wins: number;
 }
 
+/** A catalog achievement and whether this player has unlocked it (F3.4). */
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  unlockedAt: string | null;
+}
+
 export interface WinRateByMode {
   /** matches.game_type — "ludo" or "snakes_and_ladders". */
   mode: string;
@@ -41,6 +50,8 @@ export interface VisibleProfile {
   /** Best comeback proxy: most rolls in a row without a six in a match still won. */
   bestComeback: number;
   headToHead: HeadToHead[];
+  /** Full achievement catalog with this player's unlocked flags (F3.4). */
+  achievements: Achievement[];
 }
 
 /** A profile the viewer can't see the stats of, or a seat with no account. */

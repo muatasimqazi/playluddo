@@ -7,7 +7,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { createPartyRoom, getPartyScreen, RpcError } from "@/lib/supabase/rpc";
-import { subscribeToRoom } from "@/lib/realtime/room-channel";
+import {
+  fetchRecentEvents,
+  subscribeToRoom,
+  type MatchEventRow,
+  type MovePreviewSignal,
+} from "@/lib/realtime/room-channel";
 import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { webUrl } from "@/lib/native";
 import { BRAND } from "@/lib/brand";
@@ -103,16 +108,49 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
   const [error, setError] = useState<string | null>(null);
   // Reactions from the phones (party rooms carry no chat), shown over their seats.
   const [reactions, setReactions] = useState<TableMessage[]>([]);
+  // The event log animates each roll and move, as on the phones.
+  const [events, setEvents] = useState<MatchEventRow[]>([]);
+  const [preview, setPreview] = useState<MovePreviewSignal | null>(null);
 
   useEffect(() => {
     const client = createClient();
     let cancelled = false;
     let channel: ReturnType<typeof subscribeToRoom> | null = null;
+    let loadingEvents = false;
+    let loadAgain = false;
+    // One read at a time; a state that arrives meanwhile reads once more after.
+    async function loadEvents() {
+      if (loadingEvents) {
+        loadAgain = true;
+        return;
+      }
+      loadingEvents = true;
+      try {
+        do {
+          loadAgain = false;
+          const next = await fetchRecentEvents(client, roomId);
+          if (!cancelled)
+            setEvents((current) =>
+              (current.at(-1)?.sequence ?? -1) > (next.at(-1)?.sequence ?? -1) ? current : next,
+            );
+        } while (loadAgain && !cancelled);
+      } catch {
+        // The table catches up from the next snapshot.
+      } finally {
+        loadingEvents = false;
+      }
+    }
+    const receive = (next: GameRoomState) => {
+      setState((current) =>
+        current && current.eventSequence > next.eventSequence ? current : next,
+      );
+      if (next.status !== "lobby") void loadEvents();
+    };
     // Snapshots are authoritative; broadcasts keep them live in between.
     const refresh = () =>
       getPartyScreen(client, roomId)
         .then((next) => {
-          if (!cancelled) setState(next);
+          if (!cancelled) receive(next);
         })
         .catch((e: unknown) => {
           if (!cancelled) setError(e instanceof RpcError ? e.code : "UNKNOWN");
@@ -120,10 +158,11 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
     ensureSession(client)
       .then(() => {
         if (cancelled) return;
-        channel = subscribeToRoom(client, roomId, (next) => setState(next), {
+        channel = subscribeToRoom(client, roomId, receive, {
           onStatus: (status) => {
             if (status === "SUBSCRIBED") void refresh();
           },
+          onMovePreview: setPreview,
           onMessage: (message) => {
             if (message.kind === "reaction") setReactions((all) => [...all.slice(-19), message]);
           },
@@ -168,9 +207,15 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
   return (
     <Simulator
       state={state}
-      events={[]}
+      events={events}
       myPlayerId={null}
       messages={reactions}
+      screen
+      previewPawnId={
+        preview && preview.eventSequence === state.eventSequence && preview.playerId === state.turnPlayerId
+          ? preview.pawnId
+          : null
+      }
       readOnly
       onRoll={() => {}}
       onMove={() => {}}

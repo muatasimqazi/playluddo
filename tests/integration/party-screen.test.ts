@@ -6,9 +6,10 @@ import { expect, it } from "vitest";
 import { realtimeReady } from "./realtime";
 
 /**
- * Party Mode, P1 and P3: a real screen client (no seat) receives its room's
- * live updates while a real phone joins and starts the game, and the
- * reactions that phone sends from its controller. Isolated
+ * Party Mode, P1, P3 and P4: a real screen client (no seat) receives its
+ * room's live updates while a real phone joins and starts the game, reads
+ * the event log it animates from, and gets the reactions and piece previews
+ * that phone sends from its controller. Isolated
  * local-only clients; never touches an existing user's room.
  */
 it("a party screen follows its room live without a seat", async () => {
@@ -50,10 +51,12 @@ it("a party screen follows its room live without a seat", async () => {
 
     const states: Record<string, unknown>[] = [];
     const messages: Record<string, unknown>[] = [];
+    const previews: Record<string, unknown>[] = [];
     const channel = screen
       .channel(`room:${roomId}`, { config: { private: true } })
       .on("broadcast", { event: "state_updated" }, ({ payload }) => states.push(payload))
-      .on("broadcast", { event: "table_message" }, ({ payload }) => messages.push(payload));
+      .on("broadcast", { event: "table_message" }, ({ payload }) => messages.push(payload))
+      .on("broadcast", { event: "move_preview" }, ({ payload }) => previews.push(payload));
     channels.push(channel);
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("Realtime subscription timed out")), 12000);
@@ -101,6 +104,32 @@ it("a party screen follows its room live without a seat", async () => {
     await rpc(phone, "send_table_message", { p_room_id: roomId, p_text: "🎉", p_kind: "reaction" });
     await until(() => messages.length > 0);
     expect(messages[0]).toMatchObject({ playerId: seat.playerId, text: "🎉", kind: "reaction" });
+
+    // The screen reads the event log it animates rolls and moves from.
+    const events = await screen.from("match_events").select("sequence, event_type").eq("room_id", roomId);
+    expect(events.error).toBeNull();
+    expect(events.data?.some((e) => e.event_type === "match_started")).toBe(true);
+
+    // The phone rolled a six (set directly, since dice are random): picking a
+    // piece shows on the screen before the move is confirmed.
+    const admin = new Client({
+      connectionString: process.env.SUPABASE_DB_URL ?? "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    });
+    await admin.connect();
+    let pawnId: string;
+    try {
+      await admin.query(
+        "update public.rooms set turn_player_id=$2, turn_phase='awaiting_move', active_dice_value=6 where id=$1",
+        [roomId, seat.playerId],
+      );
+      pawnId = (await admin.query("select id from public.pawns where player_id=$1 order by pawn_index limit 1", [seat.playerId]))
+        .rows[0].id;
+    } finally {
+      await admin.end();
+    }
+    await rpc(phone, "party_preview_move", { p_room_id: roomId, p_pawn_id: pawnId });
+    await until(() => previews.length > 0);
+    expect(previews[0]).toMatchObject({ playerId: seat.playerId, pawnId });
   } finally {
     await Promise.all(channels.map((c) => c.unsubscribe()));
     await Promise.all([screen.removeAllChannels(), phone.removeAllChannels()]);

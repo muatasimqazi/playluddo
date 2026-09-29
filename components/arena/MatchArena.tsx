@@ -7,6 +7,7 @@ import {
   RpcError,
   getDiceProof,
   getMatchResults,
+  partyPreviewMove,
   requestMove,
   requestRoll,
   toggleAutoRoll,
@@ -157,6 +158,8 @@ export function MatchArena({
           onRematch={() => void onRematch()}
           onAutoRoll={(enabled) => void onAutoRoll(enabled)}
           onPause={(paused) => void onPause(paused)}
+          // Best effort: the move itself doesn't depend on it.
+          onPreview={(pawnId) => void partyPreviewMove(client, roomId, pawnId).catch(() => {})}
         />
       </>
     );

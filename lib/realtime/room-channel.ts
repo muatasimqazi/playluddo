@@ -20,6 +20,7 @@ export function subscribeToRoom(
     onStatus?: (status: string) => void;
     onMessage?: (message: TableMessage) => void;
     onSignal?: (signal: WebRtcSignal) => void;
+    onMovePreview?: (preview: MovePreviewSignal) => void;
   },
 ): RealtimeChannel {
   const channel = client.channel(`room:${roomId}`, {
@@ -38,9 +39,26 @@ export function subscribeToRoom(
     const signal = parseWebRtcSignal(payload);
     if (signal) options?.onSignal?.(signal);
   });
+  channel.on("broadcast", { event: "move_preview" }, ({ payload }) => {
+    const p = payload as Partial<MovePreviewSignal> | null;
+    if (typeof p?.playerId === "string" && typeof p.eventSequence === "number")
+      options?.onMovePreview?.({
+        playerId: p.playerId,
+        pawnId: typeof p.pawnId === "string" ? p.pawnId : null,
+        eventSequence: p.eventSequence,
+      });
+  });
   channel.subscribe(status => options?.onStatus?.(status));
 
   return channel;
+}
+
+/** A Party Mode phone's picked piece, before it confirms (party_preview_move). */
+export interface MovePreviewSignal {
+  playerId: string;
+  pawnId: string | null;
+  /** The room state it was picked in; a newer state makes it stale. */
+  eventSequence: number;
 }
 
 export interface MatchEventRow {

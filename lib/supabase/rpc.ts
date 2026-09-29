@@ -204,6 +204,11 @@ export function partyHeartbeat(client: SupabaseClient, roomId: string) {
   return call<void>(client, "party_heartbeat", { p_room_id: roomId });
 }
 
+/** Shows the piece a phone has picked on the party screen, before it confirms; null clears it. */
+export function partyPreviewMove(client: SupabaseClient, roomId: string, pawnId: string | null) {
+  return call<void>(client, "party_preview_move", { p_room_id: roomId, p_pawn_id: pawnId });
+}
+
 /** The screen's view of its party room. ROOM_NOT_FOUND unless this session is its screen. */
 export function getPartyScreen(client: SupabaseClient, roomId: string) {
   return call<GameRoomState>(client, "get_party_screen", { p_room_id: roomId });

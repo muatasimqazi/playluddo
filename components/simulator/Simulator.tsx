@@ -22,7 +22,8 @@ import { MatchDice } from "@/components/summary/MatchDice";
 import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
 import { FirstGameTips } from "./FirstGameTips";
 import { REACTION_EMOJI_ROWS, REACTION_PHRASES, REVENGE } from "@/lib/realtime/reactions";
-import { forcedMovePawnId } from "@/lib/presentation/controller";
+import { describeMove, forcedMovePawnId } from "@/lib/presentation/controller";
+import { useAdaptiveQuality } from "@/lib/hooks/useAdaptiveQuality";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { recordGameCenterWin } from "@/lib/gameCenter";
@@ -83,6 +84,14 @@ export interface SimulatorProps {
   matchResults?: MatchResult[] | null;
   /** The ended match's dice proof, for "Check the dice"; absent offline. */
   diceProof?: DiceProof | null;
+  /**
+   * Party Mode's shared screen (docs/COMPETITIVE_ROADMAP.md P4): nobody sits
+   * here, so the whole table is in view with the action camera on, text is
+   * sized for a sofa, controls are hidden and quality adapts to the device.
+   */
+  screen?: boolean;
+  /** Screen only: the piece the player whose move it is has picked on their phone. */
+  previewPawnId?: string | null;
 }
 
 function plural(count: number, one: string, many = `${one}s`) {
@@ -288,6 +297,8 @@ export default function Simulator({
   onReportPlayer,
   matchResults,
   diceProof,
+  screen = false,
+  previewPawnId = null,
 }: SimulatorProps) {
   const snakes = state.gameType === "snakes_and_ladders";
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
@@ -331,8 +342,11 @@ export default function Simulator({
       ? state.winnerIds
       : progressRanking;
   const [prefs, setPrefs] = useState(() =>
-    loadPreferences(me?.color ?? "blue"),
+    screen
+      ? { ...loadPreferences("blue"), view: "table" as const, actionCamera: "cinematic" as const, immersive: false }
+      : loadPreferences(me?.color ?? "blue"),
   );
+  const screenQuality = useAdaptiveQuality(screen);
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
     "menu" | "camera" | "board" | "preferences" | "chat" | "help" | null
@@ -395,6 +409,12 @@ export default function Simulator({
   // the player after a beat instead of making them find and click a pawn.
   const forcedMove =
     legalPawnIds.length > 0 ? forcedMovePawnId(state.legalMoves) : null;
+  // The screen shows a phone's picked piece until the move (or a newer pick) replaces it.
+  const previewMove =
+    screen && previewPawnId && state.turnPhase === "awaiting_move" && !frame.busy
+      ? state.legalMoves.find((m) => m.pawnId === previewPawnId)
+      : undefined;
+  const screenPreview = previewMove ? describeMove(state, previewMove) : null;
   // Parents pass onMove inline, so read it through a ref — depending on
   // it directly would restart the delay on every render.
   const onMoveRef = useRef(onMove);
@@ -433,6 +453,8 @@ export default function Simulator({
   }, [connection, state, timeline]);
   useEffect(() => () => timeline.dispose(), [timeline]);
   useEffect(() => {
+    // The screen's own choices shouldn't become this device's settings for playing.
+    if (screen) return;
     try {
       localStorage.setItem(
         PREF_KEY,
@@ -449,7 +471,7 @@ export default function Simulator({
         }),
       );
     } catch {}
-  }, [prefs, me?.color]);
+  }, [prefs, me?.color, screen]);
   useEffect(() => {
     const audio = new Audio("/audio/background_01.mp3");
     audio.loop = true;
@@ -507,9 +529,9 @@ export default function Simulator({
   );
   const reset = useCallback(() => {
     setMode("play");
-    setPref("view", defaultCameraView());
+    setPref("view", screen ? "table" : defaultCameraView());
     setResetKey((n) => n + 1);
-  }, [setPref, setMode, setResetKey]);
+  }, [setPref, setMode, setResetKey, screen]);
   useEffect(() => {
     function key(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -677,7 +699,7 @@ export default function Simulator({
   }
   return (
     <main
-      className={`simulator ${prefs.immersive ? "is-immersive" : ""}`}
+      className={`simulator ${prefs.immersive ? "is-immersive" : ""} ${screen ? "is-screen" : ""}`}
       ref={root}
     >
       <SceneBoundary>
@@ -688,12 +710,12 @@ export default function Simulator({
           players={state.players}
           myPlayerId={localPlay ? null : myPlayerId}
           turnPlayerId={state.turnPlayerId}
-          legalPawnIds={legalPawnIds}
+          legalPawnIds={screenPreview ? [screenPreview.pawnId] : legalPawnIds}
           canRoll={canRoll}
           view={prefs.view}
           mode={mode}
           orientation={snakes ? prefs.snakeOrientation : prefs.orientation}
-          quality={prefs.quality}
+          quality={screen ? screenQuality : prefs.quality}
           actionCamera={prefs.actionCamera}
           resetKey={resetKey}
           onRotate={(angle) =>
@@ -759,14 +781,16 @@ export default function Simulator({
                   ? localPlay
                     ? "TABLE TOGETHER"
                     : "OFFLINE PRACTICE"
-                  : "PRIVATE TABLE"}
+                  : screen
+                    ? "PARTY TABLE"
+                    : "PRIVATE TABLE"}
           </span>
           {seconds !== null &&
             state.status === "in_game" &&
             !frame.replaying &&
             (!frame.busy || frame.actorId === state.turnPlayerId) && (
               <time className={seconds < 6 ? "urgent" : ""}>
-                00:{String(seconds).padStart(2, "0")}
+                {String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}
               </time>
             )}
         </div>
@@ -837,6 +861,15 @@ export default function Simulator({
           />
         </div>
       </header>
+      {screenPreview && activePlayer && (
+        <p className="sim-screen-preview" role="status" style={{ "--seat-color": COLORS[activePlayer.color] } as React.CSSProperties}>
+          <strong>{activePlayer.displayName}</strong>
+          <span>
+            {snakes ? "" : `Piece ${(state.pawns.find((p) => p.id === screenPreview.pawnId)?.index ?? 0) + 1} · `}
+            {screenPreview.text}
+          </span>
+        </p>
+      )}
       {paused && (
         <div className="sim-paused" role="status">
           <Icon name="pause" size={22} />

@@ -41,6 +41,7 @@ export function PartyController({
   onRematch,
   onAutoRoll,
   onPause,
+  onPreview,
 }: {
   state: GameRoomState;
   myPlayerId: string | null;
@@ -55,6 +56,8 @@ export function PartyController({
   onRematch: () => void;
   onAutoRoll: (enabled: boolean) => void;
   onPause: (paused: boolean) => void;
+  /** Shows the picked piece on the shared screen before it's confirmed. */
+  onPreview?: (pawnId: string) => void;
 }) {
   useWakeLock();
   const me = state.players.find((p) => p.id === myPlayerId);
@@ -203,6 +206,7 @@ export function PartyController({
           previews={previews}
           choosing={phase === "move" && !forced && canAct}
           onMove={onMove}
+          onPreview={onPreview}
         />
       )}
 
@@ -280,12 +284,14 @@ function Pieces({
   previews,
   choosing,
   onMove,
+  onPreview,
 }: {
   state: GameRoomState;
   pieces: Pawn[];
   previews: Map<string, MovePreview>;
   choosing: boolean;
   onMove: (pawnId: string) => void;
+  onPreview?: (pawnId: string) => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   // A new roll or turn clears the choice.
@@ -331,6 +337,7 @@ function Pieces({
                   onClick={() => {
                     hapticTap(10);
                     setSelected(pawn.id);
+                    if (selected !== pawn.id) onPreview?.(pawn.id);
                   }}
                 >
                   {body}

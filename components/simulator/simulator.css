@@ -2870,6 +2870,23 @@ body.sim-piece-hover .sim-canvas {
     margin-top: 11px;
   }
 }
+/* Large landscape displays, including LG/webOS TV browsers, which report
+   ~1920x1080 and so fall PAST the 1366px-capped block above, keeping the
+   default top:50% centering with no bottom bound. The tall "setup" wizard
+   step centered inside .sim-entrance's overflow:hidden then clips at both
+   top and bottom, hiding the game options and the Continue button. Cap the
+   panel to the viewport and let it scroll internally instead of being cut
+   off; steps that already fit still sit centered with no scrollbar, so
+   ordinary 1080p+ desktops are unaffected. vh fallback first for TV
+   browsers that predate dvh. */
+@media (min-width: 1367px) {
+  .entrance-content {
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
 @media (max-width: 700px) {
   .sim-header {
     left: 15px;

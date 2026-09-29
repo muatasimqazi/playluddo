@@ -50,8 +50,8 @@ export function getLegalMoves(
       if (dieValue !== 6) continue;
       moves.push({
         pawnId: pawn.id,
-        fromTileId: pathIndexToTileId(color, null),
-        toTileId: pathIndexToTileId(color, PATH_INDEX.ENTRY),
+        fromTileId: pathIndexToTileId(pawn.color, null),
+        toTileId: pathIndexToTileId(pawn.color, PATH_INDEX.ENTRY),
         capturesPawnIds: capturesAt(pawns, pawn.color, PATH_INDEX.ENTRY, friendlyColors),
         finishesPawn: false,
       });
@@ -84,8 +84,8 @@ export function getLegalMoves(
 
     moves.push({
       pawnId: pawn.id,
-      fromTileId: pathIndexToTileId(color, current),
-      toTileId: pathIndexToTileId(color, target),
+      fromTileId: pathIndexToTileId(pawn.color, current),
+      toTileId: pathIndexToTileId(pawn.color, target),
       capturesPawnIds: captures,
       finishesPawn: target === PATH_INDEX.FINISHED,
     });

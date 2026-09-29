@@ -10,6 +10,7 @@ import {
   evaluateSixRoll,
   getLegalMoves,
   isMatchWon,
+  isTeamUpWon,
   rankPlayers,
   resolveRoomRules,
   type PlayerProgress,
@@ -565,6 +566,115 @@ describe("parity: house rules presets and allow-list (F2.4)", () => {
         JSON.stringify(rules),
       ]);
       expect([rules, rows[0].allowed]).toEqual([rules, rulesAllowed(rules)]);
+    }
+  });
+});
+
+async function sqlTeamUpWon(pawns: EnginePawn[], color: PlayerColor): Promise<boolean> {
+  const { rows } = await client.query(
+    "select private.ludo_team_up_won($1::jsonb, $2) as result",
+    [JSON.stringify(pawns), color],
+  );
+  return rows[0].result as boolean;
+}
+
+describe("parity: Team Up (F2.5)", () => {
+  const teamUp = { rules: { teamUp: true } };
+
+  // A cell that red, yellow and green pawns can all occupy at once, so a red
+  // move landing there exercises both partner protection (yellow shares it
+  // safely) and a real capture (green is an opponent). Cell 10 is unsafe.
+  //   red-0 at pathIndex 6, die 4 -> global cell 10
+  //   yellow-0 (partner) at pathIndex 36 -> global cell 10
+  //   green-0 (opponent) at pathIndex 49 -> global cell 10
+  const contested = fullBoard({
+    "red-0": pawn("red-0", "red", 0, "track", 6),
+    "yellow-0": pawn("yellow-0", "yellow", 0, "track", 36),
+    "green-0": pawn("green-0", "green", 0, "track", 49),
+  });
+
+  it("agrees on partner protection: a partner is never captured, an opponent is", async () => {
+    for (const die of [1, 2, 3, 4, 5, 6]) {
+      expect(await sqlLegalMoves(contested, "red", die, teamUp))
+        .toEqual(getLegalMoves(contested, "red", die, teamUp));
+    }
+    // Semantic check on the shared destination itself (die 4 -> cell 10).
+    const move = getLegalMoves(contested, "red", 4, teamUp)
+      .find((m) => m.pawnId === "red-0")!;
+    expect(move.capturesPawnIds).toContain("green-0"); // opponent captured
+    expect(move.capturesPawnIds).not.toContain("yellow-0"); // partner spared
+  });
+
+  it("agrees that a nest pawn does not capture a partner sharing its entry", async () => {
+    // Red's entry is global cell 0 (a safe cell), so nothing captures there;
+    // move it off-safe by putting the partner on red's second step instead.
+    const board = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "nest", null),
+      // yellow on global cell 1 == red pathIndex 1; red can't reach it from
+      // the nest (nest only reaches entry on a 6), so this just confirms the
+      // two engines agree on the whole nest-entry path under Team Up.
+      "yellow-0": pawn("yellow-0", "yellow", 0, "track", 27),
+    });
+    for (const die of [1, 6]) {
+      expect(await sqlLegalMoves(board, "red", die, teamUp))
+        .toEqual(getLegalMoves(board, "red", die, teamUp));
+    }
+  });
+
+  it("agrees on moving a partner's pawns only after all four own pawns finish", async () => {
+    const partnerBoard = fullBoard({
+      "yellow-0": pawn("yellow-0", "yellow", 0, "track", 5),
+      "yellow-1": pawn("yellow-1", "yellow", 1, "nest", null),
+      "green-0": pawn("green-0", "green", 0, "track", 20),
+    });
+
+    // Three of red's four finished: red still controls only its own pawns.
+    const threeFinished = partnerBoard.map((p) =>
+      p.color === "red" && p.index < 3
+        ? { ...p, state: "finished" as const, pathIndex: 56 }
+        : p,
+    );
+    for (const die of [1, 2, 3, 4, 5, 6]) {
+      expect(await sqlLegalMoves(threeFinished, "red", die, teamUp))
+        .toEqual(getLegalMoves(threeFinished, "red", die, teamUp));
+    }
+    // The one remaining own pawn is in the nest, so only a six moves anything.
+    expect(getLegalMoves(threeFinished, "red", 3, teamUp)).toEqual([]);
+
+    // All four red finished: red now rolls for yellow, its partner.
+    const fourFinished = partnerBoard.map((p) =>
+      p.color === "red" ? { ...p, state: "finished" as const, pathIndex: 56 } : p,
+    );
+    for (const die of [1, 2, 3, 4, 5, 6]) {
+      expect(await sqlLegalMoves(fourFinished, "red", die, teamUp))
+        .toEqual(getLegalMoves(fourFinished, "red", die, teamUp));
+    }
+    // Every move offered belongs to the partner (yellow), never an opponent.
+    const partnerMoves = getLegalMoves(fourFinished, "red", 3, teamUp);
+    expect(partnerMoves.length).toBeGreaterThan(0);
+    expect(partnerMoves.every((m) => m.pawnId.startsWith("yellow"))).toBe(true);
+  });
+
+  it("agrees on the team win predicate", async () => {
+    const almost = fullBoard({
+      "red-0": pawn("red-0", "red", 0, "finished", 56),
+      "red-1": pawn("red-1", "red", 1, "finished", 56),
+      "red-2": pawn("red-2", "red", 2, "finished", 56),
+      "red-3": pawn("red-3", "red", 3, "finished", 56),
+      "yellow-0": pawn("yellow-0", "yellow", 0, "finished", 56),
+      "yellow-1": pawn("yellow-1", "yellow", 1, "finished", 56),
+      "yellow-2": pawn("yellow-2", "yellow", 2, "finished", 56),
+      "yellow-3": pawn("yellow-3", "yellow", 3, "track", 40),
+    });
+    const won = almost.map((p) =>
+      p.id === "yellow-3" ? { ...p, state: "finished" as const, pathIndex: 56 } : p,
+    );
+    for (const [board, color] of [
+      [almost, "red"], [almost, "yellow"], [almost, "green"],
+      [won, "red"], [won, "green"],
+    ] as const) {
+      expect([color, await sqlTeamUpWon(board, color)])
+        .toEqual([color, isTeamUpWon(board, color)]);
     }
   });
 });

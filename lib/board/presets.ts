@@ -90,6 +90,7 @@ export function describeRules(rules: Partial<RoomRules> | null | undefined, game
   if (gameType === "ludo") {
     const preset = presetOf(rules);
     parts.push(preset ? PRESET_LABELS[preset].name : "House rules");
+    if (r.teamUp) parts.push("Team Up 2v2");
     if (r.pawnsToWin < 4) parts.push(`first to get ${r.pawnsToWin} home`);
     if (r.startOnBoard > 0) parts.push(`${r.startOnBoard} out to start`);
     if (r.captureToEnterHome) parts.push("capture before going home");
@@ -103,6 +104,26 @@ export function describeRules(rules: Partial<RoomRules> | null | undefined, game
   parts.push(`${r.turnSeconds}s a turn`);
   if (r.matchMinutes > 0) parts.push(`${r.matchMinutes}-minute match`);
   return parts.join(" · ");
+}
+
+/**
+ * Whether a ruleset is one Team Up can run on (F2.5). Mirrors the checks in
+ * set_team_up / validate_team_room: Team Up is always four pawns to win, no
+ * head start, no capture gate, no blockades, no match clock, the finish bonus
+ * on, and a 15- or 30-second turn. The panel greys out anything else while
+ * Team Up is on; the server refuses it regardless.
+ */
+export function teamUpCompatible(rules: Partial<RoomRules> | null | undefined): boolean {
+  const r = resolveRoomRules(rules);
+  return (
+    r.startOnBoard === 0 &&
+    r.pawnsToWin === 4 &&
+    !r.captureToEnterHome &&
+    !r.blockades &&
+    r.matchMinutes === 0 &&
+    r.bonusRollOnFinish &&
+    (r.turnSeconds === 15 || r.turnSeconds === 30)
+  );
 }
 
 export { DEFAULT_ROOM_RULES };

@@ -12,6 +12,7 @@ import {
   setRoomGame,
   setRoomMaxPlayers,
   setRoomRules,
+  setTeamUp,
   startMatch,
 } from "@/lib/supabase/rpc";
 import { resolveRoomRules } from "@/lib/board/rules";
@@ -21,6 +22,7 @@ import {
   presetOf,
   RULE_PRESETS,
   rulesAllowed,
+  teamUpCompatible,
   type PresetName,
 } from "@/lib/board/presets";
 import { useRoomStore } from "@/lib/store/room-store";
@@ -59,6 +61,11 @@ export function RoomLobby({
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);
   const preset = presetOf(rules);
+  const teamUp = rules.teamUp === true;
+  // Team Up needs a full four-player Luddo table, and it can only run on the
+  // one ruleset its engine covers. Both are enforced by the server; the panel
+  // mirrors them so a host isn't offered a choice that would be refused.
+  const teamUpEligible = state.gameType === "ludo" && maxPlayers === 4;
   // For 2 players, the seats aren't a fixed {0,1} range — the second seat
   // is whichever base sits diagonally across the board from the first
   // (mirrors the SQL engine's (seat + 2) % 4 pairing). The host is always
@@ -190,7 +197,8 @@ export function RoomLobby({
           </div>
           {host ? (
             <button
-              disabled={pending}
+              disabled={pending || teamUp}
+              title={teamUp ? "Turn Team Up off to switch to Snakes & Ladders" : undefined}
               onClick={() =>
                 void run(async () => {
                   const next = await setRoomGame(
@@ -234,13 +242,18 @@ export function RoomLobby({
               </span>
             </div>
             <div className="lobby-preset-choices">
-              {(Object.keys(RULE_PRESETS) as PresetName[]).map((name) => (
+              {(Object.keys(RULE_PRESETS) as PresetName[]).map((name) => {
+                // While Team Up is on, a preset that isn't one it can run on
+                // (Quick, Master) is greyed out — the server would refuse it.
+                const presetBlocked = teamUp && !teamUpCompatible({ ...rules, ...RULE_PRESETS[name] });
+                return (
                 <button
                   key={name}
                   type="button"
                   className={`lobby-preset${preset === name ? " is-selected" : ""}`}
                   aria-pressed={preset === name}
-                  disabled={pending}
+                  disabled={pending || presetBlocked}
+                  title={presetBlocked ? "Turn Team Up off to choose this" : undefined}
                   onClick={() =>
                     void run(async () => {
                       const next = await setRoomRules(client, roomId, { ...rules, ...RULE_PRESETS[name] });
@@ -251,8 +264,47 @@ export function RoomLobby({
                   <strong>{PRESET_LABELS[name].name}</strong>
                   <small>{PRESET_LABELS[name].note}</small>
                 </button>
-              ))}
+                );
+              })}
             </div>
+            {/* Team Up (F2.5): partners sit opposite (red+yellow, green+blue),
+                a side wins when all eight of its pawns are home, and once your
+                own four are home you roll for your partner. It needs a
+                four-player table and its own fixed ruleset. */}
+            <label
+              className={`lobby-player-count lobby-house-rule${
+                teamUpEligible && (teamUp || teamUpCompatible(rules)) ? "" : " is-disabled"
+              }`}
+              title={
+                !teamUpEligible
+                  ? "Team Up needs a four-player Luddo table"
+                  : !teamUp && !teamUpCompatible(rules)
+                    ? "Start from Classic or Family to turn Team Up on"
+                    : undefined
+              }
+            >
+              <span>
+                <span className="eyebrow">TEAM UP · 2 v 2</span>
+                <strong>Play as partners</strong>
+                <small>
+                  Red &amp; yellow against green &amp; blue. A side wins when all
+                  eight of its pieces are home.
+                </small>
+              </span>
+              <input
+                type="checkbox"
+                checked={teamUp}
+                disabled={
+                  pending || !teamUpEligible || (!teamUp && !teamUpCompatible(rules))
+                }
+                onChange={(event) =>
+                  void run(async () => {
+                    const next = await setTeamUp(client, roomId, event.target.checked);
+                    useRoomStore.getState().setRoomState(next);
+                  })
+                }
+              />
+            </label>
             {/* Single changes to Classic (decision 14): each is offered only
                 when the resulting combination is one the server allows, so a
                 choice that isn't on the list is greyed out rather than
@@ -262,7 +314,7 @@ export function RoomLobby({
               ["bonusRollOnFinish", "Extra roll for getting a piece home", "A six or a capture always earns another roll"],
             ] as const).map(([key, title, note]) => {
               const candidate = { ...rules, [key]: !rules[key] };
-              const canToggle = rulesAllowed(candidate);
+              const canToggle = rulesAllowed(candidate) && (!teamUp || teamUpCompatible(candidate));
               return (
                 <label
                   key={key}
@@ -296,7 +348,7 @@ export function RoomLobby({
               <div className="lobby-length-choices">
                 {[10, 15, 30].map((seconds) => {
                   const candidate = { ...rules, turnSeconds: seconds };
-                  const canPick = rulesAllowed(candidate);
+                  const canPick = rulesAllowed(candidate) && (!teamUp || teamUpCompatible(candidate));
                   return (
                     <button
                       key={seconds}
@@ -338,7 +390,8 @@ export function RoomLobby({
                   type="button"
                   className={rules.matchMinutes === minutes ? "is-selected" : ""}
                   aria-pressed={rules.matchMinutes === minutes}
-                  disabled={pending}
+                  disabled={pending || (teamUp && minutes !== 0)}
+                  title={teamUp && minutes !== 0 ? "Turn Team Up off to add a clock" : undefined}
                   onClick={() =>
                     void run(async () => {
                       const next = await setRoomRules(client, roomId, { ...rules, matchMinutes: minutes });
@@ -428,11 +481,15 @@ export function RoomLobby({
             <span>
               <span className="eyebrow">TABLE SIZE</span>
               <strong>How many players?</strong>
-              <small>Empty selected seats become computers</small>
+              <small>
+                {teamUp
+                  ? "Team Up is always four players — two against two"
+                  : "Empty selected seats become computers"}
+              </small>
             </span>
             <select
               value={maxPlayers}
-              disabled={pending}
+              disabled={pending || teamUp}
               onChange={(event) =>
                 void run(async () => {
                   const next = await setRoomMaxPlayers(

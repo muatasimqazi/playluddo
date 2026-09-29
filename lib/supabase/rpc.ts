@@ -52,6 +52,9 @@ export type RpcErrorCode =
   | "NO_ROUND"
   | "ROUND_CLOSED"
   | "INVALID_GUESS"
+  | "TEAM_UP_REQUIRES_FOUR_PLAYER_LUDO"
+  | "TEAM_UP_INCOMPATIBLE_RULES"
+  | "TEAM_UP_REQUIRES_EIGHT_PAWNS_PER_SIDE"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -97,6 +100,9 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "NO_ROUND",
   "ROUND_CLOSED",
   "INVALID_GUESS",
+  "TEAM_UP_REQUIRES_FOUR_PLAYER_LUDO",
+  "TEAM_UP_INCOMPATIBLE_RULES",
+  "TEAM_UP_REQUIRES_EIGHT_PAWNS_PER_SIDE",
 ]);
 
 export class RpcError extends Error {
@@ -292,6 +298,22 @@ export function setRoomRules(
   return call<GameRoomState>(client, "set_room_rules", {
     p_room_id: roomId,
     p_rules: rules,
+  });
+}
+
+/**
+ * Team Up (F2.5) is its own RPC, not a house-rule toggle: the server admits
+ * only the one ruleset the Team Up engine and fixtures cover, and requires a
+ * four-player Luddo table.
+ */
+export function setTeamUp(
+  client: SupabaseClient,
+  roomId: string,
+  enabled: boolean,
+) {
+  return call<GameRoomState>(client, "set_team_up", {
+    p_room_id: roomId,
+    p_enabled: enabled,
   });
 }
 

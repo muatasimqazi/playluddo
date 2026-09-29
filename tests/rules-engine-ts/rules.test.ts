@@ -10,6 +10,7 @@ import {
   rankPlayers,
   resolveRoomRules,
 } from "../../lib/board/rules";
+import { teamUpCompatible } from "../../lib/board/presets";
 import type { EnginePawn } from "../../lib/board/engine-types";
 import type { LegalMove, PlayerColor } from "../../lib/board/types";
 
@@ -231,6 +232,24 @@ describe("isTeamUpWon", () => {
     pawns.find((pawn) => pawn.id === "yellow-3")!.state = "track";
     pawns.find((pawn) => pawn.id === "yellow-3")!.pathIndex = 50;
     expect(isTeamUpWon(pawns, "red")).toBe(false);
+  });
+});
+
+describe("teamUpCompatible (F2.5 lobby gating)", () => {
+  it("accepts the rulesets Team Up can run on", () => {
+    expect(teamUpCompatible(null)).toBe(true); // Classic defaults
+    expect(teamUpCompatible({ turnSeconds: 30 })).toBe(true); // Family
+    expect(teamUpCompatible({ teamUp: true })).toBe(true); // already on
+  });
+
+  it("rejects every rule the Team Up engine does not cover", () => {
+    expect(teamUpCompatible({ startOnBoard: 1 })).toBe(false); // Quick head start
+    expect(teamUpCompatible({ pawnsToWin: 2 })).toBe(false); // Quick target
+    expect(teamUpCompatible({ captureToEnterHome: true })).toBe(false); // Master
+    expect(teamUpCompatible({ blockades: true })).toBe(false);
+    expect(teamUpCompatible({ matchMinutes: 5 })).toBe(false); // Rush clock
+    expect(teamUpCompatible({ bonusRollOnFinish: false })).toBe(false);
+    expect(teamUpCompatible({ turnSeconds: 10 })).toBe(false);
   });
 });
 

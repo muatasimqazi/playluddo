@@ -28,6 +28,7 @@ import {
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
+import { useCast } from "@/lib/hooks/useCast";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
@@ -36,6 +37,28 @@ import { webUrl } from "@/lib/native";
 import "@/components/simulator/simulator.css";
 
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
+
+/** Standard Google Cast glyph (screen with the three connection arcs). */
+function CastGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M2 20h.01M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 5h15a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export function RoomLobby({
   client,
@@ -57,6 +80,9 @@ export function RoomLobby({
   const isParty = state?.isParty ?? false;
   const meRemote = !!state?.players.find((p) => p.id === myPlayerId)?.partyRemote;
   usePartyHeartbeat(client, roomId, isParty);
+  // Cast the TV `/screen` view of this room to a Chromecast-compatible display;
+  // the phone stays here as a controller. Hidden unless a device is available.
+  const cast = useCast(webUrl(`/screen?id=${roomId}`));
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);
@@ -186,6 +212,21 @@ export function RoomLobby({
               <Icon name={inviteFeedback === "code" ? "check" : "copy"} />
               {inviteFeedback === "code" ? "Copied" : "Code"}
             </button>
+            {cast.supported && (cast.available || cast.connected) && (
+              <button
+                className={cast.connected ? "is-casting" : ""}
+                onClick={() => (cast.connected ? cast.stop() : void cast.start())}
+                disabled={cast.connecting}
+                title="Show the table on a Chromecast-connected TV"
+              >
+                <CastGlyph />
+                {cast.connected
+                  ? "Stop cast"
+                  : cast.connecting
+                    ? "Casting…"
+                    : "Cast to TV"}
+              </button>
+            )}
           </div>
         </div>
         <div className="lobby-game">

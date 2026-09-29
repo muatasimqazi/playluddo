@@ -26,6 +26,10 @@ export function subscribeToRoom(
     onAudienceReaction?: (reaction: AudienceReaction) => void;
     /** The audience's picks or votes changed: fetch get_party_extras again. */
     onPartyExtras?: () => void;
+    /** A seated human turned watching off (F4.4): the watcher must leave. */
+    onWatchingEnded?: () => void;
+    /** A reaction from another watcher (F4.4). */
+    onWatcherReaction?: (reaction: AudienceReaction) => void;
   },
 ): RealtimeChannel {
   const channel = client.channel(options?.audienceTopic ?? `room:${roomId}`, {
@@ -60,6 +64,12 @@ export function subscribeToRoom(
   });
   channel.on("broadcast", { event: "party_extras" }, () => options?.onPartyExtras?.());
   channel.on("broadcast", { event: "audience_removed" }, () => options?.onAudienceRemoved?.());
+  channel.on("broadcast", { event: "watching_ended" }, () => options?.onWatchingEnded?.());
+  channel.on("broadcast", { event: "watcher_reaction" }, ({ payload }) => {
+    const r = payload as Partial<AudienceReaction> | null;
+    if (typeof r?.id === "string" && typeof r.name === "string" && typeof r.text === "string")
+      options?.onWatcherReaction?.({ id: r.id, name: r.name, text: r.text });
+  });
   channel.subscribe(status => options?.onStatus?.(status));
 
   return channel;

@@ -20,6 +20,7 @@ import {
 } from "@/lib/supabase/rpc";
 import { useRoomStore } from "@/lib/store/room-store";
 import { reportPlayer, setPlayerBlocked } from "@/lib/supabase/moderation";
+import { setWatching } from "@/lib/supabase/watch";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import type { MatchResult } from "@/lib/board/types";
 import type { PartyRound } from "@/lib/supabase/rpc";
@@ -213,6 +214,9 @@ export function MatchArena({
         paused={state.paused}
         canPause={state.hostPlayerId === myPlayerId}
         onPause={onPause}
+        onSetWatching={
+          state.isParty ? undefined : (enabled) => setWatching(client, roomId, enabled)
+        }
         voice={!state.isParty || iAmRemote ? voice : undefined}
         matchResults={ended ? results : null}
         diceProof={ended ? diceProof : null}

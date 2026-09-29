@@ -44,6 +44,7 @@ import {
 import { Icon, type IconName } from "./Icon";
 import { TableLoading } from "./TableLoading";
 import { BRAND } from "@/lib/brand";
+import { webUrl } from "@/lib/native";
 import "./simulator.css";
 
 const Scene = dynamic(() => import("./SimulatorScene"), {
@@ -75,6 +76,11 @@ export interface SimulatorProps {
    */
   onUndo?: () => void;
   canUndo?: boolean;
+  /**
+   * Watching live tables (docs/COMPETITIVE_ROADMAP.md F4.4): the host opens the
+   * table to watchers, any seated human closes it. Online, non-party rooms only.
+   */
+  onSetWatching?: (enabled: boolean) => Promise<unknown> | void;
   onFlip?: () => void;
   onRematch?: () => Promise<unknown>;
   onReclaim?: () => Promise<unknown>;
@@ -304,6 +310,7 @@ export default function Simulator({
   onRestart,
   onUndo,
   canUndo = false,
+  onSetWatching,
   onFlip,
   onRematch,
   onReclaim,
@@ -1582,6 +1589,41 @@ export default function Simulator({
                 {practice &&
                   " Each side keeps its own practice progress when you flip."}
               </p>
+              {onSetWatching && !state.isParty && (
+                state.watchingEnabled ? (
+                  <>
+                    <button
+                      className="panel-secondary"
+                      onClick={() =>
+                        void navigator.clipboard
+                          ?.writeText(webUrl(`/watch?room=${state.roomId}`))
+                          .catch(() => {})
+                      }
+                    >
+                      <Icon name="link" />
+                      Copy watch link
+                      {state.watcherCount ? ` · ${state.watcherCount} watching` : ""}
+                    </button>
+                    <button
+                      className="panel-secondary"
+                      onClick={() => void onSetWatching(false)}
+                    >
+                      <Icon name="eye-off" />
+                      Turn off watching
+                    </button>
+                  </>
+                ) : (
+                  state.hostPlayerId === myPlayerId && (
+                    <button
+                      className="panel-secondary"
+                      onClick={() => void onSetWatching(true)}
+                    >
+                      <Icon name="look" />
+                      Let friends watch
+                    </button>
+                  )
+                )
+              )}
               {onUndo && (
                 <button
                   className="panel-secondary"

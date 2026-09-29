@@ -3801,6 +3801,45 @@ body.sim-piece-hover .sim-canvas {
   color: #a9b6a0;
 }
 
+/* Watching live tables (F4.4) */
+.watch-simulator {
+  position: fixed;
+  inset: 0;
+}
+.watch-reactions {
+  position: absolute;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 30px;
+  background: #16221abf;
+  border: 1px solid #ffffff1f;
+  backdrop-filter: blur(14px);
+  z-index: 5;
+}
+.watch-reactions button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+}
+.watch-reactions button:active {
+  transform: scale(0.9);
+}
+
+/* Host's watching toggle on the table menu (F4.4) */
+.watch-toggle-note {
+  font-size: 11px;
+  color: #a9b6a0;
+  margin: 4px 0 0;
+}
+
 /* Match history list (F4.3), shown on the profile */
 .match-history {
   display: flex;

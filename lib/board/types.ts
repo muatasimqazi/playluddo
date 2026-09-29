@@ -156,6 +156,10 @@ export interface GameRoomState {
   isParty?: boolean;
   partyLocked?: boolean;
   partyTurnSeconds?: number;
+  /** Watching live tables (F4.4): whether the host has opened the table to watchers. */
+  watchingEnabled?: boolean;
+  /** How many people are watching this table now (F4.4). */
+  watcherCount?: number;
   /** The current or latest match. Absent on older snapshots. */
   matchId?: string | null;
   /** That match's dice commitment (lib/presentation/diceProof.ts), published before its first roll. */

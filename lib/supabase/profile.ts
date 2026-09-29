@@ -25,6 +25,9 @@ export interface VisibleProfile {
   displayName: string;
   avatarId: string | null;
   country: string | null;
+  /** Account level and total XP (F3.2). */
+  level: number;
+  xp: number;
   gamesPlayed: number;
   wins: number;
   winRateByMode: WinRateByMode[];

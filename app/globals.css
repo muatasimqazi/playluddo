@@ -99,6 +99,23 @@
   fill: #603315;
 }
 
+/* Account level badge (F3.2). Sits inside the circle's bottom edge, so it
+   isn't clipped by the avatar's overflow: hidden. */
+.player-avatar-level {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  min-width: 15px;
+  padding: 0 3px;
+  border-radius: 999px 999px 0 0;
+  background: #14110dcc;
+  color: #f1ead7;
+  font: 700 9px/1.5 system-ui, sans-serif;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
 /*
  * "Modern Boardroom" design system tokens, transcribed directly from
  * designs/modern_boardroom/DESIGN.md — the canonical source per

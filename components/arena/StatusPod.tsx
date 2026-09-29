@@ -116,7 +116,12 @@ export function StatusPod({
           </motion.svg>
         )}
       </AnimatePresence>
-      <PlayerAvatar player={player} size={AVATAR_SIZE} className="absolute inset-0.75" />
+      <PlayerAvatar
+        player={player}
+        size={AVATAR_SIZE}
+        className="absolute inset-0.75"
+        level={player.isBot ? undefined : player.level}
+      />
     </div>
     </PlayerProfileButton>
   );

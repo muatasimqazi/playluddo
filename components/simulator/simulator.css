@@ -5171,6 +5171,10 @@ body.sim-piece-hover .sim-canvas {
   align-items: center;
   gap: 12px;
 }
+.profile-stats-head > div {
+  flex: 1;
+  min-width: 0;
+}
 .profile-stats-head strong {
   display: block;
   font-family: Georgia, serif;
@@ -5181,6 +5185,53 @@ body.sim-piece-hover .sim-canvas {
 .profile-stats-head small {
   color: #c0c8b5;
   font-size: 11px;
+}
+.profile-level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid #d8bd7f55;
+  background: #26372e80;
+  color: #d8bd7f;
+}
+.profile-level b {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: #f1ead7;
+}
+.profile-level small {
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: #c0c5a9;
+}
+.profile-xp {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.profile-xp-track {
+  height: 7px;
+  border-radius: 999px;
+  background: #16221b;
+  border: 1px solid #ffffff14;
+  overflow: hidden;
+}
+.profile-xp-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b89a5b, #e6cf94);
+  transition: width 0.4s ease;
+}
+.profile-xp > small {
+  font-size: 11px;
+  color: #c0c8b5;
 }
 .profile-stats-empty {
   margin: 0;

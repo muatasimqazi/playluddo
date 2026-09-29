@@ -9,12 +9,15 @@ export function PlayerAvatar({
   className = "",
   crowned = false,
   placement,
+  level,
 }: {
   player: Pick<Player, "avatarId" | "color" | "displayName" | "seatIndex">;
   size?: number;
   className?: string;
   crowned?: boolean;
   placement?: 1 | 2 | 3;
+  /** Account level badge (F3.2), shown when provided. */
+  level?: number;
 }) {
   const avatar = avatarForSeat(player.avatarId, player.seatIndex);
   const photo = photoAvatar(player.avatarId);
@@ -59,6 +62,11 @@ export function PlayerAvatar({
           <circle cx="36" cy="62" r="5" />
           <text x="36" y="66" textAnchor="middle">{rank}</text>
         </svg>
+      )}
+      {level !== undefined && (
+        <span className="player-avatar-level" aria-label={`Level ${level}`}>
+          {level}
+        </span>
       )}
     </span>
   );

@@ -21,6 +21,31 @@ function winRate(wins: number, games: number) {
   return `${Math.round((wins / games) * 100)}%`;
 }
 
+/** XP at which a level begins — mirrors private.xp_level_for in SQL: level L
+ * starts at 100 * L*(L-1)/2 XP. */
+function xpForLevelStart(level: number) {
+  return (100 * level * (level - 1)) / 2;
+}
+
+/** Progress toward the next level (F3.2). */
+function ProfileXpBar({ level, xp }: { level: number; xp: number }) {
+  const start = xpForLevelStart(level);
+  const next = xpForLevelStart(level + 1);
+  const into = xp - start;
+  const span = next - start;
+  const pct = span > 0 ? Math.min(100, Math.round((into / span) * 100)) : 0;
+  return (
+    <div className="profile-xp">
+      <div className="profile-xp-track" role="progressbar" aria-valuemin={0} aria-valuemax={span} aria-valuenow={into}>
+        <span style={{ width: `${pct}%` }} />
+      </div>
+      <small>
+        {xp.toLocaleString()} XP · {(next - xp).toLocaleString()} to level {level + 1}
+      </small>
+    </div>
+  );
+}
+
 /**
  * A player's stats (docs/COMPETITIVE_ROADMAP.md F3.1), shown on their own
  * profile page and in the seat-avatar profile modal. Purely presentational:
@@ -30,6 +55,8 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
   const {
     displayName,
     avatarId,
+    level,
+    xp,
     gamesPlayed,
     wins,
     winRateByMode,
@@ -58,7 +85,13 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
           <strong>{displayName}</strong>
           <small>{isSelf ? "This is you" : "At the table"}</small>
         </div>
+        <span className="profile-level" aria-label={`Level ${level}, ${xp} XP`}>
+          <b>{level}</b>
+          <small>LEVEL</small>
+        </span>
       </div>
+
+      <ProfileXpBar level={level} xp={xp} />
 
       {!played ? (
         <p className="profile-stats-empty">

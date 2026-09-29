@@ -621,7 +621,12 @@ export function RoomLobby({
                     displayName={player.displayName}
                     isBot={player.isBot}
                   >
-                    <PlayerAvatar player={player} size={44} className="lobby-avatar" />
+                    <PlayerAvatar
+                      player={player}
+                      size={44}
+                      className="lobby-avatar"
+                      level={player.isBot ? undefined : player.level}
+                    />
                   </PlayerProfileButton>
                 ) : (
                   <span className="lobby-avatar" style={{ borderColor: COLORS[color] }}>+</span>

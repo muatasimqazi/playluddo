@@ -44,6 +44,8 @@ export interface Player {
   avatarId?: string;
   /** ISO 3166-1 alpha-2 country code from the player's profile. */
   country?: string;
+  /** Equipped cosmetics (F3.5), keyed by type — visible to everyone at the table. */
+  cosmetics?: Partial<Record<"board" | "piece" | "dice" | "room" | "reaction", string>>;
 }
 
 /**

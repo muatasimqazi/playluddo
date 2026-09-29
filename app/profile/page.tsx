@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { getMyProfile, type PlayerProfile } from "@/lib/supabase/profile";
 import { ProfileCard } from "@/components/profile/ProfileCard";
+import { CosmeticsLocker } from "@/components/profile/CosmeticsLocker";
 import { Icon } from "@/components/simulator/Icon";
 import "@/components/simulator/simulator.css";
 
@@ -100,7 +101,10 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : profile && profile.visibility === "visible" ? (
-          <ProfileCard profile={profile} />
+          <>
+            <ProfileCard profile={profile} />
+            <CosmeticsLocker />
+          </>
         ) : (
           <p className="leaderboard-message">Play a match to start your profile.</p>
         )}

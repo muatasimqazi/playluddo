@@ -98,6 +98,17 @@ function plural(count: number, one: string, many = `${one}s`) {
   return `${count} ${count === 1 ? one : many}`;
 }
 
+// Board cosmetics (F3.5) map to the board styles the scene already draws
+// (each style carries its own matching pieces). A player's equipped board
+// wins over their local board-style preference; other types (dice, room,
+// reaction packs) are earnable now and rendered in a follow-up.
+const BOARD_COSMETIC_STYLE: Record<string, BoardStyle> = {
+  board_signature: "signature",
+  board_classic: "classic",
+  board_geometric: "geometric",
+  board_aladdin: "aladdin",
+};
+
 /** One short line per player on the victory panel. */
 function statsLine(stats: MatchStats, snakes: boolean) {
   const parts = snakes
@@ -346,6 +357,9 @@ export default function Simulator({
       ? { ...loadPreferences("blue"), view: "table" as const, actionCamera: "cinematic" as const, immersive: false }
       : loadPreferences(me?.color ?? "blue"),
   );
+  // A signed-in player's equipped board cosmetic overrides the local pref.
+  const effectiveBoardStyle: BoardStyle =
+    (me?.cosmetics?.board && BOARD_COSMETIC_STYLE[me.cosmetics.board]) || prefs.boardStyle;
   const screenQuality = useAdaptiveQuality(screen);
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
@@ -744,7 +758,7 @@ export default function Simulator({
           reactions={reactions}
           speakingPlayerIds={voice?.speakingPlayerIds}
           soundEnabled={prefs.sound}
-          boardStyle={prefs.boardStyle}
+          boardStyle={effectiveBoardStyle}
           hideLabels={prefs.immersive}
           brightness={prefs.brightness}
           saturation={prefs.saturation}

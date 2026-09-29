@@ -5297,6 +5297,85 @@ body.sim-piece-hover .sim-canvas {
   font-size: 11px;
   line-height: 1.35;
 }
+.cosmetics-locker {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cosmetics-note {
+  margin: -6px 0 0;
+  font-size: 11px;
+  color: #c0c8b5;
+}
+.cosmetics-group h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  color: #e6e7d6;
+  font-weight: 600;
+}
+.cosmetics-group ul {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cosmetics-group li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid #ffffff1a;
+  border-radius: 9px;
+  background: #16221b8c;
+}
+.cosmetics-group li.is-locked {
+  opacity: 0.55;
+}
+.cosmetics-group li > span {
+  flex: 1;
+  min-width: 0;
+}
+.cosmetics-group strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #f1ead7;
+}
+.cosmetics-group small {
+  color: #c0c8b5;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.cosmetics-group button {
+  flex: none;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 30px;
+  border: 1px solid #d8bd7f66;
+  background: #26372ec4;
+  color: #f1ead7;
+  font-size: 12px;
+}
+.cosmetics-group button:disabled {
+  opacity: 0.6;
+}
+.cosmetics-equipped {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: #263324;
+  background: #dcca9f;
+  border-radius: 30px;
+  padding: 5px 12px;
+}
+.cosmetics-lock {
+  flex: none;
+  font-size: 13px;
+}
 .profile-stats-empty {
   margin: 0;
   color: #c0c8b5;

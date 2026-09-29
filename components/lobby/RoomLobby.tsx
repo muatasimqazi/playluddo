@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -8,6 +8,7 @@ import {
   setPlayerColor,
   setRoomGame,
   setRoomMaxPlayers,
+  partyHeartbeat,
   setRoomRules,
   startMatch,
 } from "@/lib/supabase/rpc";
@@ -41,6 +42,16 @@ export function RoomLobby({
     "code" | "link" | "shared" | null
   >(null);
   const occupiedCount = state?.players.length ?? 1;
+  const isParty = state?.isParty ?? false;
+  // Party rooms (docs/COMPETITIVE_ROADMAP.md Section 6, P2): tell the server
+  // this phone is still here, so the VIP role moves on if the VIP leaves.
+  useEffect(() => {
+    if (!isParty) return;
+    const beat = () => void partyHeartbeat(client, roomId).catch(() => {});
+    beat();
+    const timer = setInterval(beat, 10_000);
+    return () => clearInterval(timer);
+  }, [client, roomId, isParty]);
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);
@@ -190,7 +201,7 @@ export function RoomLobby({
               <Icon name="rotate" /> Flip board
             </button>
           ) : (
-            <small>The host chooses the board</small>
+            <small>{isParty ? "The VIP chooses the board" : "The host chooses the board"}</small>
           )}
         </div>
         <p className="lobby-game-rules">
@@ -412,7 +423,9 @@ export function RoomLobby({
             <Icon name="arrow" />
           </button>
         ) : (
-          <p className="lobby-wait">Your host will start the match shortly.</p>
+          <p className="lobby-wait">
+            {isParty ? "The VIP will start the game shortly." : "Your host will start the match shortly."}
+          </p>
         )}
         {error && (
           <p className="lobby-error" role="alert">

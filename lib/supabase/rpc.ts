@@ -199,6 +199,11 @@ export function createPartyRoom(client: SupabaseClient, gameType: GameType) {
   });
 }
 
+/** "Still here" from a phone in a party lobby, every 10 seconds; hands on the VIP role if the VIP is gone. */
+export function partyHeartbeat(client: SupabaseClient, roomId: string) {
+  return call<void>(client, "party_heartbeat", { p_room_id: roomId });
+}
+
 /** The screen's view of its party room. ROOM_NOT_FOUND unless this session is its screen. */
 export function getPartyScreen(client: SupabaseClient, roomId: string) {
   return call<GameRoomState>(client, "get_party_screen", { p_room_id: roomId });

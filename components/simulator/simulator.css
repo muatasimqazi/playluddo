@@ -4198,3 +4198,144 @@ body.sim-piece-hover .sim-canvas {
   font-size: 12px;
   white-space: nowrap;
 }
+/* Party Mode's shared screen (components/party/PartyScreen.tsx). Sized to
+   read from a sofa: large code, large QR, seats with room to breathe. */
+.party-start {
+  width: min(520px, calc(100vw - 32px));
+}
+.party-start h1 {
+  font-size: 44px;
+}
+.party-hint {
+  margin-top: 16px !important;
+  color: var(--sim-muted) !important;
+  font-size: 13px !important;
+}
+.party-error {
+  margin-top: 12px;
+  color: #f0b2a6;
+  font-size: 13px;
+}
+.party-lobby {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px 56px;
+  align-items: center;
+  width: min(1180px, calc(100vw - 64px));
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 64px 0;
+}
+.party-join h1 {
+  margin: 14px 0 18px;
+  font: 400 clamp(40px, 5vw, 72px) / 1.05 Georgia, serif;
+}
+.party-join h1 em {
+  color: #d6c497;
+}
+.party-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding-left: 22px;
+  color: #d8dccd;
+  font-size: clamp(15px, 1.5vw, 20px);
+}
+.party-steps strong {
+  color: var(--sim-ink);
+}
+.party-code {
+  margin: 0;
+  color: var(--sim-ink);
+  font: 500 clamp(56px, 8vw, 112px) / 1 ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.12em;
+}
+.party-qr {
+  width: clamp(220px, 26vw, 340px);
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 80px #0a100b80;
+}
+.qr-code {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.party-seats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.party-seats li {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  border: 1px solid var(--sim-line);
+  border-radius: 14px;
+  background: #1e2a22b3;
+  text-align: center;
+}
+.party-seats li.is-taken {
+  border-color: #d8bd7f66;
+}
+.party-seats strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(16px, 1.6vw, 22px);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.party-seats small {
+  color: var(--sim-muted);
+  font-size: clamp(12px, 1.1vw, 15px);
+}
+.party-seat-empty {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border: 1px dashed var(--sim-line);
+  border-radius: 50%;
+  color: var(--sim-muted);
+  font-size: 28px;
+}
+.party-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #d8dccd;
+  font-size: clamp(15px, 1.4vw, 19px);
+  text-align: center;
+}
+@media (max-width: 800px) {
+  .party-lobby {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .party-steps {
+    text-align: left;
+  }
+  .party-seats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* The party screen scrolls as a page if it runs taller than the screen,
+   with the backdrop pinned behind it (as .room-lobby-page does). */
+.sim-entrance.party-screen {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+.party-screen .entrance-bg-image,
+.party-screen .entrance-shade {
+  position: fixed;
+}

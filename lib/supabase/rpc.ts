@@ -37,6 +37,8 @@ export type RpcErrorCode =
   | "AGE_RESTRICTED"
   | "AGE_ALREADY_DECLARED"
   | "INVALID_BIRTH_DATE"
+  | "PARTY_ROOM"
+  | "DISPLAY_CANNOT_SIT"
   | "UNKNOWN";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
@@ -67,6 +69,8 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<RpcErrorCode>([
   "AGE_RESTRICTED",
   "AGE_ALREADY_DECLARED",
   "INVALID_BIRTH_DATE",
+  "PARTY_ROOM",
+  "DISPLAY_CANNOT_SIT",
 ]);
 
 export class RpcError extends Error {
@@ -186,6 +190,18 @@ export function setRoomGame(
     p_room_id: roomId,
     p_game_type: gameType,
   });
+}
+
+/** Party Mode (docs/COMPETITIVE_ROADMAP.md Section 6): start a room from the shared screen. */
+export function createPartyRoom(client: SupabaseClient, gameType: GameType) {
+  return call<{ roomId: string; code: string }>(client, "create_party_room", {
+    p_game_type: gameType,
+  });
+}
+
+/** The screen's view of its party room. ROOM_NOT_FOUND unless this session is its screen. */
+export function getPartyScreen(client: SupabaseClient, roomId: string) {
+  return call<GameRoomState>(client, "get_party_screen", { p_room_id: roomId });
 }
 
 /** What the signed-in player may do (docs/COMPETITIVE_ROADMAP.md F0.4). Never carries birth data. */

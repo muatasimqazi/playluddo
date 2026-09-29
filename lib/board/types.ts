@@ -91,6 +91,8 @@ export interface RoomRules {
   snakesAnyRollToStart: boolean;
   /** Snakes & Ladders (F2.6): overshooting 100 bounces back instead of not moving. */
   snakesBounceBack: boolean;
+  /** Snakes & Ladders (F2.6): which printed board to play on — 0 (default) or 1. */
+  snakesBoard: number;
   /** Rush mode (F2.3): minutes on the match clock — 0 for no clock, or 5 or 10. */
   matchMinutes: number;
   /** Blockades (F2.4): two pieces of one colour on an unsafe square stop everyone else. */

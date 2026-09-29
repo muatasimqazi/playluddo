@@ -34,7 +34,7 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { hapticTap, useCoarsePointer } from "@/lib/hooks/useCoarsePointer";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
-import { SNAKES } from "@/lib/board/snakes";
+import { snakesLayout } from "@/lib/board/snakes";
 import { BASE_AREA } from "@/components/arena/boardLayout";
 import {
   BOARD_SIZE,
@@ -62,6 +62,7 @@ import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
+import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
 import { makeBoardTexture, makeTongueTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
@@ -95,6 +96,8 @@ export interface SceneProps {
   preview?: boolean;
   soundEnabled?: boolean;
   boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
+  /** Snakes & Ladders (F2.6): which printed board — 0 (default) or 1. */
+  snakesBoard?: number;
   hideLabels?: boolean;
   brightness?: number;
   saturation?: number;
@@ -829,13 +832,16 @@ function BoardObject(props: SceneProps) {
   // all five boards, and for SVGs with no pixel size (width="100%") it
   // failed outright with WebGL "bad image data" / "Texture is immutable".
   // Keep in sync with BOARD_IMAGE_SOURCES in lib/presentation/preloadScene.ts.
+  // Only the chosen Snakes & Ladders board is fetched (F2.6), so the default
+  // game never pays for the second board's artwork.
+  const snakeSrc = (props.snakesBoard === 1 ? snakeArtwork2 : snakeArtwork).src as string;
   const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, snakeSource] =
     useLoader(THREE.ImageLoader, [
       boardArtwork.src,
       classicBoardArtwork.src as string,
       geometricBoardArtwork.src as string,
       aladdinBoardArtwork.src as string,
-      snakeArtwork.src as string,
+      snakeSrc,
     ]);
   // Vector boards are rasterized once into a texture. On a desktop screen
   // at 2x the board spans ~2000 device px at its near edge, so 2048 gets
@@ -1065,7 +1071,7 @@ function BoardObject(props: SceneProps) {
       </group>
       {props.gameType === "snakes_and_ladders" && (
         <group ref={snakeHeads}>
-          <SnakeHeads />
+          <SnakeHeads snakesBoard={props.snakesBoard} />
         </group>
       )}
     </group>
@@ -1202,7 +1208,7 @@ function TurnBaseGlow({
  * head/tail squares regardless of board layout changes.
  */
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
-function SnakeHeads() {
+function SnakeHeads({ snakesBoard }: { snakesBoard?: number }) {
   const tongueTexture = useMemo(() => makeTongueTexture(), []);
   useEffect(() => () => tongueTexture.dispose(), [tongueTexture]);
   const tongueGeometry = useMemo(() => {
@@ -1213,7 +1219,7 @@ function SnakeHeads() {
   useEffect(() => () => tongueGeometry.dispose(), [tongueGeometry]);
   const snakes = useMemo(
     () =>
-      Object.entries(SNAKES).map(([head, tail], i) => {
+      Object.entries(snakesLayout(snakesBoard).snakes).map(([head, tail], i) => {
         const headSquare = Number(head);
         const [hx, hy, hz] = snakeSquarePoint(headSquare);
         const [tx, , tz] = snakeSquarePoint(tail);
@@ -1230,7 +1236,7 @@ function SnakeHeads() {
           pause: 1 + (i % 4) * 0.3,
         };
       }),
-    [],
+    [snakesBoard],
   );
   const tongues = useRef<(THREE.Mesh | null)[]>([]);
   const cycles = useRef(

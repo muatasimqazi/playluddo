@@ -446,6 +446,34 @@ export function RoomLobby({
             </div>
           </div>
         )}
+        {host && state.gameType === "snakes_and_ladders" && (
+          <div className="lobby-player-count lobby-house-rule lobby-length">
+            <span>
+              <span className="eyebrow">BOARD</span>
+              <strong>{rules.snakesBoard === 1 ? "Second board" : "Original board"}</strong>
+              <small>Two printed boards, each with its own snakes and ladders</small>
+            </span>
+            <div className="lobby-length-choices">
+              {[0, 1].map((board) => (
+                <button
+                  key={board}
+                  type="button"
+                  className={rules.snakesBoard === board ? "is-selected" : ""}
+                  aria-pressed={rules.snakesBoard === board}
+                  disabled={pending}
+                  onClick={() =>
+                    void run(async () => {
+                      const next = await setRoomRules(client, roomId, { ...rules, snakesBoard: board });
+                      useRoomStore.getState().setRoomState(next);
+                    })
+                  }
+                >
+                  {board === 0 ? "Original" : "Second"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {host && state.gameType === "snakes_and_ladders" &&
           ([
             ["snakesAnyRollToStart", "Any roll to start", "Your piece joins the board on any roll, not just a six"],

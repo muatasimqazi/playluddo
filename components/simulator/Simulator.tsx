@@ -721,6 +721,7 @@ export default function Simulator({
         <Scene
           loadingLabel="Preparing your table"
           gameType={state.gameType}
+          snakesBoard={snakes ? (state.rules?.snakesBoard ?? 0) : 0}
           frame={frame}
           players={state.players}
           myPlayerId={localPlay ? null : myPlayerId}

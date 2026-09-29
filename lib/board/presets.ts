@@ -98,6 +98,7 @@ export function describeRules(rules: Partial<RoomRules> | null | undefined, game
     if (!r.bonusRollOnFinish) parts.push("no extra roll for getting home");
   } else {
     parts.push("Snakes & Ladders");
+    if (r.snakesBoard === 1) parts.push("second board");
     if (r.snakesAnyRollToStart) parts.push("any roll to start");
     if (r.snakesBounceBack) parts.push("bounce back off 100");
   }

@@ -248,7 +248,7 @@ function snakePracticeReducer(
   const pawn = state.pawns.find(
     (p) => p.color === player.color && p.state !== "finished",
   )!;
-  const move = snakeMove(state.pawns, player.color, action.value);
+  const move = snakeMove(state.pawns, player.color, action.value, state.rules);
   const pawns = move ? applySnakeMove(state.pawns, move) : state.pawns;
   const winnerIds = move?.finishesPawn
     ? [...state.winnerIds, player.id]

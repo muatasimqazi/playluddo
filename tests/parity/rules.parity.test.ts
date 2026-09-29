@@ -74,11 +74,15 @@ it("Snakes & Ladders SQL and practice agree for every square and die", async () 
     fixtures.map((f) => snakeMove(f.pawns, "red", f.die)),
   );
 
-  // The variants (F2.6): any roll to start, and bouncing back off 100.
+  // The variants (F2.6): any roll to start, bouncing back off 100, and the
+  // second board — each on its own and combined.
   for (const rules of [
     { snakesAnyRollToStart: true },
     { snakesBounceBack: true },
     { snakesAnyRollToStart: true, snakesBounceBack: true },
+    { snakesBoard: 1 },
+    { snakesBoard: 1, snakesBounceBack: true },
+    { snakesBoard: 1, snakesAnyRollToStart: true, snakesBounceBack: true },
   ]) {
     const variant = await client.query(
       `select private.snakes_move(f->'pawns', 'red', (f->>'die')::int, $2::jsonb) as move

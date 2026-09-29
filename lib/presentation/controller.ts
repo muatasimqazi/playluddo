@@ -1,5 +1,5 @@
 import { isSafeCell, pathIndexToGlobalCell, PATH_INDEX, tileIdToPathIndex } from "../board/geometry";
-import { LADDERS, SNAKES } from "../board/snakes";
+import { snakesLayout } from "../board/snakes";
 import type { GameRoomState, LegalMove, Pawn, Player } from "../board/types";
 
 /**
@@ -80,14 +80,15 @@ export interface MovePreview {
 export function describeMove(state: GameRoomState, move: LegalMove): MovePreview {
   const pawn = state.pawns.find((p) => p.id === move.pawnId);
   if (state.gameType === "snakes_and_ladders") {
+    const { ladders, snakes } = snakesLayout(state.rules?.snakesBoard);
     const to = Number(move.toTileId.split(":")[1]);
     const landing = move.landingSquare ?? to;
     const text =
       pawn?.pathIndex === null
         ? `Onto the board at square ${to}`
-        : LADDERS[landing] === to
+        : ladders[landing] === to
           ? `Climbs the ladder from ${landing} to ${to}`
-          : SNAKES[landing] === to
+          : snakes[landing] === to
             ? `Slides down the snake from ${landing} to ${to}`
             : to === 100
               ? "Reaches square 100 and wins"

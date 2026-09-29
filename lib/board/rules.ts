@@ -191,6 +191,7 @@ export const DEFAULT_ROOM_RULES: RoomRules = {
   captureToEnterHome: false,
   snakesAnyRollToStart: false,
   snakesBounceBack: false,
+  snakesBoard: 0,
   matchMinutes: 0,
   blockades: false,
   turnSeconds: 15,
@@ -214,6 +215,7 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
     resolved.snakesAnyRollToStart = rules.snakesAnyRollToStart;
   if (typeof rules?.snakesBounceBack === "boolean")
     resolved.snakesBounceBack = rules.snakesBounceBack;
+  if (typeof rules?.snakesBoard === "number") resolved.snakesBoard = rules.snakesBoard;
   if (typeof rules?.matchMinutes === "number") resolved.matchMinutes = rules.matchMinutes;
   if (typeof rules?.blockades === "boolean") resolved.blockades = rules.blockades;
   if (typeof rules?.turnSeconds === "number") resolved.turnSeconds = rules.turnSeconds;

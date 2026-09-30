@@ -1949,8 +1949,7 @@ body.sim-die-blocked .sim-canvas {
   font-weight: 500;
   line-height: 1.4;
 }
-.entrance-header-actions .profile-trigger small,
-.entrance-header-actions .language-switcher select {
+.entrance-header-actions .profile-trigger small {
   font-size: inherit;
 }
 /* Header pills. A leading avatar circle sits 4px in from the pill's edge on
@@ -4812,9 +4811,9 @@ body.sim-die-blocked .sim-canvas {
     min-height: 52px;
   }
 }
-/* Narrow phones: the language pill shrinks to its globe (the native picker
-   still opens on tap, laid invisibly over it) so the header's last button —
-   the profile — isn't pushed off the right edge. */
+/* Narrow phones: the language pill shrinks to its globe (the picker still
+   opens on tap, and its sheet names the current language) so the header's
+   last button — the profile — isn't pushed off the right edge. */
 @media (max-width: 430px) {
   .entrance-header-actions .language-switcher {
     position: relative;
@@ -4822,11 +4821,9 @@ body.sim-die-blocked .sim-canvas {
     padding: 0;
     gap: 0;
   }
-  .entrance-header-actions .language-switcher select {
-    position: absolute;
-    inset: 0;
-    max-width: none;
-    opacity: 0;
+  .entrance-header-actions .language-switcher-label,
+  .entrance-header-actions .language-switcher-chevron {
+    display: none;
   }
 }
 /* Phones: keep the four-tile mark and drop the wordmark, as the game header
@@ -6713,11 +6710,12 @@ body.sim-die-blocked .sim-canvas {
   line-height: 1.4;
 }
 
-/* F5.1 Localization — the language picker in the entrance header. Reuses the
-   .profile-trigger pill; the native <select> is made transparent so it reads
-   as part of the pill rather than an OS form control. */
+/* F5.1 Localization — the language picker (components/i18n/LanguageSwitcher).
+   The trigger reuses the .profile-trigger pill; the picker is a <dialog>:
+   a menu anchored under the pill (its position comes in as --menu-top /
+   --menu-left) on wide screens, a bottom sheet on phones. */
 .language-switcher {
-  gap: 6px;
+  gap: 7px;
   cursor: pointer;
 }
 .language-switcher-icon {
@@ -6725,31 +6723,151 @@ body.sim-die-blocked .sim-canvas {
   align-items: center;
   color: #cdd6c2;
 }
-.language-switcher select {
-  appearance: none;
-  -webkit-appearance: none;
-  border: 0;
+.language-switcher-chevron {
+  flex: none;
+  margin-inline-start: -2px;
+  opacity: 0.7;
+  transition: transform 0.18s;
+}
+.language-switcher[aria-expanded="true"] .language-switcher-chevron {
+  transform: rotate(180deg);
+}
+.language-menu {
+  position: fixed;
+  inset: auto;
+  top: var(--menu-top, 72px);
+  left: var(--menu-left, 12px);
+  width: 248px;
+  max-height: calc(100% - var(--menu-top, 72px) - 12px);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid #e4dbc347;
+  border-radius: 14px;
+  background: #202e26f7;
+  box-shadow: 0 22px 60px #07100a99;
+  color: #f2eddf;
+  overscroll-behavior: contain;
+}
+.language-menu[open] {
+  animation: language-menu-in 160ms ease-out;
+}
+.language-menu::backdrop {
   background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 10px;
-  padding: 2px 2px;
-  max-width: 130px;
-  /* Hug the chosen language's name instead of reserving the width of the
-     longest option (browsers without field-sizing keep the old width). */
-  field-sizing: content;
-  cursor: pointer;
 }
-.language-switcher select:focus-visible {
-  outline: 2px solid #f7c94a;
-  outline-offset: 2px;
-  border-radius: 4px;
+.language-menu-body {
+  padding: 6px;
 }
-/* The dropdown list is drawn by the OS; force dark, readable option text since
-   the pill background it inherits from is dark/translucent. */
-.language-switcher select option {
-  color: #1d1d1f;
-  background: #fff;
+.language-menu-grip,
+.language-menu h2 {
+  display: none;
+}
+.language-menu [role="listbox"] {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.language-menu [role="option"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: none;
+  color: #e4e7db;
+  text-align: start;
+}
+.language-menu [role="option"]:hover,
+.language-menu [role="option"]:focus-visible {
+  background: #ffffff12;
+  outline: none;
+}
+.language-menu [role="option"].is-selected {
+  border-color: #d8bd7f80;
+  background: rgba(116, 104, 68, 0.45);
+  color: #f1ead7;
+}
+.language-menu [role="option"] > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.language-menu [role="option"] strong {
+  font-size: 14px;
+  font-weight: 500;
+  /* Keep each endonym aligned with the list, whatever its own direction. */
+  text-align: start;
+  unicode-bidi: plaintext;
+}
+.language-menu [role="option"] small {
+  color: var(--sim-muted, #b6baac);
+  font-size: 11px;
+}
+.language-menu [role="option"] svg {
+  flex: none;
+  color: #e9d6a5;
+}
+@keyframes language-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (max-width: 700px) {
+  .language-menu {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 85%;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+  }
+  .language-menu[open] {
+    animation: entrance-sheet-up 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .language-menu::backdrop {
+    background: #111a14a8;
+    backdrop-filter: blur(10px);
+  }
+  .language-menu-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .language-menu-grip {
+    display: block;
+    align-self: center;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ffffff40;
+  }
+  .language-menu h2 {
+    display: block;
+    margin: 0 8px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 24px;
+    font-weight: 400;
+  }
+  /* Two columns of thumb-sized rows: all eight languages at once, no scroll. */
+  .language-menu [role="listbox"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .language-menu [role="option"] {
+    min-height: 56px;
+    border-color: var(--sim-line, #e9e7d326);
+    background: rgba(26, 36, 30, 0.48);
+  }
 }
 
 /* F5.1 — RTL support. Direction on <html> flips flex rows and text alignment

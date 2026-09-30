@@ -1,13 +1,39 @@
 # Competitive Roadmap: Matching and Beating Ludo King
 
-**Status:** Draft for review · **Created:** 2026-09-28
+**Status:** In progress · **Created:** 2026-09-28 · **Reconciled with the code:** 2026-09-30
 **Companion docs:** [`PRD.md`](PRD.md) (original MVP scope) · [`IMPLEMENTATION_HANDOFF.md`](IMPLEMENTATION_HANDOFF.md) (schema, RPC contracts) · [`SNAKES_AND_LADDERS.md`](SNAKES_AND_LADDERS.md)
 
-This document compares selected features of Ludo King (and, where relevant, Ludo Club and Ludo STAR) with Luddo House, plus the places where we can offer a different experience. Each feature has an ID, the competitor baseline, **our version**, implementation notes, acceptance criteria, and a size estimate. Check a box when a feature ships and link the PR.
+This document compares selected features of Ludo King (and, where relevant, Ludo Club and Ludo STAR) with Luddo House, plus the places where we can offer a different experience. Each feature has an ID, the competitor baseline, **our version**, implementation notes, acceptance criteria, and a size estimate. Each feature heading carries a status mark (✅ built · ◐ partly built · ☐ not started) and a **Status** line linking its commits. Section 0 summarizes both.
 
 **Audit revision (2026-09-28):** factual corrections are incorporated below. Each affected feature has an **Also see** line naming the Section 15 recommendations that apply to it; R11 (release, accessibility and doc reconciliation) applies to every feature. Section 15 contains proposed implementation requirements, linked to the affected features. Section 12 records all 18 product decisions (2026-09-28), and the feature text has been updated to match them. A Section 15 item is approved only where a decision or the feature text adopts it; the rest are proposals to settle before treating a feature as ready to build.
 
 Sizes: **S** ≈ 1–2 days · **M** ≈ 3–5 days · **L** ≈ 1–2 weeks · **XL** > 2 weeks.
+
+---
+
+## 0. Implementation status (2026-09-30)
+
+Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merged. Each acceptance criterion has **not** been re-verified item by item; ◐ and ☐ entries list what is known to be missing.
+
+**Built but switched off.** Three server feature flags are still off, so none of these features is live yet: `online_age_check` (F0.4), `push_notifications` (F1.7) and `video_chat` (V0–V4). Video must stay off until V4 is complete.
+
+**What's missing**
+
+| Feature | Status | Missing |
+|---|---|---|
+| F0.4 Age check | ◐ | Guest→account answer carry-over (identity linking), the 30-day under-13 cleanup job, privacy and terms wording, the legal review for signed-in under-13s |
+| V1 TURN relay | ◐ | ICE-failure tracking in PostHog; the cellular-to-cellular check |
+| V3 Video in the 3D table | ◐ | `VideoTexture` on seat figures, frame-rate fallback, off-screen pause, mobile-data warning (the 2D tile strip is built) |
+| V4 Video safety | ◐ | Report on each video tile; privacy, terms and store privacy disclosures; store review notes |
+| V5 Party-screen video and voice | ☐ | All of it |
+| V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
+| F5.1 Localization | ◐ | Localized store listings; the 360px screenshot pass |
+| F5.5 Accessibility | ◐ | Pawn and seat symbols, colour-blind palette, screen-reader announcements, keyboard control, full reduced motion, VoiceOver/TalkBack audit |
+| F5.6 Store listings | ☐ | All of it |
+
+**Everything else is built:** F0.1–F0.3, F1.1–F1.7, P1–P8, V0, V2, F2.1–F2.6, F3.1–F3.7, F4.1–F4.5, F5.2.
+
+Section 15 (R1–R11) holds proposals, not features, so it isn't tracked here. R11's PRD and handoff reconciliation is still open.
 
 ---
 
@@ -47,7 +73,9 @@ We are not trying to out-content Ludo King. We aim to stand out on five things:
 
 ## 4. Phase 0: Foundations
 
-### F0.1 Unbiased dice ☐ · S
+### F0.1 Unbiased dice ✅ · S
+**Status (2026-09-30):** [`8387819`](https://github.com/muatasimqazi/playluddo/commit/8387819) — built.
+
 **Also see (Section 15):** R2
 
 **Problem:** online Ludo still rolls with `1 + (get_byte(gen_random_bytes(1), 0) % 6)` (historical definitions in `20260913222115_rpcs.sql:466` and `20260913225951_m3_timers_bots_reconnect.sql:93`; current Ludo definition in `20260918020000_snakes_and_ladders.sql:139`). No later migration fixes that Ludo path. 256 is not a multiple of 6, so faces 1–4 each have probability 43/256 and faces 5–6 each have 42/256. Snakes & Ladders already rejects bytes ≥252 in that same migration, lines 279–292. Offline `randomDie` also uses unbiased rejection sampling with `crypto.getRandomValues` (`lib/presentation/practice.ts:299–304`), not `Math.random`.
@@ -57,7 +85,9 @@ We are not trying to out-content Ludo King. We aim to stand out on five things:
 - Deterministic tests cover rejection and all 252 accepted byte values, with 42 values mapping to each face. Statistical sampling is a diagnostic with a documented threshold and false-failure policy, not the sole regression gate.
 - Preserve and test the already-unbiased offline roll path.
 
-### F0.2 Room rules config ☐ · M
+### F0.2 Room rules config ✅ · M
+**Status (2026-09-30):** [`d46bb58`](https://github.com/muatasimqazi/playluddo/commit/d46bb58) — built.
+
 **Also see (Section 15):** R9
 
 Add `rooms.rules jsonb not null default '{}'`, with a TypeScript `RoomRules` type and a SQL accessor holding the defaults. Every rule below becomes a key:
@@ -81,7 +111,9 @@ interface RoomRules {
 - Quick match offers canonical Classic and Quick presets (Quick arrives with F2.1), both with finish bonuses on and blockades off. Team Up is not available in quick match (Section 12, decisions 1, 2 and 4).
 - The rules are included in the room state JSON, and in the event payload at match start so replays stay correct.
 
-### F0.3 Match stats pipeline ☐ · M
+### F0.3 Match stats pipeline ✅ · M
+**Status (2026-09-30):** [`1292392`](https://github.com/muatasimqazi/playluddo/commit/1292392) — built.
+
 **Also see (Section 15):** R1 · R8
 
 Add a `private.match_stats(room_id)` function that derives, for each player: rolls, sixes, a histogram of faces 1–6, captures made, pawns lost, pawns finished, turns, missed decisions, and longest streak without a six. It derives from `match_events`, but the log doesn't yet record everything this needs: rematches reuse the room with no per-match id, and missed decisions change counters without an event. R1's additions come first. It is called at match completion, and its output is written to a `match_results` table (room_id, user_id, placement, stats jsonb, rules jsonb, finished_at).
@@ -90,7 +122,9 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 - Stats derived from the events match a parity fixture for a known game.
 - Guests get a `match_results` row with a null `user_id`, so the summary still works for them.
 
-### F0.4 Age check before online play ☐ · M
+### F0.4 Age check before online play ◐ · M
+**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. Missing: guest answers don't carry over to a signed-in account (`ProfilePanel.tsx` still uses `signInWithOAuth`/`signInWithOtp`, not identity linking); no scheduled job deletes inactive under-13 anonymous accounts after 30 days; the privacy policy doesn't yet mention birth month and year, and the terms don't state the 18+ video age. The legal review for signed-in under-13 accounts is still open.
+
 **Also see (Section 15):** R3 · R7 · R8
 
 **Decided (Section 12, question 5):** online play is **13+**. Under-13s keep offline practice and Table Together. Video (V0) reuses this answer with an 18+ threshold.
@@ -141,7 +175,9 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 
 ## 5. Phase 1: Quick wins
 
-### F1.1 Full end-of-game summary ☐ · S (after F0.3)
+### F1.1 Full end-of-game summary ✅ · S (after F0.3)
+**Status (2026-09-30):** [`a930b7c`](https://github.com/muatasimqazi/playluddo/commit/a930b7c) — built.
+
 **Also see (Section 15):** R1 · R8
 
 **Ludo King:** winner screen plus rewards.
@@ -151,7 +187,9 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 
 **Files:** `components/summary/MatchSummary.tsx` and the in-scene completion view in `components/simulator/Simulator.tsx`.
 
-### F1.2 Dice you can verify ☐ · M (after F0.1)
+### F1.2 Dice you can verify ✅ · M (after F0.1)
+**Status (2026-09-30):** [`f3e7bf8`](https://github.com/muatasimqazi/playluddo/commit/f3e7bf8) — built.
+
 **Also see (Section 15):** R2 · R8
 
 **Ludo King:** advertises RNG certification; no per-match seed-verification feature was identified in the reviewed official sources.
@@ -166,7 +204,9 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 - Tampering with any logged roll fails verification.
 - The seed is unreadable by any client role until the match ends (an RLS test).
 
-### F1.3 Reactions and quick phrases ☐ · S
+### F1.3 Reactions and quick phrases ✅ · S
+**Status (2026-09-30):** [`1ef5da2`](https://github.com/muatasimqazi/playluddo/commit/1ef5da2) — built.
+
 **Ludo King:** advertises emojis in its inventory; the size of its emoji, sticker and phrase sets wasn't verified.
 **Ours today:** 6 emoji (`Simulator.tsx`, reaction picker).
 **Ours next:** 24 emoji in themed rows, plus 12 quick phrases ("Nice move!", "So close!", "Your turn", "Good game", "Hurry up 😅"…). Phrases are localized with F5.1. Reactions show as a 3D speech bubble over the player's seat, with a short animation.
@@ -174,7 +214,9 @@ Bonus: **table-aware reactions**, e.g. a one-tap "Revenge!" that appears only ri
 **Acceptance:**
 - Rate limits and blocks apply exactly as they do for chat (see `send_table_message` and the moderation migration).
 
-### F1.4 Computer opponents with difficulty levels ☐ · M
+### F1.4 Computer opponents with difficulty levels ✅ · M
+**Status (2026-09-30):** [`3ba2fbd`](https://github.com/muatasimqazi/playluddo/commit/3ba2fbd) — built.
+
 **Ludo King:** offers play against the computer; whether it has difficulty levels wasn't established in the reviewed sources.
 **Ours today:** one fixed-priority computer (`lib/board/bot.ts`), mirrored in SQL.
 **Ours next:** Easy, Normal and Hard, for offline practice and Table Together only. Online computer players stay on the current SQL logic, so seats a computer takes over stay predictable.
@@ -186,21 +228,27 @@ Bonus: **table-aware reactions**, e.g. a one-tap "Revenge!" that appears only ri
 - Hard beats Normal in at least 65% of simulated 4-player games (add a simulation script under `scripts/`).
 - Difficulty is shown in the practice setup wizard and remembered per device.
 
-### F1.5 Extra roll for getting a pawn home (house rule) ☐ · S (after F0.2)
+### F1.5 Extra roll for getting a pawn home (house rule) ✅ · S (after F0.2)
+**Status (2026-09-30):** [`d46bb58`](https://github.com/muatasimqazi/playluddo/commit/d46bb58) — built.
+
 **Also see (Section 15):** R9
 
 **Competitor baseline:** the reviewed sources do not establish Ludo King's finish-bonus rule. Our default is a product decision, not a verified parity claim.
 **Ours today:** no extra roll (a PRD 4.2 decision).
 **Ours next:** a `bonusRollOnFinish` rule in both engines, plus parity vectors. **Default: on** (decided, Section 12 question 1), so this reverses PRD 4.2. Update `earnsBonusRoll` in `lib/board/rules.ts` and its SQL mirror, keeping the rule that a roll never earns more than one bonus. Update the How to play page (F1.6) and the PRD.
 
-### F1.6 How to play, and a first-game guide ☐ · S
+### F1.6 How to play, and a first-game guide ✅ · S
+**Status (2026-09-30):** [`d83190f`](https://github.com/muatasimqazi/playluddo/commit/d83190f) — built.
+
 **Ludo King:** its official FAQ describes tutorial videos accessible from game settings.
 **Ours:**
 - A `/how-to-play` page for Ludo and Snakes & Ladders, which shows **this room's** house rules when opened from a table.
 - A first practice game with contextual tips: "Roll a 6 to leave your base", "Stars are safe", "Capture to earn another roll". Each tip appears once and can be dismissed.
 - Also reachable from the in-game Controls & shortcuts panel.
 
-### F1.7 Push notifications ☐ · M
+### F1.7 Push notifications ✅ · M
+**Status (2026-09-30):** [`316c5fb`](https://github.com/muatasimqazi/playluddo/commit/316c5fb) — built behind the `push_notifications` flag, which is **off**.
+
 **Also see (Section 15):** R6 · R8
 
 **Ludo King:** reminders and friend requests.
@@ -239,7 +287,9 @@ The experience in one paragraph: someone opens **playluddo.com/screen** on a TV 
   - Phones use the normal `/room?id=…`. When the room is a party room, that page renders the controller instead of the 3D scene.
 - **Sound:** comes from the screen. Phones default to haptics only, with an option to turn their own sound on.
 
-### P1 Screen: create and pair ☐ · M
+### P1 Screen: create and pair ✅ · M
+**Status (2026-09-30):** [`da5b8b1`](https://github.com/muatasimqazi/playluddo/commit/da5b8b1) — built.
+
 **Also see (Section 15):** R4 · R8
 
 - `create_party_room()` RPC: creates a lobby room with **no host seat**, registers the caller as its display, and returns the room id and code. The caller is an anonymous session; no sign-in or age check is needed (Section 12, question 8).
@@ -251,14 +301,18 @@ The experience in one paragraph: someone opens **playluddo.com/screen** on a TV 
 - A display can't roll, move, chat or take a seat (pgTAP).
 - Reloading the screen reconnects it to the same room.
 
-### P2 VIP controls ☐ · S
+### P2 VIP controls ✅ · S
+**Status (2026-09-30):** [`be688aa`](https://github.com/muatasimqazi/playluddo/commit/be688aa) — built.
+
 **Also see (Section 15):** R4 · R8
 
 - The first phone to take a seat becomes the host (`host_player_id`). The VIP is shown with a crown on the TV.
 - From the phone, the VIP picks Ludo or Snakes & Ladders, a house-rules preset (F2.4), and fills empty seats with computers, then starts the game.
 - If the VIP leaves, the role passes to the next seat.
 
-### P3 Phone controller ☐ · L
+### P3 Phone controller ✅ · L
+**Status (2026-09-30):** [`39c8a10`](https://github.com/muatasimqazi/playluddo/commit/39c8a10) — built.
+
 **Also see (Section 15):** R4 · R8
 
 New `components/controller/` UI, shown when a seated player is in a party room:
@@ -271,7 +325,9 @@ New `components/controller/` UI, shown when a seated player is in a party room:
 - A full 4-phone game on one TV runs without anyone needing to look at another player's phone. Looking at the shared TV is the point.
 - A roll registers within 300 ms round-trip, with a pending state shown.
 
-### P4 The TV view ☐ · M
+### P4 The TV view ✅ · M
+**Status (2026-09-30):** [`aca78c6`](https://github.com/muatasimqazi/playluddo/commit/aca78c6) — built.
+
 **Also see (Section 15):** R4 · R8
 
 The existing `Simulator` in a **screen** variant:
@@ -280,7 +336,9 @@ The existing `Simulator` in a **screen** variant:
 - The TV shows the countdown to the turn timeout.
 - **Performance:** TV browsers are weak, so the screen defaults to the lowest quality preset and steps up if frame rate allows. The recommended setup is a laptop over HDMI, AirPlay, or Chromecast screen sharing.
 
-### P5 Reconnecting phones ☐ · S
+### P5 Reconnecting phones ✅ · S
+**Status (2026-09-30):** [`9061bc5`](https://github.com/muatasimqazi/playluddo/commit/9061bc5) — built.
+
 **Also see (Section 15):** R4 · R8
 
 Phones lock and apps get backgrounded far more often at a party:
@@ -288,7 +346,9 @@ Phones lock and apps get backgrounded far more often at a party:
 - In party rooms, a disconnected phone **pauses the table for up to 2 minutes** instead of handing the seat to a computer after 45 seconds. A computer takes over only after that.
 - The TV shows who it is waiting for.
 
-### P6 Audience ☐ · M
+### P6 Audience ✅ · M
+**Status (2026-09-30):** [`eebbcc1`](https://github.com/muatasimqazi/playluddo/commit/eebbcc1) — built.
+
 **Also see (Section 15):** R3 · R4 · R7 · R8
 
 Jackbox's best idea: everyone in the room gets to join in, not only the 4 players.
@@ -301,7 +361,9 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - The audience **never** affects the rules or the dice.
 - Voting goes through a rate-limited RPC (the same pattern as `send_table_message`).
 
-### P7 Party defaults and safety ☐ · S
+### P7 Party defaults and safety ✅ · S
+**Status (2026-09-30):** [`ac11d73`](https://github.com/muatasimqazi/playluddo/commit/ac11d73) — built.
+
 **Also see (Section 15):** R3 · R4 · R7 · R8
 
 - **Defaults:** 30-second turns, pausing on disconnect (P5), extra roll for getting home, and a Family preset.
@@ -311,7 +373,9 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - **Room access:** party rooms are private by link or QR only and never appear in quick match.
 - The screen can **lock the room** once the game starts, so only audience can join.
 
-### P8 Stretch: mixed rooms and party extras ☐ · L
+### P8 Stretch: mixed rooms and party extras ✅ · L
+**Status (2026-09-30):** [`9802f10`](https://github.com/muatasimqazi/playluddo/commit/9802f10) · [`ddbf3a6`](https://github.com/muatasimqazi/playluddo/commit/ddbf3a6) — Party-screen camera and microphone are V5, not built.
+
 **Also see (Section 15):** R3 · R4 · R5 · R7 · R8
 
 - **Mixed rooms:** some players are at the TV and others play remotely on the normal 3D view with voice chat. Voice for the whole living room can go through the screen device's microphone only when a signed-in 18+ operator authorizes it (V5, Section 12, question 11). Otherwise living-room players join voice from their own phones.
@@ -339,7 +403,9 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - **Permissions:** the iOS and Android apps only request microphone access, not camera.
 - **Privacy policy:** `app/privacy` says voice goes directly between devices and is never recorded. It must be updated for video, and for any relay or media server we add.
 
-### V0 Age check before video ☐ · S (after F0.4)
+### V0 Age check before video ✅ · S (after F0.4)
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — built behind the `video_chat` flag, which is **off**. The privacy-policy update in the acceptance list is still missing (see V4).
+
 **Also see (Section 15):** R3 · R5 · R8
 
 **Rule (decided, Section 12, question 5):** video is **18+**. Only eligible players can send **or** receive video. Everyone else keeps voice, chat and the full game.
@@ -367,7 +433,9 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - Deleting the account removes the declaration.
 - The privacy policy explains that we ask for birth month and year, why, and how long we keep it.
 
-### V1 Reliable connections: a TURN relay ☐ · S–M
+### V1 Reliable connections: a TURN relay ◐ · S–M
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Missing: ICE failures aren't reported to PostHog, so the <2% failure-rate target can't be measured. The two-phones-on-cellular check hasn't been recorded.
+
 **Also see (Section 15):** R5 · R6
 
 When two devices can't connect directly, a TURN server relays their media. Add a managed TURN service (for example Cloudflare's TURN service or Twilio's Network Traversal; pick one when implementing). Issue short-lived credentials from a Supabase Edge Function, fetched at join time, and never ship static credentials in the client.
@@ -376,7 +444,9 @@ This fixes voice first. Ship it on its own, before any video work.
 - Voice connects between two phones on separate cellular networks.
 - ICE failures are tracked in PostHog, with the failure rate below 2% after launch.
 
-### V2 Camera in the call ☐ · M
+### V2 Camera in the call ✅ · M
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — `useVoiceChat` generalized into `useTableCall`; native camera permissions added.
+
 **Also see (Section 15):** R5 · R6 · R8
 
 - Generalize `useVoiceChat` into a `useTableCall` hook with one audio track and one optional video track.
@@ -388,7 +458,9 @@ This fixes voice first. Ship it on its own, before any video work.
 - Turning the camera on or off updates for everyone within 1 second.
 - A 4-way video call over 10 minutes keeps the 3D scene at ≥ 30 fps on a recent phone, or falls back automatically (V3).
 
-### V3 Video in the 3D table ☐ · L
+### V3 Video in the 3D table ◐ · L
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) · [`e2706e5`](https://github.com/muatasimqazi/playluddo/commit/e2706e5) — only the 2D fallback is built (`components/simulator/VideoTiles.tsx`: mirrored self-preview, flip camera, hide everyone's video, block, enlarge). Missing: remote cameras as `VideoTexture`s on the 3D seat figures; automatic fallback on low frame rate; pausing off-screen video; the one-time mobile-data warning and lower default quality on cellular.
+
 **Also see (Section 15):** R5 · R6 · R8
 
 - **In 3D:** each remote camera is a three.js `VideoTexture` on the seat figure's face or portrait card, lit so it matches the scene. Your own camera shows as a small mirrored preview in the HUD.
@@ -402,7 +474,9 @@ This fixes voice first. Ship it on its own, before any video work.
 - **Mobile data:** a one-time warning before using video on a cellular connection, where the browser can detect it. Lower quality by default on cellular.
 - **Reduced motion:** no animated camera framing around video tiles.
 
-### V4 Safety ☐ · M
+### V4 Safety ◐ · M
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), and one tap hides all incoming video. Missing: a **Report** control on each video tile (tiles only offer block); privacy-policy and terms updates for camera, video and the TURN relay; the App Store privacy label and Play Data Safety updates; store review notes. Video must stay off until these ship.
+
 **Also see (Section 15):** R5 · R7 · R8
 
 Video carries the highest risk of any feature here. Everything below must ship before video is switched on for anyone.
@@ -414,6 +488,8 @@ Video carries the highest risk of any feature here. Everything below must ship b
 - **Store review:** private-room restrictions reduce exposure but do not guarantee approval. Complete platform-specific UGC review, moderation readiness, age-rating questionnaires, Apple privacy disclosures and Google Play Data Safety/target-audience declarations. Explain the actual controls in review notes (Section 15, R7).
 
 ### V5 Video and voice on the Party screen ☐ · L (after P4, P8 and V0–V4)
+**Status (2026-09-30):** not started.
+
 **Also see (Section 15):** R5 · R8
 
 **Decided (Section 12, question 11):** the Party screen can use its microphone and camera, and show remote players' video, **only when a signed-in, 18+ operator authorizes it**. The anonymous screen from decision 8 stays media-free.
@@ -430,6 +506,8 @@ Video carries the highest risk of any feature here. Everything below must ship b
 - **Controllers still send no video.** Living-room phones stay controllers only.
 
 ### V6 Media server, only if needed ☐ · L
+**Status (2026-09-30):** not started (conditional on measurements). The tests listed under V6 are also missing: `useTableCall` state-machine unit tests and the two-client fake-camera browser test.
+
 **Also see (Section 15):** R5 · R6
 
 Direct connections between four players are a candidate architecture, subject to device, thermal and network measurements. The threat model doesn't require a media server (Section 12, question 10). Evaluate a media server (an SFU; LiveKit or Cloudflare's realtime media service are possible options) if:
@@ -449,20 +527,26 @@ A media server means video passes through infrastructure operated by us or a pro
 
 All modes use F0.2's `rooms.rules` and ship in both engines with parity tests.
 
-### F2.1 Quick mode ☐ · M
+### F2.1 Quick mode ✅ · M
+**Status (2026-09-30):** [`8ff02a3`](https://github.com/muatasimqazi/playluddo/commit/8ff02a3) — built.
+
 **Also see (Section 15):** R9
 
 **Ludo King:** "a fast game to finish quickly".
 **Ours:** `mode: "quick"` with `startOnBoard` set to 1 and `pawnsToWin` set to 2 (both adjustable in a private room). The target is a median game under 7 minutes, measured with PostHog.
 Quick match gets a Classic/Quick choice.
 
-### F2.2 Master mode ☐ · M
+### F2.2 Master mode ✅ · M
+**Status (2026-09-30):** [`0e00498`](https://github.com/muatasimqazi/playluddo/commit/0e00498) — built.
+
 **Also see (Section 15):** R9
 
 **Competitor baseline:** Ludo STAR's current listing mentions capture-before-home, but names Classic, Arrow and Blitz rather than Master. Ludo Club's cited listing does not establish this capture rule. “Master” below is our mode name.
 **Ours:** `captureToEnterHome`. A `players.has_captured` flag is set on the first capture. Pawns that aren't eligible stop at the entry to the home lane, and the move is still legal. Opponent seat labels show a "can enter home" marker.
 
-### F2.3 Rush mode (timed) ☐ · M
+### F2.3 Rush mode (timed) ✅ · M
+**Status (2026-09-30):** [`ac3b702`](https://github.com/muatasimqazi/playluddo/commit/ac3b702) — built.
+
 **Also see (Section 15):** R9
 
 **Ludo Club:** games with a time limit.
@@ -471,7 +555,9 @@ Quick match gets a Classic/Quick choice.
 - The clock stops while the match is paused.
 - The turn in progress finishes before the game ends.
 
-### F2.4 House rules panel ☐ · L
+### F2.4 House rules panel ✅ · L
+**Status (2026-09-30):** [`316b5b6`](https://github.com/muatasimqazi/playluddo/commit/316b5b6) — built.
+
 **Also see (Section 15):** R9
 
 **Ludo King:** offers several named modes (Classic, Quick, Team Up and others); per-room rule customization wasn't established in the reviewed sources.
@@ -493,7 +579,9 @@ Everyone sees a one-line summary of the rules in the lobby and in the table menu
 - The allow-list is versioned data, so adding a combination needs no client release.
 - **Size:** L rather than M, because blockades need logic in both engines, not just a panel (R8).
 
-### F2.5 Team Up (2v2) ☐ · L
+### F2.5 Team Up (2v2) ✅ · L
+**Status (2026-09-30):** [`09aa384`](https://github.com/muatasimqazi/playluddo/commit/09aa384) · [`0c2dc5f`](https://github.com/muatasimqazi/playluddo/commit/0c2dc5f) · [`69e4877`](https://github.com/muatasimqazi/playluddo/commit/69e4877) — built.
+
 **Also see (Section 15):** R9
 
 **Ludo King:** 2v2 team games.
@@ -510,7 +598,9 @@ Everyone sees a one-line summary of the rules in the lobby and in the table menu
 - Parity vectors cover partner protection and moving your partner's pawns.
 - The summary shows team results.
 
-### F2.6 Snakes & Ladders variants ☐ · S
+### F2.6 Snakes & Ladders variants ✅ · S
+**Status (2026-09-30):** [`7335171`](https://github.com/muatasimqazi/playluddo/commit/7335171) · [`867205f`](https://github.com/muatasimqazi/playluddo/commit/867205f) — built.
+
 **Also see (Section 15):** R9
 
 Small additions that are only rule keys:
@@ -533,12 +623,16 @@ Rule for this whole phase: **everything is earned by playing, nothing is bought 
 
 **Offline games are local only (decided):** practice and Table Together can show stats and achievements on that device, but never add to account XP, leaderboards, trophies or team standings. The exact thresholds (how short is "trivially short", when repeat credit tails off) are set in R10's design and tuned from data.
 
-### F3.1 Player profile and stats ☐ · M (after F0.3)
+### F3.1 Player profile and stats ✅ · M (after F0.3)
+**Status (2026-09-30):** [`e79106e`](https://github.com/muatasimqazi/playluddo/commit/e79106e) — built.
+
 **Also see (Section 15):** R1 · R7 · R10
 
 Profile page: games played, win rate by mode, total captures, sixes, a head-to-head record against friends, best comeback, and favourite colour. Shown to others from a seat's avatar at the table, with a privacy setting to hide it.
 
-### F3.2 XP and levels ☐ · M (after F0.3)
+### F3.2 XP and levels ✅ · M (after F0.3)
+**Status (2026-09-30):** [`c30fe02`](https://github.com/muatasimqazi/playluddo/commit/c30fe02) — built.
+
 **Also see (Section 15):** R1 · R10
 
 XP is earned for finishing games (more for winning, and for playing with friends), with a daily first-win bonus. Levels are shown on seats. The existing `players.level` column is a placeholder waiting for this.
@@ -547,12 +641,16 @@ XP is earned for finishing games (more for winning, and for playing with friends
 - Quitting a game earns nothing.
 - Credit follows the "What counts" rules at the top of this phase: reduced against computers only, reduced for trivially short rules, diminishing for repeats, nothing offline.
 
-### F3.3 Daily streak ☐ · S
+### F3.3 Daily streak ✅ · S
+**Status (2026-09-30):** [`41793cc`](https://github.com/muatasimqazi/playluddo/commit/41793cc) — built.
+
 **Also see (Section 15):** R1 · R8 · R10
 
 A streak for playing at least one game a day, rewarding cosmetics at streak milestones (3, 7, 30 days). Streak freezes are earned, never sold. No spin wheel.
 
-### F3.4 Achievements on every platform ☐ · M
+### F3.4 Achievements on every platform ✅ · M
+**Status (2026-09-30):** [`4508d29`](https://github.com/muatasimqazi/playluddo/commit/4508d29) — built.
+
 **Also see (Section 15):** R1 · R8 · R10
 
 **Today:** 5 achievements, iOS Game Center only (`lib/gameCenter.ts`).
@@ -561,7 +659,9 @@ A streak for playing at least one game a day, rewarding cosmetics at streak mile
 - Shown on the web and Android, and mirrored to Game Center on iOS.
 - **Follow-up from decision 17:** today `components/simulator/Simulator.tsx:385` reports **offline practice wins** to Game Center: the Wins leaderboard plus the first-win, Ludo/Snakes-win and ten-wins achievements. When F3.4 ships, Game Center should mirror only eligible online results. Scores and achievements already reported can't be taken back, so either start a new Wins leaderboard ID for online wins only, or keep the existing one labelled as all wins. Decide this before F3.4 ships.
 
-### F3.5 Earned cosmetics ☐ · L
+### F3.5 Earned cosmetics ✅ · L
+**Status (2026-09-30):** [`150fffe`](https://github.com/muatasimqazi/playluddo/commit/150fffe) — built.
+
 **Also see (Section 15):** R8 · R10
 
 **Ludo King:** advertises an inventory of themes, dice and emojis; how much is bought versus earned wasn't verified.
@@ -576,7 +676,9 @@ A streak for playing at least one game a day, rewarding cosmetics at streak mile
 Equipped items are visible to everyone at the table. Colour-dependent cosmetics must pass F5.5's colour-blind checks.
 Nothing is sold for now; every cosmetic is earned (decided, Section 12, question 3).
 
-### F3.6 Friends and who's online ☐ · L
+### F3.6 Friends and who's online ✅ · L
+**Status (2026-09-30):** [`078b637`](https://github.com/muatasimqazi/playluddo/commit/078b637) — built.
+
 **Also see (Section 15):** R3 · R7 · R10
 
 **Ludo King:** its FAQ describes playing with Facebook friends; other friend-list features weren't verified.
@@ -586,7 +688,9 @@ Nothing is sold for now; every cosmetic is earned (decided, Section 12, question
 - **Invite to table** sends an in-app notice and a push (F1.7), and joins them in one tap.
 - Blocks (from the moderation migration) hide the blocked player everywhere.
 
-### F3.7 Recently played ☐ · S
+### F3.7 Recently played ✅ · S
+**Status (2026-09-30):** [`078b637`](https://github.com/muatasimqazi/playluddo/commit/078b637) — built.
+
 **Also see (Section 15):** R7 · R10
 
 "Play again with these people" on the home page, using your last 5 tables.
@@ -595,7 +699,9 @@ Nothing is sold for now; every cosmetic is earned (decided, Section 12, question
 
 ## 10. Phase 4: Competitive and social
 
-### F4.1 Tournaments ☐ · XL
+### F4.1 Tournaments ✅ · XL
+**Status (2026-09-30):** [`053800a`](https://github.com/muatasimqazi/playluddo/commit/053800a) · [`9464f40`](https://github.com/muatasimqazi/playluddo/commit/9464f40) — built.
+
 **Also see (Section 15):** R8 · R10
 
 **Ludo King:** 8-player tournaments.
@@ -608,7 +714,9 @@ Nothing is sold for now; every cosmetic is earned (decided, Section 12, question
 - The winner gets a trophy cosmetic and a profile badge. No entry fees, no prize pools.
 - Public tournaments come later, once matchmaking volume can support them.
 
-### F4.2 Team seasons ☐ · M (after F0.3)
+### F4.2 Team seasons ✅ · M (after F0.3)
+**Status (2026-09-30):** [`54db3cf`](https://github.com/muatasimqazi/playluddo/commit/54db3cf) — built.
+
 **Also see (Section 15):** R1 · R10
 
 Weekly seasons for each private team:
@@ -617,7 +725,9 @@ Weekly seasons for each private team:
 - Champion badges.
 This extends the existing per-team leaderboard.
 
-### F4.3 Full match replay and highlight clips ☐ · L
+### F4.3 Full match replay and highlight clips ✅ · L
+**Status (2026-09-30):** [`a612c7c`](https://github.com/muatasimqazi/playluddo/commit/a612c7c) — built.
+
 **Also see (Section 15):** R1 · R5 · R8 · R10
 
 **Today:** replay covers only the last action.
@@ -626,7 +736,9 @@ This extends the existing per-team leaderboard.
 - **Highlight clips:** record the 3D canvas with `MediaRecorder`, as a 6–10 second clip of a capture or finish with a branded end card, shareable to social media.
 - Clips are stored locally only unless the player chooses to share one.
 
-### F4.4 Watching live tables ☐ · M
+### F4.4 Watching live tables ✅ · M
+**Status (2026-09-30):** [`9e48578`](https://github.com/muatasimqazi/playluddo/commit/9e48578) — built.
+
 **Also see (Section 15):** R3 · R4 · R7 · R8
 
 Watch a friend's or team's table without taking a seat.
@@ -636,7 +748,9 @@ Watch a friend's or team's table without taking a seat.
 - Watchers are a separate `watcher` role, not the Party screen's display role. The Party screen remains the only age-exempt role (decision 8), and only while media-free.
 - Reuses the read-only delivery path built for the Party screen (P1), filtered so watchers never receive chat or call signaling.
 
-### F4.5 Undo in offline games ☐ · S
+### F4.5 Undo in offline games ✅ · S
+**Status (2026-09-30):** [`825d893`](https://github.com/muatasimqazi/playluddo/commit/825d893) — built.
+
 **Ludo STAR:** its publisher describes spending gems to undo the last dice roll. Our offline move undo is a different feature.
 **Ours:** undo the last move in practice and Table Together only, keeping a history stack in `lib/presentation/practice.ts`. It is never available online.
 
@@ -644,7 +758,9 @@ Watch a friend's or team's table without taking a seat.
 
 ## 11. Phase 5: Reach
 
-### F5.1 Localization, including right-to-left languages ☐ · L
+### F5.1 Localization, including right-to-left languages ◐ · L
+**Status (2026-09-30):** [`4a78bae`](https://github.com/muatasimqazi/playluddo/commit/4a78bae) · [`4a7527b`](https://github.com/muatasimqazi/playluddo/commit/4a7527b) · [`1d802b1`](https://github.com/muatasimqazi/playluddo/commit/1d802b1) · [`d1fe0b6`](https://github.com/muatasimqazi/playluddo/commit/d1fe0b6) · [`15d5b0b`](https://github.com/muatasimqazi/playluddo/commit/15d5b0b) — all first-wave locales ship with right-to-left support for Urdu and Arabic. Missing: localized App Store and Play Store listings, and the 360px screenshot pass for each language in the acceptance list.
+
 **Ludo King:** the reviewed sources don't establish its language coverage. Our reason to localize is our own target markets (South Asia, the Middle East, Southeast Asia), not a verified competitor gap.
 **Ours:**
 - Move all UI text into message catalogs.
@@ -657,7 +773,9 @@ Watch a friend's or team's table without taking a seat.
 - Screenshots of the main flows at 360px width, in each language.
 - No text is clipped in the 3D seat labels.
 
-### F5.2 5 and 6 players ☐ · XL
+### F5.2 5 and 6 players ✅ · XL
+**Status (2026-09-30):** [`0202395`](https://github.com/muatasimqazi/playluddo/commit/0202395) · [`5e2d7ee`](https://github.com/muatasimqazi/playluddo/commit/5e2d7ee) — built.
+
 **Ludo King:** 5–6 player games.
 **Ours:**
 - A hexagonal board with new geometry: the track length and entry offsets become per-board data rather than constants in `geometry.ts` and its SQL mirror.
@@ -673,7 +791,9 @@ Now **Party Mode**, Section 6 (P1–P8).
 ### F5.4 Video chat → moved
 Now a committed feature: **Video chat**, Section 7 (V0–V6).
 
-### F5.5 Accessibility ☐ · M
+### F5.5 Accessibility ◐ · M
+**Status (2026-09-30):** [`1dc0117`](https://github.com/muatasimqazi/playluddo/commit/1dc0117) — done so far: a 12px minimum text size, some reduced-motion handling in the 3D scene, and a few `aria-live` regions. Missing: symbols on pawns and seats; a colour-blind palette option; screen-reader announcements for rolls, captures and the end of the game; complete keyboard control; reduced motion for camera moves and pawn hops; the VoiceOver/TalkBack audit.
+
 Deliver PRD 7.2 in full:
 - **Symbols on pawns and seats:** player identity must never depend on colour alone.
 - **A colour-blind palette option,** checked with a colour-vision simulator.
@@ -683,6 +803,8 @@ Deliver PRD 7.2 in full:
 - **An audit** with VoiceOver and TalkBack before release.
 
 ### F5.6 Stronger store listings ☐ · S
+**Status (2026-09-30):** not started. No store copy or metadata is in the repo.
+
 Rewrite the App Store and Play Store copy around the Section 1 pillars: "No ads. No betting. Your house rules." Add "Dice you can check" only once F1.2 is live for that platform and audience, with wording that matches its caveat (R2). Mention seat reclaim ("Dropped connection? A computer holds your seat until you're back.") only after verifying that behaviour on each platform, since Party Mode changes it (P5). See R11.
 
 ---

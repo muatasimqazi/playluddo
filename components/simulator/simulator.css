@@ -3801,6 +3801,233 @@ body.sim-piece-hover .sim-canvas {
   color: #a9b6a0;
 }
 
+/* Tournaments (F4.1) */
+.tourney-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.tourney-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e9e7d31f;
+  border-radius: 12px;
+  background: #26372e80;
+}
+.tourney-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.tourney-row-main strong {
+  display: block;
+  font-size: 14px;
+  color: #f3f4e8;
+}
+.tourney-row-main small {
+  color: #a9b6a0;
+  font-size: 11px;
+}
+.tourney-badge {
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #16221a;
+  color: #a9b6a0;
+  border: 1px solid #ffffff1f;
+}
+.tourney-badge.is-active {
+  background: #d8bd7f;
+  color: #263324;
+  border-color: transparent;
+}
+.tourney-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e9e7d31f;
+  border-radius: 14px;
+  background: #26372e80;
+  margin-bottom: 12px;
+}
+.tourney-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #a9b6a0;
+}
+.tourney-form input,
+.tourney-form select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #ffffff2e;
+  background: #16221a;
+  color: #f3f4e8;
+  font-size: 14px;
+}
+.tourney-choices {
+  display: flex;
+  gap: 6px;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.tourney-choices legend {
+  font-size: 12px;
+  color: #a9b6a0;
+  margin-bottom: 4px;
+}
+.tourney-choices button {
+  flex: 1;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #ffffff2e;
+  background: #16221a;
+  color: #e6e7d6;
+  font-size: 13px;
+}
+.tourney-choices button.is-selected {
+  background: #dcca9f;
+  color: #263324;
+  border-color: transparent;
+  font-weight: 600;
+}
+.tourney-form-actions {
+  display: flex;
+  gap: 8px;
+}
+.tourney-form-actions .sim-primary {
+  flex: 1;
+}
+
+/* Bracket view */
+.bracket-champion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #d8bd7f33, #26372eb3);
+  border: 1px solid #d8bd7f66;
+  color: #e8c766;
+  margin-bottom: 12px;
+}
+.bracket-champion strong {
+  display: block;
+  font-size: 18px;
+  color: #f3f4e8;
+}
+.bracket-checkin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #e9e7d31f;
+  border-radius: 14px;
+  background: #26372e80;
+  margin: 12px 0;
+}
+.bracket-checkin p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #a9b6a0;
+}
+.bracket-entrants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.bracket-entrants span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 30px;
+  background: #26372e80;
+  border: 1px solid #ffffff1f;
+  color: #e6e7d6;
+  font-size: 12px;
+}
+.bracket-entrants span.is-ready {
+  border-color: #43876b;
+  color: #a9e3c4;
+}
+.bracket-rounds {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px 0;
+  scrollbar-width: none;
+}
+.bracket-round {
+  flex: none;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bracket-table {
+  border: 1px solid #e9e7d31f;
+  border-radius: 12px;
+  background: #26372e80;
+  padding: 10px;
+}
+.bracket-table.is-mine {
+  border-color: #d8bd7f80;
+  background: #d8bd7f1a;
+}
+.bracket-table ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bracket-table li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #e6e7d6;
+}
+.bracket-table li.is-advancing {
+  color: #f3f4e8;
+  font-weight: 600;
+}
+.bracket-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.bracket-seat-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bracket-table li small {
+  color: #a9b6a0;
+}
+.bracket-watch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #a9b6a0;
+}
+
 /* Watching live tables (F4.4) */
 .watch-simulator {
   position: fixed;

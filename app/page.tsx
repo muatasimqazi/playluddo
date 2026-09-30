@@ -191,6 +191,10 @@ export default function Home() {
             <Icon name="trophy" />
             <small>Leaderboard</small>
           </Link>
+          <Link className="profile-trigger leaderboard-trigger" href="/tournaments">
+            <Icon name="trophy" />
+            <small>Tournaments</small>
+          </Link>
           <ProfilePanel
             onNameChange={setName}
             onTeamsChange={setTeams}

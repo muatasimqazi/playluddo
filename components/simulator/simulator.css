@@ -532,6 +532,10 @@ body.sim-die-hover .sim-canvas,
 body.sim-piece-hover .sim-canvas {
   cursor: pointer;
 }
+/* Hovering the die when it isn't your turn: signal "can't roll now". */
+body.sim-die-blocked .sim-canvas {
+  cursor: not-allowed;
+}
 /* Always visible, even in immersive mode — it's the only way back out of
    it once .sim-header (which normally reaches this same toggle from the
    tools panel) is hidden. */

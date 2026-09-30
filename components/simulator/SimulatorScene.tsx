@@ -637,7 +637,11 @@ function PhysicalDie({
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
   const snakes = gameType === "snakes_and_ladders";
-  const followsPlayer = !snakes && !compact && players.length === 4;
+  // Per direct instruction: the die stays in one fixed spot every turn —
+  // only its colour changes to reflect the acting player. (Previously, in
+  // 4-player desktop it travelled to each player's corner; that movement
+  // is disabled so the die never relocates.)
+  const followsPlayer = false;
   const baseRestingPoint = useMemo<Point>(() => {
     // Phones first, for both games: Snakes & Ladders' desktop spot sits
     // right where a phone draws the second seat label, hiding the die.
@@ -657,7 +661,25 @@ function PhysicalDie({
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
   );
-  const dieColor = "#ffffff";
+  // Per direct instruction: each turn the die takes on a lighter shade of
+  // the acting player's base color instead of a fixed white — the base hue
+  // mixed most of the way toward white, so it reads as (e.g.) a soft red
+  // while the deep pips stay fully legible. Falls back to white when there
+  // is no active player (e.g. between turns).
+  // Light body tint (the visible surface colour) and the deeper, fully
+  // saturated hue that drives the glass's transmission tint. Splitting the
+  // two keeps the die looking light while still reading clearly as the
+  // acting player's colour — a plain light `color` alone washes out to
+  // white through the reflective clearcoat.
+  const dieColor = useMemo(() => {
+    if (!activePlayer) return "#ffffff";
+    return `#${new THREE.Color(COLORS[activePlayer.color])
+      .lerp(new THREE.Color("#ffffff"), 0.25)
+      .getHexString()}`;
+  }, [activePlayer]);
+  const dieAttenuationColor = activePlayer
+    ? COLORS[activePlayer.color]
+    : "#ffffff";
   const pipColor = "#111111";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
@@ -669,9 +691,16 @@ function PhysicalDie({
   );
   const lastRoll = useRef(frame.rollId);
   useEffect(() => {
-    const active = hovered && canRoll && mode === "play";
-    document.body.classList.toggle("sim-die-hover", active);
-    return () => document.body.classList.remove("sim-die-hover");
+    const overDie = hovered && mode === "play";
+    // Roll-ready → pointer cursor; hovering the die when it isn't this
+    // player's turn → a not-allowed cursor, so the die reads as "can't
+    // click this right now" instead of silently ignoring the tap.
+    document.body.classList.toggle("sim-die-hover", overDie && canRoll);
+    document.body.classList.toggle("sim-die-blocked", overDie && !canRoll);
+    return () => {
+      document.body.classList.remove("sim-die-hover");
+      document.body.classList.remove("sim-die-blocked");
+    };
   }, [canRoll, hovered, mode]);
   useFrame((_, delta) => {
     if (!mesh.current) return;
@@ -767,7 +796,10 @@ function PhysicalDie({
           onRoll();
         }}
         onPointerOver={(e) => {
-          if (!canRoll || mode !== "play") return;
+          // Register the hover even when the player can't roll, so an
+          // out-of-turn hover can surface the not-allowed cursor; the
+          // roll-only visuals (grow/glow) stay gated on canRoll elsewhere.
+          if (mode !== "play") return;
           e.stopPropagation();
           setHovered(true);
         }}
@@ -785,17 +817,17 @@ function PhysicalDie({
             metalness={0}
             clearcoat={1}
             clearcoatRoughness={0.01}
-            transmission={compact ? 0.08 : 0.32}
+            transmission={compact ? 0.05 : 0.12}
             thickness={compact ? 0.3 : 0.82}
             ior={1.49}
-            attenuationColor={dieColor}
+            attenuationColor={dieAttenuationColor}
             attenuationDistance={0.28}
             specularIntensity={1}
             specularColor="#ffffff"
-            envMapIntensity={compact ? 4.2 : 3.4}
+            envMapIntensity={compact ? 2.8 : 2.2}
             transparent
             opacity={1}
-            emissive={compact ? "#ffffff" : canRoll ? dieColor : "#000000"}
+            emissive={compact ? dieColor : canRoll ? dieColor : "#000000"}
             emissiveIntensity={compact ? 0.14 : canRoll ? 0.025 : 0}
           />
         </RoundedBox>

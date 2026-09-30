@@ -378,7 +378,7 @@ export default function Simulator({
   const screenQuality = useAdaptiveQuality(screen);
   const [mode, setMode] = useState<InteractionMode>("play");
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "board" | "preferences" | "chat" | "help" | null
+    "menu" | "camera" | "board" | "preferences" | "chat" | "help" | "leave" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -949,7 +949,20 @@ export default function Simulator({
           active={panel === "camera"}
           onClick={() => togglePanel("camera")}
         />
-        <Tool icon="home" label="Reset view (1)" onClick={reset} />
+        {state.status === "in_game" ? (
+          // A game is in progress — warn before leaving rather than dropping
+          // straight out of the match. (Reset view stays on the "1" key.)
+          <Tool icon="home" label="Home" onClick={() => setPanel("leave")} />
+        ) : (
+          <Link
+            className="sim-tool"
+            href="/"
+            title="Home"
+            aria-label="Home"
+          >
+            <Icon name="home" />
+          </Link>
+        )}
         <Tool
           icon="grid"
           label="Board design"
@@ -1150,7 +1163,9 @@ export default function Simulator({
                         ? "Table talk"
                         : panel === "help"
                           ? "Rules & controls"
-                          : "Your evening, your game"}
+                          : panel === "leave"
+                            ? "Leave the game?"
+                            : "Your evening, your game"}
               </h2>
             </div>
             <Tool
@@ -1159,6 +1174,25 @@ export default function Simulator({
               onClick={() => setPanel(null)}
             />
           </div>
+          {panel === "leave" && (
+            <>
+              <p>
+                This game is still in progress. If you head back to the
+                entrance now, you’ll leave the match.
+              </p>
+              <Link href="/" className="panel-secondary">
+                <Icon name="home" />
+                Leave and go to the entrance
+              </Link>
+              <button
+                className="sim-primary"
+                onClick={() => setPanel(null)}
+              >
+                <Icon name="play" />
+                Keep playing
+              </button>
+            </>
+          )}
           {panel === "camera" && (
             <>
               <p>Different perspectives. The same shared board.</p>

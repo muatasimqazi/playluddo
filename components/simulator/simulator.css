@@ -311,6 +311,40 @@
   background: rgba(116, 104, 68, 0.6);
   color: var(--sim-ink);
 }
+/* Board picker preview: a card as wide as the options row above it, with
+   the chosen design shown whole (never cropped) at the card's full height
+   and its description beside it. Crossfades as the pick changes. */
+.entrance-board-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 140px;
+  padding: 8px;
+  border: 1px solid var(--sim-line);
+  border-radius: 10px;
+  background: rgba(20, 30, 24, 0.6);
+  backdrop-filter: blur(8px);
+}
+.entrance-board-preview img {
+  flex: none;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px #0006;
+  animation: entrance-board-preview-in 200ms ease;
+}
+.entrance-board-preview span {
+  color: #e4e7db;
+  font-size: 13px;
+  line-height: 1.4;
+}
+@keyframes entrance-board-preview-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
 /* "You": the avatar (opens the picker sheet) beside the base colors. */
 .entrance-you {
   display: flex;
@@ -4715,7 +4749,7 @@ body.sim-die-blocked .sim-canvas {
   }
   .entrance-setup {
     width: 100%;
-    gap: 18px;
+    gap: 14px;
   }
   .entrance-field-label {
     font-size: 12px;
@@ -4803,6 +4837,12 @@ body.sim-die-blocked .sim-canvas {
   .entrance-setup-head p,
   .entrance-setup .entrance-field-hint {
     display: none;
+  }
+  .entrance-setup .entrance-field-hint:has(.entrance-board-preview) {
+    display: block;
+  }
+  .entrance-board-preview {
+    height: 112px;
   }
   .entrance-segmented button {
     min-height: 40px;

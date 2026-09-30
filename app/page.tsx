@@ -13,6 +13,14 @@ import { BOT_LEVELS, type BotLevel } from "@/lib/board/bot";
 import { AVATARS, avatarDefinition, photoAvatar } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import { type BoardStyle } from "@/lib/presentation/simulatorPrefs";
+import signatureBoardArt from "@/designs/board-design.webp";
+import classicBoardArt from "@/designs/board-classic.svg";
+import geometricBoardArt from "@/designs/board-geometric.svg";
+import aladdinBoardArt from "@/designs/board-aladdin.svg";
+import hexClassicBoardArt from "@/designs/board-hex-classic.svg";
+import hexSignatureBoardArt from "@/designs/board-hex-signature.svg";
+import hexGeometricBoardArt from "@/designs/board-hex-geometric.svg";
+import hexAladdinBoardArt from "@/designs/board-hex-aladdin.svg";
 import { useGamePreference } from "@/lib/preferences-react";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
@@ -78,6 +86,24 @@ const MODE_LABEL_KEYS = {
 const PLAY_MODES: readonly PlayMode[] = ["quick", "friends", "practice", "together"];
 const isPlayMode = (value: string | null): value is PlayMode =>
   PLAY_MODES.includes(value as PlayMode);
+
+// Thumbnails for the board picker: the same artwork the 3D table renders
+// (and that usePreloadBoardScene already fetches for the square boards), in
+// its hexagonal version when the table seats 5-6.
+const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
+  square: {
+    classic: classicBoardArt.src as string,
+    signature: signatureBoardArt.src,
+    geometric: geometricBoardArt.src as string,
+    aladdin: aladdinBoardArt.src as string,
+  },
+  hex: {
+    classic: hexClassicBoardArt.src as string,
+    signature: hexSignatureBoardArt.src as string,
+    geometric: hexGeometricBoardArt.src as string,
+    aladdin: hexAladdinBoardArt.src as string,
+  },
+};
 
 // Maps a bot level to its localized label key (resolved via t() at render).
 const BOT_LEVEL_KEYS = {
@@ -607,7 +633,18 @@ export default function Home() {
                     }))}
                     value={boardStyle}
                     onChange={setBoardStyle}
-                    hint={BOARD_STYLES.find((style) => style.value === boardStyle)?.desc}
+                    hint={
+                      <span className="entrance-board-preview">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local board artwork (SVG/WebP) shared with the 3D table's cache. */}
+                        <img
+                          key={`${tableSize >= 5 ? "hex" : "square"}-${boardStyle}`}
+                          src={BOARD_THUMBNAILS[tableSize >= 5 ? "hex" : "square"][boardStyle]}
+                          alt=""
+                          decoding="async"
+                        />
+                        <span>{BOARD_STYLES.find((style) => style.value === boardStyle)?.desc}</span>
+                      </span>
+                    }
                   />
                 )}
               </>

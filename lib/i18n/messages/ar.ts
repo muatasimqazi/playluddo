@@ -6,8 +6,6 @@
  * (kept in Latin script inside the RTL text on purpose).
  */
 import type { Messages } from "../types";
-// F5.1: `party` is not yet translated — placeholder English until a native pass.
-import { en } from "./en";
 
 export const ar: Messages = {
   common: {
@@ -608,7 +606,195 @@ export const ar: Messages = {
     lobbyPromptAction: "تفعيل",
     lobbyPromptDismiss: "ليس الآن",
   },
-  party: en.party,
+  party: {
+    // PartyWhere
+    whereTitle1: "من أين",
+    whereTitleEm: "تلعب؟",
+    hereAtTv: "أنا هنا أمام التلفاز",
+    hereAtTvNote: "يصبح هاتفك وحدة التحكم الخاصة بك. اللوحة على الشاشة الكبيرة.",
+    elsewhere: "أنا في مكان آخر",
+    elsewhereNote: "تحصل على اللوحة كاملة على شاشتك، ودردشة صوتية مع الآخرين.",
+    notNow: "ليس الآن",
+
+    // PartyAgreement
+    checkError: "تعذّر التحقق من دعوتك. أعد تحميل الصفحة وحاول مرة أخرى.",
+    agreeEyebrow: "قبل أن تنضم إلى الحفلة",
+    agreeTitle1: "كن لطيفًا، واستخدم",
+    agreeTitleEm: "اسمًا ودودًا.",
+    agreeTermsPre: "بالمتابعة، أنت توافق على ",
+
+    // PartySafety
+    safetyLoadError: "تعذّر تحميل الجميع. أغلق هذا وحاول مرة أخرى.",
+    reportSent: "تم إرسال البلاغ. شكرًا لإخبارنا.",
+    removedFromTable: "تمت إزالته من طاولة الحفلة هذه.",
+    actionFailedMoment: "لم يتم ذلك. حاول مرة أخرى بعد قليل.",
+    safetyAria: "أمان الحفلة",
+    closeSafety: "إغلاق عناصر التحكم في الأمان",
+    openSafety: "الإبلاغ عن الأشخاص أو إدارتهم",
+    whoIsIt: "من هو؟",
+    choosePerson: "اختر شخصًا",
+    suffixPlayer: "لاعب",
+    suffixAudience: "جمهور",
+    reason: "السبب",
+    whatHappened: "ماذا حدث؟ (اختياري)",
+    sendReport: "إرسال البلاغ",
+    removeConfirmNote: "لن يتمكن هذا الشخص من الانضمام مجددًا إلى طاولة الحفلة هذه بهذا الحساب.",
+    confirmRemoval: "تأكيد الإزالة",
+    removeFromAudience: "إزالة من الجمهور",
+
+    // PartyRound
+    roundSendError: "لم يتم ذلك. حاول مرة أخرى.",
+    youSaid: "قلتَ {guess}.",
+    nobodyAnswered: "لم يُجب أحد عن هذا السؤال.",
+    closestJudged: "الأقرب! تقدير موفّق.",
+    closestList: "الأقرب: {list}",
+    whileYoureHere: "ما دمتَ هنا",
+    timeLeft: "متبقٍ {time}",
+    closing: "جارٍ الإغلاق…",
+    answersSoFarOne: "إجابة واحدة حتى الآن",
+    answersSoFarOther: "{count} إجابات حتى الآن",
+    yourAnswerAria: "إجابتك",
+    changeIt: "غيّرها",
+    answer: "أجب",
+    yourAnswer: "إجابتك: {guess}",
+
+    // PartyScreen — start
+    openError: "تعذّر فتح طاولة. تحقّق من اتصالك وحاول مرة أخرى.",
+    partyMode: "وضع الحفلة",
+    startTitle1: "اللوحة على هذه الشاشة.",
+    startTitleEm: "والجميع يلعب من هاتفه.",
+    whatPlaying: "ماذا سنلعب؟",
+    openingTable: "جارٍ فتح الطاولة…",
+    openPartyTable: "افتح طاولة الحفلة",
+    hintDefaults: "إعدادات العائلة: أدوار مدتها 30 ثانية، وتوقف مؤقت عند صمت أحد الهواتف، ورمية إضافية في Ludo عند الوصول إلى البيت.",
+    hintTv: "الأفضل على تلفاز أو حاسوب محمول يراه الجميع. لا حاجة لتسجيل الدخول هنا.",
+
+    // PartyScreen — connected/error
+    notShowing1: "هذه الشاشة لا تعرض",
+    notShowingEm: "تلك الطاولة.",
+    onlyOpener: "لا يمكن عرض طاولة الحفلة إلا على الشاشة التي فتحتها. افتح طاولة جديدة هنا.",
+    openNewTable: "افتح طاولة حفلة جديدة",
+    findingTable: "جارٍ البحث عن طاولتك…",
+
+    // Audience overlay (on the TV)
+    audienceReactionsAria: "تفاعلات الجمهور",
+    joinAudienceAria: "انضم إلى الجمهور",
+    qrJoinAudience: "رمز QR للانضمام إلى الجمهور",
+    joinAudience: "انضم إلى الجمهور",
+    watchingPrefix: "{count} يشاهدون · ",
+    codeLabel: "الرمز {code}",
+    theAudienceAria: "الجمهور",
+    theAnswer: "الإجابة",
+    everyoneAnswer: "ليُجب الجميع على هواتفهم",
+    screenClosest: " · الأقرب: {names}",
+    screenNobody: " · لم يُجب أحد",
+    momentOfMatch: "لحظة المباراة",
+    audienceVoting: "الجمهور يصوّت…",
+    noBigMoments: "لا لحظات كبيرة هذه المرة",
+    votesSoFarOne: "صوت واحد حتى الآن",
+    votesSoFarOther: "{count} أصوات حتى الآن",
+    calledIt: "توقّعوها: {names}",
+    nobodyCalledIt: "لم يتوقّعها أحد من الجمهور.",
+
+    // PartyLobby
+    grabPhone1: "أمسك هاتفك.",
+    grabPhoneEm: "وانضم إلى الطاولة.",
+    step1: "امسح الرمز بكاميرا هاتفك. لا حاجة لأي تطبيق.",
+    step2Pre: "أو افتح ",
+    step2Post: " وانضم بالرمز أدناه.",
+    step3: "أول من ينضم يختار اللعبة ويبدؤها.",
+    roomCodeAria: "رمز الغرفة {code}",
+    joinTableQr: "رمز QR للانضمام إلى هذه الطاولة",
+    playersAtTableAria: "اللاعبون على الطاولة",
+    picksGameStarts: "يختار اللعبة · يبدؤها",
+    computer: "الحاسوب",
+    joiningElsewhere: "ينضم من مكان آخر",
+    ready: "جاهز",
+    picksToWinOne: "اختيار واحد للفوز",
+    picksToWinOther: "{count} اختيارات للفوز",
+    openSeat: "مقعد شاغر",
+    waitingForVip: "بانتظار أن يبدأ {name} اللعبة…",
+    waitingForFirst: "بانتظار انضمام أول لاعب…",
+    audienceInfo: " {count} في الجمهور: امسح الرمز لتنضم إليهم.",
+
+    // PartyLock
+    unlockSeats: "فتح المقاعد",
+    lockSeats: "قفل المقاعد",
+    audienceCanJoin: "لا يزال بإمكان الجمهور الانضمام",
+    lockStaysOn: "يبقى القفل مفعّلًا بين الألعاب",
+    lockError: "تعذّر تغيير القفل. حاول مرة أخرى.",
+
+    // PartyController
+    notAtTable: "أنت لست على هذه الطاولة",
+    watchOnScreen: "شاهد اللعبة على الشاشة المشتركة.",
+    colorPieces: "قطع {color}",
+    shakeToRoll: "هزّ للرمي",
+    seatOpenElsewhere: "مقعدك مفتوح الآن على جهاز آخر.",
+    reconnecting: "جارٍ إعادة الاتصال…",
+    rolling: "جارٍ الرمي…",
+    roll: "ارمِ",
+    watchScreenShort: "شاهد الشاشة",
+    rollTap: "انقر",
+    rollTapShake: "انقر أو هزّ",
+    turnOffAutoRoll: "إيقاف الرمي التلقائي",
+    takeSeatBack: "استعد مقعدي",
+    carryOnWithout: "تابِعوا من دونه",
+    resumeGame: "استئناف اللعبة",
+    readyWaiting: "جاهز. بانتظار الآخرين…",
+
+    // PartyController — Status
+    youRolledAria: "حصلتَ على {die}",
+    movingPiece: "جارٍ تحريك قطعتك…",
+    pickPiece: "اختر قطعة",
+    secondsLeftShort: "متبقٍ {seconds} ث",
+    watchScreenEllipsis: "شاهد الشاشة…",
+    autoRollOn: "الرمي التلقائي مفعّل. نرمي عنك…",
+    turnOf: "دور {name}",
+    waiting: "بالانتظار…",
+    theyRolled: "حصل على {die}",
+    gamePaused: "اللعبة متوقفة مؤقتًا",
+    pickingUp: "نستأنف من حيث توقفت…",
+    waitingForPhone: "بانتظار هاتف {name}",
+    computerTakesTurn: "إن لم يعُد، سيلعب الحاسوب دوره خلال {time}.",
+    computerHoldingSeat: "الحاسوب يحتفظ بمقعدك",
+    takeBackToPlay: "استعِده لتواصل اللعب.",
+    gameEndedEarly: "انتهت اللعبة مبكرًا",
+    youWon: "لقد فزت!",
+    youCame: "حللتَ في {place}",
+    someoneWins: "فاز {name}",
+    fullResults: "النتائج الكاملة على الشاشة.",
+
+    // PartyController — Pieces
+    yourPiecesAria: "قطعك",
+    yourPiece: "قطعتك",
+    pieceN: "القطعة {n}",
+    moveGeneric: "حرّك",
+    movePiece: "حرّك القطعة {n}",
+    tapGlowing: "انقر على قطعة متوهجة",
+
+    // Reactions
+    reactionsAria: "التفاعلات",
+    emoji: "رموز تعبيرية",
+    phrases: "عبارات",
+    sentToScreen: "أُرسل {emoji} إلى الشاشة",
+
+    // AudienceScreen
+    inAudience: "في الجمهور",
+    partyTableWatching: "طاولة الحفلة {code} · {count} يشاهدون",
+    whollWin: "من سيفوز؟",
+    pickBefore: "اختر قبل بدء اللعبة. للتباهي فقط.",
+    pickCountOne: "اختيار واحد",
+    pickCountOther: "{count} اختيارات",
+    yourPickName: "اختيارك: {name}",
+    watchCheer: "شاهد الشاشة وشجّعهم.",
+    winsExcl: "فاز {name}!",
+    gameOver: "انتهت اللعبة",
+    youCalledIt: "توقّعك صحيح!",
+    notThisTime: "ليس هذه المرة. اخترتَ {name}.",
+    voteCountOne: "صوت واحد",
+    voteCountOther: "{count} أصوات",
+    findingSeat: "جارٍ البحث عن مكانك في الجمهور…",
+  },
 };
 
 export default ar;

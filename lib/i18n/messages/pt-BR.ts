@@ -5,8 +5,6 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
-// F5.1: `party` is not yet translated — placeholder English until a native pass.
-import { en } from "./en";
 
 export const ptBR: Messages = {
   common: {
@@ -607,7 +605,195 @@ export const ptBR: Messages = {
     lobbyPromptAction: "Ativar",
     lobbyPromptDismiss: "Agora não",
   },
-  party: en.party,
+  party: {
+    // PartyWhere
+    whereTitle1: "De onde você",
+    whereTitleEm: "vai jogar?",
+    hereAtTv: "Estou aqui na frente da TV",
+    hereAtTvNote: "Seu celular vira o seu controle. O tabuleiro fica na tela grande.",
+    elsewhere: "Estou em outro lugar",
+    elsewhereNote: "Você vê o tabuleiro completo na sua própria tela e conversa por voz com os outros.",
+    notNow: "Agora não",
+
+    // PartyAgreement
+    checkError: "Não foi possível verificar seu convite. Recarregue a página e tente de novo.",
+    agreeEyebrow: "Antes de entrar na festa",
+    agreeTitle1: "Seja gentil e use um",
+    agreeTitleEm: "nome amigável.",
+    agreeTermsPre: "Ao continuar, você concorda com os ",
+
+    // PartySafety
+    safetyLoadError: "Não foi possível carregar todo mundo. Feche isto e tente de novo.",
+    reportSent: "Denúncia enviada. Obrigado por nos avisar.",
+    removedFromTable: "Removido desta mesa de festa.",
+    actionFailedMoment: "Não deu certo. Tente de novo em instantes.",
+    safetyAria: "Segurança da festa",
+    closeSafety: "Fechar controles de segurança",
+    openSafety: "Denunciar ou gerenciar pessoas",
+    whoIsIt: "Quem é?",
+    choosePerson: "Escolha uma pessoa",
+    suffixPlayer: "jogador",
+    suffixAudience: "plateia",
+    reason: "Motivo",
+    whatHappened: "O que aconteceu? (opcional)",
+    sendReport: "Enviar denúncia",
+    removeConfirmNote: "Esta pessoa não poderá voltar a esta mesa de festa com esta conta.",
+    confirmRemoval: "Confirmar remoção",
+    removeFromAudience: "Remover da plateia",
+
+    // PartyRound
+    roundSendError: "Não deu certo. Tente de novo.",
+    youSaid: "Você disse {guess}.",
+    nobodyAnswered: "Ninguém respondeu esta.",
+    closestJudged: "O mais perto! Bem calculado.",
+    closestList: "Mais perto: {list}",
+    whileYoureHere: "Já que você está aqui",
+    timeLeft: "Faltam {time}",
+    closing: "Encerrando…",
+    answersSoFarOne: "1 resposta até agora",
+    answersSoFarOther: "{count} respostas até agora",
+    yourAnswerAria: "Sua resposta",
+    changeIt: "Mudar",
+    answer: "Responder",
+    yourAnswer: "Sua resposta: {guess}",
+
+    // PartyScreen — start
+    openError: "Não foi possível abrir uma mesa. Verifique sua conexão e tente de novo.",
+    partyMode: "Modo festa",
+    startTitle1: "O tabuleiro nesta tela.",
+    startTitleEm: "Todo mundo joga pelo celular.",
+    whatPlaying: "O que vamos jogar?",
+    openingTable: "Abrindo a mesa…",
+    openPartyTable: "Abrir a mesa de festa",
+    hintDefaults: "Padrões para a família: turnos de 30 segundos, uma pausa quando um celular fica em silêncio e uma jogada extra no Ludo ao chegar em casa.",
+    hintTv: "Melhor em uma TV ou notebook que todos possam ver. Não precisa entrar na conta aqui.",
+
+    // PartyScreen — connected/error
+    notShowing1: "Esta tela não está mostrando",
+    notShowingEm: "essa mesa.",
+    onlyOpener: "Só a tela que abriu uma mesa de festa pode mostrá-la. Abra uma nova aqui.",
+    openNewTable: "Abrir uma nova mesa de festa",
+    findingTable: "Procurando sua mesa…",
+
+    // Audience overlay (on the TV)
+    audienceReactionsAria: "Reações da plateia",
+    joinAudienceAria: "Entrar na plateia",
+    qrJoinAudience: "QR code para entrar na plateia",
+    joinAudience: "Entre na plateia",
+    watchingPrefix: "{count} assistindo · ",
+    codeLabel: "código {code}",
+    theAudienceAria: "A plateia",
+    theAnswer: "A resposta",
+    everyoneAnswer: "Todo mundo responde no celular",
+    screenClosest: " · Mais perto: {names}",
+    screenNobody: " · Ninguém respondeu",
+    momentOfMatch: "Momento da partida",
+    audienceVoting: "A plateia está votando…",
+    noBigMoments: "Nenhum grande momento desta vez",
+    votesSoFarOne: "1 voto até agora",
+    votesSoFarOther: "{count} votos até agora",
+    calledIt: "Acertaram: {names}",
+    nobodyCalledIt: "Ninguém na plateia acertou.",
+
+    // PartyLobby
+    grabPhone1: "Pegue seu celular.",
+    grabPhoneEm: "Entre na mesa.",
+    step1: "Escaneie o código com a câmera do celular. Não precisa de app.",
+    step2Pre: "Ou abra ",
+    step2Post: " e entre com o código abaixo.",
+    step3: "Quem entrar primeiro escolhe o jogo e começa.",
+    roomCodeAria: "Código da sala {code}",
+    joinTableQr: "QR code para entrar nesta mesa",
+    playersAtTableAria: "Jogadores na mesa",
+    picksGameStarts: "Escolhe o jogo · começa",
+    computer: "Computador",
+    joiningElsewhere: "Entrando de outro lugar",
+    ready: "Pronto",
+    picksToWinOne: "1 aposta para vencer",
+    picksToWinOther: "{count} apostas para vencer",
+    openSeat: "Lugar livre",
+    waitingForVip: "Esperando {name} começar o jogo…",
+    waitingForFirst: "Esperando o primeiro jogador entrar…",
+    audienceInfo: " {count} na plateia: escaneie o código para se juntar a eles.",
+
+    // PartyLock
+    unlockSeats: "Destravar lugares",
+    lockSeats: "Travar lugares",
+    audienceCanJoin: "A plateia ainda pode entrar",
+    lockStaysOn: "A trava continua entre as partidas",
+    lockError: "Não foi possível mudar a trava. Tente de novo.",
+
+    // PartyController
+    notAtTable: "Você não está nesta mesa",
+    watchOnScreen: "Assista à partida na tela compartilhada.",
+    colorPieces: "Peças {color}",
+    shakeToRoll: "Agite para jogar",
+    seatOpenElsewhere: "Seu lugar está aberto em outro aparelho agora.",
+    reconnecting: "Reconectando…",
+    rolling: "Jogando…",
+    roll: "Jogar",
+    watchScreenShort: "Olhe a tela",
+    rollTap: "Toque",
+    rollTapShake: "Toque ou agite",
+    turnOffAutoRoll: "Desligar jogada automática",
+    takeSeatBack: "Retomar meu lugar",
+    carryOnWithout: "Continuar sem essa pessoa",
+    resumeGame: "Retomar a partida",
+    readyWaiting: "Pronto. Esperando os outros…",
+
+    // PartyController — Status
+    youRolledAria: "Você tirou {die}",
+    movingPiece: "Movendo sua peça…",
+    pickPiece: "Escolha uma peça",
+    secondsLeftShort: "Faltam {seconds} s",
+    watchScreenEllipsis: "Olhe a tela…",
+    autoRollOn: "A jogada automática está ligada. Jogando por você…",
+    turnOf: "Vez de {name}",
+    waiting: "Esperando…",
+    theyRolled: "Tirou {die}",
+    gamePaused: "A partida está pausada",
+    pickingUp: "Retomando de onde você parou…",
+    waitingForPhone: "Esperando o celular de {name}",
+    computerTakesTurn: "Se não voltar, um computador joga a vez em {time}.",
+    computerHoldingSeat: "Um computador está guardando seu lugar",
+    takeBackToPlay: "Retome-o para continuar jogando.",
+    gameEndedEarly: "A partida terminou antes da hora",
+    youWon: "Você venceu!",
+    youCame: "Você ficou em {place} lugar",
+    someoneWins: "{name} venceu",
+    fullResults: "Os resultados completos estão na tela.",
+
+    // PartyController — Pieces
+    yourPiecesAria: "Suas peças",
+    yourPiece: "Sua peça",
+    pieceN: "Peça {n}",
+    moveGeneric: "Mover",
+    movePiece: "Mover peça {n}",
+    tapGlowing: "Toque em uma peça brilhando",
+
+    // Reactions
+    reactionsAria: "Reações",
+    emoji: "Emoji",
+    phrases: "Frases",
+    sentToScreen: "Você enviou {emoji} para a tela",
+
+    // AudienceScreen
+    inAudience: "Na plateia",
+    partyTableWatching: "Mesa de festa {code} · {count} assistindo",
+    whollWin: "Quem vai vencer?",
+    pickBefore: "Escolha antes de a partida começar. Só para se gabar.",
+    pickCountOne: "{count} aposta",
+    pickCountOther: "{count} apostas",
+    yourPickName: "Sua aposta: {name}",
+    watchCheer: "Olhe a tela e torça por eles.",
+    winsExcl: "{name} venceu!",
+    gameOver: "Fim de jogo",
+    youCalledIt: "Você acertou!",
+    notThisTime: "Não foi desta vez. Você escolheu {name}.",
+    voteCountOne: "1 voto",
+    voteCountOther: "{count} votos",
+    findingSeat: "Procurando seu lugar na plateia…",
+  },
 };
 
 export default ptBR;

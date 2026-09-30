@@ -5,8 +5,6 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
-// F5.1: `party` is not yet translated — placeholder English until a native pass.
-import { en } from "./en";
 
 export const bn: Messages = {
   common: {
@@ -607,7 +605,195 @@ export const bn: Messages = {
     lobbyPromptAction: "চালু করুন",
     lobbyPromptDismiss: "এখন নয়",
   },
-  party: en.party,
+  party: {
+    // PartyWhere
+    whereTitle1: "আপনি কোথা থেকে",
+    whereTitleEm: "খেলছেন?",
+    hereAtTv: "আমি এখানেই টিভির সামনে আছি",
+    hereAtTvNote: "আপনার ফোনই হবে আপনার কন্ট্রোলার। বোর্ড থাকবে বড় স্ক্রিনে।",
+    elsewhere: "আমি অন্য কোথাও আছি",
+    elsewhereNote: "আপনি নিজের স্ক্রিনে পুরো বোর্ড পাবেন, আর অন্যদের সাথে ভয়েস চ্যাট।",
+    notNow: "এখন না",
+
+    // PartyAgreement
+    checkError: "আপনার আমন্ত্রণ যাচাই করা যায়নি। পেজটি রিলোড করে আবার চেষ্টা করুন।",
+    agreeEyebrow: "পার্টিতে যোগ দেওয়ার আগে",
+    agreeTitle1: "সদয় থাকুন, আর ব্যবহার করুন",
+    agreeTitleEm: "একটি বন্ধুত্বপূর্ণ নাম।",
+    agreeTermsPre: "চালিয়ে গেলে আপনি এতে সম্মত হচ্ছেন: ",
+
+    // PartySafety
+    safetyLoadError: "সবাইকে লোড করা যায়নি। এটি বন্ধ করে আবার চেষ্টা করুন।",
+    reportSent: "রিপোর্ট পাঠানো হয়েছে। আমাদের জানানোর জন্য ধন্যবাদ।",
+    removedFromTable: "এই পার্টি টেবিল থেকে সরানো হয়েছে।",
+    actionFailedMoment: "এটি হয়নি। একটু পরে আবার চেষ্টা করুন।",
+    safetyAria: "পার্টি নিরাপত্তা",
+    closeSafety: "নিরাপত্তা নিয়ন্ত্রণ বন্ধ করুন",
+    openSafety: "কাউকে রিপোর্ট বা পরিচালনা করুন",
+    whoIsIt: "তিনি কে?",
+    choosePerson: "একজনকে বেছে নিন",
+    suffixPlayer: "খেলোয়াড়",
+    suffixAudience: "দর্শক",
+    reason: "কারণ",
+    whatHappened: "কী হয়েছিল? (ঐচ্ছিক)",
+    sendReport: "রিপোর্ট পাঠান",
+    removeConfirmNote: "এই ব্যক্তি এই অ্যাকাউন্ট দিয়ে এই পার্টি টেবিলে আর যোগ দিতে পারবেন না।",
+    confirmRemoval: "সরানো নিশ্চিত করুন",
+    removeFromAudience: "দর্শক থেকে সরান",
+
+    // PartyRound
+    roundSendError: "এটি হয়নি। আবার চেষ্টা করুন।",
+    youSaid: "আপনি বলেছেন {guess}।",
+    nobodyAnswered: "এটির উত্তর কেউ দেয়নি।",
+    closestJudged: "সবচেয়ে কাছাকাছি! দারুণ আন্দাজ।",
+    closestList: "সবচেয়ে কাছাকাছি: {list}",
+    whileYoureHere: "যতক্ষণ আপনি এখানে আছেন",
+    timeLeft: "{time} বাকি",
+    closing: "বন্ধ হচ্ছে…",
+    answersSoFarOne: "এখন পর্যন্ত 1টি উত্তর",
+    answersSoFarOther: "এখন পর্যন্ত {count}টি উত্তর",
+    yourAnswerAria: "আপনার উত্তর",
+    changeIt: "বদলান",
+    answer: "উত্তর দিন",
+    yourAnswer: "আপনার উত্তর: {guess}",
+
+    // PartyScreen — start
+    openError: "টেবিল খোলা যায়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।",
+    partyMode: "পার্টি মোড",
+    startTitle1: "বোর্ড এই স্ক্রিনে।",
+    startTitleEm: "সবাই নিজের ফোন থেকে খেলে।",
+    whatPlaying: "আমরা কী খেলছি?",
+    openingTable: "টেবিল খোলা হচ্ছে…",
+    openPartyTable: "পার্টি টেবিল খুলুন",
+    hintDefaults: "পরিবারের জন্য ডিফল্ট: 30 সেকেন্ডের পালা, কোনো ফোন চুপ থাকলে বিরতি, আর ঘরে পৌঁছালে Ludo-তে একটি বাড়তি রোল।",
+    hintTv: "সবাই দেখতে পায় এমন টিভি বা ল্যাপটপে সবচেয়ে ভালো। এখানে সাইন ইন লাগবে না।",
+
+    // PartyScreen — connected/error
+    notShowing1: "এই স্ক্রিন সেই টেবিলটি",
+    notShowingEm: "দেখাচ্ছে না।",
+    onlyOpener: "যে স্ক্রিন পার্টি টেবিল খুলেছে শুধু সেটিই তা দেখাতে পারে। এখানে একটি নতুন খুলুন।",
+    openNewTable: "নতুন পার্টি টেবিল খুলুন",
+    findingTable: "আপনার টেবিল খোঁজা হচ্ছে…",
+
+    // Audience overlay (on the TV)
+    audienceReactionsAria: "দর্শকদের প্রতিক্রিয়া",
+    joinAudienceAria: "দর্শকদের সাথে যোগ দিন",
+    qrJoinAudience: "দর্শকদের সাথে যোগ দেওয়ার QR কোড",
+    joinAudience: "দর্শকদের সাথে যোগ দিন",
+    watchingPrefix: "{count} জন দেখছেন · ",
+    codeLabel: "কোড {code}",
+    theAudienceAria: "দর্শক",
+    theAnswer: "উত্তর",
+    everyoneAnswer: "সবাই নিজের ফোনে উত্তর দিন",
+    screenClosest: " · সবচেয়ে কাছাকাছি: {names}",
+    screenNobody: " · কেউ উত্তর দেয়নি",
+    momentOfMatch: "ম্যাচের সেরা মুহূর্ত",
+    audienceVoting: "দর্শকরা ভোট দিচ্ছেন…",
+    noBigMoments: "এবার কোনো বড় মুহূর্ত নেই",
+    votesSoFarOne: "এখন পর্যন্ত 1টি ভোট",
+    votesSoFarOther: "এখন পর্যন্ত {count}টি ভোট",
+    calledIt: "সঠিক আন্দাজ: {names}",
+    nobodyCalledIt: "দর্শকদের কেউ সঠিক আন্দাজ করেননি।",
+
+    // PartyLobby
+    grabPhone1: "আপনার ফোন হাতে নিন।",
+    grabPhoneEm: "টেবিলে যোগ দিন।",
+    step1: "ফোনের ক্যামেরা দিয়ে কোডটি স্ক্যান করুন। কোনো অ্যাপ লাগবে না।",
+    step2Pre: "অথবা ",
+    step2Post: " খুলে নিচের কোড দিয়ে যোগ দিন।",
+    step3: "যিনি প্রথমে যোগ দেবেন তিনিই খেলা বেছে নিয়ে শুরু করবেন।",
+    roomCodeAria: "রুম কোড {code}",
+    joinTableQr: "এই টেবিলে যোগ দেওয়ার QR কোড",
+    playersAtTableAria: "টেবিলের খেলোয়াড়রা",
+    picksGameStarts: "খেলা বেছে নেন · শুরু করেন",
+    computer: "কম্পিউটার",
+    joiningElsewhere: "অন্য জায়গা থেকে যোগ দিচ্ছেন",
+    ready: "প্রস্তুত",
+    picksToWinOne: "জেতার জন্য 1টি বাছাই",
+    picksToWinOther: "জেতার জন্য {count}টি বাছাই",
+    openSeat: "খালি আসন",
+    waitingForVip: "{name}-এর খেলা শুরু করার অপেক্ষা…",
+    waitingForFirst: "প্রথম খেলোয়াড়ের যোগ দেওয়ার অপেক্ষা…",
+    audienceInfo: " দর্শকদের মধ্যে {count} জন: তাদের সাথে যোগ দিতে কোডটি স্ক্যান করুন।",
+
+    // PartyLock
+    unlockSeats: "আসন আনলক করুন",
+    lockSeats: "আসন লক করুন",
+    audienceCanJoin: "দর্শকরা এখনও যোগ দিতে পারবেন",
+    lockStaysOn: "খেলার মাঝেও লক চালু থাকে",
+    lockError: "লক বদলানো যায়নি। আবার চেষ্টা করুন।",
+
+    // PartyController
+    notAtTable: "আপনি এই টেবিলে নেই",
+    watchOnScreen: "শেয়ার করা স্ক্রিনে খেলা দেখুন।",
+    colorPieces: "{color} গুটি",
+    shakeToRoll: "রোল করতে ঝাঁকান",
+    seatOpenElsewhere: "আপনার আসন এখন অন্য একটি ডিভাইসে খোলা।",
+    reconnecting: "আবার সংযুক্ত হচ্ছে…",
+    rolling: "রোল হচ্ছে…",
+    roll: "রোল করুন",
+    watchScreenShort: "স্ক্রিন দেখুন",
+    rollTap: "ট্যাপ করুন",
+    rollTapShake: "ট্যাপ করুন বা ঝাঁকান",
+    turnOffAutoRoll: "অটো-রোল বন্ধ করুন",
+    takeSeatBack: "আমার আসন ফিরিয়ে নিন",
+    carryOnWithout: "তাদের ছাড়াই চালিয়ে যান",
+    resumeGame: "খেলা আবার শুরু করুন",
+    readyWaiting: "প্রস্তুত। অন্যদের অপেক্ষা…",
+
+    // PartyController — Status
+    youRolledAria: "আপনার {die} উঠেছে",
+    movingPiece: "আপনার গুটি চলছে…",
+    pickPiece: "একটি গুটি বেছে নিন",
+    secondsLeftShort: "{seconds} সে. বাকি",
+    watchScreenEllipsis: "স্ক্রিন দেখুন…",
+    autoRollOn: "অটো-রোল চালু আছে। আপনার হয়ে রোল হচ্ছে…",
+    turnOf: "{name}-এর পালা",
+    waiting: "অপেক্ষা…",
+    theyRolled: "তাদের {die} উঠেছে",
+    gamePaused: "খেলা বিরতিতে আছে",
+    pickingUp: "যেখানে ছেড়েছিলেন সেখান থেকে শুরু হচ্ছে…",
+    waitingForPhone: "{name}-এর ফোনের অপেক্ষা",
+    computerTakesTurn: "তারা না ফিরলে {time} পরে একটি কম্পিউটার তাদের পালা খেলবে।",
+    computerHoldingSeat: "একটি কম্পিউটার আপনার আসন ধরে রেখেছে",
+    takeBackToPlay: "খেলা চালিয়ে যেতে এটি ফিরিয়ে নিন।",
+    gameEndedEarly: "খেলা আগেভাগে শেষ হয়ে গেছে",
+    youWon: "আপনি জিতেছেন!",
+    youCame: "আপনি {place} হয়েছেন",
+    someoneWins: "{name} জিতেছেন",
+    fullResults: "পুরো ফলাফল স্ক্রিনে আছে।",
+
+    // PartyController — Pieces
+    yourPiecesAria: "আপনার গুটিগুলো",
+    yourPiece: "আপনার গুটি",
+    pieceN: "গুটি {n}",
+    moveGeneric: "চালুন",
+    movePiece: "গুটি {n} চালুন",
+    tapGlowing: "একটি জ্বলজ্বলে গুটিতে ট্যাপ করুন",
+
+    // Reactions
+    reactionsAria: "প্রতিক্রিয়া",
+    emoji: "ইমোজি",
+    phrases: "বাক্যাংশ",
+    sentToScreen: "স্ক্রিনে {emoji} পাঠানো হয়েছে",
+
+    // AudienceScreen
+    inAudience: "দর্শকদের মধ্যে",
+    partyTableWatching: "পার্টি টেবিল {code} · {count} জন দেখছেন",
+    whollWin: "কে জিতবে?",
+    pickBefore: "খেলা শুরুর আগে বেছে নিন। শুধু গর্ব করার জন্য।",
+    pickCountOne: "{count}টি বাছাই",
+    pickCountOther: "{count}টি বাছাই",
+    yourPickName: "আপনার বাছাই: {name}",
+    watchCheer: "স্ক্রিন দেখুন, আর তাদের উৎসাহ দিন।",
+    winsExcl: "{name} জিতেছেন!",
+    gameOver: "খেলা শেষ",
+    youCalledIt: "আপনার আন্দাজ সঠিক!",
+    notThisTime: "এবার হলো না। আপনি {name}-কে বেছেছিলেন।",
+    voteCountOne: "1টি ভোট",
+    voteCountOther: "{count}টি ভোট",
+    findingSeat: "দর্শকদের মধ্যে আপনার জায়গা খোঁজা হচ্ছে…",
+  },
 };
 
 export default bn;

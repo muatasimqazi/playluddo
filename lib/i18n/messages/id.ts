@@ -5,8 +5,6 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
-// F5.1: `party` is not yet translated — placeholder English until a native pass.
-import { en } from "./en";
 
 export const id: Messages = {
   common: {
@@ -607,7 +605,195 @@ export const id: Messages = {
     lobbyPromptAction: "Aktifkan",
     lobbyPromptDismiss: "Nanti saja",
   },
-  party: en.party,
+  party: {
+    // PartyWhere
+    whereTitle1: "Kamu main",
+    whereTitleEm: "dari mana?",
+    hereAtTv: "Aku di sini, di depan TV",
+    hereAtTvNote: "Ponselmu jadi pengendalimu. Papan permainan ada di layar besar.",
+    elsewhere: "Aku di tempat lain",
+    elsewhereNote: "Kamu melihat papan lengkap di layarmu sendiri, dan bisa ngobrol suara dengan yang lain.",
+    notNow: "Nanti saja",
+
+    // PartyAgreement
+    checkError: "Tidak dapat memeriksa undanganmu. Muat ulang halaman dan coba lagi.",
+    agreeEyebrow: "Sebelum bergabung ke pesta",
+    agreeTitle1: "Bersikaplah baik, dan pakai",
+    agreeTitleEm: "nama yang ramah.",
+    agreeTermsPre: "Dengan melanjutkan, kamu menyetujui ",
+
+    // PartySafety
+    safetyLoadError: "Tidak dapat memuat semua orang. Tutup ini dan coba lagi.",
+    reportSent: "Laporan terkirim. Terima kasih sudah memberi tahu kami.",
+    removedFromTable: "Dikeluarkan dari meja pesta ini.",
+    actionFailedMoment: "Tidak berhasil. Coba lagi sebentar lagi.",
+    safetyAria: "Keamanan pesta",
+    closeSafety: "Tutup kontrol keamanan",
+    openSafety: "Laporkan atau kelola orang",
+    whoIsIt: "Siapa orangnya?",
+    choosePerson: "Pilih seseorang",
+    suffixPlayer: "pemain",
+    suffixAudience: "penonton",
+    reason: "Alasan",
+    whatHappened: "Apa yang terjadi? (opsional)",
+    sendReport: "Kirim laporan",
+    removeConfirmNote: "Orang ini tidak akan bisa bergabung lagi ke meja pesta ini dengan akun ini.",
+    confirmRemoval: "Konfirmasi pengeluaran",
+    removeFromAudience: "Keluarkan dari penonton",
+
+    // PartyRound
+    roundSendError: "Tidak berhasil. Coba lagi.",
+    youSaid: "Kamu menjawab {guess}.",
+    nobodyAnswered: "Tidak ada yang menjawab yang ini.",
+    closestJudged: "Paling dekat! Tebakan jitu.",
+    closestList: "Paling dekat: {list}",
+    whileYoureHere: "Selagi kamu di sini",
+    timeLeft: "Sisa {time}",
+    closing: "Menutup…",
+    answersSoFarOne: "1 jawaban sejauh ini",
+    answersSoFarOther: "{count} jawaban sejauh ini",
+    yourAnswerAria: "Jawabanmu",
+    changeIt: "Ubah",
+    answer: "Jawab",
+    yourAnswer: "Jawabanmu: {guess}",
+
+    // PartyScreen — start
+    openError: "Tidak dapat membuka meja. Periksa koneksimu dan coba lagi.",
+    partyMode: "Mode pesta",
+    startTitle1: "Papan permainan di layar ini.",
+    startTitleEm: "Semua main dari ponsel masing-masing.",
+    whatPlaying: "Kita main apa?",
+    openingTable: "Membuka meja…",
+    openPartyTable: "Buka meja pesta",
+    hintDefaults: "Pengaturan keluarga: giliran 30 detik, jeda saat ada ponsel yang diam, dan lemparan tambahan Ludo saat bidak sampai rumah.",
+    hintTv: "Paling pas di TV atau laptop yang bisa dilihat semua orang. Tidak perlu masuk akun di sini.",
+
+    // PartyScreen — connected/error
+    notShowing1: "Layar ini tidak menampilkan",
+    notShowingEm: "meja itu.",
+    onlyOpener: "Hanya layar yang membuka meja pesta yang bisa menampilkannya. Buka meja baru di sini.",
+    openNewTable: "Buka meja pesta baru",
+    findingTable: "Mencari mejamu…",
+
+    // Audience overlay (on the TV)
+    audienceReactionsAria: "Reaksi penonton",
+    joinAudienceAria: "Bergabung sebagai penonton",
+    qrJoinAudience: "Kode QR untuk bergabung sebagai penonton",
+    joinAudience: "Ikut menonton",
+    watchingPrefix: "{count} menonton · ",
+    codeLabel: "kode {code}",
+    theAudienceAria: "Penonton",
+    theAnswer: "Jawabannya",
+    everyoneAnswer: "Semua jawab di ponsel masing-masing",
+    screenClosest: " · Paling dekat: {names}",
+    screenNobody: " · Tidak ada yang menjawab",
+    momentOfMatch: "Momen pertandingan",
+    audienceVoting: "Penonton sedang memilih…",
+    noBigMoments: "Tidak ada momen besar kali ini",
+    votesSoFarOne: "1 suara sejauh ini",
+    votesSoFarOther: "{count} suara sejauh ini",
+    calledIt: "Tebakan tepat: {names}",
+    nobodyCalledIt: "Tidak ada penonton yang menebak dengan tepat.",
+
+    // PartyLobby
+    grabPhone1: "Ambil ponselmu.",
+    grabPhoneEm: "Gabung ke meja.",
+    step1: "Pindai kode dengan kamera ponselmu. Tidak perlu aplikasi.",
+    step2Pre: "Atau buka ",
+    step2Post: " dan gabung dengan kode di bawah.",
+    step3: "Yang pertama bergabung memilih permainan dan memulainya.",
+    roomCodeAria: "Kode ruang {code}",
+    joinTableQr: "Kode QR untuk bergabung ke meja ini",
+    playersAtTableAria: "Pemain di meja",
+    picksGameStarts: "Memilih permainan · memulainya",
+    computer: "Komputer",
+    joiningElsewhere: "Bergabung dari tempat lain",
+    ready: "Siap",
+    picksToWinOne: "1 jagoan untuk menang",
+    picksToWinOther: "{count} jagoan untuk menang",
+    openSeat: "Kursi kosong",
+    waitingForVip: "Menunggu {name} memulai permainan…",
+    waitingForFirst: "Menunggu pemain pertama bergabung…",
+    audienceInfo: " {count} penonton: pindai kode untuk ikut bersama mereka.",
+
+    // PartyLock
+    unlockSeats: "Buka kunci kursi",
+    lockSeats: "Kunci kursi",
+    audienceCanJoin: "Penonton masih bisa bergabung",
+    lockStaysOn: "Kunci tetap aktif antarpermainan",
+    lockError: "Tidak dapat mengubah kunci. Coba lagi.",
+
+    // PartyController
+    notAtTable: "Kamu tidak ada di meja ini",
+    watchOnScreen: "Tonton permainan di layar bersama.",
+    colorPieces: "Bidak {color}",
+    shakeToRoll: "Goyang untuk melempar",
+    seatOpenElsewhere: "Kursimu sekarang terbuka di perangkat lain.",
+    reconnecting: "Menyambung ulang…",
+    rolling: "Melempar…",
+    roll: "Lempar",
+    watchScreenShort: "Lihat layar",
+    rollTap: "Ketuk",
+    rollTapShake: "Ketuk atau goyang",
+    turnOffAutoRoll: "Matikan lempar otomatis",
+    takeSeatBack: "Ambil kembali kursiku",
+    carryOnWithout: "Lanjut tanpa dia",
+    resumeGame: "Lanjutkan permainan",
+    readyWaiting: "Siap. Menunggu yang lain…",
+
+    // PartyController — Status
+    youRolledAria: "Kamu mendapat {die}",
+    movingPiece: "Menggerakkan bidakmu…",
+    pickPiece: "Pilih bidak",
+    secondsLeftShort: "Sisa {seconds} dtk",
+    watchScreenEllipsis: "Lihat layar…",
+    autoRollOn: "Lempar otomatis aktif. Melempar untukmu…",
+    turnOf: "Giliran {name}",
+    waiting: "Menunggu…",
+    theyRolled: "Mendapat {die}",
+    gamePaused: "Permainan dijeda",
+    pickingUp: "Melanjutkan dari posisi terakhirmu…",
+    waitingForPhone: "Menunggu ponsel {name}",
+    computerTakesTurn: "Jika dia belum kembali, komputer akan mengambil gilirannya dalam {time}.",
+    computerHoldingSeat: "Komputer sedang menjaga kursimu",
+    takeBackToPlay: "Ambil kembali untuk terus bermain.",
+    gameEndedEarly: "Permainan berakhir lebih awal",
+    youWon: "Kamu menang!",
+    youCame: "Kamu di posisi {place}",
+    someoneWins: "{name} menang",
+    fullResults: "Hasil lengkapnya ada di layar.",
+
+    // PartyController — Pieces
+    yourPiecesAria: "Bidakmu",
+    yourPiece: "Bidakmu",
+    pieceN: "Bidak {n}",
+    moveGeneric: "Gerakkan",
+    movePiece: "Gerakkan bidak {n}",
+    tapGlowing: "Ketuk bidak yang menyala",
+
+    // Reactions
+    reactionsAria: "Reaksi",
+    emoji: "Emoji",
+    phrases: "Frasa",
+    sentToScreen: "Mengirim {emoji} ke layar",
+
+    // AudienceScreen
+    inAudience: "Di antara penonton",
+    partyTableWatching: "Meja pesta {code} · {count} menonton",
+    whollWin: "Siapa yang akan menang?",
+    pickBefore: "Pilih sebelum permainan dimulai. Cuma buat gengsi.",
+    pickCountOne: "{count} pilihan",
+    pickCountOther: "{count} pilihan",
+    yourPickName: "Pilihanmu: {name}",
+    watchCheer: "Lihat layar, dan dukung mereka.",
+    winsExcl: "{name} menang!",
+    gameOver: "Permainan selesai",
+    youCalledIt: "Tebakanmu tepat!",
+    notThisTime: "Belum kali ini. Kamu memilih {name}.",
+    voteCountOne: "1 suara",
+    voteCountOther: "{count} suara",
+    findingSeat: "Mencari tempatmu di antara penonton…",
+  },
 };
 
 export default id;

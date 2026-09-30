@@ -6,8 +6,6 @@
  * "Luddo House" and the game title "Ludo" are intentionally left untranslated.
  */
 import type { Messages } from "../types";
-// F5.1: `party` is not yet translated — placeholder English until a native pass.
-import { en } from "./en";
 
 export const es: Messages = {
   common: {
@@ -608,7 +606,195 @@ export const es: Messages = {
     lobbyPromptAction: "Activar",
     lobbyPromptDismiss: "Ahora no",
   },
-  party: en.party,
+  party: {
+    // PartyWhere
+    whereTitle1: "¿Desde dónde",
+    whereTitleEm: "vas a jugar?",
+    hereAtTv: "Estoy aquí frente a la tele",
+    hereAtTvNote: "Tu teléfono se convierte en tu mando. El tablero está en la pantalla grande.",
+    elsewhere: "Estoy en otro lugar",
+    elsewhereNote: "Ves el tablero completo en tu propia pantalla y hablas por voz con los demás.",
+    notNow: "Ahora no",
+
+    // PartyAgreement
+    checkError: "No se pudo comprobar tu invitación. Recarga la página e inténtalo de nuevo.",
+    agreeEyebrow: "Antes de unirte a la fiesta",
+    agreeTitle1: "Sé amable y usa un",
+    agreeTitleEm: "nombre simpático.",
+    agreeTermsPre: "Al continuar, aceptas los ",
+
+    // PartySafety
+    safetyLoadError: "No se pudo cargar a todos. Cierra esto e inténtalo de nuevo.",
+    reportSent: "Denuncia enviada. Gracias por avisarnos.",
+    removedFromTable: "Expulsado de esta mesa de fiesta.",
+    actionFailedMoment: "No se pudo completar. Inténtalo de nuevo en un momento.",
+    safetyAria: "Seguridad de la fiesta",
+    closeSafety: "Cerrar controles de seguridad",
+    openSafety: "Denunciar o gestionar personas",
+    whoIsIt: "¿Quién es?",
+    choosePerson: "Elige a una persona",
+    suffixPlayer: "jugador",
+    suffixAudience: "público",
+    reason: "Motivo",
+    whatHappened: "¿Qué pasó? (opcional)",
+    sendReport: "Enviar denuncia",
+    removeConfirmNote: "Esta persona no podrá volver a unirse a esta mesa de fiesta con esta cuenta.",
+    confirmRemoval: "Confirmar expulsión",
+    removeFromAudience: "Quitar del público",
+
+    // PartyRound
+    roundSendError: "No se pudo enviar. Inténtalo de nuevo.",
+    youSaid: "Dijiste {guess}.",
+    nobodyAnswered: "Nadie respondió a esta.",
+    closestJudged: "¡El más cercano! Bien calculado.",
+    closestList: "Más cercano: {list}",
+    whileYoureHere: "Ya que estás aquí",
+    timeLeft: "Quedan {time}",
+    closing: "Cerrando…",
+    answersSoFarOne: "1 respuesta hasta ahora",
+    answersSoFarOther: "{count} respuestas hasta ahora",
+    yourAnswerAria: "Tu respuesta",
+    changeIt: "Cambiarla",
+    answer: "Responder",
+    yourAnswer: "Tu respuesta: {guess}",
+
+    // PartyScreen — start
+    openError: "No se pudo abrir una mesa. Revisa tu conexión e inténtalo de nuevo.",
+    partyMode: "Modo fiesta",
+    startTitle1: "El tablero en esta pantalla.",
+    startTitleEm: "Todos juegan desde su teléfono.",
+    whatPlaying: "¿A qué jugamos?",
+    openingTable: "Abriendo la mesa…",
+    openPartyTable: "Abrir la mesa de fiesta",
+    hintDefaults: "Ajustes familiares: turnos de 30 segundos, una pausa si un teléfono se queda callado y una tirada extra de Ludo al llegar a casa.",
+    hintTv: "Mejor en una tele o un portátil que todos puedan ver. Aquí no hace falta iniciar sesión.",
+
+    // PartyScreen — connected/error
+    notShowing1: "Esta pantalla no está mostrando",
+    notShowingEm: "esa mesa.",
+    onlyOpener: "Solo la pantalla que abrió una mesa de fiesta puede mostrarla. Abre una nueva aquí.",
+    openNewTable: "Abrir una nueva mesa de fiesta",
+    findingTable: "Buscando tu mesa…",
+
+    // Audience overlay (on the TV)
+    audienceReactionsAria: "Reacciones del público",
+    joinAudienceAria: "Unirse al público",
+    qrJoinAudience: "Código QR para unirse al público",
+    joinAudience: "Únete al público",
+    watchingPrefix: "{count} mirando · ",
+    codeLabel: "código {code}",
+    theAudienceAria: "El público",
+    theAnswer: "La respuesta",
+    everyoneAnswer: "Todos respondan en su teléfono",
+    screenClosest: " · Más cercano: {names}",
+    screenNobody: " · Nadie respondió",
+    momentOfMatch: "Momento de la partida",
+    audienceVoting: "El público está votando…",
+    noBigMoments: "Esta vez no hubo grandes momentos",
+    votesSoFarOne: "1 voto hasta ahora",
+    votesSoFarOther: "{count} votos hasta ahora",
+    calledIt: "Lo acertaron: {names}",
+    nobodyCalledIt: "Nadie del público lo acertó.",
+
+    // PartyLobby
+    grabPhone1: "Toma tu teléfono.",
+    grabPhoneEm: "Únete a la mesa.",
+    step1: "Escanea el código con la cámara de tu teléfono. No necesitas ninguna app.",
+    step2Pre: "O abre ",
+    step2Post: " y únete con el código de abajo.",
+    step3: "El primero en unirse elige el juego y lo empieza.",
+    roomCodeAria: "Código de sala {code}",
+    joinTableQr: "Código QR para unirse a esta mesa",
+    playersAtTableAria: "Jugadores en la mesa",
+    picksGameStarts: "Elige el juego · lo empieza",
+    computer: "Computadora",
+    joiningElsewhere: "Se une desde otro lugar",
+    ready: "Listo",
+    picksToWinOne: "1 apuesta a que gana",
+    picksToWinOther: "{count} apuestas a que gana",
+    openSeat: "Asiento libre",
+    waitingForVip: "Esperando a que {name} empiece el juego…",
+    waitingForFirst: "Esperando a que se una el primer jugador…",
+    audienceInfo: " {count} en el público: escanea el código para unirte.",
+
+    // PartyLock
+    unlockSeats: "Desbloquear asientos",
+    lockSeats: "Bloquear asientos",
+    audienceCanJoin: "El público aún puede unirse",
+    lockStaysOn: "El bloqueo se mantiene entre partidas",
+    lockError: "No se pudo cambiar el bloqueo. Inténtalo de nuevo.",
+
+    // PartyController
+    notAtTable: "No estás en esta mesa",
+    watchOnScreen: "Mira la partida en la pantalla compartida.",
+    colorPieces: "Fichas {color}",
+    shakeToRoll: "Agita para tirar",
+    seatOpenElsewhere: "Tu asiento está abierto ahora en otro dispositivo.",
+    reconnecting: "Reconectando…",
+    rolling: "Tirando…",
+    roll: "Tirar",
+    watchScreenShort: "Mira la pantalla",
+    rollTap: "Toca",
+    rollTapShake: "Toca o agita",
+    turnOffAutoRoll: "Desactivar tirada automática",
+    takeSeatBack: "Recuperar mi asiento",
+    carryOnWithout: "Seguir sin esa persona",
+    resumeGame: "Reanudar la partida",
+    readyWaiting: "Listo. Esperando a los demás…",
+
+    // PartyController — Status
+    youRolledAria: "Sacaste un {die}",
+    movingPiece: "Moviendo tu ficha…",
+    pickPiece: "Elige una ficha",
+    secondsLeftShort: "Quedan {seconds} s",
+    watchScreenEllipsis: "Mira la pantalla…",
+    autoRollOn: "La tirada automática está activada. Tirando por ti…",
+    turnOf: "Turno de {name}",
+    waiting: "Esperando…",
+    theyRolled: "Sacó un {die}",
+    gamePaused: "La partida está en pausa",
+    pickingUp: "Retomando donde lo dejaste…",
+    waitingForPhone: "Esperando el teléfono de {name}",
+    computerTakesTurn: "Si no vuelve, una computadora jugará su turno en {time}.",
+    computerHoldingSeat: "Una computadora está guardando tu asiento",
+    takeBackToPlay: "Recupéralo para seguir jugando.",
+    gameEndedEarly: "La partida terminó antes de tiempo",
+    youWon: "¡Ganaste!",
+    youCame: "Quedaste en {place} lugar",
+    someoneWins: "Gana {name}",
+    fullResults: "Los resultados completos están en la pantalla.",
+
+    // PartyController — Pieces
+    yourPiecesAria: "Tus fichas",
+    yourPiece: "Tu ficha",
+    pieceN: "Ficha {n}",
+    moveGeneric: "Mover",
+    movePiece: "Mover ficha {n}",
+    tapGlowing: "Toca una ficha que brille",
+
+    // Reactions
+    reactionsAria: "Reacciones",
+    emoji: "Emoji",
+    phrases: "Frases",
+    sentToScreen: "Enviaste {emoji} a la pantalla",
+
+    // AudienceScreen
+    inAudience: "En el público",
+    partyTableWatching: "Mesa de fiesta {code} · {count} mirando",
+    whollWin: "¿Quién ganará?",
+    pickBefore: "Elige antes de que empiece la partida. Solo para presumir.",
+    pickCountOne: "{count} apuesta",
+    pickCountOther: "{count} apuestas",
+    yourPickName: "Tu apuesta: {name}",
+    watchCheer: "Mira la pantalla y anímalos.",
+    winsExcl: "¡Gana {name}!",
+    gameOver: "Fin de la partida",
+    youCalledIt: "¡Lo acertaste!",
+    notThisTime: "Esta vez no. Elegiste a {name}.",
+    voteCountOne: "1 voto",
+    voteCountOther: "{count} votos",
+    findingSeat: "Buscando tu sitio en el público…",
+  },
 };
 
 export default es;

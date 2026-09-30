@@ -5,8 +5,6 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
-// F5.1: `party` is not yet translated — placeholder English until a native pass.
-import { en } from "./en";
 
 export const hi: Messages = {
   common: {
@@ -607,7 +605,195 @@ export const hi: Messages = {
     lobbyPromptAction: "चालू करें",
     lobbyPromptDismiss: "अभी नहीं",
   },
-  party: en.party,
+  party: {
+    // PartyWhere
+    whereTitle1: "आप कहाँ से",
+    whereTitleEm: "खेल रहे हैं?",
+    hereAtTv: "मैं यहीं टीवी के पास हूँ",
+    hereAtTvNote: "आपका फ़ोन आपका कंट्रोलर बन जाता है। बोर्ड बड़ी स्क्रीन पर है।",
+    elsewhere: "मैं कहीं और हूँ",
+    elsewhereNote: "आपको अपनी स्क्रीन पर पूरा बोर्ड मिलता है, और बाकी लोगों से वॉइस चैट भी।",
+    notNow: "अभी नहीं",
+
+    // PartyAgreement
+    checkError: "आपका निमंत्रण जाँचा नहीं जा सका। पेज फिर से लोड करें और दोबारा कोशिश करें।",
+    agreeEyebrow: "पार्टी में शामिल होने से पहले",
+    agreeTitle1: "अच्छा व्यवहार करें, और रखें",
+    agreeTitleEm: "एक दोस्ताना नाम।",
+    agreeTermsPre: "जारी रखकर आप इनसे सहमत होते हैं: ",
+
+    // PartySafety
+    safetyLoadError: "सभी को लोड नहीं किया जा सका। इसे बंद करके फिर कोशिश करें।",
+    reportSent: "रिपोर्ट भेज दी गई। हमें बताने के लिए धन्यवाद।",
+    removedFromTable: "इस पार्टी टेबल से हटा दिया गया।",
+    actionFailedMoment: "यह नहीं हो पाया। थोड़ी देर में फिर कोशिश करें।",
+    safetyAria: "पार्टी सुरक्षा",
+    closeSafety: "सुरक्षा नियंत्रण बंद करें",
+    openSafety: "लोगों की रिपोर्ट करें या उन्हें प्रबंधित करें",
+    whoIsIt: "वह कौन है?",
+    choosePerson: "एक व्यक्ति चुनें",
+    suffixPlayer: "खिलाड़ी",
+    suffixAudience: "दर्शक",
+    reason: "कारण",
+    whatHappened: "क्या हुआ? (वैकल्पिक)",
+    sendReport: "रिपोर्ट भेजें",
+    removeConfirmNote: "यह व्यक्ति इस खाते से इस पार्टी टेबल में फिर शामिल नहीं हो पाएगा।",
+    confirmRemoval: "हटाने की पुष्टि करें",
+    removeFromAudience: "दर्शकों से हटाएँ",
+
+    // PartyRound
+    roundSendError: "यह नहीं हो पाया। फिर कोशिश करें।",
+    youSaid: "आपने {guess} कहा।",
+    nobodyAnswered: "इसका किसी ने जवाब नहीं दिया।",
+    closestJudged: "सबसे करीब! बढ़िया अंदाज़ा।",
+    closestList: "सबसे करीब: {list}",
+    whileYoureHere: "जब तक आप यहाँ हैं",
+    timeLeft: "{time} बाकी",
+    closing: "बंद हो रहा है…",
+    answersSoFarOne: "अब तक 1 जवाब",
+    answersSoFarOther: "अब तक {count} जवाब",
+    yourAnswerAria: "आपका जवाब",
+    changeIt: "बदलें",
+    answer: "जवाब दें",
+    yourAnswer: "आपका जवाब: {guess}",
+
+    // PartyScreen — start
+    openError: "टेबल नहीं खोली जा सकी। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+    partyMode: "पार्टी मोड",
+    startTitle1: "बोर्ड इस स्क्रीन पर।",
+    startTitleEm: "सब अपने फ़ोन से खेलते हैं।",
+    whatPlaying: "हम क्या खेल रहे हैं?",
+    openingTable: "टेबल खुल रही है…",
+    openPartyTable: "पार्टी टेबल खोलें",
+    hintDefaults: "परिवार के लिए डिफ़ॉल्ट: 30 सेकंड की बारी, किसी फ़ोन के चुप होने पर विराम, और घर पहुँचने पर Ludo में एक अतिरिक्त रोल।",
+    hintTv: "टीवी या लैपटॉप पर सबसे अच्छा, जिसे सब देख सकें। यहाँ साइन इन की ज़रूरत नहीं।",
+
+    // PartyScreen — connected/error
+    notShowing1: "यह स्क्रीन वह टेबल",
+    notShowingEm: "नहीं दिखा रही।",
+    onlyOpener: "पार्टी टेबल सिर्फ़ वही स्क्रीन दिखा सकती है जिसने उसे खोला था। यहाँ नई टेबल खोलें।",
+    openNewTable: "नई पार्टी टेबल खोलें",
+    findingTable: "आपकी टेबल ढूँढी जा रही है…",
+
+    // Audience overlay (on the TV)
+    audienceReactionsAria: "दर्शकों की प्रतिक्रियाएँ",
+    joinAudienceAria: "दर्शकों में शामिल हों",
+    qrJoinAudience: "दर्शकों में शामिल होने के लिए QR कोड",
+    joinAudience: "दर्शकों में शामिल हों",
+    watchingPrefix: "{count} देख रहे हैं · ",
+    codeLabel: "कोड {code}",
+    theAudienceAria: "दर्शक",
+    theAnswer: "जवाब",
+    everyoneAnswer: "सब अपने फ़ोन पर जवाब दें",
+    screenClosest: " · सबसे करीब: {names}",
+    screenNobody: " · किसी ने जवाब नहीं दिया",
+    momentOfMatch: "मैच का सबसे खास पल",
+    audienceVoting: "दर्शक वोट कर रहे हैं…",
+    noBigMoments: "इस बार कोई बड़ा पल नहीं",
+    votesSoFarOne: "अब तक 1 वोट",
+    votesSoFarOther: "अब तक {count} वोट",
+    calledIt: "सही अंदाज़ा: {names}",
+    nobodyCalledIt: "दर्शकों में से किसी का अंदाज़ा सही नहीं निकला।",
+
+    // PartyLobby
+    grabPhone1: "अपना फ़ोन उठाइए।",
+    grabPhoneEm: "टेबल से जुड़िए।",
+    step1: "अपने फ़ोन के कैमरे से कोड स्कैन करें। किसी ऐप की ज़रूरत नहीं।",
+    step2Pre: "या ",
+    step2Post: " खोलें और नीचे दिए कोड से जुड़ें।",
+    step3: "सबसे पहले जुड़ने वाला खेल चुनता है और उसे शुरू करता है।",
+    roomCodeAria: "रूम कोड {code}",
+    joinTableQr: "इस टेबल से जुड़ने के लिए QR कोड",
+    playersAtTableAria: "टेबल पर खिलाड़ी",
+    picksGameStarts: "खेल चुनता है · शुरू करता है",
+    computer: "कंप्यूटर",
+    joiningElsewhere: "कहीं और से जुड़ रहे हैं",
+    ready: "तैयार",
+    picksToWinOne: "जीत के लिए 1 पसंद",
+    picksToWinOther: "जीत के लिए {count} पसंद",
+    openSeat: "खाली सीट",
+    waitingForVip: "{name} के खेल शुरू करने का इंतज़ार…",
+    waitingForFirst: "पहले खिलाड़ी के जुड़ने का इंतज़ार…",
+    audienceInfo: " दर्शकों में {count}: उनके साथ जुड़ने के लिए कोड स्कैन करें।",
+
+    // PartyLock
+    unlockSeats: "सीटें अनलॉक करें",
+    lockSeats: "सीटें लॉक करें",
+    audienceCanJoin: "दर्शक अब भी जुड़ सकते हैं",
+    lockStaysOn: "लॉक खेलों के बीच चालू रहता है",
+    lockError: "लॉक बदला नहीं जा सका। फिर कोशिश करें।",
+
+    // PartyController
+    notAtTable: "आप इस टेबल पर नहीं हैं",
+    watchOnScreen: "साझा स्क्रीन पर खेल देखें।",
+    colorPieces: "{color} गोटियाँ",
+    shakeToRoll: "रोल करने के लिए हिलाएँ",
+    seatOpenElsewhere: "आपकी सीट अब किसी दूसरे डिवाइस पर खुली है।",
+    reconnecting: "फिर से जुड़ रहे हैं…",
+    rolling: "रोल हो रहा है…",
+    roll: "रोल करें",
+    watchScreenShort: "स्क्रीन देखें",
+    rollTap: "टैप करें",
+    rollTapShake: "टैप करें या हिलाएँ",
+    turnOffAutoRoll: "ऑटो-रोल बंद करें",
+    takeSeatBack: "मेरी सीट वापस लें",
+    carryOnWithout: "उनके बिना जारी रखें",
+    resumeGame: "खेल फिर शुरू करें",
+    readyWaiting: "तैयार। बाकी लोगों का इंतज़ार…",
+
+    // PartyController — Status
+    youRolledAria: "आपका {die} आया",
+    movingPiece: "आपकी गोटी चल रही है…",
+    pickPiece: "एक गोटी चुनें",
+    secondsLeftShort: "{seconds} से. बाकी",
+    watchScreenEllipsis: "स्क्रीन देखें…",
+    autoRollOn: "ऑटो-रोल चालू है। आपके लिए रोल हो रहा है…",
+    turnOf: "{name} की बारी",
+    waiting: "इंतज़ार…",
+    theyRolled: "उनका {die} आया",
+    gamePaused: "खेल रुका हुआ है",
+    pickingUp: "जहाँ छोड़ा था वहीं से शुरू हो रहा है…",
+    waitingForPhone: "{name} के फ़ोन का इंतज़ार",
+    computerTakesTurn: "अगर वे नहीं लौटे, तो {time} में कंप्यूटर उनकी बारी खेलेगा।",
+    computerHoldingSeat: "एक कंप्यूटर आपकी सीट संभाल रहा है",
+    takeBackToPlay: "खेलना जारी रखने के लिए इसे वापस लें।",
+    gameEndedEarly: "खेल जल्दी खत्म हो गया",
+    youWon: "आप जीत गए!",
+    youCame: "आप {place} स्थान पर रहे",
+    someoneWins: "{name} जीते",
+    fullResults: "पूरे नतीजे स्क्रीन पर हैं।",
+
+    // PartyController — Pieces
+    yourPiecesAria: "आपकी गोटियाँ",
+    yourPiece: "आपकी गोटी",
+    pieceN: "गोटी {n}",
+    moveGeneric: "चलें",
+    movePiece: "गोटी {n} चलें",
+    tapGlowing: "चमकती गोटी पर टैप करें",
+
+    // Reactions
+    reactionsAria: "प्रतिक्रियाएँ",
+    emoji: "इमोजी",
+    phrases: "वाक्यांश",
+    sentToScreen: "स्क्रीन पर {emoji} भेजा",
+
+    // AudienceScreen
+    inAudience: "दर्शकों में",
+    partyTableWatching: "पार्टी टेबल {code} · {count} देख रहे हैं",
+    whollWin: "कौन जीतेगा?",
+    pickBefore: "खेल शुरू होने से पहले चुनें। बस शेखी बघारने के लिए।",
+    pickCountOne: "{count} पसंद",
+    pickCountOther: "{count} पसंद",
+    yourPickName: "आपकी पसंद: {name}",
+    watchCheer: "स्क्रीन देखें, और उनका हौसला बढ़ाएँ।",
+    winsExcl: "{name} जीते!",
+    gameOver: "खेल खत्म",
+    youCalledIt: "आपका अंदाज़ा सही निकला!",
+    notThisTime: "इस बार नहीं। आपने {name} को चुना था।",
+    voteCountOne: "1 वोट",
+    voteCountOther: "{count} वोट",
+    findingSeat: "दर्शकों में आपकी जगह ढूँढी जा रही है…",
+  },
 };
 
 export default hi;

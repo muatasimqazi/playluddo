@@ -101,25 +101,6 @@
   color: var(--sim-muted);
   font-size: 8px;
 }
-/* Optional display-name field on the quick-match launch step. */
-.entrance-inline-field {
-  width: min(390px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0 0 18px;
-  font-size: 10px;
-  color: #cdd6bd;
-}
-.entrance-inline-field input {
-  border: 1px solid #dce5cb30;
-  border-radius: 7px;
-  background: #31432988;
-  color: #eee9d6;
-  padding: 12px;
-  font-size: 13px;
-  outline: none;
-}
 .entrance-player-count {
   width: min(390px, 100%);
   margin: 0 0 18px;
@@ -168,181 +149,12 @@
   color: var(--sim-muted);
   font-size: 9px;
 }
-.entrance-color-choice {
-  width: min(390px, 100%);
-  margin: 0 0 18px;
-  border: 0;
-}
-.entrance-color-choice legend {
-  margin-bottom: 9px;
-  color: #d8d4c3;
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-}
-.entrance-color-choice > div {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
-}
-.entrance-color-choice button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 9px 6px;
-  border: 1px solid var(--sim-line);
-  border-radius: 8px;
-  background: rgba(26, 36, 30, 0.48);
-  color: var(--sim-muted);
-  font-size: 8px;
-  text-transform: capitalize;
-}
-.entrance-color-choice button.is-selected {
-  border-color: #e9d6a5;
-  background: rgba(116, 104, 68, 0.42);
-  color: var(--sim-ink);
-}
-.entrance-color-choice i,
 .lobby-color-choice i {
   width: 13px;
   height: 13px;
   border: 1px solid #ffffff80;
   border-radius: 50%;
   box-shadow: 0 1px 5px #0004;
-}
-.entrance-avatar-choice {
-  width: min(390px, 100%);
-  /* A fieldset grows to fit its content by default (min-inline-size:
-     min-content), which would stretch past the screen instead of letting
-     the avatar row scroll. */
-  min-width: 0;
-  margin: 0 0 18px;
-  border: 0;
-}
-.entrance-avatar-choice legend {
-  margin-bottom: 9px;
-  color: #d8d4c3;
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-}
-/* One row that scrolls sideways (like the profile panel's avatar rail)
-   rather than wrapping into a grid. The fade on the right edge hints that
-   there's more to swipe to. */
-.entrance-avatar-choice > div {
-  display: flex;
-  gap: 7px;
-  margin: 0 -4px;
-  /* Right padding lets the last avatar scroll clear of the edge fade. */
-  padding: 2px 28px 8px 4px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scrollbar-color: #d7c38b66 transparent;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
-  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
-}
-.entrance-avatar-choice button {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  scroll-snap-align: start;
-  padding: 5px;
-  border: 1px solid var(--sim-line);
-  border-radius: 10px;
-  background: rgba(26, 36, 30, 0.48);
-}
-.entrance-avatar-choice button.is-selected {
-  border-color: #e9d6a5;
-  background: rgba(116, 104, 68, 0.42);
-}
-.entrance-avatar-choice img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.entrance-avatar-choice small {
-  display: block;
-  margin-top: 8px;
-  color: var(--sim-muted);
-  font-size: 10px;
-}
-.entrance-board-choice {
-  width: min(390px, 100%);
-  margin: 0 0 18px;
-  border: 0;
-}
-.entrance-board-choice legend {
-  margin-bottom: 9px;
-  color: #d8d4c3;
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-}
-.entrance-board-choice > div {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 7px;
-}
-.entrance-board-choice button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 9px 10px;
-  border: 1px solid var(--sim-line);
-  border-radius: 8px;
-  background: rgba(26, 36, 30, 0.48);
-  text-align: left;
-}
-.entrance-board-choice button.is-selected {
-  border-color: #e9d6a5;
-  background: rgba(116, 104, 68, 0.42);
-}
-.entrance-board-choice button strong {
-  color: var(--sim-ink);
-  font-size: 11px;
-  font-weight: 500;
-}
-.entrance-board-choice button small {
-  color: var(--sim-muted);
-  font-size: 8px;
-}
-.entrance-wizard-progress {
-  display: flex;
-  gap: 6px;
-  margin: 20px 0 16px;
-}
-.entrance-wizard-progress span {
-  width: 20px;
-  height: 3px;
-  border-radius: 2px;
-  background: #ffffff26;
-}
-.entrance-wizard-progress span.is-active {
-  background: #e9d6a5;
-}
-.entrance-wizard-progress span.is-done {
-  background: #d8bd7f80;
-}
-.entrance-wizard-step {
-  animation: entrance-wizard-fade 220ms ease;
-}
-@keyframes entrance-wizard-fade {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 .back-button {
   font-size: 10px;
@@ -351,25 +163,321 @@
   border: none;
   padding: 0;
 }
-.entrance-wizard-nav {
+/* Entrance flow (app/page.tsx): a mode screen, then one setup screen.
+   Screens slide in from the side they logically come from; --slide flips
+   for right-to-left languages. */
+.entrance-screen {
+  --slide: 18px;
+  animation: entrance-screen-forward 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+[dir="rtl"] .entrance-screen {
+  --slide: -18px;
+}
+.entrance-screen[data-direction="back"] {
+  animation-name: entrance-screen-back;
+}
+@keyframes entrance-screen-forward {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide));
+  }
+}
+@keyframes entrance-screen-back {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--slide) * -1));
+  }
+}
+/* Mode tiles go straight to setup, so each carries a forward arrow. */
+.entrance-mode-choice button,
+.entrance-mode-link {
+  position: relative;
+  padding-inline-end: 28px;
+}
+.entrance-mode-choice button > svg,
+.entrance-mode-link > svg {
+  position: absolute;
+  inset-inline-end: 9px;
+  top: 50%;
+  width: 13px;
+  height: 13px;
+  margin-top: -6.5px;
+  color: #d8bd7f;
+  opacity: 0.75;
+}
+[dir="rtl"] .entrance-mode-choice svg,
+[dir="rtl"] .entrance-launch svg,
+[dir="rtl"] .entrance-team-row svg {
+  transform: scaleX(-1);
+}
+.entrance-mode-choice button:active,
+.entrance-mode-link:active,
+.entrance-segmented button:active,
+.entrance-swatches button:active {
+  transform: scale(0.97);
+}
+.entrance-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: min(390px, 100%);
+  min-height: 100%;
+}
+.entrance-setup-head {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: min(390px, 100%);
-  margin-top: 4px;
 }
-.entrance-wizard-nav .back-button {
+.entrance-setup-head h2 {
+  margin: 0;
+  color: #f1ead7;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+.entrance-setup-head p {
+  margin: 3px 0 0;
+  color: var(--sim-muted);
+  font-size: 11px;
+}
+.entrance-back {
   flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--sim-line);
+  border-radius: 50%;
+  background: rgba(26, 36, 30, 0.55);
+  color: var(--sim-ink);
 }
-.entrance-wizard-nav .sim-primary {
-  flex: 1;
-  height: 49px;
+.entrance-back svg {
+  transform: scaleX(-1);
+}
+[dir="rtl"] .entrance-back svg {
+  transform: none;
+}
+.entrance-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.entrance-field-label {
+  color: #d8d4c3;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.entrance-field-hint {
+  color: var(--sim-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+/* Segmented control: every option on one row, the pick filled in gold. */
+.entrance-segmented {
+  display: grid;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--sim-line);
+  border-radius: 10px;
+  background: rgba(20, 30, 24, 0.6);
+  backdrop-filter: blur(8px);
+}
+.entrance-segmented button {
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 4px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: none;
+  color: var(--sim-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  hyphens: auto;
+}
+/* Four or more options (board designs): slightly smaller type so words like
+   "Geometric" fit their segment instead of breaking mid-word. */
+.entrance-segmented.is-dense button {
+  padding-inline: 2px;
+  font-size: 11px;
+}
+.entrance-segmented button.is-selected {
+  border-color: #d8bd7f;
+  background: rgba(116, 104, 68, 0.6);
+  color: var(--sim-ink);
+}
+/* "You": the avatar (opens the picker sheet) beside the base colors. */
+.entrance-you {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.entrance-you-avatar {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1.5px solid #d8bd7f;
+  border-radius: 50%;
+  background: rgba(26, 36, 30, 0.55);
+}
+.entrance-you-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.entrance-you-avatar span {
+  position: absolute;
+  inset-inline-end: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1c2a20;
+  border-radius: 50%;
+  background: #dcca9f;
+  color: #263324;
+  font-size: 10px;
+  line-height: 1;
+}
+.entrance-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.entrance-swatches button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid #ffffff4d;
+  border-radius: 50%;
+  box-shadow: 0 1px 5px #0004;
+}
+.entrance-swatches button.is-selected {
+  border-color: #fff;
+  box-shadow:
+    0 0 0 3px #1c2a20,
+    0 0 0 5px #ead69f;
+}
+.entrance-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dce5cb30;
+  border-radius: 8px;
+  background: #31432988;
+  color: #eee9d6;
+  font-size: 13px;
+  outline: none;
+}
+.entrance-input:focus {
+  border-color: #d8bd7f;
+}
+.entrance-code-input {
+  font-size: 18px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+.entrance-error {
+  margin: 0;
+  color: #f0bd9e;
+  font-size: 11px;
+  line-height: 1.5;
+}
+/* The launch button sits under the choices and, if a short screen makes the
+   panel scroll, stays pinned to its bottom edge so it is never out of reach. */
+.entrance-launch {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding-top: 4px;
+}
+.entrance-launch .sim-primary {
+  width: 100%;
+  height: 52px;
   justify-content: space-between;
-  padding: 0 19px;
+  padding: 0 20px;
 }
-.entrance-wizard-step .back-button {
-  display: block;
-  margin-bottom: 12px;
+/* Avatar picker: a native <dialog> (components/lobby/EntrancePickers.tsx),
+   a centered card here and a bottom sheet on phones. Every avatar shows at
+   once in a wrapping grid — nothing to scroll sideways to find. */
+.entrance-sheet {
+  width: min(420px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 0;
+  border: 1px solid #e4dbc347;
+  border-radius: 18px;
+  background: #202e26f7;
+  box-shadow: 0 28px 90px #07100a99;
+  color: #f2eddf;
+}
+.entrance-sheet[open] {
+  animation: entrance-sheet-in 220ms ease;
+}
+.entrance-sheet::backdrop {
+  background: #111a14a8;
+  backdrop-filter: blur(10px);
+}
+.entrance-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 22px 20px;
+}
+.entrance-sheet h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+.entrance-sheet .sim-primary {
+  width: 100%;
+}
+.entrance-sheet-grip {
+  display: none;
+}
+.entrance-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+}
+.entrance-avatar-grid button {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 6px;
+  border: 1px solid var(--sim-line);
+  border-radius: 12px;
+  background: rgba(26, 36, 30, 0.48);
+}
+.entrance-avatar-grid button.is-selected {
+  border-color: #e9d6a5;
+  background: rgba(116, 104, 68, 0.42);
+}
+.entrance-avatar-grid img {
+  width: 100%;
+  max-width: 60px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+}
+@keyframes entrance-sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes entrance-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
 }
 .lobby-player-count {
   display: flex;
@@ -703,7 +811,8 @@ body.sim-die-blocked .sim-canvas {
    on narrow screens it's replaced by this single trigger (see the
    max-width: 700px block) so the top of the table doesn't stack three
    separate rows of icons. */
-.mobile-tools-trigger {
+.mobile-tools-trigger,
+.mobile-home-trigger {
   display: none;
 }
 .connection-dot.reconnecting {
@@ -1844,12 +1953,18 @@ body.sim-die-blocked .sim-canvas {
 .entrance-header-actions .language-switcher select {
   font-size: inherit;
 }
+/* Header pills. A leading avatar circle sits 4px in from the pill's edge on
+   every side; pills that lead with a line icon instead get a wider start
+   inset so the icon looks optically centered in the rounded end. */
 .profile-trigger {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   min-height: 36px;
-  padding: 4px 12px 4px 5px;
+  /* 3px + the 1px border = the avatar's 4px inset, keeping pills at 36/40px. */
+  padding-block: 3px;
+  padding-inline: 4px 14px;
   border: 1px solid #e7ebdc38;
   border-radius: 30px;
   background: #26372ec4;
@@ -1859,8 +1974,9 @@ body.sim-die-blocked .sim-canvas {
 }
 .profile-guest-avatar {
   display: grid;
-  width: 26px;
-  height: 26px;
+  flex: none;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border-radius: 50%;
   background: #d6c497;
@@ -1931,9 +2047,15 @@ body.sim-die-blocked .sim-canvas {
   text-shadow: 0 0 5px #fff;
   animation: avatar-twinkle 1.9s ease-in-out infinite;
 }
+.leaderboard-trigger,
+.leaderboard-back,
+.language-switcher.profile-trigger {
+  padding-inline: 11px 14px;
+}
 .profile-trigger > .animated-avatar {
-  width: 26px;
-  height: 26px;
+  flex: none;
+  width: 28px;
+  height: 28px;
   font-size: 21px;
 }
 .profile-backdrop {
@@ -2254,17 +2376,20 @@ body.sim-die-blocked .sim-canvas {
    style-picker buttons above carry the same attribute as a state hook. */
 .avatar-portrait[data-photo-style="warm"],
 .player-avatar img[data-photo-style="warm"],
-.entrance-avatar-choice img[data-photo-style="warm"] {
+.entrance-you-avatar img[data-photo-style="warm"],
+.entrance-avatar-grid img[data-photo-style="warm"] {
   filter: sepia(0.16) saturate(1.25) hue-rotate(-6deg) brightness(1.04) contrast(1.02);
 }
 .avatar-portrait[data-photo-style="cool"],
 .player-avatar img[data-photo-style="cool"],
-.entrance-avatar-choice img[data-photo-style="cool"] {
+.entrance-you-avatar img[data-photo-style="cool"],
+.entrance-avatar-grid img[data-photo-style="cool"] {
   filter: saturate(1.08) hue-rotate(14deg) brightness(1.01) contrast(1.03);
 }
 .avatar-portrait[data-photo-style="mono"],
 .player-avatar img[data-photo-style="mono"],
-.entrance-avatar-choice img[data-photo-style="mono"] {
+.entrance-you-avatar img[data-photo-style="mono"],
+.entrance-avatar-grid img[data-photo-style="mono"] {
   filter: grayscale(1) contrast(1.12) brightness(1.02);
 }
 .profile-primary {
@@ -2540,7 +2665,8 @@ body.sim-die-blocked .sim-canvas {
   transform: translateY(-46%);
   width: 355px;
 }
-.entrance-content > .eyebrow {
+.entrance-content > .eyebrow,
+.entrance-content > .entrance-screen > .eyebrow {
   color: #c0c5a9;
   letter-spacing: 3px;
   font-size: 9px;
@@ -2559,23 +2685,13 @@ body.sim-die-blocked .sim-canvas {
   font-weight: 400;
   color: #d6c497;
 }
-.entrance-content > p {
+.entrance-content > p,
+.entrance-content > .entrance-screen > p:not([class]) {
   font-size: 12px;
   line-height: 1.9;
   color: #c0c8b5;
   max-width: 300px;
   margin-bottom: 28px;
-}
-.entrance-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.entrance-buttons .sim-primary {
-  width: 100%;
-  height: 51px;
-  justify-content: space-between;
-  padding: 0 19px;
 }
 /* Quick match waiting screen (components/lobby/QuickMatch.tsx). */
 .quick-match {
@@ -2960,7 +3076,8 @@ body.sim-die-blocked .sim-canvas {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .entrance-content > .eyebrow {
+  .entrance-content > .eyebrow,
+  .entrance-content > .entrance-screen > .eyebrow {
     margin-bottom: 12px;
     font-size: 8px;
   }
@@ -2970,7 +3087,8 @@ body.sim-die-blocked .sim-canvas {
     line-height: 1.02;
     letter-spacing: -1.5px;
   }
-  .entrance-content > p {
+  .entrance-content > p,
+  .entrance-content > .entrance-screen > p:not([class]) {
     margin-bottom: 16px;
     font-size: 11px;
     line-height: 1.7;
@@ -3050,7 +3168,8 @@ body.sim-die-blocked .sim-canvas {
   .sim-side-tools {
     display: none;
   }
-  .mobile-tools-trigger {
+  .mobile-tools-trigger,
+  .mobile-home-trigger {
     display: inline-flex;
   }
   .sim-footer {
@@ -3177,16 +3296,21 @@ body.sim-die-blocked .sim-canvas {
   .entrance-header-actions .profile-trigger {
     font-size: 12px;
   }
+  /* Thumb-sized (40px) pills; the avatar circle keeps its even 4px inset. */
   .profile-trigger {
-    min-height: 32px;
-    padding-right: 10px;
+    min-height: 40px;
   }
-  .profile-trigger > span {
-    width: 22px;
-    height: 22px;
+  .profile-trigger > .profile-guest-avatar,
+  .profile-trigger > .animated-avatar {
+    width: 32px;
+    height: 32px;
   }
+  /* Leaderboard and tournaments drop their labels here: true circles, with
+     the icon dead center rather than pushed left by the pill padding. */
   .leaderboard-trigger {
-    padding-right: 10px;
+    width: 40px;
+    padding: 0;
+    gap: 0;
   }
   .leaderboard-trigger small {
     display: none;
@@ -3224,7 +3348,8 @@ body.sim-die-blocked .sim-canvas {
   .entrance-content h1 {
     font-size: 57px;
   }
-  .entrance-content > p {
+  .entrance-content > p,
+  .entrance-content > .entrance-screen > p:not([class]) {
     font-size: 12px;
     max-width: 285px;
   }
@@ -3281,10 +3406,12 @@ body.sim-die-blocked .sim-canvas {
   .entrance-content h1 {
     font-size: 38px;
   }
-  .entrance-content > p {
+  .entrance-content > p,
+  .entrance-content > .entrance-screen > p:not([class]) {
     display: none;
   }
-  .entrance-content > .eyebrow {
+  .entrance-content > .eyebrow,
+  .entrance-content > .entrance-screen > .eyebrow {
     margin-bottom: 8px;
   }
   .entrance-header {
@@ -3293,16 +3420,6 @@ body.sim-die-blocked .sim-canvas {
   .entrance-game-choice,
   .entrance-player-count {
     margin-bottom: 10px;
-  }
-  .entrance-color-choice {
-    margin-bottom: 10px;
-  }
-  .entrance-buttons {
-    gap: 7px;
-  }
-  .entrance-buttons .sim-primary,
-  .entrance-buttons .entrance-secondary {
-    height: 44px;
   }
   .entrance-content .entrance-caption {
     display: none;
@@ -4358,6 +4475,12 @@ body.sim-die-blocked .sim-canvas {
   .leaderboard-back small {
     display: none;
   }
+  /* Label hidden: a true circle like the home header's icon buttons. */
+  .leaderboard-back {
+    width: 40px;
+    padding: 0;
+    gap: 0;
+  }
   .leaderboard-page .entrance-shade {
     background: linear-gradient(180deg, rgba(23, 33, 26, 0.86), rgba(23, 33, 26, 0.94));
   }
@@ -4534,19 +4657,208 @@ body.sim-die-blocked .sim-canvas {
   margin-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Entrance flow on phones. The mode screen scales its headline with the
+   viewport height so every way to play fits without scrolling, even on an
+   iPhone SE; the setup screen drops the footer and uses the full height.
+   Controls grow to thumb-sized (44px) targets, and inputs use 16px text so
+   iOS Safari doesn't zoom the page when they're focused. */
+@media (max-width: 700px) {
+  .entrance-content {
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+  .entrance-content::-webkit-scrollbar {
+    display: none;
+  }
+  .entrance-content > .entrance-screen > .eyebrow {
+    margin-bottom: 12px;
+  }
+  .entrance-content h1 {
+    font-size: clamp(36px, 6.2vh, 57px);
+    letter-spacing: -1.2px;
+    margin-bottom: 12px;
+  }
+  .entrance-content > .entrance-screen > p:not([class]) {
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+  .entrance-mode-choice > div {
+    gap: 8px;
+  }
+  .entrance-mode-choice button,
+  .entrance-mode-link {
+    min-height: 58px;
+    justify-content: center;
+    padding: 10px 28px 10px 12px;
+    padding-inline: 12px 28px;
+  }
+  .entrance-mode-choice button strong,
+  .entrance-mode-link strong {
+    font-size: 14px;
+  }
+  .entrance-mode-choice button span,
+  .entrance-mode-link span {
+    font-size: 11px;
+  }
+  .entrance-mode-group {
+    font-size: 10px;
+  }
+  .entrance-content.is-setup {
+    top: 72px;
+    bottom: 12px;
+  }
+  .entrance-content.is-setup ~ .entrance-footer {
+    display: none;
+  }
+  .entrance-setup {
+    width: 100%;
+    gap: 18px;
+  }
+  .entrance-field-label {
+    font-size: 11px;
+  }
+  .entrance-field-hint {
+    font-size: 11px;
+  }
+  .entrance-setup-head p {
+    font-size: 12px;
+  }
+  .entrance-segmented button {
+    min-height: 44px;
+    font-size: 14px;
+  }
+  .entrance-segmented.is-dense button {
+    font-size: 12.5px;
+  }
+  .entrance-swatches button {
+    width: 36px;
+    height: 36px;
+  }
+  .entrance-input {
+    font-size: 16px;
+  }
+  .entrance-code-input {
+    font-size: 20px;
+  }
+  .entrance-error {
+    font-size: 12px;
+  }
+  .entrance-launch {
+    padding-top: 10px;
+    padding-bottom: 4px;
+    background: linear-gradient(#17281a00, #17281af0 40%);
+  }
+  .entrance-launch .sim-primary {
+    height: 54px;
+    font-size: 15px;
+  }
+  .entrance-sheet {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85%;
+    margin: auto 0 0;
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+  }
+  .entrance-sheet[open] {
+    animation: entrance-sheet-up 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .entrance-sheet-body {
+    padding: 14px 20px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  .entrance-sheet-grip {
+    display: block;
+    align-self: center;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #ffffff40;
+  }
+  .entrance-avatar-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .entrance-sheet .sim-primary {
+    height: 52px;
+  }
+}
+/* Short phones (iPhone SE, small Androids): tighten the rhythm and drop the
+   secondary hints so the setup screen still fits without scrolling. */
+@media (max-width: 700px) and (max-height: 700px) {
+  .entrance-content > .entrance-screen > p:not([class]),
+  .entrance-content .entrance-caption {
+    display: none;
+  }
+  .entrance-content.is-setup {
+    top: 64px;
+  }
+  .entrance-setup {
+    gap: 12px;
+  }
+  .entrance-setup-head h2 {
+    font-size: 24px;
+  }
+  .entrance-setup-head p,
+  .entrance-setup .entrance-field-hint {
+    display: none;
+  }
+  .entrance-segmented button {
+    min-height: 40px;
+  }
+  .entrance-mode-choice button,
+  .entrance-mode-link {
+    min-height: 52px;
+  }
+}
+/* Narrow phones: the language pill shrinks to its globe (the native picker
+   still opens on tap, laid invisibly over it) so the header's last button —
+   the profile — isn't pushed off the right edge. */
+@media (max-width: 430px) {
+  .entrance-header-actions .language-switcher {
+    position: relative;
+    width: 40px;
+    padding: 0;
+    gap: 0;
+  }
+  .entrance-header-actions .language-switcher select {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    opacity: 0;
+  }
+}
+/* Narrower still (most Androids, small iPhones): keep the four-tile mark and
+   drop the wordmark, as the game header does, so the buttons never crowd
+   or overflow it. */
+@media (max-width: 374px) {
+  .entrance-header .sim-brand > span:last-child {
+    display: none;
+  }
+  .entrance-header-actions {
+    gap: 6px;
+  }
+}
+
 /* Phone game header: the logo and eight tool buttons (each with a 12px
    margin on top of the row gap) needed ~426px, so on every phone narrower
    than a Pro Max the last button (the table menu) was cut off-screen. Keep
-   the four-tile mark, drop the wordmark, and tighten the button spacing. */
+   the four-tile mark, drop the wordmark, and tighten the button spacing.
+   The room label is already hidden (font-size: 0), but its letter-spacing
+   still reserved ~30px of invisible width — zero it so Home can lead. */
 @media (max-width: 430px) {
   .sim-header .sim-brand > span:last-child {
     display: none;
   }
   .sim-session {
     gap: 6px;
+    letter-spacing: 0;
   }
   .sim-session .sim-tool {
     margin-left: 0;
+  }
+}
+@media (max-width: 380px) {
+  .sim-session {
+    gap: 4px;
   }
 }
 
@@ -6409,6 +6721,9 @@ body.sim-die-blocked .sim-canvas {
   font-size: 10px;
   padding: 2px 2px;
   max-width: 130px;
+  /* Hug the chosen language's name instead of reserving the width of the
+     longest option (browsers without field-sizing keep the old width). */
+  field-sizing: content;
   cursor: pointer;
 }
 .language-switcher select:focus-visible {
@@ -6431,6 +6746,10 @@ body.sim-die-blocked .sim-canvas {
 }
 [dir="rtl"] .form-divider {
   text-align: center;
+}
+/* Letter-spacing pulls Arabic/Urdu letters apart and breaks their joining. */
+[dir="rtl"] .entrance-field-label {
+  letter-spacing: 0;
 }
 
 /* Video chat: 2D tile fallback and controls (Section 7, V3). */

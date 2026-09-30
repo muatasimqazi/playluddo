@@ -759,6 +759,16 @@ export default function Simulator({
     onFlip();
     flipTimer.current = setTimeout(() => setFlipping(false), 1600);
   }
+  // Home comes first wherever the table tools are shown. Mid-game it asks
+  // before leaving rather than dropping straight out of the match.
+  const homeTool =
+    state.status === "in_game" ? (
+      <Tool icon="home" label="Home" onClick={() => setLeaving(true)} />
+    ) : (
+      <Link className="sim-tool" href="/" title="Home" aria-label="Home">
+        <Icon name="home" />
+      </Link>
+    );
   return (
     <main
       className={`simulator ${prefs.immersive ? "is-immersive" : ""} ${screen ? "is-screen" : ""}`}
@@ -874,6 +884,8 @@ export default function Simulator({
             )}
         </div>
         <div className="sim-session">
+          {/* Phones hide the side-tools rail, so Home leads the header there. */}
+          <span className="mobile-home-trigger">{homeTool}</span>
           {canPause && onPause && state.status === "in_game" && (
             <Tool
               icon={paused ? "play" : "pause"}
@@ -970,26 +982,13 @@ export default function Simulator({
         </div>
       )}
       <aside className="sim-side-tools" aria-label="Table tools">
+        {homeTool}
         <Tool
           icon="camera"
           label="Camera views"
           active={panel === "camera"}
           onClick={() => togglePanel("camera")}
         />
-        {state.status === "in_game" ? (
-          // A game is in progress — warn before leaving rather than dropping
-          // straight out of the match. (Reset view stays on the "1" key.)
-          <Tool icon="home" label="Home" onClick={() => setLeaving(true)} />
-        ) : (
-          <Link
-            className="sim-tool"
-            href="/"
-            title="Home"
-            aria-label="Home"
-          >
-            <Icon name="home" />
-          </Link>
-        )}
         <Tool
           icon="grid"
           label="Board design"

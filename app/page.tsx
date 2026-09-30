@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -18,6 +18,7 @@ import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { QuickMatch } from "@/components/lobby/QuickMatch";
 import { PlayAgain } from "@/components/lobby/PlayAgain";
+import { EntranceSheet, Segmented } from "@/components/lobby/EntrancePickers";
 import type { Team } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
 import { useI18n } from "@/lib/i18n";
@@ -52,19 +53,31 @@ function ModeLabel({ label }: { label: string }) {
 // The title portion of a mode label (before its " · " description) — for the
 // launch step's primary button, where the description would just be noise.
 const modeTitle = (label: string) => label.split(" · ")[0];
+// …and the description after it, shown under the setup screen's title.
+const modeDescription = (label: string) => label.split(" · ").slice(1).join(" · ");
 
-// The wizard opens on "mode" (how do you want to play), then walks only the
-// config steps that mode needs before the final "start" step launches it:
-//   quick / together — just game type + player count.
-//   friends / practice — also color + avatar, plus Ludo's board design.
+const MODE_LABEL_KEYS = {
+  quick: "entrance.quickMatch",
+  friends: "entrance.playWithFriends",
+  practice: "entrance.offlinePractice",
+  together: "entrance.tableTogether",
+} as const satisfies Record<PlayMode, string>;
+
+// The entrance is two screens, not a wizard of Continue buttons:
+//   1. "How do you want to play?" — tapping a mode goes straight on.
+//   2. One setup screen with only the choices that mode needs, each a
+//      compact segmented row, and the launch button pinned beneath them.
+// Avatar and board design are cosmetic, saved preferences, so they live in a
+// bottom sheet ("Make it yours") instead of costing everyone a screen.
 // (Party mode needs no config, so its tile navigates straight to /screen.)
-function stepsFor(mode: PlayMode | null, gameType: GameType): readonly string[] {
-  if (!mode) return ["mode"];
-  if (mode === "quick" || mode === "together") return ["mode", "game", "start"];
-  return gameType === "ludo"
-    ? ["mode", "game", "setup", "board", "start"]
-    : ["mode", "game", "setup", "start"];
-}
+//
+// The screen is mirrored into the URL (?play=<mode>, plus &look=1 while the
+// sheet is open) with history.pushState, so the phone's back gesture — and
+// Android's hardware back button inside the Capacitor app — steps back
+// through the flow instead of leaving the app.
+const PLAY_MODES: readonly PlayMode[] = ["quick", "friends", "practice", "together"];
+const isPlayMode = (value: string | null): value is PlayMode =>
+  PLAY_MODES.includes(value as PlayMode);
 
 // Maps a bot level to its localized label key (resolved via t() at render).
 const BOT_LEVEL_KEYS = {
@@ -92,10 +105,10 @@ export default function Home() {
     { value: "geometric", label: t("entrance.boardGeometric"), desc: t("entrance.boardGeometricDesc") },
     { value: "aladdin", label: t("entrance.boardAladdin"), desc: t("entrance.boardAladdinDesc") },
   ];
-  // Open the wizard with "Vs Computer" already chosen — the fastest way into a
-  // game, and the one that needs no one else online — so the mode step reads as
-  // a ready default the player can accept or change rather than a blank choice.
-  const [mode, setMode] = useState<PlayMode | null>("practice");
+  // "Vs Computer" is the highlighted default — the fastest way into a game,
+  // and the one that needs no one else online. Once a mode has been picked,
+  // its tile stays highlighted so coming back shows where the player was.
+  const [mode, setMode] = useState<PlayMode>("practice");
   const [quickMatch, setQuickMatch] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -134,6 +147,10 @@ export default function Home() {
   // An uploaded photo isn't one of the presets, so it gets its own tile.
   const profilePhoto =
     profileAvatar && !avatarDefinition(profileAvatar) ? photoAvatar(profileAvatar) : null;
+  const avatarPortrait =
+    playerAvatar === profileAvatar && profilePhoto
+      ? profilePhoto.portrait
+      : (avatarDefinition(playerAvatar) ?? AVATARS[0]).portrait;
   // Board design — a saved preference, synced when signed in; the entrance's
   // highlight then matches what the table will render (Classic by default).
   const [boardStyle, setBoardStyle] = useGamePreference("boardStyle");
@@ -141,15 +158,73 @@ export default function Home() {
   const age = useAgeCheck();
   const [error, setError] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [step, setStep] = useState(0);
+  const [screen, setScreen] = useState<"mode" | "setup">("mode");
+  const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
+  // Play with friends either starts a table or joins one by code; joining
+  // needs none of the table setup, so it swaps the setup rows for the code.
+  const [friendsAction, setFriendsAction] = useState<"create" | "join">("create");
+  // Which way the last screen change went, so the new screen slides in from
+  // the matching side (forward from the end edge, back from the start edge).
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+  // History entries this page pushed — only those may be unwound with
+  // history.back(); anything earlier belongs to whatever page came before.
+  const pushedEntries = useRef(0);
   usePreloadBoardScene();
-  const steps = stepsFor(mode, gameType);
-  const currentStep = steps[Math.min(step, steps.length - 1)];
-  function next() {
-    setStep((s) => Math.min(s + 1, steps.length - 1));
+
+  // Reads the flow position back out of the URL (see the note on PLAY_MODES).
+  const applyUrl = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+    const play = params.get("play");
+    const next = isPlayMode(play) ? "setup" : "mode";
+    if (isPlayMode(play)) setMode(play);
+    setScreen(next);
+    setDirection(next === "setup" ? "forward" : "back");
+    setAvatarSheetOpen(next === "setup" && params.get("look") === "1");
+    setError(null);
+  }, []);
+  useEffect(() => {
+    // A reload restores the setup screen, but never reopens the sheet over it.
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("look")) {
+      params.delete("look");
+      window.history.replaceState(null, "", `${window.location.pathname}?${params}`);
+    }
+    // Deferred a frame: the static HTML always renders the first screen, so
+    // hydration must match it before the URL's screen takes over.
+    const frame = requestAnimationFrame(applyUrl);
+    function onPopState() {
+      pushedEntries.current = Math.max(0, pushedEntries.current - 1);
+      applyUrl();
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [applyUrl]);
+  function go(query: string) {
+    window.history.pushState(null, "", `${window.location.pathname}${query}`);
+    pushedEntries.current += 1;
+    applyUrl();
   }
-  function back() {
-    setStep((s) => Math.max(s - 1, 0));
+  function goBack() {
+    if (pushedEntries.current > 0) {
+      window.history.back(); // popstate re-applies the URL
+      return;
+    }
+    // Arrived straight on ?play= (a reload or shared link): step back in place.
+    const params = new URLSearchParams(window.location.search);
+    params.delete(params.has("look") ? "look" : "play");
+    const query = params.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+    applyUrl();
+  }
+  function chooseMode(next: PlayMode) {
+    go(`?play=${next}`);
+  }
+  function pickAvatar(id: string | null) {
+    setPlayerAvatar(id);
+    goBack();
   }
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
@@ -263,8 +338,8 @@ export default function Home() {
           />
         </div>
       </header>
-      <section className="entrance-content">
-        {!quickMatch && <PlayAgain name={name} onJoin={joinTeamRoom} />}
+      <section className={`entrance-content${screen === "setup" && !quickMatch ? " is-setup" : ""}`}>
+        {!quickMatch && screen === "mode" && <PlayAgain name={name} onJoin={joinTeamRoom} />}
         {quickMatch ? (
           <QuickMatch
             gameType={gameType}
@@ -274,8 +349,8 @@ export default function Home() {
             displayName={name.trim() || t("common.player")}
             onCancel={() => setQuickMatch(false)}
           />
-        ) : (
-          <>
+        ) : screen === "mode" ? (
+          <div className="entrance-screen" data-direction={direction} key="mode">
             <span className="eyebrow">{t("entrance.eyebrowHome").toUpperCase()}</span>
             <h1>
               {t("entrance.heroLine1")}
@@ -285,406 +360,357 @@ export default function Home() {
               <em>{t("entrance.heroEmphasis")}</em>
             </h1>
             <p>{t("entrance.heroSubtitle")}</p>
-            <div className="entrance-wizard-progress" role="presentation">
-              {steps.map((s, i) => (
-                <span
-                  key={s}
-                  className={
-                    i === step ? "is-active" : i < step ? "is-done" : ""
-                  }
-                />
-              ))}
-            </div>
-            <div className="entrance-wizard-step" key={`${mode ?? "mode"}-${step}`}>
-              {currentStep === "mode" && (
-                <>
-                <fieldset className="entrance-game-choice entrance-mode-choice">
-                  <legend>{t("entrance.chooseMode")}</legend>
-                  <p className="entrance-mode-group">{t("entrance.playOnline")}</p>
-                  <div>
-                    <button
-                      type="button"
-                      className={mode === "quick" ? "is-selected" : ""}
-                      aria-pressed={mode === "quick"}
-                      onClick={() => setMode("quick")}
-                    >
-                      <ModeLabel label={t("entrance.quickMatch")} />
-                    </button>
-                    <button
-                      type="button"
-                      className={mode === "friends" ? "is-selected" : ""}
-                      aria-pressed={mode === "friends"}
-                      onClick={() => setMode("friends")}
-                    >
-                      <ModeLabel label={t("entrance.playWithFriends")} />
-                    </button>
-                    {/* Party mode needs no setup, so it leaves the wizard directly. */}
-                    <Link className="entrance-mode-link" href="/screen">
-                      <ModeLabel label={t("entrance.partyMode")} />
-                    </Link>
-                  </div>
-                  <p className="entrance-mode-group">{t("entrance.playOffline")}</p>
-                  <div>
-                    <button
-                      type="button"
-                      className={mode === "practice" ? "is-selected" : ""}
-                      aria-pressed={mode === "practice"}
-                      onClick={() => setMode("practice")}
-                    >
-                      <ModeLabel label={t("entrance.offlinePractice")} />
-                    </button>
-                    <button
-                      type="button"
-                      className={mode === "together" ? "is-selected" : ""}
-                      aria-pressed={mode === "together"}
-                      onClick={() => setMode("together")}
-                    >
-                      <ModeLabel label={t("entrance.tableTogether")} />
-                    </button>
-                  </div>
-                </fieldset>
-                {teams.length > 0 && (
-                  <div className="entrance-team-card">
-                    {teams.map((team) => (
-                      <div key={team.id} className="entrance-team-row">
-                        <div>
-                          <span className="eyebrow">{t("entrance.yourTeam").toUpperCase()}</span>
-                          <strong>{team.name}</strong>
-                          <small>
-                            {team.members.length === 1
-                              ? t("entrance.memberOne", { count: team.members.length })
-                              : t("entrance.memberOther", { count: team.members.length })}
-                            {team.activeRoom &&
-                              t("entrance.tableOpen", { seated: team.activeRoom.seatsTaken })}
-                          </small>
-                        </div>
-                        <button
-                          type="button"
-                          className="sim-primary"
-                          disabled={pending !== null}
-                          onClick={() =>
-                            team.activeRoom
-                              ? joinTeamRoom(team.activeRoom.code)
-                              : startForTeam(team.id)
-                          }
-                        >
-                          <span>
-                            {team.activeRoom
-                              ? t("entrance.joinNow")
-                              : t("entrance.startTable")}
-                          </span>
-                          <Icon name="arrow" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <p className="entrance-caption">{t("entrance.caption")}</p>
-                </>
-              )}
-              {currentStep === "game" && (
-                <>
-                <fieldset className="entrance-game-choice">
-                  <legend>{t("entrance.chooseGame")}</legend>
-                  <div>
-                    <button
-                      type="button"
-                      className={gameType === "ludo" ? "is-selected" : ""}
-                      aria-pressed={gameType === "ludo"}
-                      onClick={() => setGameType("ludo")}
-                    >
-                      <strong>{t("entrance.ludo")}</strong>
-                      <span>{t("entrance.ludoDescription")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={
-                        gameType === "snakes_and_ladders" ? "is-selected" : ""
-                      }
-                      aria-pressed={gameType === "snakes_and_ladders"}
-                      onClick={() => setGameType("snakes_and_ladders")}
-                    >
-                      <strong>{t("entrance.snakes")}</strong>
-                      <span>{t("entrance.snakesDescription")}</span>
-                    </button>
-                  </div>
-                </fieldset>
-                <fieldset className="entrance-player-count">
-                  <legend>{t("entrance.howManyPlayers")}</legend>
-                  <div>
-                    {([2, 3, 4, 5, 6] as const).filter((count) => count <= maxSeats).map((count) => (
-                      <button
-                        key={count}
-                        type="button"
-                        className={tableSize === count ? "is-selected" : ""}
-                        aria-pressed={tableSize === count}
-                        // The effective playerColor is clamped to a valid seat
-                        // for the table size (see its derivation above), so
-                        // shrinking the table never leaves an out-of-range
-                        // color — and the saved favorite is preserved for when
-                        // the table grows back.
-                        onClick={() => setPlayerCount(count)}
-                      >
-                        <strong>{count}</strong>
-                        <span>
-                          {count === 2
-                            ? t("entrance.youPlusOne")
-                            : t("entrance.youPlusN", { count: count - 1 })}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                  <small>{t("entrance.openSeatsNote")}</small>
-                  {tableSize >= 5 && (
-                    <small className="entrance-hex-note">{t("entrance.hexBoardNote")}</small>
-                  )}
-                </fieldset>
-                </>
-              )}
-              {currentStep === "setup" && (
-                <>
-                <fieldset className="entrance-color-choice">
-                  <legend>{t("entrance.chooseBase")}</legend>
-                  <div>
-                    {(tableSize === 2
-                      ? SEAT_COLORS.slice(0, 4)
-                      : SEAT_COLORS.slice(0, tableSize)
-                    ).map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={playerColor === color ? "is-selected" : ""}
-                        aria-label={t("entrance.baseAria", { color: t(COLOR_KEYS[color]) })}
-                        aria-pressed={playerColor === color}
-                        onClick={() => {
-                          setPickedColor(color);
-                          setFavoriteColor(color);
-                        }}
-                      >
-                        <i style={{ background: COLORS[color] }} />
-                        {t(COLOR_KEYS[color])}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-                <fieldset className="entrance-avatar-choice">
-                  <legend>{t("entrance.chooseAvatar")}</legend>
-                  <div>
-                    {profileAvatar && profilePhoto && (
-                      <button
-                        type="button"
-                        className={playerAvatar === profileAvatar ? "is-selected" : ""}
-                        aria-label={t("entrance.yourProfilePhoto")}
-                        aria-pressed={playerAvatar === profileAvatar}
-                        onClick={() => setPlayerAvatar(null)}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element -- uploaded avatar photos are user Storage URLs. */}
-                        <img src={profilePhoto.portrait} alt="" data-photo-style={profilePhoto.style} />
-                      </button>
-                    )}
-                    {AVATARS.map((avatar) => (
-                      <button
-                        key={avatar.id}
-                        type="button"
-                        className={
-                          playerAvatar === avatar.id ? "is-selected" : ""
-                        }
-                        aria-label={avatar.label}
-                        aria-pressed={playerAvatar === avatar.id}
-                        onClick={() =>
-                          setPlayerAvatar(avatar.id === profileAvatar ? null : avatar.id)
-                        }
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP thumbnails. */}
-                        <img src={avatar.portrait} alt="" />
-                      </button>
-                    ))}
-                  </div>
-                  <small>
-                    {profileAvatar
-                      ? t("entrance.profileAvatarPicked")
-                      : t("entrance.signInForPhoto")}
-                  </small>
-                </fieldset>
-                </>
-              )}
-              {currentStep === "board" && (
-                  <fieldset className="entrance-board-choice">
-                    <legend>{t("entrance.chooseBoard")}</legend>
-                    <div>
-                      {BOARD_STYLES.map((style) => (
-                        <button
-                          key={style.value}
-                          type="button"
-                          className={
-                            boardStyle === style.value ? "is-selected" : ""
-                          }
-                          aria-pressed={boardStyle === style.value}
-                          onClick={() => setBoardStyle(style.value)}
-                        >
-                          <strong>{style.label}</strong>
-                          <small>{style.desc}</small>
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-              )}
-              {currentStep === "start" && mode === "quick" && (
-                <>
-                  <button type="button" className="back-button" onClick={back}>
-                    {t("common.backArrow")}
+            <fieldset className="entrance-game-choice entrance-mode-choice">
+              <legend>{t("entrance.chooseMode")}</legend>
+              <p className="entrance-mode-group">{t("entrance.playOnline")}</p>
+              <div>
+                {(["quick", "friends"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={mode === m ? "is-selected" : ""}
+                    onClick={() => chooseMode(m)}
+                  >
+                    <ModeLabel label={t(MODE_LABEL_KEYS[m])} />
+                    <Icon name="arrow" />
                   </button>
-                  <label className="entrance-inline-field">
-                    {t("entrance.yourName")}
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={24}
-                      placeholder={t("entrance.yourNamePlaceholder")}
-                      autoComplete="nickname"
-                    />
-                  </label>
-                  <div className="entrance-buttons">
-                    <button className="sim-primary" onClick={() => setQuickMatch(true)}>
-                      <span>{modeTitle(t("entrance.quickMatch"))}</span>
+                ))}
+                {/* Party mode needs no setup, so it leaves the flow directly. */}
+                <Link className="entrance-mode-link" href="/screen">
+                  <ModeLabel label={t("entrance.partyMode")} />
+                  <Icon name="arrow" />
+                </Link>
+              </div>
+              <p className="entrance-mode-group">{t("entrance.playOffline")}</p>
+              <div>
+                {(["practice", "together"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={mode === m ? "is-selected" : ""}
+                    onClick={() => chooseMode(m)}
+                  >
+                    <ModeLabel label={t(MODE_LABEL_KEYS[m])} />
+                    <Icon name="arrow" />
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            {teams.length > 0 && (
+              <div className="entrance-team-card">
+                {teams.map((team) => (
+                  <div key={team.id} className="entrance-team-row">
+                    <div>
+                      <span className="eyebrow">{t("entrance.yourTeam").toUpperCase()}</span>
+                      <strong>{team.name}</strong>
+                      <small>
+                        {team.members.length === 1
+                          ? t("entrance.memberOne", { count: team.members.length })
+                          : t("entrance.memberOther", { count: team.members.length })}
+                        {team.activeRoom &&
+                          t("entrance.tableOpen", { seated: team.activeRoom.seatsTaken })}
+                      </small>
+                    </div>
+                    <button
+                      type="button"
+                      className="sim-primary"
+                      disabled={pending !== null}
+                      onClick={() =>
+                        team.activeRoom
+                          ? joinTeamRoom(team.activeRoom.code)
+                          : startForTeam(team.id)
+                      }
+                    >
+                      <span>
+                        {team.activeRoom
+                          ? t("entrance.joinNow")
+                          : t("entrance.startTable")}
+                      </span>
                       <Icon name="arrow" />
                     </button>
                   </div>
-                  <p className="entrance-caption">{t("entrance.caption")}</p>
-                </>
-              )}
-              {currentStep === "start" && mode === "friends" && (
-                <form
-                  className="entrance-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    void enter("create");
-                  }}
-                >
-                  <button type="button" className="back-button" onClick={back}>
-                    {t("common.backArrow")}
-                  </button>
-                  <label>
-                    {t("entrance.yourName")}
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={24}
-                      placeholder={t("entrance.yourNamePlaceholder")}
-                      autoComplete="nickname"
-                    />
-                  </label>
-                  <button className="sim-primary" disabled={pending !== null}>
-                    {pending === "create"
-                      ? t("entrance.preparingRoom")
-                      : t("entrance.createTable")}
-                    <Icon name="arrow" />
-                  </button>
-                  <span className="form-divider">{t("entrance.haveInvitation")}</span>
-                  <label>
-                    {t("entrance.roomCode")}
-                    <input
-                      value={code}
-                      onChange={(e) => setCode(e.target.value.toUpperCase())}
-                      maxLength={6}
-                      placeholder={t("entrance.roomCodePlaceholder")}
-                      autoComplete="off"
-                      // Room codes are always Latin/numeric — keep them LTR even
-                      // when the surrounding UI is a right-to-left language.
-                      dir="ltr"
-                    />
-                  </label>
-                  <button
-                    className="entrance-secondary"
-                    type="button"
-                    disabled={pending !== null}
-                    onClick={() => void enter("join")}
-                  >
-                    {pending === "join"
-                      ? t("entrance.findingFriends")
-                      : t("entrance.joinTheirTable")}
-                  </button>
-                  {error && (
-                    <p className="error" role="alert">
-                      {error}
-                    </p>
-                  )}
-                </form>
-              )}
-              {currentStep === "start" && mode === "practice" && (
-                <>
-                  <button type="button" className="back-button" onClick={back}>
-                    {t("common.backArrow")}
-                  </button>
-                  {gameType === "ludo" && (
-                    <fieldset className="entrance-player-count entrance-bot-level">
-                      <legend>{t("entrance.offlineComputerLevel")}</legend>
-                      <div>
-                        {BOT_LEVELS.map((level) => (
-                          <button
-                            key={level}
-                            type="button"
-                            className={botLevel === level ? "is-selected" : ""}
-                            aria-pressed={botLevel === level}
-                            onClick={() => setBotLevel(level)}
-                          >
-                            <strong>{t(BOT_LEVEL_KEYS[level])}</strong>
-                          </button>
-                        ))}
-                      </div>
-                    </fieldset>
-                  )}
-                  <div className="entrance-buttons">
-                    <Link
-                      className="sim-primary"
-                      href={`/practice?players=${tableSize}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
-                    >
-                      <span>{modeTitle(t("entrance.offlinePractice"))}</span>
-                      <Icon name="dice" />
-                    </Link>
-                  </div>
-                  <p className="entrance-caption">{t("entrance.caption")}</p>
-                </>
-              )}
-              {currentStep === "start" && mode === "together" && (
-                <>
-                  <button type="button" className="back-button" onClick={back}>
-                    {t("common.backArrow")}
-                  </button>
-                  <div className="entrance-buttons">
-                    <Link
-                      className="sim-primary"
-                      href={`/table-together?players=${tableSize}&game=${gameType}`}
-                    >
-                      <span>{modeTitle(t("entrance.tableTogether"))}</span>
-                      <Icon name="users" />
-                    </Link>
-                  </div>
-                  <p className="entrance-caption">{t("entrance.caption")}</p>
-                </>
-              )}
-            </div>
-            {currentStep !== "start" && (
-              <div className="entrance-wizard-nav">
-                {step > 0 && (
-                  <button type="button" className="back-button" onClick={back}>
-                    {t("common.backArrow")}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="sim-primary"
-                  disabled={currentStep === "mode" && mode === null}
-                  onClick={next}
-                >
-                  <span>{t("common.continue")}</span>
-                  <Icon name="arrow" />
-                </button>
+                ))}
               </div>
             )}
-          </>
+            {error && (
+              <p className="entrance-error" role="alert">
+                {error}
+              </p>
+            )}
+            <p className="entrance-caption">{t("entrance.caption")}</p>
+          </div>
+        ) : (
+          <form
+            className="entrance-screen entrance-setup"
+            data-direction={direction}
+            key={`setup-${mode}`}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (mode === "quick") setQuickMatch(true);
+              if (mode === "friends") void enter(friendsAction);
+            }}
+          >
+            <div className="entrance-setup-head">
+              <button
+                type="button"
+                className="entrance-back"
+                aria-label={t("common.back")}
+                onClick={goBack}
+              >
+                <Icon name="arrow" />
+              </button>
+              <div>
+                <h2>{modeTitle(t(MODE_LABEL_KEYS[mode]))}</h2>
+                <p>{modeDescription(t(MODE_LABEL_KEYS[mode]))}</p>
+              </div>
+            </div>
+            {mode === "friends" && (
+              <Segmented
+                label={t("entrance.chooseMode")}
+                hideLabel
+                options={[
+                  { value: "create", label: t("entrance.createTab") },
+                  { value: "join", label: t("entrance.joinTab") },
+                ]}
+                value={friendsAction}
+                onChange={(value) => {
+                  setFriendsAction(value);
+                  setError(null);
+                }}
+              />
+            )}
+            {mode === "friends" && friendsAction === "join" ? (
+              <label className="entrance-field">
+                <span className="entrance-field-label">{t("entrance.roomCode")}</span>
+                <input
+                  className="entrance-input entrance-code-input"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  maxLength={6}
+                  placeholder={t("entrance.roomCodePlaceholder")}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  enterKeyHint="go"
+                  // Room codes are always Latin/numeric — keep them LTR even
+                  // when the surrounding UI is a right-to-left language.
+                  dir="ltr"
+                />
+              </label>
+            ) : (
+              <>
+                <Segmented
+                  label={t("entrance.gameLabel")}
+                  options={[
+                    { value: "ludo", label: t("entrance.ludo") },
+                    { value: "snakes_and_ladders", label: t("entrance.snakes") },
+                  ]}
+                  value={gameType}
+                  onChange={setGameType}
+                  hint={
+                    gameType === "ludo"
+                      ? t("entrance.ludoDescription")
+                      : t("entrance.snakesDescription")
+                  }
+                />
+                <Segmented
+                  label={t("entrance.playersLabel")}
+                  options={([2, 3, 4, 5, 6] as const)
+                    .filter((count) => count <= maxSeats)
+                    .map((count) => ({
+                      value: count,
+                      label: count,
+                      ariaLabel:
+                        count === 2
+                          ? t("entrance.youPlusOne")
+                          : t("entrance.youPlusN", { count: count - 1 }),
+                    }))}
+                  value={tableSize}
+                  // The effective playerColor is clamped to a valid seat for
+                  // the table size (see its derivation above), so shrinking
+                  // the table never leaves an out-of-range color — and the
+                  // saved favorite is preserved for when the table grows back.
+                  onChange={setPlayerCount}
+                  hint={
+                    tableSize >= 5
+                      ? t("entrance.hexBoardNote")
+                      : mode === "friends" || mode === "quick"
+                        ? t("entrance.openSeatsNote")
+                        : undefined
+                  }
+                />
+                {mode === "practice" && gameType === "ludo" && (
+                  <Segmented
+                    label={t("entrance.levelLabel")}
+                    options={BOT_LEVELS.map((level) => ({
+                      value: level,
+                      label: t(BOT_LEVEL_KEYS[level]),
+                    }))}
+                    value={botLevel}
+                    onChange={setBotLevel}
+                  />
+                )}
+                {(mode === "practice" || mode === "friends") && (
+                  <div className="entrance-field">
+                    <span className="entrance-field-label">{t("entrance.youLabel")}</span>
+                    <div className="entrance-you">
+                      <button
+                        type="button"
+                        className="entrance-you-avatar"
+                        aria-label={t("entrance.editAvatar")}
+                        onClick={() => go(`?play=${mode}&look=1`)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local WebP thumbnails or the user's Storage photo URL. */}
+                        <img
+                          src={avatarPortrait}
+                          alt=""
+                          data-photo-style={
+                            playerAvatar === profileAvatar ? profilePhoto?.style : undefined
+                          }
+                        />
+                        <span aria-hidden="true">✎</span>
+                      </button>
+                      <div
+                        className="entrance-swatches"
+                        role="radiogroup"
+                        aria-label={t("entrance.chooseBase")}
+                      >
+                        {(tableSize === 2
+                          ? SEAT_COLORS.slice(0, 4)
+                          : SEAT_COLORS.slice(0, tableSize)
+                        ).map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            role="radio"
+                            className={playerColor === color ? "is-selected" : ""}
+                            aria-label={t("entrance.baseAria", { color: t(COLOR_KEYS[color]) })}
+                            aria-checked={playerColor === color}
+                            style={{ background: COLORS[color] }}
+                            onClick={() => {
+                              setPickedColor(color);
+                              setFavoriteColor(color);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {(mode === "practice" || mode === "friends") && gameType === "ludo" && (
+                  <Segmented
+                    label={t("entrance.boardLabel")}
+                    options={BOARD_STYLES.map((style) => ({
+                      value: style.value,
+                      label: style.label,
+                      ariaLabel: `${style.label} · ${style.desc}`,
+                    }))}
+                    value={boardStyle}
+                    onChange={setBoardStyle}
+                    hint={BOARD_STYLES.find((style) => style.value === boardStyle)?.desc}
+                  />
+                )}
+              </>
+            )}
+            {(mode === "quick" || mode === "friends") && (
+              <label className="entrance-field">
+                <span className="entrance-field-label">{t("entrance.yourName")}</span>
+                <input
+                  className="entrance-input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={24}
+                  placeholder={t("entrance.yourNamePlaceholder")}
+                  autoComplete="nickname"
+                  enterKeyHint="go"
+                />
+              </label>
+            )}
+            {error && (
+              <p className="entrance-error" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="entrance-launch">
+              {mode === "quick" && (
+                <button type="submit" className="sim-primary">
+                  <span>{modeTitle(t("entrance.quickMatch"))}</span>
+                  <Icon name="arrow" />
+                </button>
+              )}
+              {mode === "friends" && (
+                <button type="submit" className="sim-primary" disabled={pending !== null}>
+                  <span>
+                    {friendsAction === "join"
+                      ? pending === "join"
+                        ? t("entrance.findingFriends")
+                        : t("entrance.joinTheirTable")
+                      : pending === "create"
+                        ? t("entrance.preparingRoom")
+                        : t("entrance.createTable")}
+                  </span>
+                  <Icon name="arrow" />
+                </button>
+              )}
+              {mode === "practice" && (
+                <Link
+                  className="sim-primary"
+                  href={`/practice?players=${tableSize}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
+                >
+                  <span>{modeTitle(t("entrance.offlinePractice"))}</span>
+                  <Icon name="dice" />
+                </Link>
+              )}
+              {mode === "together" && (
+                <Link
+                  className="sim-primary"
+                  href={`/table-together?players=${tableSize}&game=${gameType}`}
+                >
+                  <span>{modeTitle(t("entrance.tableTogether"))}</span>
+                  <Icon name="users" />
+                </Link>
+              )}
+            </div>
+          </form>
         )}
       </section>
+      <EntranceSheet
+        open={avatarSheetOpen}
+        title={t("entrance.chooseAvatar")}
+        doneLabel={t("entrance.done")}
+        onClose={goBack}
+      >
+        <div className="entrance-avatar-grid">
+          {profileAvatar && profilePhoto && (
+            <button
+              type="button"
+              className={playerAvatar === profileAvatar ? "is-selected" : ""}
+              aria-label={t("entrance.yourProfilePhoto")}
+              aria-pressed={playerAvatar === profileAvatar}
+              onClick={() => pickAvatar(null)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- uploaded avatar photos are user Storage URLs. */}
+              <img src={profilePhoto.portrait} alt="" data-photo-style={profilePhoto.style} />
+            </button>
+          )}
+          {AVATARS.map((avatar) => (
+            <button
+              key={avatar.id}
+              type="button"
+              className={playerAvatar === avatar.id ? "is-selected" : ""}
+              aria-label={avatar.label}
+              aria-pressed={playerAvatar === avatar.id}
+              onClick={() => pickAvatar(avatar.id === profileAvatar ? null : avatar.id)}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP thumbnails. */}
+              <img src={avatar.portrait} alt="" />
+            </button>
+          ))}
+        </div>
+        <small className="entrance-field-hint">
+          {profileAvatar ? t("entrance.profileAvatarPicked") : t("entrance.signInForPhoto")}
+        </small>
+      </EntranceSheet>
       <div className="entrance-room-label">
         <span>{t("entrance.roomLabelEyebrow").toUpperCase()}</span>
         <p>{BRAND.name}</p>

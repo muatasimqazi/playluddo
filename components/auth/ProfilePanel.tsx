@@ -576,7 +576,9 @@ export function ProfilePanel({
             fallback={profileName(user, t).slice(0, 1).toUpperCase()}
           />
         ) : (
-          <span className="profile-guest-avatar">○</span>
+          <span className="profile-guest-avatar">
+            <Icon name="user" size={16} />
+          </span>
         )}
         {authenticated ? profileName(user, t) : t("account.signIn")}
       </button>

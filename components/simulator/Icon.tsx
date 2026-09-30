@@ -19,6 +19,7 @@ export type IconName =
   | "home"
   | "check"
   | "users"
+  | "user"
   | "share"
   | "link"
   | "copy"
@@ -123,6 +124,12 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <circle cx="9" cy="8" r="3" />
       <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
     </>
   ),
   share: (

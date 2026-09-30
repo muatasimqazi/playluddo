@@ -90,7 +90,10 @@ export default function Home() {
     { value: "geometric", label: t("entrance.boardGeometric"), desc: t("entrance.boardGeometricDesc") },
     { value: "aladdin", label: t("entrance.boardAladdin"), desc: t("entrance.boardAladdinDesc") },
   ];
-  const [mode, setMode] = useState<PlayMode | null>(null);
+  // Open the wizard with "Vs Computer" already chosen — the fastest way into a
+  // game, and the one that needs no one else online — so the mode step reads as
+  // a ready default the player can accept or change rather than a blank choice.
+  const [mode, setMode] = useState<PlayMode | null>("practice");
   const [quickMatch, setQuickMatch] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");

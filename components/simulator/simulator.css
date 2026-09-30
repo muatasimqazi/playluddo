@@ -1965,6 +1965,9 @@ body.sim-die-blocked .sim-canvas {
   /* 3px + the 1px border = the avatar's 4px inset, keeping pills at 36/40px. */
   padding-block: 3px;
   padding-inline: 4px 14px;
+  /* Never squeeze a label ("Sign in", "Iniciar sesión") onto two lines. */
+  flex: none;
+  white-space: nowrap;
   border: 1px solid #e7ebdc38;
   border-radius: 30px;
   background: #26372ec4;
@@ -4826,15 +4829,26 @@ body.sim-die-blocked .sim-canvas {
     opacity: 0;
   }
 }
-/* Narrower still (most Androids, small iPhones): keep the four-tile mark and
-   drop the wordmark, as the game header does, so the buttons never crowd
-   or overflow it. */
-@media (max-width: 374px) {
+/* Phones: keep the four-tile mark and drop the wordmark, as the game header
+   does at the same width, so longer sign-in labels ("Iniciar sesión",
+   "تسجيل الدخول") never crowd or overflow it. */
+@media (max-width: 430px) {
   .entrance-header .sim-brand > span:last-child {
     display: none;
   }
+}
+@media (max-width: 374px) {
   .entrance-header-actions {
     gap: 6px;
+  }
+}
+@media (max-width: 340px) {
+  .entrance-header-actions {
+    gap: 4px;
+  }
+  .entrance-header-actions .language-switcher,
+  .entrance-header-actions .leaderboard-trigger {
+    width: 36px;
   }
 }
 

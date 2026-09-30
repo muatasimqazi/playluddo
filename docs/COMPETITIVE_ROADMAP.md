@@ -22,7 +22,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 | Feature | Status | Missing |
 |---|---|---|
 | F0.4 Age check | ◐ | Guest→account answer carry-over (identity linking), the 30-day under-13 cleanup job, privacy and terms wording, the legal review for signed-in under-13s |
-| V1 TURN relay | ◐ | ICE-failure tracking in PostHog; the cellular-to-cellular check |
+| V1 TURN relay | ◐ | The manual cellular-to-cellular check; a PostHog insight on `call_ice_outcome` |
 | V3 Video in the 3D table | ◐ | `VideoTexture` on seat figures, frame-rate fallback, off-screen pause, mobile-data warning (the 2D tile strip is built) |
 | V4 Video safety | ◐ | Report on each video tile; privacy, terms and store privacy disclosures; store review notes |
 | V5 Party-screen video and voice | ☐ | All of it |
@@ -434,7 +434,7 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - The privacy policy explains that we ask for birth month and year, why, and how long we keep it.
 
 ### V1 Reliable connections: a TURN relay ◐ · S–M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Missing: ICE failures aren't reported to PostHog, so the <2% failure-rate target can't be measured. The two-phones-on-cellular check hasn't been recorded.
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Remaining: the manual check that voice connects between two phones on separate cellular networks, and a PostHog insight for the <2% target once `video_chat` is on.
 
 **Also see (Section 15):** R5 · R6
 

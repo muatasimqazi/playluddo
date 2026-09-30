@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  captureIceOutcome,
+  offersTurn,
+  selectedCandidateType,
+  type CandidateType,
+  type IceOutcome,
+} from "../analytics/ice";
+import {
   fetchIceServers,
   joinVoice as joinVoiceRpc,
   leaveVoice as leaveVoiceRpc,
@@ -254,9 +261,33 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
         void audio.play().catch(() => {});
         attachAnalyser(id, stream);
       };
+      // Report this connection's ICE outcome once (V1), for the failure rate.
+      const startedAt = performance.now();
+      let reported = false;
+      const report = (outcome: IceOutcome, candidateType: CandidateType | null, ms: number) =>
+        captureIceOutcome({
+          outcome,
+          turn_offered: offersTurn(iceServers.current),
+          candidate_type: candidateType,
+          ms,
+          video_table: peer.videoSender !== null,
+        });
       connection.onconnectionstatechange = () => {
-        if (["failed", "closed"].includes(connection.connectionState))
-          cleanupPeer(id);
+        const state = connection.connectionState;
+        if (!reported && (state === "connected" || state === "failed")) {
+          reported = true;
+          const ms = Math.round(performance.now() - startedAt);
+          if (state === "failed") report("failed", null, ms);
+          else
+            void connection
+              .getStats()
+              .then((stats) =>
+                selectedCandidateType(stats.values() as Iterable<Record<string, unknown>>),
+              )
+              .catch((): CandidateType => "unknown")
+              .then((type) => report("connected", type, ms));
+        }
+        if (state === "failed" || state === "closed") cleanupPeer(id);
       };
 
       if (isOfferer) {

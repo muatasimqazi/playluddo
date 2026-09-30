@@ -22,7 +22,8 @@
     "test:watch": "vitest tests/rules-engine-ts",
     "test:parity": "vitest run tests/parity",
     "test:multiplayer": "vitest run tests/integration",
-    "test:strength": "vitest run tests/strength"
+    "test:strength": "vitest run tests/strength",
+    "board:hex": "tsx scripts/generate-hex-board.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
@@ -58,6 +59,7 @@
     "eslint-config-next": "16.3.5",
     "pg": "^8.23.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.0"
   }

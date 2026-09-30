@@ -43,7 +43,9 @@ export interface UserPreferences {
 /** The three "game" preferences the reactive store owns (locale is the i18n context's). */
 export type GamePreferenceKey = "baseColor" | "boardStyle" | "botLevel";
 
-const PLAYER_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
+// Orange and black are hex-board seats (F5.2); a favourite of either is
+// clamped to a real seat when the table is smaller (see app/page.tsx).
+const PLAYER_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue", "orange", "black"];
 export const DEFAULT_BASE_COLOR: PlayerColor = "red";
 export const DEFAULT_BOT_LEVEL: BotLevel = "normal";
 const BASE_COLOR_KEY = "luddo-base-color";

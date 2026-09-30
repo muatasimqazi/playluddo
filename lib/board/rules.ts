@@ -1,6 +1,6 @@
+import { BOARD_4, type BoardSpec } from "./boardSpec";
 import type { EnginePawn } from "./engine-types";
 import {
-  PATH_INDEX,
   deriveStateFromPathIndex,
   isSafeCell,
   pathIndexToGlobalCell,
@@ -35,6 +35,8 @@ export function getLegalMoves(
   dieValue: number,
   /** The room's rules and whether this player has captured yet (F2.2). */
   context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
+  /** Board geometry — the 6-arm hex board for 5-6 players, else the cross. */
+  spec: BoardSpec = BOARD_4,
 ): LegalMove[] {
   const moves: LegalMove[] = [];
   const resolved = resolveRoomRules(context?.rules);
@@ -42,6 +44,7 @@ export function getLegalMoves(
   const controllableColors = controllableTeamColors(pawns, color, resolved.teamUp);
   // Master mode: this player has to capture before any piece goes home.
   const heldBack = resolved.captureToEnterHome && !context?.hasCaptured;
+  const { LAST_TRACK_CELL, FINISHED, ENTRY } = spec.pathIndex;
 
   for (const pawn of pawns) {
     if (!controllableColors.has(pawn.color)) continue;
@@ -50,9 +53,9 @@ export function getLegalMoves(
       if (dieValue !== 6) continue;
       moves.push({
         pawnId: pawn.id,
-        fromTileId: pathIndexToTileId(pawn.color, null),
-        toTileId: pathIndexToTileId(pawn.color, PATH_INDEX.ENTRY),
-        capturesPawnIds: capturesAt(pawns, pawn.color, PATH_INDEX.ENTRY, friendlyColors),
+        fromTileId: pathIndexToTileId(pawn.color, null, spec),
+        toTileId: pathIndexToTileId(pawn.color, ENTRY, spec),
+        capturesPawnIds: capturesAt(pawns, pawn.color, ENTRY, friendlyColors, spec),
         finishesPawn: false,
       });
       continue;
@@ -66,28 +69,26 @@ export function getLegalMoves(
     // it. Only one still on the shared track: a piece already in the home
     // column has passed that point and carries on.
     const target =
-      heldBack &&
-      current <= PATH_INDEX.LAST_TRACK_CELL &&
-      current + dieValue > PATH_INDEX.LAST_TRACK_CELL
-        ? PATH_INDEX.LAST_TRACK_CELL
+      heldBack && current <= LAST_TRACK_CELL && current + dieValue > LAST_TRACK_CELL
+        ? LAST_TRACK_CELL
         : current + dieValue;
-    if (target > PATH_INDEX.FINISHED) continue; // overshoot — illegal, excluded from legalMoves
+    if (target > FINISHED) continue; // overshoot — illegal, excluded from legalMoves
     if (target === current) continue; // held back with nowhere to go
     // Blockades: two pieces of one colour on an unsafe square stop everyone
     // else, both from passing it and from landing on it.
-    if (resolved.blockades && blockedBetween(pawns, color, current, target)) continue;
+    if (resolved.blockades && blockedBetween(pawns, color, current, target, spec)) continue;
 
     const captures =
-      target <= PATH_INDEX.LAST_TRACK_CELL
-        ? capturesAt(pawns, pawn.color, target, friendlyColors)
+      target <= LAST_TRACK_CELL
+        ? capturesAt(pawns, pawn.color, target, friendlyColors, spec)
         : [];
 
     moves.push({
       pawnId: pawn.id,
-      fromTileId: pathIndexToTileId(pawn.color, current),
-      toTileId: pathIndexToTileId(pawn.color, target),
+      fromTileId: pathIndexToTileId(pawn.color, current, spec),
+      toTileId: pathIndexToTileId(pawn.color, target, spec),
       capturesPawnIds: captures,
-      finishesPawn: target === PATH_INDEX.FINISHED,
+      finishesPawn: target === FINISHED,
     });
   }
 
@@ -100,14 +101,15 @@ function blockedBetween(
   movingColor: PlayerColor,
   from: number,
   to: number,
+  spec: BoardSpec = BOARD_4,
 ): boolean {
-  for (let step = from + 1; step <= Math.min(to, PATH_INDEX.LAST_TRACK_CELL); step++) {
-    const cell = pathIndexToGlobalCell(movingColor, step);
-    if (isSafeCell(cell)) continue;
+  for (let step = from + 1; step <= Math.min(to, spec.pathIndex.LAST_TRACK_CELL); step++) {
+    const cell = pathIndexToGlobalCell(movingColor, step, spec);
+    if (isSafeCell(cell, spec)) continue;
     const byColor = new Map<PlayerColor, number>();
     for (const p of pawns) {
       if (p.color === movingColor || p.state !== "track" || p.pathIndex === null) continue;
-      if (pathIndexToGlobalCell(p.color, p.pathIndex) !== cell) continue;
+      if (pathIndexToGlobalCell(p.color, p.pathIndex, spec) !== cell) continue;
       byColor.set(p.color, (byColor.get(p.color) ?? 0) + 1);
     }
     for (const count of byColor.values()) if (count >= 2) return true;
@@ -120,9 +122,10 @@ function capturesAt(
   movingColor: PlayerColor,
   targetPathIndex: number,
   friendlyColors: ReadonlySet<PlayerColor> = new Set([movingColor]),
+  spec: BoardSpec = BOARD_4,
 ): string[] {
-  const globalCell = pathIndexToGlobalCell(movingColor, targetPathIndex);
-  if (isSafeCell(globalCell)) return [];
+  const globalCell = pathIndexToGlobalCell(movingColor, targetPathIndex, spec);
+  if (isSafeCell(globalCell, spec)) return [];
 
   return pawns
     .filter(
@@ -130,7 +133,7 @@ function capturesAt(
         !friendlyColors.has(p.color) &&
         p.state === "track" &&
         p.pathIndex !== null &&
-        pathIndexToGlobalCell(p.color, p.pathIndex) === globalCell,
+        pathIndexToGlobalCell(p.color, p.pathIndex, spec) === globalCell,
     )
     .map((p) => p.id);
 }
@@ -162,14 +165,18 @@ export function isTeamUpWon(pawns: EnginePawn[], color: PlayerColor): boolean {
 }
 
 /** Applies an already-legal move: relocates the moving pawn, sends captured pawns to nest. */
-export function applyMove(pawns: EnginePawn[], move: LegalMove): EnginePawn[] {
+export function applyMove(
+  pawns: EnginePawn[],
+  move: LegalMove,
+  spec: BoardSpec = BOARD_4,
+): EnginePawn[] {
   const movingPawn = pawns.find((p) => p.id === move.pawnId);
   if (!movingPawn) {
     throw new Error(`applyMove: unknown pawnId "${move.pawnId}"`);
   }
 
-  const newPathIndex = tileIdToPathIndex(movingPawn.color, move.toTileId);
-  const newState = deriveStateFromPathIndex(newPathIndex);
+  const newPathIndex = tileIdToPathIndex(movingPawn.color, move.toTileId, spec);
+  const newState = deriveStateFromPathIndex(newPathIndex, spec);
   const capturedIds = new Set(move.capturesPawnIds);
 
   return pawns.map((p) => {

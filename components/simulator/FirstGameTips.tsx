@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { boardSpecForPawns } from "@/lib/board/boardSpec";
 import { isSafeCell, pathIndexToGlobalCell } from "@/lib/board/geometry";
 import type { GameRoomState } from "@/lib/board/types";
 
@@ -54,8 +55,12 @@ function activeTips(state: GameRoomState, myPlayerId: string | null): Tip[] {
   if (myTurn && state.turnPhase === "awaiting_move" && state.legalMoves.some((m) => m.capturesPawnIds.length > 0))
     tips.push({ id: "ludo-capture", text: "Land on that piece to send it back to its base, and earn another roll." });
   if (mine.some((p) => p.state === "track" && p.pathIndex !== null)) {
+    const spec = boardSpecForPawns(state.pawns);
     const onStar = mine.some(
-      (p) => p.state === "track" && p.pathIndex !== null && isSafeCell(pathIndexToGlobalCell(me.color, p.pathIndex)),
+      (p) =>
+        p.state === "track" &&
+        p.pathIndex !== null &&
+        isSafeCell(pathIndexToGlobalCell(me.color, p.pathIndex, spec), spec),
     );
     tips.push({
       id: "ludo-stars",

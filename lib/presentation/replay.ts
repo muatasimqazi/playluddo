@@ -1,3 +1,4 @@
+import { boardSpecForPawns } from "../board/boardSpec";
 import { applyMove } from "../board/rules";
 import { applySnakeMove } from "../board/snakes";
 import { DEFAULT_ROOM_RULES } from "../board/rules";
@@ -163,7 +164,9 @@ export function buildReplay(transcript: MatchTranscript): Replay {
     } else if (event.event_type === "legal_move_selected") {
       const move = asMove(event);
       if (!move) continue;
-      pawns = snakes ? applySnakeMove(pawns, move) : applyMove(pawns, move);
+      pawns = snakes
+        ? applySnakeMove(pawns, move)
+        : applyMove(pawns, move, boardSpecForPawns(pawns));
       const captured = move.capturesPawnIds.length;
       const kind: ReplayStepKind = captured
         ? "capture"

@@ -28,6 +28,18 @@ export const QUADRANT_CLASSES: Record<
     border: "border-quadrant-blue-border",
     tint: "bg-quadrant-blue-tint",
   },
+  orange: {
+    text: "text-quadrant-orange",
+    bg: "bg-quadrant-orange",
+    border: "border-quadrant-orange-border",
+    tint: "bg-quadrant-orange-tint",
+  },
+  black: {
+    text: "text-quadrant-black",
+    bg: "bg-quadrant-black",
+    border: "border-quadrant-black-border",
+    tint: "bg-quadrant-black-tint",
+  },
 };
 
 /** PRD 7.2: identity must never rely on color alone — every color pairs with a fixed initial/symbol. */
@@ -36,4 +48,6 @@ export const QUADRANT_INITIAL: Record<PlayerColor, string> = {
   green: "G",
   yellow: "Y",
   blue: "B",
+  orange: "O",
+  black: "K",
 };

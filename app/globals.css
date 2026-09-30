@@ -164,6 +164,14 @@ a.entrance-secondary {
   --quadrant-yellow: #f2c200;
   --quadrant-yellow-tint: #fffce6;
   --quadrant-yellow-border: #ffe066;
+  /* F5.2 hex board seats 5-6. Orange stays clear of the yellow above; black
+     is a dark slate (not pure #000) so its tint/border remain legible. */
+  --quadrant-orange: #ef7d1a;
+  --quadrant-orange-tint: #fef1e3;
+  --quadrant-orange-border: #f6bd85;
+  --quadrant-black: #3b3b46;
+  --quadrant-black-tint: #ececee;
+  --quadrant-black-border: #9a9aa6;
 
   /* Elevation & Depth — DESIGN.md "Elevation & Depth" levels 1-4. */
   --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -195,6 +203,12 @@ a.entrance-secondary {
   --color-quadrant-yellow: var(--quadrant-yellow);
   --color-quadrant-yellow-tint: var(--quadrant-yellow-tint);
   --color-quadrant-yellow-border: var(--quadrant-yellow-border);
+  --color-quadrant-orange: var(--quadrant-orange);
+  --color-quadrant-orange-tint: var(--quadrant-orange-tint);
+  --color-quadrant-orange-border: var(--quadrant-orange-border);
+  --color-quadrant-black: var(--quadrant-black);
+  --color-quadrant-black-tint: var(--quadrant-black-tint);
+  --color-quadrant-black-border: var(--quadrant-black-border);
 
   --font-sans: var(--font-sans);
 

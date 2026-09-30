@@ -38,7 +38,7 @@ import { BRAND } from "@/lib/brand";
 import { webUrl } from "@/lib/native";
 import "@/components/simulator/simulator.css";
 
-const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
+const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue", "orange", "black"];
 
 /** Standard Google Cast glyph (screen with the three connection arcs). */
 function CastGlyph() {
@@ -243,8 +243,15 @@ export function RoomLobby({
           </div>
           {host ? (
             <button
-              disabled={pending || teamUp}
-              title={teamUp ? "Turn Team Up off to switch to Snakes & Ladders" : undefined}
+              // Snakes & Ladders is 2-4 players; 5-6 is the Ludo hexagon (F5.2).
+              disabled={pending || teamUp || (state.gameType === "ludo" && maxPlayers > 4)}
+              title={
+                teamUp
+                  ? "Turn Team Up off to switch to Snakes & Ladders"
+                  : state.gameType === "ludo" && maxPlayers > 4
+                    ? "Snakes & Ladders is up to four players"
+                    : undefined
+              }
               onClick={() =>
                 void run(async () => {
                   const next = await setRoomGame(
@@ -558,7 +565,11 @@ export function RoomLobby({
               <small>
                 {teamUp
                   ? "Team Up is always four players — two against two"
-                  : "Empty selected seats become computers"}
+                  : state.gameType === "snakes_and_ladders"
+                    ? "Snakes & Ladders is up to four players"
+                    : maxPlayers > 4
+                      ? "Five or six players play on a hexagonal board"
+                      : "Empty selected seats become computers"}
               </small>
             </span>
             <select
@@ -575,8 +586,15 @@ export function RoomLobby({
                 })
               }
             >
-              {[2, 3, 4].map((count) => (
-                <option key={count} value={count} disabled={count < occupiedCount}>
+              {[2, 3, 4, 5, 6].map((count) => (
+                <option
+                  key={count}
+                  value={count}
+                  disabled={
+                    count < occupiedCount ||
+                    (state.gameType === "snakes_and_ladders" && count > 4)
+                  }
+                >
                   {count} players
                 </option>
               ))}

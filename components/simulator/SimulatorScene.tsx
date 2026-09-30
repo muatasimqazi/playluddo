@@ -33,6 +33,7 @@ import * as THREE from "three";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { hapticTap, useCoarsePointer } from "@/lib/hooks/useCoarsePointer";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
+import { BOARD_4, boardSpecForColors, type BoardSpec } from "@/lib/board/boardSpec";
 import { tileIdToPathIndex } from "@/lib/board/geometry";
 import { snakesLayout } from "@/lib/board/snakes";
 import { BASE_AREA } from "@/components/arena/boardLayout";
@@ -46,6 +47,8 @@ import {
   ROLL_MS,
   moveWaypoints,
   pawnPoint,
+  pieceScale,
+  rotationStep,
   shortestAngle,
   snakeSquarePoint,
   type ActionCamera,
@@ -56,10 +59,24 @@ import {
 } from "@/lib/presentation/board";
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { cameraFraming } from "@/lib/presentation/camera";
+import type { HexBoardStyle } from "@/lib/presentation/hexArtwork";
+import {
+  HEX_ART_RADIUS,
+  HEX_BASE_RADIUS,
+  HEX_SLAB_APOTHEM,
+  hexBaseAngle,
+  hexBaseCenter,
+  hexSeatPoint,
+} from "@/lib/presentation/hexBoard";
 import boardArtwork from "@/designs/board-design.webp";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
+// The 5-6 player hexagon in each board style (F5.2); lib/presentation/hexArtwork.ts.
+import hexClassicArtwork from "@/designs/board-hex-classic.svg";
+import hexSignatureArtwork from "@/designs/board-hex-signature.svg";
+import hexGeometricArtwork from "@/designs/board-hex-geometric.svg";
+import hexAladdinArtwork from "@/designs/board-hex-aladdin.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
@@ -235,6 +252,7 @@ function Piece({
   gameType = "ludo",
   soundEnabled = true,
   boardStyle = "signature",
+  spec = BOARD_4,
 }: {
   pawn: Pawn;
   allPawns: Pawn[];
@@ -245,6 +263,8 @@ function Piece({
   gameType?: GameType;
   soundEnabled?: boolean;
   boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
+  /** Which Luddo board: the 4-arm cross or the 6-arm hexagon (F5.2). */
+  spec?: BoardSpec;
 }) {
   const ref = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
@@ -265,17 +285,21 @@ function Piece({
   const classicPawn = boardStyle === "classic" && gameType === "ludo";
   const aladdinPawn = boardStyle === "aladdin" && gameType === "ludo";
   const spreadPawn = classicPawn || aladdinPawn;
-  const pawnHeight = classicPawn
-    ? CLASSIC_PAWN_HEIGHT
-    : aladdinPawn
-      ? ALADDIN_PAWN_HEIGHT
-      : GLASS_PAWN_HEIGHT;
+  // Hex cells are smaller than the cross's, so the whole piece (and its
+  // ring, flash and stack spacing) shrinks to fit one.
+  const scale = pieceScale(spec);
+  const pawnHeight =
+    (classicPawn
+      ? CLASSIC_PAWN_HEIGHT
+      : aladdinPawn
+        ? ALADDIN_PAWN_HEIGHT
+        : GLASS_PAWN_HEIGHT) * scale;
   // Outer radius of the legal-move highlight ring and the move-flash disc.
   // The cell-filling glass disc needs a wider ring than the slimmer
   // classic/aladdin figures.
   const highlightRadius = spreadPawn ? 0.218 : 0.26;
-  const point = (piece: Pawn) => pawnPoint(piece, gameType);
-  const [initial] = useState(() => pawnPoint(pawn, gameType));
+  const point = (piece: Pawn) => pawnPoint(piece, gameType, spec);
+  const [initial] = useState(() => pawnPoint(pawn, gameType, spec));
   const stack = allPawns
     .filter(
       (p) =>
@@ -290,9 +314,9 @@ function Piece({
     stack.length > 1
       ? spreadPawn
         ? [
-            ((stackIndex % 2) - 0.5) * 0.13,
+            ((stackIndex % 2) - 0.5) * 0.13 * scale,
             0,
-            ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.13,
+            ((Math.floor(stackIndex / 2) % 2) - 0.5) * 0.13 * scale,
           ]
         : [
             ((stackIndex % 2) - 0.5) * 0.025,
@@ -314,7 +338,7 @@ function Piece({
         moved && move?.fromTileId
           ? gameType === "snakes_and_ladders"
             ? Number(move.fromTileId.split(":")[1])
-            : tileIdToPathIndex(moved.color, move.fromTileId)
+            : tileIdToPathIndex(moved.color, move.fromTileId, spec)
           : null;
       const movingSteps =
         start === null ? 1 : Math.max(1, (moved?.pathIndex ?? start) - start);
@@ -322,8 +346,8 @@ function Piece({
         points: [
           ref.current
             ? (ref.current.position.toArray() as Point)
-            : pawnPoint(from, gameType),
-          ...moveWaypoints(from, pawn, gameType, move),
+            : pawnPoint(from, gameType, spec),
+          ...moveWaypoints(from, pawn, gameType, move, spec),
         ],
         elapsed: 0,
         delay: isCapture ? (movingSteps * HOP_MS) / 1000 : 0,
@@ -335,7 +359,7 @@ function Piece({
     }
     previous.current = pawn;
     previousMove.current = move;
-  }, [pawn, allPawns, move, gameType]);
+  }, [pawn, allPawns, move, gameType, spec]);
   useFrame(({ clock }, delta) => {
     if (!ref.current) return;
     const m = motion.current;
@@ -357,7 +381,7 @@ function Piece({
         }
       }
       if (index >= m.points.length - 1) {
-        const p = pawnPoint(pawn, gameType);
+        const p = pawnPoint(pawn, gameType, spec);
         ref.current.position.set(
           p[0] + offset[0],
           p[1] + offset[1],
@@ -394,7 +418,7 @@ function Piece({
       // Not this pawn's turn to hop, but its stack offset can still shift
       // when another pawn joins/leaves the same cell — ease into that
       // instead of snapping, so a stationary piece never visibly teleports.
-      const p = pawnPoint(pawn, gameType);
+      const p = pawnPoint(pawn, gameType, spec);
       const damp = 1 - Math.exp(-delta * 10);
       ref.current.position.set(
         THREE.MathUtils.lerp(ref.current.position.x, p[0] + offset[0], damp),
@@ -428,12 +452,12 @@ function Piece({
         if (!sample) return;
         mesh.position.set(...sample);
         const age = 1 - index / trail.current!.children.length;
-        mesh.scale.setScalar(0.55 + age * 0.6);
+        mesh.scale.setScalar((0.55 + age * 0.6) * scale);
         const material = mesh.material as THREE.MeshBasicMaterial;
         material.opacity = trailOpacity.current * age * 0.52;
       });
     }
-    ref.current.scale.setScalar(hovered && legal ? 1.12 : 1);
+    ref.current.scale.setScalar((hovered && legal ? 1.12 : 1) * scale);
     if (ring.current) {
       ring.current.visible = legal;
       ring.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 4) * 0.1);
@@ -593,7 +617,7 @@ const DESKTOP_FOUR_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
   green: [3.5, 0.26, -1.3],
   yellow: [3.5, 0.26, 1.3],
   blue: [-3.5, 0.26, 1.3],
-  // F5.2: hex per-seat die points assigned in Phase 3; unused on the cross.
+  // Hex-only colours: the die stays in one fixed spot (followsPlayer is off).
   orange: [3.5, 0.26, -3.3],
   black: [-3.5, 0.26, -3.3],
 };
@@ -875,14 +899,62 @@ function PhysicalDie({
 // die; anything further was a drag of the view.
 const TAP_SLOP_PX = 10;
 
+/**
+ * Which Luddo board the table shows. Orange and black seats exist only on the
+ * 6-arm hexagon (F5.2) — the same inference the server makes — so the seats
+ * and pawns decide it; Snakes & Ladders always uses the square slab.
+ */
+function sceneSpec({
+  gameType,
+  players,
+  frame,
+}: Pick<SceneProps, "gameType" | "players" | "frame">): BoardSpec {
+  if (gameType === "snakes_and_ladders") return BOARD_4;
+  return boardSpecForColors([
+    ...players.map((player) => player.color),
+    ...frame.pawns.map((pawn) => pawn.color),
+  ]);
+}
+
+/** Corner radius of the hexagonal slab (its apothem is HEX_SLAB_APOTHEM). */
+const HEX_SLAB_RADIUS = HEX_SLAB_APOTHEM / Math.cos(Math.PI / 6);
+
 // About 1.4 cells — roughly a fingertip's width on a phone-sized board.
 const TOUCH_PAWN_REACH = 0.55;
+
+const HEX_ARTWORK: Record<HexBoardStyle, { src: string }> = {
+  classic: hexClassicArtwork,
+  signature: hexSignatureArtwork,
+  geometric: hexGeometricArtwork,
+  aladdin: hexAladdinArtwork,
+};
+
+/**
+ * The printed top of the 5-6 player hexagon in the table's board style.
+ * Its own component so only a hex table fetches hex artwork, and only the
+ * chosen style's file. CircleGeometry's UVs span its bounding square, which
+ * is exactly the artwork's viewBox; starting at 30deg lines its corners up
+ * with the printed hexagon's.
+ */
+function HexBoardTop({ style, vectorSize }: { style: HexBoardStyle; vectorSize: number }) {
+  const image = useLoader(THREE.ImageLoader, HEX_ARTWORK[style].src);
+  const texture = useMemo(() => makeBoardTexture(image, "full", 1, vectorSize), [image, vectorSize]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  return (
+    <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <circleGeometry args={[HEX_ART_RADIUS, 6, Math.PI / 6]} />
+      <meshBasicMaterial map={texture} toneMapped={false} color="#ffffff" />
+    </mesh>
+  );
+}
 
 function BoardObject(props: SceneProps) {
   const group = useRef<THREE.Group>(null);
   const board = useRef<THREE.Group>(null);
   const pieces = useRef<THREE.Group>(null);
   const snakeHeads = useRef<THREE.Group>(null);
+  const spec = sceneSpec(props);
+  const hex = spec.arms === 6;
   const targetFlip = props.gameType === "snakes_and_ladders" ? Math.PI : 0;
   const [initialFlip] = useState(targetFlip);
   const flip = useRef({ from: targetFlip, to: targetFlip, elapsed: 1.5 });
@@ -953,7 +1025,7 @@ function BoardObject(props: SceneProps) {
     let best: { id: string; distance: number } | null = null;
     for (const pawn of props.frame.pawns) {
       if (!props.legalPawnIds.includes(pawn.id)) continue;
-      const [x, , z] = pawnPoint(pawn, props.gameType);
+      const [x, , z] = pawnPoint(pawn, props.gameType, spec);
       const distance = Math.hypot(x - local.x, z - local.z);
       if (!best || distance < best.distance) best = { id: pawn.id, distance };
     }
@@ -1019,7 +1091,9 @@ function BoardObject(props: SceneProps) {
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
     drag.current = null;
     dragging.current = false;
-    props.onRotate(Math.round(angle.current / (Math.PI / 2)) * (Math.PI / 2));
+    // Snap to a whole seat: quarter turns on the cross, sixths on the hex.
+    const step = rotationStep(spec);
+    props.onRotate(Math.round(angle.current / step) * step);
   }
   return (
     <group
@@ -1037,29 +1111,48 @@ function BoardObject(props: SceneProps) {
       onClick={tapNearestLegalPawn}
     >
       <group ref={board} position={[0, 0.1, 0]} rotation={[initialFlip, 0, 0]}>
-        <RoundedBox
-          args={[6.36, 0.17, 6.36]}
-          radius={0.065}
-          castShadow
-          receiveShadow
-        >
-          <meshPhysicalMaterial
-            color="#726046"
-            map={wood}
-            roughness={0.3}
-            clearcoat={0.6}
-          />
-        </RoundedBox>
-        <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
-          <meshBasicMaterial
-            map={texture}
-            // Treat the printed artwork as self-lit color reference: room lights,
-            // reflections, shadows, and the filmic curve must not alter its inks.
-            toneMapped={false}
-            color="#ffffff"
-          />
-        </mesh>
+        {hex ? (
+          // A hexagonal slab for 5-6 players (F5.2). A 6-sided cylinder's
+          // corners sit at +z and every 60deg, i.e. at the bases, with its
+          // edges facing the arm tips — matching the printed hex boards.
+          <mesh castShadow receiveShadow>
+            <cylinderGeometry args={[HEX_SLAB_RADIUS, HEX_SLAB_RADIUS, 0.17, 6]} />
+            <meshPhysicalMaterial
+              color="#726046"
+              map={wood}
+              roughness={0.3}
+              clearcoat={0.6}
+            />
+          </mesh>
+        ) : (
+          <RoundedBox
+            args={[6.36, 0.17, 6.36]}
+            radius={0.065}
+            castShadow
+            receiveShadow
+          >
+            <meshPhysicalMaterial
+              color="#726046"
+              map={wood}
+              roughness={0.3}
+              clearcoat={0.6}
+            />
+          </RoundedBox>
+        )}
+        {hex ? (
+          <HexBoardTop style={props.boardStyle ?? "signature"} vectorSize={vectorSize} />
+        ) : (
+          <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
+            <meshBasicMaterial
+              map={texture}
+              // Treat the printed artwork as self-lit color reference: room lights,
+              // reflections, shadows, and the filmic curve must not alter its inks.
+              toneMapped={false}
+              color="#ffffff"
+            />
+          </mesh>
+        )}
         {props.boardStyle === "aladdin" && (
           // Billboard cancels every ancestor rotation (board spin, flip,
           // even the camera orbiting around the table), not just the
@@ -1076,39 +1169,51 @@ function BoardObject(props: SceneProps) {
             </mesh>
           </Billboard>
         )}
-        <mesh position={[0, -0.09, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
-          <meshBasicMaterial
-            map={snakeTexture}
-            toneMapped={false}
-            color="#ffffff"
-          />
-        </mesh>
-        {[-1, 1].flatMap((x) =>
-          [-1, 1].map((z) => (
-            <mesh
-              key={`${x}:${z}`}
-              position={[x * 3.09, 0.09, z * 3.09]}
-              rotation={[-Math.PI / 2, 0, 0]}
-            >
-              <circleGeometry args={[0.022, 12]} />
-              <meshStandardMaterial
-                color="#ccb785"
-                metalness={0.7}
-                roughness={0.3}
-              />
-            </mesh>
-          )),
+        {/* The square Snakes & Ladders print on the underside; a hex table
+            never flips over (Snakes stays 2-4 players), and the square would
+            poke out past the hexagon's edges. */}
+        {!hex && (
+          <mesh position={[0, -0.09, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
+            <meshBasicMaterial
+              map={snakeTexture}
+              toneMapped={false}
+              color="#ffffff"
+            />
+          </mesh>
         )}
+        {/* Brass studs in the slab's corners. */}
+        {(hex
+          ? Array.from({ length: 6 }, (_, k): [number, number] => {
+              const angle = Math.PI / 2 + (k * Math.PI) / 3;
+              const reach = (HEX_ART_RADIUS + HEX_SLAB_RADIUS) / 2;
+              return [Math.cos(angle) * reach, Math.sin(angle) * reach];
+            })
+          : [-1, 1].flatMap((x) => [-1, 1].map((z): [number, number] => [x * 3.09, z * 3.09]))
+        ).map(([x, z]) => (
+          <mesh
+            key={`${x}:${z}`}
+            position={[x, 0.09, z]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <circleGeometry args={[0.022, 12]} />
+            <meshStandardMaterial
+              color="#ccb785"
+              metalness={0.7}
+              roughness={0.3}
+            />
+          </mesh>
+        ))}
       </group>
       <Seats {...props} />
       <group ref={pieces}>
         {props.gameType !== "snakes_and_ladders" &&
           !props.preview &&
-          (Object.keys(BASE_AREA) as PlayerColor[]).map((color) => (
+          spec.colors.map((color) => (
             <TurnBaseGlow
               key={color}
               color={color}
+              hex={hex}
               active={
                 props.players.find(
                   (player) =>
@@ -1124,12 +1229,14 @@ function BoardObject(props: SceneProps) {
             <BaseName
               key={player.id}
               color={player.color}
+              hex={hex}
               name={player.id === props.myPlayerId ? "You" : player.displayName}
             />
           ))}
         {props.frame.pawns.map((pawn) => (
           <Piece
             key={`${props.gameType}:${props.frame.revision}:${pawn.id}`}
+            spec={spec}
             gameType={props.gameType}
             pawn={pawn}
             allPawns={props.frame.pawns}
@@ -1221,9 +1328,12 @@ const PIECE_FLASH_FRAGMENT = /* glsl */ `
 function TurnBaseGlow({
   color,
   active,
+  hex = false,
 }: {
   color: PlayerColor;
   active: boolean;
+  /** On the hexagon the bases are round: the same sweep, masked to a disc. */
+  hex?: boolean;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const material = useRef<THREE.ShaderMaterial>(null);
@@ -1234,19 +1344,27 @@ function TurnBaseGlow({
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
-  const area = BASE_AREA[color];
-  const [x, , z] = gridPoint(
-    (area.rowStart + area.rowEnd) / 2,
-    (area.colStart + area.colEnd) / 2,
-  );
-  const half = ((area.colEnd - area.colStart + 1) * CELL) / 2;
+  let x: number, z: number, half: number;
+  if (hex) {
+    [x, z] = hexBaseCenter(color);
+    half = HEX_BASE_RADIUS;
+  } else {
+    const area = BASE_AREA[color];
+    [x, , z] = gridPoint(
+      (area.rowStart + area.rowEnd) / 2,
+      (area.colStart + area.colEnd) / 2,
+    );
+    half = ((area.colEnd - area.colStart + 1) * CELL) / 2;
+  }
   const extent = (half + BASE_FLASH_MARGIN) * 2;
   const uniforms = useMemo(
     () => ({
       uColor: { value: new THREE.Color(COLORS[color]) },
       uIntensity: { value: 0 },
       uTime: { value: 0 },
+      // The square shader reads uHalf, the disc one uRadius.
       uHalf: { value: half },
+      uRadius: { value: half },
       uExtent: { value: extent },
     }),
     [color, half, extent],
@@ -1275,7 +1393,7 @@ function TurnBaseGlow({
         ref={material}
         uniforms={uniforms}
         vertexShader={BASE_GLOW_VERTEX}
-        fragmentShader={BASE_GLOW_FRAGMENT}
+        fragmentShader={hex ? PIECE_FLASH_FRAGMENT : BASE_GLOW_FRAGMENT}
         transparent
         depthWrite={false}
         toneMapped={false}
@@ -1378,14 +1496,48 @@ const BASE_NAME_SPIN: Record<PlayerColor, number> = {
  * the base glow so it spins with the board and hides during the Ludo/Snakes
  * flip like the pawns do.
  */
-function BaseName({ color, name }: { color: PlayerColor; name: string }) {
+// Hex bases are round and smaller, so the plate is narrower and sits across
+// the base's outer side, beyond the nest slots.
+const HEX_NAME_WIDTH = 0.9;
+const HEX_NAME_DROP = 0.5;
+
+function BaseName({
+  color,
+  name,
+  hex = false,
+}: {
+  color: PlayerColor;
+  name: string;
+  hex?: boolean;
+}) {
+  const texture = useMemo(() => makeNameTexture(name), [name]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  if (hex) {
+    const angle = hexBaseAngle(color);
+    const [bx, bz] = hexBaseCenter(color);
+    // Text reads upright from outside the board: its "down" (the plane's
+    // -y, turned by `spin`) points away from the centre, along `angle`.
+    const spin = Math.PI / 2 - angle;
+    return (
+      <mesh
+        position={[
+          bx + Math.cos(angle) * HEX_NAME_DROP,
+          BOARD_Y + 0.006,
+          bz + Math.sin(angle) * HEX_NAME_DROP,
+        ]}
+        rotation={[-Math.PI / 2, 0, spin]}
+        renderOrder={2}
+      >
+        <planeGeometry args={[HEX_NAME_WIDTH, HEX_NAME_WIDTH * (132 / 512)]} />
+        <meshBasicMaterial map={texture} transparent depthWrite={false} toneMapped={false} />
+      </mesh>
+    );
+  }
   const area = BASE_AREA[color];
   const [x, , z] = gridPoint(
     (area.rowStart + area.rowEnd) / 2,
     (area.colStart + area.colEnd) / 2,
   );
-  const texture = useMemo(() => makeNameTexture(name), [name]);
-  useEffect(() => () => texture.dispose(), [texture]);
   // The plate drops toward the seat — the direction the text reads "down"
   // (+z for the near bases at spin 0, -z for the far ones at spin π).
   const spin = BASE_NAME_SPIN[color];
@@ -1518,7 +1670,7 @@ function Seats({
     green: [1.8, BOARD_Y, -3.5],
     yellow: [1.8, BOARD_Y, 3.5],
     blue: [-1.8, BOARD_Y, 3.5],
-    // F5.2: hex seat anchors assigned in Phase 3; unused on the cross.
+    // Hex-only colours: 5-6 player seats use hexSeat() below instead.
     orange: [3.5, BOARD_Y, 0],
     black: [-3.5, BOARD_Y, 0],
   };
@@ -1536,9 +1688,16 @@ function Seats({
   // or grows with camera zoom and can't reliably clear a fixed-size die.
   const desktopSidePositions: Record<PlayerColor, Point> =
     DESKTOP_FOUR_PLAYER_DIE_POINTS;
-  const mobileDuel = compact && players.length === 2;
-  const mobileFourPlayer = compact && players.length === 4;
-  const desktopFourPlayerSide = players.length === 4 && !mobileFourPlayer;
+  // 5-6 players on the hexagon: each label sits just past the board corner
+  // beside its own base, turning with the board like the pawns.
+  const hex = sceneSpec({ gameType, players, frame }).arms === 6;
+  const hexSeat = (color: PlayerColor): Point => {
+    const [x, z] = hexSeatPoint(color, HEX_SLAB_RADIUS + 0.45);
+    return [x, BOARD_Y, z];
+  };
+  const mobileDuel = !hex && compact && players.length === 2;
+  const mobileFourPlayer = !hex && compact && players.length === 4;
+  const desktopFourPlayerSide = !hex && players.length === 4 && !mobileFourPlayer;
   const duelPlayers = [...players].sort((a, b) => {
     if (a.id === myPlayerId) return -1;
     if (b.id === myPlayerId) return 1;
@@ -1549,7 +1708,9 @@ function Seats({
       {players.map((player) => {
         const active = player.id === (frame.actorId ?? turnPlayerId);
         const duelIndex = duelPlayers.findIndex(({ id }) => id === player.id);
-        const position = mobileDuel
+        const position = hex
+          ? hexSeat(player.color)
+          : mobileDuel
           ? rotateTablePoint(
               [duelIndex === 0 ? -1.45 : 1.45, BOARD_Y, 3.46],
               -orientation,
@@ -1956,6 +2117,7 @@ export default function SimulatorScene(props: SceneProps) {
               speakingPlayerIds={props.speakingPlayerIds}
               preview={props.preview}
               orientation={props.orientation}
+              hex={sceneSpec(props).arms === 6}
             />
           </Suspense>
           {/* Inside Surroundings so it hides with the room: its baked

@@ -31,12 +31,14 @@ import { mirrorGameCenterOnlineResults } from "@/lib/gameCenter";
 import { playSoundEffect, preloadSoundEffects } from "@/lib/sound/effects";
 import {
   COLORS,
-  HOME_ROTATION,
+  homeRotation,
+  rotationStep,
   type ActionCamera,
   type CameraView,
   type InteractionMode,
   type Quality,
 } from "@/lib/presentation/board";
+import { BOARD_4, boardSpecForPawns, type BoardSpec } from "@/lib/board/boardSpec";
 import { PresentationTimeline } from "@/lib/presentation/timeline";
 import {
   SIMULATOR_PREF_KEY,
@@ -167,7 +169,7 @@ function defaultCameraView(): CameraView {
     return "overhead";
   return "play";
 }
-function loadPreferences(color: keyof typeof COLORS): Preferences {
+function loadPreferences(color: keyof typeof COLORS, spec: BoardSpec = BOARD_4): Preferences {
   const defaults: Preferences = {
     quality:
       typeof window !== "undefined" && window.innerWidth < 700
@@ -177,7 +179,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     music: false,
     musicVolume: 0.3,
     actionCamera: "off",
-    orientation: HOME_ROTATION[color],
+    orientation: homeRotation(color, spec),
     snakeOrientation: 0,
     view: defaultCameraView(),
     boardStyle: "classic",
@@ -207,8 +209,13 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       // Compact screens begin overhead so the full board remains usable.
       // Camera choices remain available for the current session only.
       view: defaults.view,
+      // A saved angle only fits the same seat on the same board: red on the
+      // cross and red on the hexagon are turned differently. Saves from
+      // before the hexagon have no localArms and were all on the cross.
       orientation:
-        value.localColor === color && Number.isFinite(value.orientation)
+        value.localColor === color &&
+        (value.localArms ?? 4) === spec.arms &&
+        Number.isFinite(value.orientation)
           ? value.orientation
           : defaults.orientation,
       snakeOrientation: Number.isFinite(value.snakeOrientation)
@@ -337,6 +344,8 @@ export default function Simulator({
   );
   useEffect(() => () => clearTimeout(flipTimer.current), []);
   const me = state.players.find((p) => p.id === myPlayerId);
+  // The 5-6 player hexagon or the 4-arm cross (F5.2), from the seat colours.
+  const boardSpec = boardSpecForPawns(state.players);
   // "Revenge!" is on offer once someone captures one of my pieces, until I
   // next move.
   const revengeReady = (() => {
@@ -372,8 +381,8 @@ export default function Simulator({
       : progressRanking;
   const [prefs, setPrefs] = useState(() =>
     screen
-      ? { ...loadPreferences("blue"), view: "table" as const, actionCamera: "cinematic" as const, immersive: false }
-      : loadPreferences(me?.color ?? "blue"),
+      ? { ...loadPreferences("blue", boardSpec), view: "table" as const, actionCamera: "cinematic" as const, immersive: false }
+      : loadPreferences(me?.color ?? "blue", boardSpec),
   );
   // A signed-in player's equipped board cosmetic overrides the local pref.
   const effectiveBoardStyle: BoardStyle =
@@ -516,10 +525,11 @@ export default function Simulator({
           snakeOrientation: prefs.snakeOrientation,
           boardStyle: prefs.boardStyle,
           localColor: me?.color ?? "blue",
+          localArms: boardSpec.arms,
         }),
       );
     } catch {}
-  }, [prefs, me?.color, screen]);
+  }, [prefs, me?.color, screen, boardSpec.arms]);
   useEffect(() => {
     const audio = new Audio("/audio/background_01.mp3");
     audio.loop = true;
@@ -1054,7 +1064,7 @@ export default function Simulator({
         <div className="sim-rotation">
           <button
             onClick={() =>
-              setPref("orientation", prefs.orientation - Math.PI / 2)
+              setPref("orientation", prefs.orientation - rotationStep(boardSpec))
             }
             aria-label="Rotate board counterclockwise"
           >
@@ -1067,7 +1077,7 @@ export default function Simulator({
           </span>
           <button
             onClick={() =>
-              setPref("orientation", prefs.orientation + Math.PI / 2)
+              setPref("orientation", prefs.orientation + rotationStep(boardSpec))
             }
             aria-label="Rotate board clockwise"
           >
@@ -1625,7 +1635,7 @@ export default function Simulator({
                 className="panel-secondary"
                 onClick={() => {
                   if (snakes) setPref("snakeOrientation", 0);
-                  else setPref("orientation", HOME_ROTATION[me?.color ?? "blue"]);
+                  else setPref("orientation", homeRotation(me?.color ?? "blue", boardSpec));
                   // A finger drag on a phone orbits the camera rather than
                   // turning the board, so the board can already be at this
                   // orientation while the player looks at it from another

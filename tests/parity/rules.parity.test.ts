@@ -16,6 +16,7 @@ import {
   type PlayerProgress,
 } from "../../lib/board/rules";
 import { RULE_PRESETS, rulesAllowed } from "../../lib/board/presets";
+import { BOARD_6 } from "../../lib/board/boardSpec";
 import type { LegalMove, PlayerColor, RoomRules } from "../../lib/board/types";
 
 /**
@@ -679,6 +680,83 @@ describe("parity: Team Up (F2.5)", () => {
     ] as const) {
       expect([color, await sqlTeamUpWon(board, color)])
         .toEqual([color, isTeamUpWon(board, color)]);
+    }
+  });
+});
+
+// F5.2: the 6-arm hexagonal board (5-6 players). The SQL engine infers 6 arms
+// from the presence of orange/black pawns; the TS engine is told via BOARD_6.
+// This exercises the hex-only geometry — track length 78, entries 52/65, the
+// home-lane boundaries 76/77/82, and wrap-around (black at pathIndex n sits at
+// global (65+n) mod 78, folding back over red's arm) — with captures on those
+// wrapped cells, home entry, finishing and overshoot.
+function hexBoard(overrides: Record<string, EnginePawn> = {}): EnginePawn[] {
+  const pawns: EnginePawn[] = [];
+  for (const color of BOARD_6.colors) {
+    for (let index = 0; index < 4; index++) {
+      const id = `${color}-${index}`;
+      pawns.push(overrides[id] ?? pawn(id, color, index, "nest", null));
+    }
+  }
+  return pawns;
+}
+
+describe("parity: hexagonal 6-player board (F5.2)", () => {
+  // A populated hex board: black-0 (global 1) sits one step behind red-0
+  // (global 2, unsafe) so a black 1 captures across the wrap seam; orange and
+  // yellow pawns sit at the home-lane/finish boundaries; every other seat has
+  // a pawn on the shared track.
+  const board = hexBoard({
+    "red-0": pawn("red-0", "red", 0, "track", 2),
+    "red-1": pawn("red-1", "red", 1, "track", 50),
+    "green-0": pawn("green-0", "green", 0, "track", 7),
+    "yellow-0": pawn("yellow-0", "yellow", 0, "track", 76),
+    "blue-0": pawn("blue-0", "blue", 0, "home_lane", 79),
+    "orange-0": pawn("orange-0", "orange", 0, "track", 25),
+    "orange-1": pawn("orange-1", "orange", 1, "home_lane", 80),
+    "black-0": pawn("black-0", "black", 0, "track", 14),
+  });
+
+  it("agree on legal moves for every colour and die on the hex board", async () => {
+    for (const color of BOARD_6.colors) {
+      for (let die = 1; die <= 6; die++) {
+        const ts = getLegalMoves(board, color, die, undefined, BOARD_6);
+        const sql = await sqlLegalMoves(board, color, die);
+        expect([color, die, sql]).toEqual([color, die, ts]);
+      }
+    }
+  });
+
+  it("agree on applying a wrap-seam capture (black captures red across cell 2)", async () => {
+    const move = getLegalMoves(board, "black", 1, undefined, BOARD_6).find(
+      (m) => m.pawnId === "black-0",
+    );
+    expect(move?.capturesPawnIds).toContain("red-0");
+    const ts = applyMove(board, move!, BOARD_6);
+    const sql = await sqlApplyMove(board, move!);
+    expect(sql).toEqual(ts);
+  });
+
+  it("agree on finishing an orange pawn (home-lane 81 -> 82 finished)", async () => {
+    const finishing = hexBoard({
+      "orange-0": pawn("orange-0", "orange", 0, "home_lane", 81),
+    });
+    const move = getLegalMoves(finishing, "orange", 1, undefined, BOARD_6).find(
+      (m) => m.pawnId === "orange-0",
+    );
+    expect(move?.finishesPawn).toBe(true);
+    expect(await sqlApplyMove(finishing, move!)).toEqual(
+      applyMove(finishing, move!, BOARD_6),
+    );
+  });
+
+  it("agree on choosing a bot move on the hex board", async () => {
+    for (let die = 1; die <= 6; die++) {
+      const moves = getLegalMoves(board, "orange", die, undefined, BOARD_6);
+      expect([die, await sqlChooseBotMove(moves, board)]).toEqual([
+        die,
+        chooseBotMove(moves, board),
+      ]);
     }
   });
 });

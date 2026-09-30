@@ -34,6 +34,8 @@ export const id: Messages = {
     green: "hijau",
     yellow: "kuning",
     blue: "biru",
+    orange: "oranye",
+    black: "hitam",
   },
   entrance: {
     partyMode: "Mode pesta · TV + ponsel",
@@ -57,6 +59,7 @@ export const id: Messages = {
     youPlusOne: "Kamu + 1",
     youPlusN: "Kamu + {count}",
     openSeatsNote: "Kursi kosong bisa diisi teman atau pemain komputer.",
+    hexBoardNote: "5 dan 6 pemain bermain di papan heksagonal.",
 
     chooseBase: "Pilih markasmu",
     baseAria: "markas {color}",

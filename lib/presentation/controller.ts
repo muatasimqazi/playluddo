@@ -1,6 +1,12 @@
-import { isSafeCell, pathIndexToGlobalCell, PATH_INDEX, tileIdToPathIndex } from "../board/geometry";
+import { boardSpecForPawns } from "../board/boardSpec";
+import { isSafeCell, pathIndexToGlobalCell, tileIdToPathIndex } from "../board/geometry";
 import { snakesLayout } from "../board/snakes";
 import type { GameRoomState, LegalMove, Pawn, Player } from "../board/types";
+
+/** A room's game type, plus its pawns when known — they say which Luddo board it is. */
+type RouteState = Pick<GameRoomState, "gameType"> & { pawns?: readonly Pawn[] };
+
+const specOf = (state: RouteState) => boardSpecForPawns(state.pawns ?? []);
 
 /**
  * What a Party Mode phone controller shows (docs/COMPETITIVE_ROADMAP.md
@@ -45,26 +51,29 @@ export function forcedMovePawnId(legalMoves: readonly LegalMove[]): string | nul
   return same ? first.pawnId : null;
 }
 
-/** Ludo: steps from base (0) to home (57). Snakes & Ladders: the square, 0 off the board. */
+/** Ludo: steps from base (0) to home (57, or 83 on the hexagon). Snakes & Ladders: the square, 0 off the board. */
 export function pieceSteps(state: Pick<GameRoomState, "gameType">, pawn: Pick<Pawn, "pathIndex">) {
   if (pawn.pathIndex === null) return 0;
   return state.gameType === "snakes_and_ladders" ? pawn.pathIndex : pawn.pathIndex + 1;
 }
 
 /** The last step: home (Ludo) or square 100. */
-export function routeLength(state: Pick<GameRoomState, "gameType">) {
-  return state.gameType === "snakes_and_ladders" ? 100 : PATH_INDEX.FINISHED + 1;
+export function routeLength(state: RouteState) {
+  return state.gameType === "snakes_and_ladders" ? 100 : specOf(state).pathIndex.FINISHED + 1;
 }
 
 /** Where a piece is now, in words. */
-export function pieceWhere(state: Pick<GameRoomState, "gameType">, pawn: Pawn): string {
+export function pieceWhere(state: RouteState, pawn: Pawn): string {
   if (state.gameType === "snakes_and_ladders")
     return pawn.pathIndex === null ? "Not on the board yet" : `Square ${pawn.pathIndex}`;
   if (pawn.state === "nest") return "In base";
   if (pawn.state === "finished") return "Home";
-  const toGo = PATH_INDEX.FINISHED - (pawn.pathIndex ?? 0);
+  const spec = specOf(state);
+  const toGo = spec.pathIndex.FINISHED - (pawn.pathIndex ?? 0);
   if (pawn.state === "home_lane") return `Home column · ${toGo} to go`;
-  const onStar = pawn.pathIndex !== null && isSafeCell(pathIndexToGlobalCell(pawn.color, pawn.pathIndex));
+  const onStar =
+    pawn.pathIndex !== null &&
+    isSafeCell(pathIndexToGlobalCell(pawn.color, pawn.pathIndex, spec), spec);
   return `${toGo} to go${onStar ? " · safe on a star" : ""}`;
 }
 
@@ -96,7 +105,8 @@ export function describeMove(state: GameRoomState, move: LegalMove): MovePreview
     return { pawnId: move.pawnId, toSteps: to, text };
   }
   const color = pawn?.color ?? state.players[0]?.color ?? "red";
-  const toPath = tileIdToPathIndex(color, move.toTileId);
+  const spec = specOf(state);
+  const toPath = tileIdToPathIndex(color, move.toTileId, spec);
   const toSteps = toPath === null ? 0 : toPath + 1;
   const captured = state.pawns.filter((p) => move.capturesPawnIds.includes(p.id));
   const victims = [
@@ -107,8 +117,9 @@ export function describeMove(state: GameRoomState, move: LegalMove): MovePreview
   else if (victims.length > 0)
     text = `Captures ${victims.join(" and ")}${victims.length === 1 && captured.length === 1 ? "'s piece" : "'s pieces"}`;
   else if (pawn?.state === "nest") text = "Comes out of base";
-  else if (toPath !== null && toPath >= PATH_INDEX.HOME_LANE_START) text = "Into the home column";
-  else if (toPath !== null && isSafeCell(pathIndexToGlobalCell(color, toPath))) text = "Lands on a safe star";
+  else if (toPath !== null && toPath >= spec.pathIndex.HOME_LANE_START) text = "Into the home column";
+  else if (toPath !== null && isSafeCell(pathIndexToGlobalCell(color, toPath, spec), spec))
+    text = "Lands on a safe star";
   else text = `Moves ${toSteps - pieceSteps(state, pawn ?? { pathIndex: null })} squares`;
   return { pawnId: move.pawnId, toSteps, text };
 }

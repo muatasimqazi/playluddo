@@ -25,4 +25,17 @@ export const NEST_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number
     [11.345, 88.243],
     [89.728, 88.655],
   ],
+  // F5.2: hex board nests live in lib/presentation/hexBoard.ts; inert placeholders here.
+  orange: [
+    [50, 50],
+    [50, 50],
+    [50, 50],
+    [50, 50],
+  ],
+  black: [
+    [50, 50],
+    [50, 50],
+    [50, 50],
+    [50, 50],
+  ],
 };

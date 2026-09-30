@@ -35,6 +35,8 @@ export const ar: Messages = {
     green: "الأخضر",
     yellow: "الأصفر",
     blue: "الأزرق",
+    orange: "البرتقالي",
+    black: "الأسود",
   },
   entrance: {
     partyMode: "وضع الحفلة · تلفاز + هواتف",
@@ -58,6 +60,7 @@ export const ar: Messages = {
     youPlusOne: "أنت + 1",
     youPlusN: "أنت + {count}",
     openSeatsNote: "المقاعد الشاغرة يمكن أن يشغلها أصدقاء أو لاعبو الكمبيوتر.",
+    hexBoardNote: "يلعب 5 و6 لاعبين على رقعة سداسية.",
 
     chooseBase: "اختر قاعدتك",
     baseAria: "قاعدة {color}",

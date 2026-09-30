@@ -34,6 +34,8 @@ export const ptBR: Messages = {
     green: "verde",
     yellow: "amarelo",
     blue: "azul",
+    orange: "laranja",
+    black: "preto",
   },
   entrance: {
     partyMode: "Modo festa · TV + celulares",
@@ -57,6 +59,7 @@ export const ptBR: Messages = {
     youPlusOne: "Você + 1",
     youPlusN: "Você + {count}",
     openSeatsNote: "Assentos livres podem ser amigos ou jogadores do computador.",
+    hexBoardNote: "Partidas de 5 e 6 jogadores acontecem em um tabuleiro hexagonal.",
 
     chooseBase: "Escolha sua base",
     baseAria: "base {color}",

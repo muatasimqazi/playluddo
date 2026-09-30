@@ -6,6 +6,7 @@ import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import type { Player, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
+import { hexBaseAngle, hexSeatPoint } from "@/lib/presentation/hexBoard";
 import { avatarForSeat } from "@/lib/avatars/catalog";
 
 const BASE_SEATS: Record<
@@ -16,7 +17,23 @@ const BASE_SEATS: Record<
   green: { position: [4.82, -0.88, 0], rotation: -Math.PI / 2 },
   yellow: { position: [0, -0.88, 4.4], rotation: Math.PI },
   blue: { position: [-4.82, -0.88, 0], rotation: Math.PI / 2 },
+  // Hex-only colours: their seats come from hexAvatarSeat below.
+  orange: { position: [4.17, -0.88, -2.4], rotation: -Math.PI / 3 },
+  black: { position: [-4.17, -0.88, -2.4], rotation: Math.PI / 3 },
 };
+
+/**
+ * On the 5-6 player hexagon (F5.2) each figure sits out past its own base's
+ * corner, turned to face the table's centre (rotation 0 faces +z).
+ */
+function hexAvatarSeat(color: PlayerColor) {
+  const [x, z] = hexSeatPoint(color, 4.6);
+  const angle = hexBaseAngle(color);
+  return {
+    position: [x, -0.88, z] as [number, number, number],
+    rotation: Math.atan2(-Math.cos(angle), -Math.sin(angle)),
+  };
+}
 
 function AvatarFace({ portrait }: { portrait: string }) {
   const texture = useTexture(portrait);
@@ -37,14 +54,16 @@ function ProceduralAvatar({
   player,
   active,
   speaking,
+  hex,
 }: {
   player: Player;
   active: boolean;
   speaking: boolean;
+  hex: boolean;
 }) {
   const root = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
-  const seat = BASE_SEATS[player.color];
+  const seat = hex ? hexAvatarSeat(player.color) : BASE_SEATS[player.color];
   const playerColor = COLORS[player.color];
   const portrait = avatarForSeat(player.avatarId, player.seatIndex).portrait;
   const playerColorDark = new THREE.Color(playerColor).offsetHSL(0, 0, -0.14);
@@ -109,12 +128,15 @@ export function PlayerAvatars3D({
   speakingPlayerIds,
   preview,
   orientation = 0,
+  hex = false,
 }: {
   players: Player[];
   turnPlayerId: string | null;
   speakingPlayerIds?: Set<string>;
   preview?: boolean;
   orientation?: number;
+  /** Seat the figures around the 5-6 player hexagon (F5.2). */
+  hex?: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   useFrame((_, delta) => {
@@ -135,6 +157,7 @@ export function PlayerAvatars3D({
           player={player}
           active={player.id === turnPlayerId}
           speaking={speakingPlayerIds?.has(player.id) ?? false}
+          hex={hex}
         />
       ))}
     </group>

@@ -26,7 +26,7 @@ import "@/components/simulator/simulator.css";
 
 // Matches the seat_index a color maps to server-side (private.ludo_color_for_seat /
 // set_player_color), same order as components/lobby/RoomLobby.tsx's SEAT_COLORS.
-const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
+const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue", "orange", "black"];
 
 // The four board styles (same as the in-game "Board design" panel in
 // components/simulator/Simulator.tsx) are built with localized labels inside
@@ -78,6 +78,8 @@ const COLOR_KEYS = {
   green: "colors.green",
   yellow: "colors.yellow",
   blue: "colors.blue",
+  orange: "colors.orange",
+  black: "colors.black",
 } as const satisfies Record<PlayerColor, string>;
 
 export default function Home() {
@@ -98,22 +100,29 @@ export default function Home() {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [gameType, setGameType] = useState<GameType>("ludo");
-  const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(2);
+  const [playerCount, setPlayerCount] = useState<2 | 3 | 4 | 5 | 6>(2);
+  // 5-6 seats are the hexagonal board (F5.2): private online Ludo tables
+  // only. Quick match, the offline modes and Snakes & Ladders stay 2-4, so
+  // the count carried forward is clamped to what the chosen mode allows —
+  // the pick itself is kept for when the player switches back.
+  const maxSeats = mode === "friends" && gameType === "ludo" ? 6 : 4;
+  const tableSize = Math.min(playerCount, maxSeats) as 2 | 3 | 4 | 5 | 6;
   // Must stay valid for the default playerCount (2): a seat's color maps
-  // 1:1 to its index (red=0 ... blue=3), and red (seat 0) is the only
+  // 1:1 to its index (red=0 ... black=5), and red (seat 0) is the only
   // choice guaranteed in range for every possible player count.
   // Favorite base color is a saved preference (this device, or the account
   // when signed in). A session pick overrides it, and either way it's clamped
-  // to a real seat for the current table size: every color is valid for 2
-  // players, but a smaller non-2 table can leave a higher-index color out of
-  // range, which the create_room / set_player_color RPCs would reject.
+  // to a real seat for the current table size: any of the four cross colors
+  // is valid for 2 players (the second seat takes the diagonal), but orange
+  // and black exist only on the 5-6 player hexagon, and a smaller table can
+  // leave a higher-index color out of range, which the create_room /
+  // set_player_color RPCs would reject.
   const [favoriteColor, setFavoriteColor] = useGamePreference("baseColor");
   const [pickedColor, setPickedColor] = useState<PlayerColor | null>(null);
   const chosenColor = pickedColor ?? favoriteColor;
+  const colorSeats = tableSize === 2 ? 4 : tableSize;
   const playerColor =
-    playerCount !== 2 && SEAT_COLORS.indexOf(chosenColor) >= playerCount
-      ? SEAT_COLORS[0]
-      : chosenColor;
+    SEAT_COLORS.indexOf(chosenColor) >= colorSeats ? SEAT_COLORS[0] : chosenColor;
   // null = follow the signed-in profile's saved avatar (PracticeTable
   // applies it itself when the link carries no ?avatar=); a string is an
   // explicit pick on this screen and wins over the profile.
@@ -162,7 +171,7 @@ export default function Home() {
         router.push(`/room?id=${roomId}`);
         return;
       }
-      const room = await createRoom(client, name.trim(), undefined, playerCount);
+      const room = await createRoom(client, name.trim(), undefined, tableSize);
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
       if (kind === "create" && gameType !== "ludo")
@@ -259,7 +268,9 @@ export default function Home() {
         {quickMatch ? (
           <QuickMatch
             gameType={gameType}
-            playerCount={playerCount}
+            // Quick match tables are 2-4 only (F5.2: the 5-6 hex board is
+            // private/party rooms until matchmaking volume can fill them).
+            playerCount={Math.min(tableSize, 4) as 2 | 3 | 4}
             displayName={name.trim() || t("common.player")}
             onCancel={() => setQuickMatch(false)}
           />
@@ -401,12 +412,12 @@ export default function Home() {
                 <fieldset className="entrance-player-count">
                   <legend>{t("entrance.howManyPlayers")}</legend>
                   <div>
-                    {([2, 3, 4] as const).map((count) => (
+                    {([2, 3, 4, 5, 6] as const).filter((count) => count <= maxSeats).map((count) => (
                       <button
                         key={count}
                         type="button"
-                        className={playerCount === count ? "is-selected" : ""}
-                        aria-pressed={playerCount === count}
+                        className={tableSize === count ? "is-selected" : ""}
+                        aria-pressed={tableSize === count}
                         // The effective playerColor is clamped to a valid seat
                         // for the table size (see its derivation above), so
                         // shrinking the table never leaves an out-of-range
@@ -424,6 +435,9 @@ export default function Home() {
                     ))}
                   </div>
                   <small>{t("entrance.openSeatsNote")}</small>
+                  {tableSize >= 5 && (
+                    <small className="entrance-hex-note">{t("entrance.hexBoardNote")}</small>
+                  )}
                 </fieldset>
                 </>
               )}
@@ -432,9 +446,9 @@ export default function Home() {
                 <fieldset className="entrance-color-choice">
                   <legend>{t("entrance.chooseBase")}</legend>
                   <div>
-                    {(playerCount === 2
-                      ? SEAT_COLORS
-                      : SEAT_COLORS.slice(0, playerCount)
+                    {(tableSize === 2
+                      ? SEAT_COLORS.slice(0, 4)
+                      : SEAT_COLORS.slice(0, tableSize)
                     ).map((color) => (
                       <button
                         key={color}
@@ -623,7 +637,7 @@ export default function Home() {
                   <div className="entrance-buttons">
                     <Link
                       className="sim-primary"
-                      href={`/practice?players=${playerCount}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
+                      href={`/practice?players=${tableSize}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
                     >
                       <span>{modeTitle(t("entrance.offlinePractice"))}</span>
                       <Icon name="dice" />
@@ -640,7 +654,7 @@ export default function Home() {
                   <div className="entrance-buttons">
                     <Link
                       className="sim-primary"
-                      href={`/table-together?players=${playerCount}&game=${gameType}`}
+                      href={`/table-together?players=${tableSize}&game=${gameType}`}
                     >
                       <span>{modeTitle(t("entrance.tableTogether"))}</span>
                       <Icon name="users" />

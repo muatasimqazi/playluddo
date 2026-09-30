@@ -10,6 +10,8 @@ const PAWN_COLORS: Record<PlayerColor, string> = {
   green: "#31a65b",
   yellow: "#f2c400",
   blue: "#224c9e",
+  orange: "#ef7d1a",
+  black: "#3b3b46",
 };
 
 export function ClassicPawn({ color }: { color: PlayerColor }) {

@@ -34,6 +34,8 @@ export const bn: Messages = {
     green: "সবুজ",
     yellow: "হলুদ",
     blue: "নীল",
+    orange: "কমলা",
+    black: "কালো",
   },
   entrance: {
     partyMode: "পার্টি মোড · টিভি + ফোন",
@@ -57,6 +59,7 @@ export const bn: Messages = {
     youPlusOne: "আপনি + ১",
     youPlusN: "আপনি + {count}",
     openSeatsNote: "খালি আসনে বন্ধু বা কম্পিউটার খেলোয়াড় বসতে পারে।",
+    hexBoardNote: "৫ ও ৬ জন খেলোয়াড় ষড়ভুজাকার বোর্ডে খেলে।",
 
     chooseBase: "আপনার ঘাঁটি বেছে নিন",
     baseAria: "{color} ঘাঁটি",

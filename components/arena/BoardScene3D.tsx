@@ -98,6 +98,9 @@ const HOME_ROTATION: Record<PlayerColor, number> = {
   yellow: Math.PI / 2,
   red: Math.PI,
   green: -Math.PI / 2,
+  // F5.2: hex-only colours — inert placeholders on this legacy renderer.
+  orange: 0,
+  black: 0,
 };
 
 // Eases `current` toward `target` by `factor` each call, always going the
@@ -913,6 +916,8 @@ const QUADRANT_BORDER_COLOR: Record<PlayerColor, string> = {
   green: "#8cd9a5",
   yellow: "#ffe066",
   blue: "#8a8cc9",
+  orange: "#f6bd85",
+  black: "#9a9aa6",
 };
 
 // The board's own quadrant colors (globals.css's --quadrant-* variables)
@@ -924,12 +929,16 @@ const QUADRANT_COLOR: Record<PlayerColor, string> = {
   green: "#45b862",
   yellow: "#f2c200",
   blue: "#2e3192",
+  orange: "#ef7d1a",
+  black: "#3b3b46",
 };
 const PAWN_COLOR_DARK: Record<PlayerColor, string> = {
   red: "#9f1118",
   green: "#176d32",
   yellow: "#b98d00",
   blue: "#17194f",
+  orange: "#b35a0e",
+  black: "#26262e",
 };
 
 // The token's own shape — a rounded, beveled-edge disc/coin with a darker

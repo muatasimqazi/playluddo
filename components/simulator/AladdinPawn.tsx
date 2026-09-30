@@ -13,6 +13,8 @@ const PAWN_COLORS: Record<PlayerColor, string> = {
   green: "#1c7a4d",
   yellow: "#d9a91a",
   blue: "#1c3f8f",
+  orange: "#d16a12",
+  black: "#33333e",
 };
 
 /** A minaret-domed piece echoing the board's navy-and-gold Arabian motif. */

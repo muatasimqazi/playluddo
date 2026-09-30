@@ -5,7 +5,7 @@
 -- transaction, per the Supabase CLI's pgTAP runner.
 
 begin;
-select plan(13);
+select plan(22);
 
 select is(private.ludo_entry_offset('red'), 0, 'red enters at 0');
 select is(private.ludo_entry_offset('green'), 13, 'green enters at 13');
@@ -26,6 +26,22 @@ select is(private.ludo_path_index_to_tile_id('red', null), 'nest:red', 'nest til
 select is(private.ludo_path_index_to_tile_id('red', 0), 'track:0', 'red entry tile id');
 select is(private.ludo_path_index_to_tile_id('red', 56), 'home:red:5', 'red final home tile id');
 select is(private.ludo_tile_id_to_path_index('red', 'track:10'), 10, 'round trips a track tile id for red (offset 0)');
+
+-- F5.2: the 6-arm hexagonal board (5-6 players). Mirrors the hex cases in
+-- tests/rules-engine-ts/geometry.test.ts and lib/board/boardSpec.ts BOARD_6.
+select is(private.ludo_entry_offset('orange'), 52, 'orange (seat 4) enters at 52');
+select is(private.ludo_entry_offset('black'), 65, 'black (seat 5) enters at 65');
+select ok(private.ludo_is_safe_cell(52), 'orange entry (52) is safe');
+select ok(private.ludo_is_safe_cell(73), 'black star (65+8=73) is safe');
+select ok(not private.ludo_is_safe_cell(55), 'cell 55 is not safe on the hex ring');
+select is(
+  (select count(*) from generate_series(0, 77) c where private.ludo_is_safe_cell(c)),
+  12::bigint,
+  'exactly 12 safe cells on the 6-arm ring (2 per arm)'
+);
+select is(private.ludo_board_arms('[{"color":"orange"},{"color":"red"}]'::jsonb), 6, 'orange present => 6 arms');
+select is(private.ludo_board_arms('[{"color":"red"},{"color":"yellow"}]'::jsonb), 4, 'no orange/black => 4 arms');
+select is(private.ludo_path_index_to_tile_id('black', 76, 6), 'track:63', 'black last hex track cell -> global (65+76) mod 78 = 63');
 
 select * from finish();
 rollback;

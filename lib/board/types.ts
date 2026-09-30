@@ -10,7 +10,18 @@
  */
 
 export type GameType = "ludo" | "snakes_and_ladders";
-export type PlayerColor = "red" | "green" | "yellow" | "blue";
+/**
+ * Seat colours. red/green/yellow/blue are the 4-arm cross board (2-4 players);
+ * orange and black are the extra seats on the 6-arm hexagonal board for 5-6
+ * players (F5.2). Seat/turn order is CLOCKWISE_COLORS in lib/board/boardSpec.ts.
+ */
+export type PlayerColor =
+  | "red"
+  | "green"
+  | "yellow"
+  | "blue"
+  | "orange"
+  | "black";
 export type PlayerStatus = "connected" | "disconnected" | "inactive" | "bot";
 export type TurnPhase =
   | "awaiting_roll"

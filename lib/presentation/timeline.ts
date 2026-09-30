@@ -1,3 +1,4 @@
+import { boardSpecForPawns } from "../board/boardSpec";
 import { applyMove } from "../board/rules";
 import { applySnakeMove } from "../board/snakes";
 import type { GameRoomState, LegalMove, Pawn } from "../board/types";
@@ -179,15 +180,19 @@ export class PresentationTimeline {
             this.recording = { pawns: this.frame.pawns, events: [] };
           this.recording.events.push(event);
         }
+        // The pawns say which board this is (orange/black => the hexagon),
+        // so tile ids decode with the right track length.
+        const spec = boardSpecForPawns(this.frame.pawns);
         const next =
           this.latest.gameType === "snakes_and_ladders"
             ? applySnakeMove(this.frame.pawns, move)
-            : applyMove(this.frame.pawns, move);
+            : applyMove(this.frame.pawns, move, spec);
         duration = movementDuration(
           this.frame.pawns,
           next,
           this.latest.gameType,
           move,
+          spec,
         );
         this.publish({
           pawns: next,

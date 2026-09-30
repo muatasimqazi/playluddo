@@ -17,6 +17,10 @@ export function LudoRules({ rules }: { rules?: RoomRules | null }) {
         <li>
           Roll a <strong>6</strong> to bring a piece out onto your start square.
         </li>
+        <li>
+          Two to four players share the square board. Five or six play on a hexagonal board with six
+          arms &mdash; the rules are the same, the trip round is just longer.
+        </li>
       </ul>
       <h3>Moving</h3>
       <ul>
@@ -60,7 +64,7 @@ export function LudoRules({ rules }: { rules?: RoomRules | null }) {
       <h3>Winning</h3>
       <ul>
         <li>The first to get all four pieces home wins.</li>
-        <li>With three or four players, everyone else plays on for the other places.</li>
+        <li>With three or more players, everyone else plays on for the other places.</li>
       </ul>
     </>
   );

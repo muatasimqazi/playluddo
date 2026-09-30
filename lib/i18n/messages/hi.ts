@@ -34,6 +34,8 @@ export const hi: Messages = {
     green: "हरा",
     yellow: "पीला",
     blue: "नीला",
+    orange: "नारंगी",
+    black: "काला",
   },
   entrance: {
     partyMode: "पार्टी मोड · टीवी + फ़ोन",
@@ -57,6 +59,7 @@ export const hi: Messages = {
     youPlusOne: "आप + 1",
     youPlusN: "आप + {count}",
     openSeatsNote: "खाली सीटें दोस्त या कंप्यूटर खिलाड़ी हो सकती हैं।",
+    hexBoardNote: "5 और 6 खिलाड़ी षट्कोणीय बोर्ड पर खेलते हैं।",
 
     chooseBase: "अपना बेस चुनें",
     baseAria: "{color} बेस",

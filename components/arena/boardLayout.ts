@@ -83,6 +83,10 @@ export const HOME_LANE_CELLS: Record<PlayerColor, readonly (readonly [number, nu
   yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
   blue: [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]],
   red: [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
+  // F5.2: the 6-arm hex board uses lib/presentation/hexBoard.ts, not this 15x15
+  // cross grid, so orange/black never index here — inert placeholders.
+  orange: [[7, 7], [7, 7], [7, 7], [7, 7], [7, 7]],
+  black: [[7, 7], [7, 7], [7, 7], [7, 7], [7, 7]],
 };
 
 interface GridArea {
@@ -98,6 +102,9 @@ export const BASE_AREA: Record<PlayerColor, GridArea> = {
   green: { rowStart: 0, rowEnd: 5, colStart: 9, colEnd: 14 },
   yellow: { rowStart: 9, rowEnd: 14, colStart: 9, colEnd: 14 },
   blue: { rowStart: 9, rowEnd: 14, colStart: 0, colEnd: 5 },
+  // F5.2: hex seats (see lib/presentation/hexBoard.ts) — inert placeholders on this grid.
+  orange: { rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8 },
+  black: { rowStart: 6, rowEnd: 8, colStart: 6, colEnd: 8 },
 };
 
 /**

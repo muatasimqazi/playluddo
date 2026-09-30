@@ -4,7 +4,7 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VisibleProfile } from "@/lib/supabase/profile";
-import { useI18n, type Translator } from "@/lib/i18n";
+import { useI18n, type MessageKey, type Translator } from "@/lib/i18n";
 
 const MODE_KEYS: Record<string, "entrance.ludo" | "entrance.snakes"> = {
   ludo: "entrance.ludo",
@@ -16,11 +16,13 @@ function modeLabel(t: Translator, mode: string) {
   return key ? t(key) : mode;
 }
 
-const COLOUR_KEYS: Record<PlayerColor, "colors.red" | "colors.green" | "colors.yellow" | "colors.blue"> = {
+const COLOUR_KEYS: Record<PlayerColor, MessageKey> = {
   red: "colors.red",
   green: "colors.green",
   yellow: "colors.yellow",
   blue: "colors.blue",
+  orange: "colors.orange",
+  black: "colors.black",
 };
 
 function colourLabel(t: Translator, colour: PlayerColor) {

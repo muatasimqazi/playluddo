@@ -5,7 +5,7 @@
 -- Run with `supabase test db` (requires `supabase start`).
 
 begin;
-select plan(10);
+select plan(15);
 
 create temporary table test_state (key text primary key, value jsonb);
 grant select, insert on test_state to authenticated;
@@ -33,11 +33,17 @@ select is(
   'create_room persists the chosen max_players instead of defaulting to 4'
 );
 
+-- F5.2 widened the range to 2-6 (hex board). 5 and 6 are now accepted; 7 is
+-- the first value still rejected.
+select lives_ok(
+  $$select public.create_room('FivePlayer', null, 5)$$,
+  'create_room accepts 5 players (hex board)'
+);
 select throws_ok(
-  $$select public.create_room('Nope', null, 5)$$,
+  $$select public.create_room('Nope', null, 7)$$,
   'P0001',
   'INVALID_PLAYER_COUNT',
-  'create_room rejects a player count outside 2-4'
+  'create_room rejects a player count outside 2-6'
 );
 
 set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444402';
@@ -113,6 +119,39 @@ select throws_ok(
   'P0001',
   'TOO_MANY_SEATED',
   'the player count cannot be lowered below the number of seated players'
+);
+
+-- F5.2: a 2-player room is always the cross, so its seats are the four cross
+-- colours (orange/black would switch the board to the hexagon).
+set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444403';
+insert into test_state (key, value)
+values ('roomC', (select public.create_room('HostC', null, 2)));
+select throws_ok(
+  $$select public.set_player_color(((select value->>'roomId' from test_state where key = 'roomC'))::uuid, 'orange')$$,
+  'P0001',
+  'INVALID_SEAT',
+  'a 2-player room has no orange (hex-only) seat'
+);
+set local request.jwt.claim.sub = '44444444-4444-4444-4444-444444444404';
+
+-- F5.2: the hexagon is Ludo only; Snakes & Ladders stays 2-4, both ways round.
+select lives_ok(
+  $$select public.set_room_max_players(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, 6)$$,
+  'a Ludo room can grow to six seats'
+);
+select throws_ok(
+  $$select public.set_room_game(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, 'snakes_and_ladders')$$,
+  'P0001',
+  'SNAKES_MAX_FOUR_PLAYERS',
+  'a six-seat room cannot switch to Snakes & Ladders'
+);
+select public.set_room_max_players(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, 4);
+select public.set_room_game(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, 'snakes_and_ladders');
+select throws_ok(
+  $$select public.set_room_max_players(((select value->>'roomId' from test_state where key = 'roomB'))::uuid, 5)$$,
+  'P0001',
+  'SNAKES_MAX_FOUR_PLAYERS',
+  'a Snakes & Ladders room cannot grow past four seats'
 );
 
 select * from finish();

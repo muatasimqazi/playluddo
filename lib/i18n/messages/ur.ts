@@ -34,6 +34,8 @@ export const ur: Messages = {
     green: "سبز",
     yellow: "پیلا",
     blue: "نیلا",
+    orange: "نارنجی",
+    black: "سیاہ",
   },
   entrance: {
     partyMode: "پارٹی موڈ · ٹی وی + فون",
@@ -57,6 +59,7 @@ export const ur: Messages = {
     youPlusOne: "آپ + 1",
     youPlusN: "آپ + {count}",
     openSeatsNote: "خالی نشستوں پر دوست یا کمپیوٹر کھلاڑی بیٹھ سکتے ہیں۔",
+    hexBoardNote: "5 اور 6 کھلاڑی چھ کونوں والے بورڈ پر کھیلتے ہیں۔",
 
     chooseBase: "اپنا اڈّا چنیں",
     baseAria: "{color} اڈّا",

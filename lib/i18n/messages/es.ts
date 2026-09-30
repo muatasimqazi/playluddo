@@ -35,6 +35,8 @@ export const es: Messages = {
     green: "verde",
     yellow: "amarillo",
     blue: "azul",
+    orange: "naranja",
+    black: "negro",
   },
   entrance: {
     partyMode: "Modo fiesta · TV + teléfonos",
@@ -58,6 +60,7 @@ export const es: Messages = {
     youPlusOne: "Tú + 1",
     youPlusN: "Tú + {count}",
     openSeatsNote: "Los asientos libres pueden ser amigos o jugadores de la computadora.",
+    hexBoardNote: "Las partidas de 5 y 6 jugadores se juegan en un tablero hexagonal.",
 
     chooseBase: "Elige tu base",
     baseAria: "base {color}",

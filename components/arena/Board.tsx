@@ -433,6 +433,9 @@ const NEST_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number, numbe
     [11.345, 88.243],
     [89.728, 88.655],
   ],
+  // F5.2: hex board (lib/presentation/hexBoard.ts) — inert placeholders here.
+  orange: [[50, 50], [50, 50], [50, 50], [50, 50]],
+  black: [[50, 50], [50, 50], [50, 50], [50, 50]],
 };
 
 // The 4 "home pile" slots per color, inside that color's own center
@@ -470,6 +473,9 @@ const FINISH_SLOT_POSITIONS: Record<PlayerColor, readonly (readonly [number, num
     [6.35, 7.1],
     [6.35, 7.9],
   ],
+  // F5.2: hex board (lib/presentation/hexBoard.ts) — inert placeholders here.
+  orange: [[7.5, 7.5], [7.5, 7.5], [7.5, 7.5], [7.5, 7.5]],
+  black: [[7.5, 7.5], [7.5, 7.5], [7.5, 7.5], [7.5, 7.5]],
 };
 
 // Absolutely positioned (not a grid item, unlike track/home-lane cells) —

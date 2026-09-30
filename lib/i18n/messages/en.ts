@@ -27,6 +27,8 @@ export const en = {
     green: "green",
     yellow: "yellow",
     blue: "blue",
+    orange: "orange",
+    black: "black",
   },
   language: {
     /** Accessible label for the language picker. */
@@ -73,6 +75,7 @@ export const en = {
     youPlusOne: "You + 1",
     youPlusN: "You + {count}",
     openSeatsNote: "Open seats can be friends or computer players.",
+    hexBoardNote: "5 and 6 players play on a hexagonal board.",
 
     chooseBase: "Choose your base",
     /** Accessible label for a colored base button, e.g. "red base". */

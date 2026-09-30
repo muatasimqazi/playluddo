@@ -34,7 +34,7 @@
 .entrance-game-choice legend {
   margin-bottom: 9px;
   color: #d8d4c3;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
 }
@@ -60,18 +60,18 @@
 }
 .entrance-game-choice button strong {
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .entrance-game-choice button span {
   color: var(--sim-muted);
-  font-size: 8px;
+  font-size: 12px;
 }
 /* "Play online" / "Play offline" subheadings that group the ways to play. */
 .entrance-mode-group {
   margin: 15px 0 7px;
   color: #b5c1a1;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -94,12 +94,12 @@
 }
 .entrance-mode-link strong {
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .entrance-mode-link span {
   color: var(--sim-muted);
-  font-size: 8px;
+  font-size: 12px;
 }
 .entrance-player-count {
   width: min(390px, 100%);
@@ -109,7 +109,7 @@
 .entrance-player-count legend {
   margin-bottom: 9px;
   color: #d8d4c3;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
 }
@@ -137,17 +137,17 @@
 }
 .entrance-player-count button strong {
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .entrance-player-count button span {
-  font-size: 8px;
+  font-size: 12px;
 }
 .entrance-player-count > small {
   display: block;
   margin-top: 8px;
   color: var(--sim-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 .lobby-color-choice i {
   width: 13px;
@@ -157,7 +157,7 @@
   box-shadow: 0 1px 5px #0004;
 }
 .back-button {
-  font-size: 10px;
+  font-size: 12px;
   color: #c2caad;
   background: none;
   border: none;
@@ -240,7 +240,7 @@
 .entrance-setup-head p {
   margin: 3px 0 0;
   color: var(--sim-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .entrance-back {
   flex: none;
@@ -268,13 +268,13 @@
 }
 .entrance-field-label {
   color: #d8d4c3;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.4px;
   text-transform: uppercase;
 }
 .entrance-field-hint {
   color: var(--sim-muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.4;
 }
 /* Segmented control: every option on one row, the pick filled in gold. */
@@ -304,7 +304,7 @@
    "Geometric" fit their segment instead of breaking mid-word. */
 .entrance-segmented.is-dense button {
   padding-inline: 2px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .entrance-segmented button.is-selected {
   border-color: #d8bd7f;
@@ -345,7 +345,7 @@
   border-radius: 50%;
   background: #dcca9f;
   color: #263324;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1;
 }
 .entrance-swatches {
@@ -388,7 +388,7 @@
 .entrance-error {
   margin: 0;
   color: #f0bd9e;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 /* The launch button sits under the choices and, if a short screen makes the
@@ -539,7 +539,7 @@
 .lobby-player-count small {
   margin-top: 4px;
   color: var(--sim-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 .lobby-house-rule input {
   flex: 0 0 auto;
@@ -554,7 +554,7 @@
   border-radius: 7px;
   background: #374334;
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 .simulator,
 .sim-entrance {
@@ -722,7 +722,7 @@ body.sim-die-blocked .sim-canvas {
 .sim-brand small {
   display: block;
   letter-spacing: 2.5px;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: #d0d3c7;
   margin-top: 2px;
@@ -758,7 +758,7 @@ body.sim-die-blocked .sim-canvas {
   padding: 11px 17px;
   box-shadow: 0 4px 20px #101b1b15;
   backdrop-filter: blur(18px);
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.2px;
   text-transform: uppercase;
 }
@@ -800,7 +800,7 @@ body.sim-die-blocked .sim-canvas {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
   color: #d2d7ca;
 }
@@ -852,7 +852,7 @@ body.sim-die-blocked .sim-canvas {
   justify-content: center;
   border: 1px solid currentColor;
   border-radius: 3px;
-  font-size: 8px;
+  font-size: 12px;
   font-family: inherit;
   min-width: 15px;
   height: 15px;
@@ -938,11 +938,11 @@ body.sim-die-blocked .sim-canvas {
   max-width: 104px;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .seat-copy small {
-  font-size: 8px;
+  font-size: 12px;
   color: #bcc2b3;
 }
 .seat-dot {
@@ -1005,7 +1005,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .eyebrow {
   display: block;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 2px;
   color: #b8c0ac;
@@ -1021,7 +1021,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .sim-location strong span {
   font-family: var(--font-sans), sans-serif;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: #ccba90;
   margin-left: 8px;
@@ -1032,7 +1032,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .sim-location small {
   display: block;
-  font-size: 9px;
+  font-size: 12px;
   color: #bec4b5;
   margin-top: 5px;
   letter-spacing: 0.2px;
@@ -1042,7 +1042,7 @@ body.sim-die-blocked .sim-canvas {
   position: relative;
 }
 .sim-action-area > p {
-  font-size: 11px;
+  font-size: 12px;
   color: #e7e8dc;
   text-shadow: 0 1px 5px #182216;
   margin-bottom: 13px;
@@ -1084,7 +1084,7 @@ body.sim-die-blocked .sim-canvas {
 .sim-primary kbd {
   margin-left: 8px;
   padding: 0 4px;
-  font-size: 7px;
+  font-size: 12px;
   letter-spacing: 0.5px;
 }
 .sim-replay {
@@ -1096,7 +1096,7 @@ body.sim-die-blocked .sim-canvas {
   color: #e0e4d5;
   padding: 13px 16px;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 12px;
   backdrop-filter: blur(10px);
 }
 .sim-replay:hover:not(:disabled) {
@@ -1109,14 +1109,20 @@ body.sim-die-blocked .sim-canvas {
   align-items: center;
   gap: 7px;
   flex-wrap: wrap;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: capitalize;
   color: #e0e4d4;
+}
+/* Clear the round eye (immersive) toggle pinned in the bottom-right corner,
+   which otherwise sits on the end of this line. It stays on the right in
+   RTL too, where this note moves to the left column. */
+:root:not([dir="rtl"]) .sim-view-note {
+  padding-right: 36px;
 }
 .sim-view-note small {
   width: 100%;
   text-align: right;
-  font-size: 8px;
+  font-size: 12px;
   color: #b9c1ad;
   margin-top: 3px;
   letter-spacing: 0.3px;
@@ -1131,7 +1137,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .sim-piece-choices button {
   padding: 6px 9px;
-  font-size: 9px;
+  font-size: 12px;
   border: 1px solid #dbc69066;
   background: #263729d9;
   color: #f0dbb1;
@@ -1155,11 +1161,11 @@ body.sim-die-blocked .sim-canvas {
   font-size: 16px;
 }
 .sim-rotation button:last-child {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--sim-gold);
 }
 .sim-rotation span {
-  font-size: 11px;
+  font-size: 12px;
   min-width: 30px;
   text-align: center;
 }
@@ -1202,12 +1208,12 @@ body.sim-die-blocked .sim-canvas {
   max-width: 220px;
 }
 .panel-heading .eyebrow {
-  font-size: 7px;
+  font-size: 12px;
   margin-bottom: 8px;
 }
 .sim-panel > p {
   color: var(--sim-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
   margin-bottom: 18px;
 }
@@ -1238,7 +1244,7 @@ body.sim-die-blocked .sim-canvas {
 .camera-options button small {
   display: block;
   color: #99a78f;
-  font-size: 9px;
+  font-size: 12px;
   margin-top: 4px;
 }
 .camera-options .is-selected {
@@ -1256,7 +1262,7 @@ body.sim-die-blocked .sim-canvas {
   padding: 13px;
   color: #dfd5b6;
   margin-top: 15px;
-  font-size: 11px;
+  font-size: 12px;
   text-decoration: none;
 }
 .panel-secondary:hover {
@@ -1274,7 +1280,7 @@ body.sim-die-blocked .sim-canvas {
 .setting-row small {
   display: block;
   color: #9ca78f;
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .key-hint {
@@ -1284,7 +1290,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 6px;
   background: #374334;
   color: #e6dfc9;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1294,7 +1300,7 @@ body.sim-die-blocked .sim-canvas {
   padding: 7px;
   border: 1px solid #ffffff20;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   text-transform: capitalize;
 }
 .setting-row input {
@@ -1312,7 +1318,7 @@ body.sim-die-blocked .sim-canvas {
   opacity: 0.4;
 }
 .panel-note {
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.8 !important;
   color: #a5b098 !important;
   margin-top: 19px;
@@ -1333,7 +1339,7 @@ body.sim-die-blocked .sim-canvas {
 .menu-table small {
   display: block;
   color: #a9b496;
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .menu-players {
@@ -1345,7 +1351,7 @@ body.sim-die-blocked .sim-canvas {
   align-items: center;
   padding: 12px 0;
   border-bottom: 1px solid var(--sim-line);
-  font-size: 11px;
+  font-size: 12px;
 }
 .menu-players i {
   width: 7px;
@@ -1355,7 +1361,7 @@ body.sim-die-blocked .sim-canvas {
 .menu-players small {
   margin-left: auto;
   color: #adb99f;
-  font-size: 9px;
+  font-size: 12px;
 }
 .chat-content {
   min-height: 80px;
@@ -1382,7 +1388,7 @@ body.sim-die-blocked .sim-canvas {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1394,7 +1400,7 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   border-radius: 6px;
   color: var(--sim-ink);
-  font-size: 10px;
+  font-size: 12px;
 }
 .chat-report {
   display: grid;
@@ -1404,7 +1410,7 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid #e0786445;
   border-radius: 8px;
   background: #5a2a2226;
-  font-size: 10px;
+  font-size: 12px;
 }
 .chat-report label {
   display: grid;
@@ -1444,7 +1450,7 @@ body.sim-die-blocked .sim-canvas {
 .chat-moderation-note {
   margin-top: 6px;
   color: #e6ddc5;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 .chat-message {
@@ -1454,11 +1460,11 @@ body.sim-die-blocked .sim-canvas {
   margin: 8px 0;
 }
 .chat-message strong {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
 }
 .chat-message p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   margin-top: 4px;
   overflow-wrap: anywhere;
@@ -1467,7 +1473,7 @@ body.sim-die-blocked .sim-canvas {
   display: flex;
   gap: 7px;
   margin: 10px 0;
-  font-size: 9px;
+  font-size: 12px;
   color: #a6b295;
 }
 .activity-line span {
@@ -1498,7 +1504,7 @@ body.sim-die-blocked .sim-canvas {
 .chat-form input {
   background: none;
   color: #e8e5d2;
-  font-size: 11px;
+  font-size: 12px;
   min-width: 0;
   flex: 1;
   outline: none;
@@ -1519,7 +1525,7 @@ body.sim-die-blocked .sim-canvas {
   background: #413c2de8;
   border: 1px solid #ddc38680;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 12px;
   max-width: 90%;
   text-align: center;
 }
@@ -1550,7 +1556,7 @@ body.sim-die-blocked .sim-canvas {
 .sim-paused strong,
 .sim-paused span { display: block; }
 .sim-paused strong { color: #f0e7cf; font-size: 12px; }
-.sim-paused span { margin-top: 3px; color: #b8c1b0; font-size: 9px; }
+.sim-paused span { margin-top: 3px; color: #b8c1b0; font-size: 12px; }
 .sim-paused .sim-primary { min-width: 100px; height: 38px; justify-content: center; }
 .sim-event-toast {
   top: 145px;
@@ -1608,7 +1614,7 @@ body.sim-die-blocked .sim-canvas {
   display: block;
   margin-top: 3px;
   color: var(--sim-muted);
-  font-size: 9px;
+  font-size: 12px;
   font-style: normal;
 }
 .match-dice {
@@ -1627,7 +1633,7 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   border-radius: 7px;
   color: var(--sim-ink);
-  font-size: 10px;
+  font-size: 12px;
 }
 .match-dice-grid {
   display: grid;
@@ -1647,7 +1653,7 @@ body.sim-die-blocked .sim-canvas {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 6px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .match-dice-chart figcaption strong {
   overflow: hidden;
@@ -1658,7 +1664,7 @@ body.sim-die-blocked .sim-canvas {
 .match-dice-chart figcaption small {
   flex: 0 0 auto;
   color: var(--sim-muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 .match-dice-chart svg {
   display: block;
@@ -1678,13 +1684,13 @@ body.sim-die-blocked .sim-canvas {
 }
 .match-dice-face {
   fill: var(--sim-muted);
-  font-size: 9px;
+  font-size: 12px;
   text-anchor: middle;
 }
 .match-dice-table {
   width: 100%;
   border-collapse: separate;
-  font-size: 10px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 .match-dice-table th,
@@ -1708,7 +1714,7 @@ body.sim-die-blocked .sim-canvas {
 .match-dice-note {
   margin: 8px 0 0 !important;
   color: var(--sim-muted) !important;
-  font-size: 9px !important;
+  font-size: 12px !important;
 }
 .table-loading,
 .sim-fallback {
@@ -1787,7 +1793,7 @@ body.sim-die-blocked .sim-canvas {
   transform: rotateX(-90deg) translateZ(26px);
 }
 .table-loading p {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #c9d3ba;
@@ -1825,7 +1831,7 @@ body.sim-die-blocked .sim-canvas {
   animation: table-loading-indeterminate 1.3s ease-in-out infinite;
 }
 .table-loading-percent {
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1.2px;
   color: #e6dcbc;
@@ -1940,7 +1946,7 @@ body.sim-die-blocked .sim-canvas {
   gap: 18px;
 }
 .entrance-header-actions > span {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 2px;
   color: #d8dfcf;
 }
@@ -1971,7 +1977,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 30px;
   background: #26372ec4;
   color: #f1eddf;
-  font-size: 10px;
+  font-size: 12px;
   backdrop-filter: blur(18px);
 }
 .profile-guest-avatar {
@@ -1983,7 +1989,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 50%;
   background: #d6c497;
   color: #263324;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 .animated-avatar {
@@ -2145,7 +2151,7 @@ body.sim-die-blocked .sim-canvas {
 .profile-panel > p {
   margin-bottom: 20px;
   color: #bfc8b6;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 .profile-socials {
@@ -2189,7 +2195,7 @@ body.sim-die-blocked .sim-canvas {
   gap: 12px;
   margin: 18px 0;
   color: #9ca993;
-  font-size: 9px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -2213,7 +2219,7 @@ body.sim-die-blocked .sim-canvas {
   padding: 8px;
   border-radius: 6px;
   color: #aeb9a7;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: capitalize;
 }
 .profile-methods button.is-selected {
@@ -2226,7 +2232,7 @@ body.sim-die-blocked .sim-canvas {
   gap: 7px;
   margin-bottom: 13px;
   color: #c9d0c0;
-  font-size: 10px;
+  font-size: 12px;
 }
 .profile-field input,
 .profile-field select {
@@ -2268,7 +2274,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .profile-avatar-heading > span {
   color: #c9d0c0;
-  font-size: 10px;
+  font-size: 12px;
 }
 .profile-avatar-controls {
   display: flex;
@@ -2362,7 +2368,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 7px;
   background: #18251da6;
   color: #bfc8b6;
-  font-size: 10px;
+  font-size: 12px;
   text-transform: capitalize;
 }
 .profile-style-picker button.is-selected {
@@ -2417,7 +2423,7 @@ body.sim-die-blocked .sim-canvas {
   margin-bottom: 12px;
 }
 .profile-team-heading .eyebrow {
-  font-size: 7px;
+  font-size: 12px;
 }
 .profile-team-heading h3 {
   margin: 3px 0 0;
@@ -2448,7 +2454,7 @@ body.sim-die-blocked .sim-canvas {
   outline: none;
   background: #18251da6;
   color: #f3efe2;
-  font-size: 11px;
+  font-size: 12px;
   text-transform: none;
 }
 .profile-team-create button,
@@ -2456,7 +2462,7 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid #ffffff25;
   border-radius: 7px;
   color: #eee7d6;
-  font-size: 9px;
+  font-size: 12px;
 }
 .profile-team-create button {
   min-width: 68px;
@@ -2488,14 +2494,14 @@ body.sim-die-blocked .sim-canvas {
 .profile-team-title small {
   margin-top: 3px;
   color: #9eaa98;
-  font-size: 8px;
+  font-size: 12px;
 }
 .profile-team-title code {
   padding: 5px 7px;
   border-radius: 5px;
   background: #ffffff0d;
   color: #ddcc9f;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1px;
 }
 .profile-team-members {
@@ -2584,7 +2590,7 @@ body.sim-die-blocked .sim-canvas {
   display: block;
   margin-top: 14px;
   color: #9eaa98;
-  font-size: 9px;
+  font-size: 12px;
   text-align: center;
 }
 .profile-message {
@@ -2656,22 +2662,33 @@ body.sim-die-blocked .sim-canvas {
   margin-top: 4px;
   overflow: hidden;
   color: #aeb9a7;
-  font-size: 9px;
+  font-size: 12px;
   text-overflow: ellipsis;
 }
+/* Bounded between the header and the footer rather than centered with
+   top: 50% + translate, which let a tall screen run into the footer. It
+   still sits vertically centered when it fits ("safe" keeps the top
+   reachable instead of clipping it when it doesn't) and scrolls if needed. */
 .entrance-content {
   position: absolute;
   z-index: 4;
   left: 9%;
-  top: 50%;
-  transform: translateY(-46%);
-  width: 355px;
+  top: 104px;
+  bottom: 64px;
+  /* Wide enough for "place to play." on one line, keeping the headline's
+     three intended lines instead of wrapping to four. */
+  width: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 .entrance-content > .eyebrow,
 .entrance-content > .entrance-screen > .eyebrow {
   color: #c0c5a9;
   letter-spacing: 3px;
-  font-size: 9px;
+  font-size: 12px;
   margin-bottom: 19px;
 }
 .entrance-content h1 {
@@ -2736,7 +2753,7 @@ body.sim-die-blocked .sim-canvas {
   font-variant-numeric: tabular-nums;
 }
 .quick-match-timer small {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: #c9d3ba;
@@ -2821,13 +2838,13 @@ body.sim-die-blocked .sim-canvas {
   display: block;
   margin-top: 3px;
   color: #c0c8b5;
-  font-size: 9px;
+  font-size: 12px;
 }
 .entrance-team-row .sim-primary {
   flex: 0 0 auto;
   height: 42px;
   padding: 0 16px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .together-setup {
   min-height: 100vh;
@@ -2857,7 +2874,7 @@ body.sim-die-blocked .sim-canvas {
 .together-card p,
 .together-handoff p { color: #b8c1b0; line-height: 1.6; }
 .together-card fieldset { margin: 24px 0 16px; border: 0; }
-.together-card legend { margin-bottom: 8px; font-size: 11px; color: #c9cfbd; }
+.together-card legend { margin-bottom: 8px; font-size: 12px; color: #c9cfbd; }
 .together-count { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .together-count button {
   height: 42px;
@@ -2868,7 +2885,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .together-count button.is-selected { border-color: #dec88a; background: #dec88a24; }
 .together-names { display: grid; gap: 10px; margin-bottom: 22px; }
-.together-names label span { display: block; margin-bottom: 5px; font-size: 10px; color: #aeb8a8; }
+.together-names label span { display: block; margin-bottom: 5px; font-size: 12px; color: #aeb8a8; }
 .together-names input {
   width: 100%;
   height: 42px;
@@ -2903,8 +2920,8 @@ body.sim-die-blocked .sim-canvas {
 }
 .together-handoff .player-avatar { margin: 0; }
 .together-handoff h2 { margin: 2px 0; font-size: 22px; }
-.together-handoff p { margin: 0; font-size: 11px; }
-.together-handoff .eyebrow { font-size: 8px; letter-spacing: 2px; color: #d7c68d; }
+.together-handoff p { margin: 0; font-size: 12px; }
+.together-handoff .eyebrow { font-size: 12px; letter-spacing: 2px; color: #d7c68d; }
 .together-handoff .sim-primary {
   min-width: 112px;
   height: 42px;
@@ -2918,7 +2935,7 @@ body.sim-die-blocked .sim-canvas {
   .together-handoff .sim-primary { grid-column: 1 / -1; width: 100%; }
 }
 .entrance-content .entrance-caption {
-  font-size: 9px;
+  font-size: 12px;
   margin-top: 16px;
   letter-spacing: 0.3px;
   color: #a8b69a;
@@ -2931,7 +2948,7 @@ body.sim-die-blocked .sim-canvas {
   display: flex;
   justify-content: space-between;
   z-index: 4;
-  font-size: 9px;
+  font-size: 12px;
   color: #c2ccb5;
   letter-spacing: 1px;
 }
@@ -2946,7 +2963,7 @@ body.sim-die-blocked .sim-canvas {
   gap: 15px;
 }
 .entrance-form label {
-  font-size: 10px;
+  font-size: 12px;
   color: #cdd6bd;
   display: flex;
   flex-direction: column;
@@ -2966,13 +2983,13 @@ body.sim-die-blocked .sim-canvas {
   margin-top: 4px;
 }
 .entrance-form .back-button {
-  font-size: 10px;
+  font-size: 12px;
   align-self: start;
   color: #c2caad;
   margin-bottom: 5px;
 }
 .entrance-form .form-divider {
-  font-size: 9px;
+  font-size: 12px;
   color: #b5c1a1;
   text-align: center;
 }
@@ -2980,7 +2997,7 @@ body.sim-die-blocked .sim-canvas {
   justify-content: center;
 }
 .entrance-form .error {
-  font-size: 11px;
+  font-size: 12px;
   color: #f0bd9e;
   line-height: 1.5;
 }
@@ -2992,7 +3009,7 @@ body.sim-die-blocked .sim-canvas {
   text-align: right;
 }
 .entrance-room-label span {
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 2px;
   color: #d0d8c4;
 }
@@ -3027,12 +3044,12 @@ body.sim-die-blocked .sim-canvas {
     letter-spacing: 3px;
   }
   .sim-brand small {
-    font-size: 7px;
+    font-size: 12px;
     letter-spacing: 1.5px;
   }
   .sim-turn {
     padding: 10px 13px;
-    font-size: 8px;
+    font-size: 12px;
     gap: 8px;
   }
   .sim-footer {
@@ -3047,7 +3064,7 @@ body.sim-die-blocked .sim-canvas {
     display: none;
   }
   .sim-view-note small {
-    font-size: 7px;
+    font-size: 12px;
   }
   .sim-primary {
     padding: 0 17px;
@@ -3072,7 +3089,7 @@ body.sim-die-blocked .sim-canvas {
      the bottom, scroll internally if it's still too tall to fit. */
   .entrance-content {
     top: 84px;
-    bottom: 16px;
+    bottom: 56px;
     transform: none;
     width: 355px;
     overflow-y: auto;
@@ -3081,7 +3098,7 @@ body.sim-die-blocked .sim-canvas {
   .entrance-content > .eyebrow,
   .entrance-content > .entrance-screen > .eyebrow {
     margin-bottom: 12px;
-    font-size: 8px;
+    font-size: 12px;
   }
   .entrance-content h1 {
     margin-bottom: 16px;
@@ -3092,7 +3109,7 @@ body.sim-die-blocked .sim-canvas {
   .entrance-content > p,
   .entrance-content > .entrance-screen > p:not([class]) {
     margin-bottom: 16px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.7;
   }
   .entrance-game-choice,
@@ -3101,23 +3118,6 @@ body.sim-die-blocked .sim-canvas {
   }
   .entrance-content .entrance-caption {
     margin-top: 11px;
-  }
-}
-/* Large landscape displays, including LG/webOS TV browsers (which report a
-   ~1536x856 CSS viewport at their 1.25 device pixel ratio) that fall PAST the
-   1366px-capped block above, keeping the default top:50% centering with no
-   bottom bound. The tall "setup" wizard step centered inside .sim-entrance's
-   overflow:hidden then clips at both top and bottom, hiding the game options
-   and the Continue button. Cap the panel to the viewport and let it scroll
-   internally instead of being cut off; steps that already fit still sit
-   centered with no scrollbar, so ordinary 1080p+ desktops are unaffected.
-   Uses --app-height (see app/layout.tsx) with a 100vh fallback, never dvh. */
-@media (min-width: 1367px) {
-  .entrance-content {
-    max-height: calc(100vh - 48px);
-    max-height: calc(var(--app-height, 100vh) - 48px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
   }
 }
 @media (max-width: 700px) {
@@ -3150,7 +3150,7 @@ body.sim-die-blocked .sim-canvas {
     transform: translateX(-50%);
     white-space: nowrap;
     max-width: 95vw;
-    font-size: 8px;
+    font-size: 12px;
     gap: 6px;
     padding: 7px 10px;
   }
@@ -3191,7 +3191,7 @@ body.sim-die-blocked .sim-canvas {
   .sim-action-area > p {
     overflow: hidden;
     margin-bottom: 6px;
-    font-size: 9px;
+    font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -3200,7 +3200,7 @@ body.sim-die-blocked .sim-canvas {
     min-width: 138px;
     gap: 8px;
     padding: 0 14px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .sim-primary kbd {
     display: none;
@@ -3243,20 +3243,20 @@ body.sim-die-blocked .sim-canvas {
   .sim-seat.is-mobile-duel .seat-copy strong {
     max-width: 64px;
     color: #fff8d7;
-    font-size: 10px;
+    font-size: 12px;
     text-align: center;
   }
   .seat-avatar {
     width: 22px;
     height: 22px;
-    font-size: 9px;
+    font-size: 12px;
   }
   .seat-copy strong {
-    font-size: 9px;
+    font-size: 12px;
     max-width: 75px;
   }
   .seat-copy small {
-    font-size: 7px;
+    font-size: 12px;
   }
   .seat-copy small span {
     display: none;
@@ -3279,7 +3279,7 @@ body.sim-die-blocked .sim-canvas {
     top: 160px;
     width: max-content;
     max-width: 90vw;
-    font-size: 10px;
+    font-size: 12px;
   }
   .sim-piece-choices {
     bottom: calc(100% + 12px);
@@ -3343,6 +3343,7 @@ body.sim-die-blocked .sim-canvas {
     bottom: 70px;
     width: auto;
     max-width: 350px;
+    justify-content: flex-start;
     transform: none;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -3364,7 +3365,7 @@ body.sim-die-blocked .sim-canvas {
     left: 26px;
     right: 26px;
     bottom: 24px;
-    font-size: 8px;
+    font-size: 12px;
   }
   .entrance-room-label {
     display: none;
@@ -3462,7 +3463,7 @@ body.sim-die-blocked .sim-canvas {
   margin-bottom: 18px;
 }
 .room-lobby > p {
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 18px;
 }
 .room-lobby > .sim-primary {
@@ -3481,7 +3482,7 @@ body.sim-die-blocked .sim-canvas {
   margin-bottom: 15px;
 }
 .lobby-code .eyebrow {
-  font-size: 7px;
+  font-size: 12px;
   margin-bottom: 6px;
 }
 .lobby-code strong {
@@ -3494,7 +3495,7 @@ body.sim-die-blocked .sim-canvas {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 9px;
+  font-size: 12px;
   color: #c5ceb2;
 }
 .lobby-invite-actions {
@@ -3522,7 +3523,7 @@ body.sim-die-blocked .sim-canvas {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 9px;
+  font-size: 12px;
   color: #c5ceb2;
   padding: 8px 12px;
   border: 1px solid #c5cba934;
@@ -3539,7 +3540,7 @@ body.sim-die-blocked .sim-canvas {
   background: #8f35272b;
 }
 .lobby-voice-error {
-  font-size: 9px;
+  font-size: 12px;
   color: #f0bd9e;
 }
 .lobby-seat-mic {
@@ -3587,18 +3588,18 @@ body.sim-die-blocked .sim-canvas {
 }
 .lobby-seat strong {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .lobby-seat small {
   display: block;
   margin-top: 3px;
-  font-size: 8px;
+  font-size: 12px;
   color: #a4b791;
   text-transform: capitalize;
 }
 .lobby-seat button {
-  font-size: 9px;
+  font-size: 12px;
   color: #d2c29b;
   padding: 5px 7px;
   border: 1px solid #c8c59c30;
@@ -3613,7 +3614,7 @@ body.sim-die-blocked .sim-canvas {
   text-align: center;
 }
 .lobby-error {
-  font-size: 11px !important;
+  font-size: 12px !important;
   color: #f0bd9e !important;
   margin-top: 12px;
 }
@@ -3651,7 +3652,7 @@ body.sim-die-blocked .sim-canvas {
   }
   .room-lobby > p {
     max-width: 320px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6;
     margin-bottom: 12px;
   }
@@ -3671,7 +3672,7 @@ body.sim-die-blocked .sim-canvas {
     min-width: 38px;
     flex-direction: column;
     gap: 2px;
-    font-size: 7px;
+    font-size: 12px;
   }
 }
 
@@ -3681,7 +3682,7 @@ body.sim-die-blocked .sim-canvas {
    accents and serif headline as the rest of the app.
    --------------------------------------------------------------------------- */
 .leaderboard-back small {
-  font-size: 10px;
+  font-size: 12px;
 }
 .leaderboard-page .sim-brand {
   color: inherit;
@@ -3705,7 +3706,7 @@ body.sim-die-blocked .sim-canvas {
 .leaderboard-content > .eyebrow {
   color: #c0c5a9;
   letter-spacing: 3px;
-  font-size: 9px;
+  font-size: 12px;
   margin-bottom: 16px;
 }
 .leaderboard-content h1 {
@@ -3765,7 +3766,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 30px;
   background: #26372ec4;
   color: #e6e7d6;
-  font-size: 11px;
+  font-size: 12px;
   backdrop-filter: blur(18px);
   transition: background 0.2s ease, color 0.2s ease;
 }
@@ -3826,7 +3827,7 @@ body.sim-die-blocked .sim-canvas {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: #d8bd7f;
 }
 .leaderboard-podium i {
@@ -3888,7 +3889,7 @@ body.sim-die-blocked .sim-canvas {
   color: #f1ead7;
 }
 .leaderboard-wins {
-  font-size: 11px;
+  font-size: 12px;
   color: #d8bd7f;
   font-variant-numeric: tabular-nums;
 }
@@ -3897,7 +3898,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 4px;
   background: #dcca9f;
   color: #263324;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -3961,7 +3962,7 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 30px;
   background: #dcca9f;
   color: #263324;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -4034,7 +4035,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .replay-count {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: #a9b6a0;
 }
 
@@ -4065,12 +4066,12 @@ body.sim-die-blocked .sim-canvas {
 }
 .tourney-row-main small {
   color: #a9b6a0;
-  font-size: 11px;
+  font-size: 12px;
 }
 .tourney-badge {
   padding: 4px 10px;
   border-radius: 30px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   background: #16221a;
   color: #a9b6a0;
@@ -4261,7 +4262,7 @@ body.sim-die-blocked .sim-canvas {
   align-items: center;
   gap: 6px;
   margin-top: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: #a9b6a0;
 }
 
@@ -4299,7 +4300,7 @@ body.sim-die-blocked .sim-canvas {
 
 /* Host's watching toggle on the table menu (F4.4) */
 .watch-toggle-note {
-  font-size: 11px;
+  font-size: 12px;
   color: #a9b6a0;
   margin: 4px 0 0;
 }
@@ -4332,7 +4333,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .match-history-row .match-history-when small {
   color: #a9b6a0;
-  font-size: 11px;
+  font-size: 12px;
 }
 .match-history-place {
   font-size: 12px;
@@ -4369,7 +4370,7 @@ body.sim-die-blocked .sim-canvas {
   background: linear-gradient(180deg, #d8bd7f40, #26372eb3);
   border: 1px solid #d8bd7f66;
   color: #e8c766;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 .season-headline {
@@ -4631,7 +4632,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .join-table-note {
   margin-top: 16px !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   color: var(--sim-muted) !important;
 }
 
@@ -4700,10 +4701,10 @@ body.sim-die-blocked .sim-canvas {
   }
   .entrance-mode-choice button span,
   .entrance-mode-link span {
-    font-size: 11px;
+    font-size: 12px;
   }
   .entrance-mode-group {
-    font-size: 10px;
+    font-size: 12px;
   }
   .entrance-content.is-setup {
     top: 72px;
@@ -4717,10 +4718,10 @@ body.sim-die-blocked .sim-canvas {
     gap: 18px;
   }
   .entrance-field-label {
-    font-size: 11px;
+    font-size: 12px;
   }
   .entrance-field-hint {
-    font-size: 11px;
+    font-size: 12px;
   }
   .entrance-setup-head p {
     font-size: 12px;
@@ -4902,7 +4903,7 @@ body.sim-die-blocked .sim-canvas {
 .info-content > .eyebrow {
   color: #c0c5a9;
   letter-spacing: 3px;
-  font-size: 9px;
+  font-size: 12px;
   margin-bottom: 16px;
 }
 .info-content h1 {
@@ -5021,7 +5022,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .leaderboard-game-center-note {
   margin: -6px 0 16px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   color: #c0c8b5;
 }
@@ -5033,12 +5034,12 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   border-radius: 7px;
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 .match-dice-verdict {
   margin: 12px 0 0 !important;
   color: var(--sim-muted) !important;
-  font-size: 10px !important;
+  font-size: 12px !important;
   line-height: 1.5;
 }
 .match-dice-verdict strong {
@@ -5047,7 +5048,7 @@ body.sim-die-blocked .sim-canvas {
 }
 /* Offline computer level (app/page.tsx): the player-count picker, labels only. */
 .entrance-bot-level button strong {
-  font-size: 11px;
+  font-size: 12px;
 }
 /* /how-to-play, opened from a table: that table's house rules. */
 .info-callout {
@@ -5066,14 +5067,14 @@ body.sim-die-blocked .sim-canvas {
 .panel-rules h3 {
   margin: 14px 0 4px;
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 .panel-rules ul {
   margin: 0;
   padding-left: 16px;
   color: #c9cfbd;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 .panel-rules li {
@@ -5120,12 +5121,12 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   border-radius: 7px;
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 @media (max-width: 700px) {
   .sim-tip {
     bottom: calc(64px + env(safe-area-inset-bottom));
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -5151,7 +5152,7 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   border-radius: 999px;
   color: var(--sim-muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 .reaction-tabs button.is-selected {
   border-color: #d8bd7f;
@@ -5178,7 +5179,7 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   border-radius: 999px;
   color: var(--sim-ink);
-  font-size: 11px;
+  font-size: 12px;
 }
 .reaction-phrases button.is-highlighted {
   border-color: #d8bd7f;
@@ -5674,7 +5675,7 @@ body.sim-die-blocked .sim-canvas {
   zoom: var(--screen-zoom);
 }
 .simulator.is-screen .sim-turn {
-  font-size: 11px;
+  font-size: 12px;
 }
 .simulator.is-screen .sim-turn time {
   font-size: 16px;
@@ -6152,7 +6153,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .profile-stats-head small {
   color: #c0c8b5;
-  font-size: 11px;
+  font-size: 12px;
 }
 .profile-level {
   display: flex;
@@ -6174,7 +6175,7 @@ body.sim-die-blocked .sim-canvas {
   color: #f1ead7;
 }
 .profile-level small {
-  font-size: 7px;
+  font-size: 12px;
   letter-spacing: 1px;
   color: #c0c5a9;
 }
@@ -6198,7 +6199,7 @@ body.sim-die-blocked .sim-canvas {
   transition: width 0.4s ease;
 }
 .profile-xp > small {
-  font-size: 11px;
+  font-size: 12px;
   color: #c0c8b5;
 }
 .profile-streak {
@@ -6224,7 +6225,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .profile-streak small {
   color: #c9b199;
-  font-size: 11px;
+  font-size: 12px;
 }
 .profile-achievements {
   list-style: none;
@@ -6262,7 +6263,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .profile-achievements small {
   color: #c0c8b5;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
 }
 .cosmetics-locker {
@@ -6273,7 +6274,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .cosmetics-note {
   margin: -6px 0 0;
-  font-size: 11px;
+  font-size: 12px;
   color: #c0c8b5;
 }
 .cosmetics-group h3 {
@@ -6315,7 +6316,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .cosmetics-group small {
   color: #c0c8b5;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
 }
 .cosmetics-group button {
@@ -6333,7 +6334,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .cosmetics-equipped {
   flex: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: #263324;
   background: #dcca9f;
@@ -6380,7 +6381,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .friends-code small {
   display: block;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1.5px;
   color: #c0c5a9;
 }
@@ -6457,7 +6458,7 @@ body.sim-die-blocked .sim-canvas {
   color: #f1ead7;
 }
 .friends-identity small {
-  font-size: 10px;
+  font-size: 12px;
   color: #c0c8b5;
 }
 .friends-actions {
@@ -6484,7 +6485,7 @@ body.sim-die-blocked .sim-canvas {
 .friends-at-table,
 .friends-pending {
   flex: none;
-  font-size: 10px;
+  font-size: 12px;
   color: #263324;
   background: #dcca9f;
   border-radius: 30px;
@@ -6509,7 +6510,7 @@ body.sim-die-blocked .sim-canvas {
   margin-bottom: 8px;
   color: #c0c5a9;
   letter-spacing: 3px;
-  font-size: 9px;
+  font-size: 12px;
 }
 .play-again ul {
   list-style: none;
@@ -6547,7 +6548,7 @@ body.sim-die-blocked .sim-canvas {
   border: none;
   background: #dcca9f;
   color: #263324;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 .play-again button.is-quiet {
@@ -6557,7 +6558,7 @@ body.sim-die-blocked .sim-canvas {
   font-weight: 500;
 }
 .play-again-friend {
-  font-size: 10px;
+  font-size: 12px;
   color: #c0c8b5;
 }
 .profile-stats-empty {
@@ -6586,7 +6587,7 @@ body.sim-die-blocked .sim-canvas {
   color: #f1ead7;
 }
 .profile-stat > small {
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
   color: #c0c5a9;
@@ -6621,7 +6622,7 @@ body.sim-die-blocked .sim-canvas {
   margin-bottom: 8px;
   color: #c0c5a9;
   letter-spacing: 2px;
-  font-size: 9px;
+  font-size: 12px;
 }
 .profile-modes,
 .profile-rivals {
@@ -6665,7 +6666,7 @@ body.sim-die-blocked .sim-canvas {
 .profile-modes strong small,
 .profile-rivals strong small {
   font-family: system-ui, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   color: #c0c8b5;
 }
 .profile-comeback {
@@ -6706,7 +6707,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .profile-privacy small {
   color: #c0c8b5;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -6806,7 +6807,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .language-menu [role="option"] small {
   color: var(--sim-muted, #b6baac);
-  font-size: 11px;
+  font-size: 12px;
 }
 .language-menu [role="option"] svg {
   flex: none;
@@ -7058,7 +7059,7 @@ body.sim-die-blocked .sim-canvas {
 }
 .notification-on-here {
   color: #b9d3a3;
-  font-size: 11px;
+  font-size: 12px;
 }
 .notification-note {
   margin: 8px 0 0;
@@ -7075,7 +7076,7 @@ body.sim-die-blocked .sim-canvas {
   display: grid;
   gap: 4px;
   color: #c0c8b5;
-  font-size: 11px;
+  font-size: 12px;
 }
 .notification-quiet input {
   min-height: 36px;

@@ -105,6 +105,7 @@ function seatToPlayer(seat: TranscriptSeat): Player {
     autoRollEnabled: false,
     rematchReady: false,
     inVoice: false,
+    cameraOn: false,
     avatarId: seat.avatarId ?? undefined,
   };
 }

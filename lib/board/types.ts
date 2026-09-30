@@ -36,6 +36,8 @@ export interface Player {
   rematchReady: boolean;
   /** Room voice chat: has this seat joined the call. */
   inVoice: boolean;
+  /** Video chat (Section 7, V2): has this seat turned its camera on. */
+  cameraOn: boolean;
   /** Master mode (F2.2): this seat has captured, so its pieces can go home. */
   hasCaptured?: boolean;
   /** Party Mode: this seat is playing from somewhere else, not the living room (P8). */
@@ -156,6 +158,8 @@ export interface GameRoomState {
   isParty?: boolean;
   partyLocked?: boolean;
   partyTurnSeconds?: number;
+  /** Video chat (Section 7, V0): true when every seated human is signed-in and 18+ and the room is private. Table-wide; the client never learns who fails it. Absent on older snapshots. */
+  videoAllowed?: boolean;
   /** Watching live tables (F4.4): whether the host has opened the table to watchers. */
   watchingEnabled?: boolean;
   /** How many people are watching this table now (F4.4). */

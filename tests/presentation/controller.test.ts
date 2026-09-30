@@ -33,6 +33,7 @@ function player(id: string, color: PlayerColor, seatIndex: number, extra: Partia
     autoRollEnabled: false,
     rematchReady: false,
     inVoice: false,
+    cameraOn: false,
     ...extra,
   };
 }

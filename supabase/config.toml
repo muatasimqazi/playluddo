@@ -408,6 +408,12 @@ verify_jwt = false
 [functions.delete-account]
 verify_jwt = false
 
+# Short-lived WebRTC TURN/STUN credentials for the table call (Section 7, V1).
+# The session is checked inside the function (auth.getUser); the Twilio secret
+# never reaches the client. Needs TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN secrets.
+[functions.ice-servers]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

@@ -44,6 +44,7 @@ import {
 } from "@/lib/presentation/simulatorPrefs";
 import { gamePreferences } from "@/lib/preferences";
 import { Icon, type IconName } from "./Icon";
+import { VideoTiles } from "./VideoTiles";
 import { TableLoading } from "./TableLoading";
 import { BRAND } from "@/lib/brand";
 import { webUrl } from "@/lib/native";
@@ -788,6 +789,15 @@ export default function Simulator({
         />
       </SceneBoundary>
       <div className="sim-vignette" />
+      {voice && !screen && (
+        <VideoTiles
+          call={voice}
+          players={state.players}
+          myPlayerId={myPlayerId}
+          blockedPlayerIds={blockedPlayerIds}
+          onBlockPlayer={onBlockPlayer}
+        />
+      )}
       <button
         className="sim-immersive-toggle"
         title={
@@ -1002,6 +1012,21 @@ export default function Simulator({
               active={voice.joined && !voice.muted}
               disabled={voice.connecting}
               onClick={() => (voice.joined ? voice.toggleMute() : voice.join())}
+            />
+            <Tool
+              icon="camera"
+              label={
+                voice.cameraOn
+                  ? "Turn off camera"
+                  : !voice.videoAvailable
+                    ? "Video isn't available at this table"
+                    : voice.joined
+                      ? "Turn on camera"
+                      : "Start video"
+              }
+              active={voice.cameraOn}
+              disabled={voice.cameraStarting || (!voice.cameraOn && !voice.videoAvailable)}
+              onClick={voice.startVideo}
             />
             {voice.joined && (
               <Tool
@@ -1413,6 +1438,22 @@ export default function Simulator({
                       ? "Unmute microphone"
                       : "Mute microphone"
                     : "Join voice chat"}
+                </button>
+              )}
+              {voice && (
+                <button
+                  className="panel-secondary"
+                  disabled={voice.cameraStarting || (!voice.cameraOn && !voice.videoAvailable)}
+                  onClick={voice.startVideo}
+                >
+                  <Icon name="camera" />
+                  {voice.cameraOn
+                    ? "Turn off camera"
+                    : !voice.videoAvailable
+                      ? "Video isn't available at this table"
+                      : voice.joined
+                        ? "Turn on camera"
+                        : "Start video"}
                 </button>
               )}
               {voice?.joined && (

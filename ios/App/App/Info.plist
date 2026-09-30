@@ -41,6 +41,8 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Luddo uses your microphone so you can talk with friends at your table.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Luddo uses your camera so your face can appear at the table when you turn video on in a private room.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

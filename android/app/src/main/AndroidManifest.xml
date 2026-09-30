@@ -32,7 +32,11 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Voice chat: lib/hooks/useVoiceChat.ts calls getUserMedia({ audio: true }). -->
+    <!-- Voice chat: lib/hooks/useTableCall.ts calls getUserMedia({ audio: true }). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Video chat (Section 7, V2): getUserMedia({ video }) when a player turns their camera on. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 </manifest>

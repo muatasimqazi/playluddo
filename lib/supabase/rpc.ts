@@ -404,6 +404,37 @@ export function leaveVoice(client: SupabaseClient, roomId: string) {
   return call<{ inVoice: boolean }>(client, "leave_voice", { p_room_id: roomId });
 }
 
+/**
+ * Short-lived WebRTC ICE servers for the call (Section 7, V1), minted by the
+ * ice-servers Edge Function from Twilio's Network Traversal Service. A public
+ * STUN server alone can't relay through strict NATs, so this adds a TURN relay
+ * with credentials that expire on their own. Falls back to a bare STUN server
+ * (fallback: true) if the function is unreachable, so a call can still be tried.
+ */
+export async function fetchIceServers(
+  client: SupabaseClient,
+): Promise<RTCIceServer[]> {
+  const fallback: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+  const { data, error } = await client.functions.invoke<{
+    iceServers: RTCIceServer[];
+  }>("ice-servers", { body: {} });
+  if (error || !data?.iceServers?.length) return fallback;
+  return data.iceServers;
+}
+
+/**
+ * Turn this seat's camera on or off (Section 7, V2). Video rides on the voice
+ * call, so join voice first. Turning it on is gated server-side by V0: the
+ * whole table must be signed-in and 18+ in a private room, or this rejects
+ * with VIDEO_NOT_ALLOWED. Turning it off is never gated.
+ */
+export function setCameraOn(client: SupabaseClient, roomId: string, on: boolean) {
+  return call<{ cameraOn: boolean }>(client, "set_camera_on", {
+    p_room_id: roomId,
+    p_on: on,
+  });
+}
+
 export function sendWebrtcSignal(
   client: SupabaseClient,
   roomId: string,

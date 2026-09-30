@@ -6371,3 +6371,137 @@ body.sim-piece-hover .sim-canvas {
 [dir="rtl"] .form-divider {
   text-align: center;
 }
+
+/* Video chat: 2D tile fallback and controls (Section 7, V3). */
+.video-chat {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 6;
+  pointer-events: none;
+}
+.video-chat > * {
+  pointer-events: auto;
+}
+.video-controls {
+  display: flex;
+  gap: 6px;
+}
+.video-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--sim-line);
+  background: var(--sim-panel);
+  color: var(--sim-ink);
+  cursor: pointer;
+}
+.video-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.video-btn.is-active {
+  border-color: var(--sim-gold);
+  color: var(--sim-gold);
+}
+.video-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: min(92vw, 560px);
+}
+.video-tile {
+  position: relative;
+  width: 128px;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--sim-line);
+  background: #000;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.video-tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+}
+.video-tile.is-mine video {
+  transform: scaleX(-1); /* Mirror your own preview, as people expect. */
+}
+.video-tile.is-large {
+  width: min(80vw, 640px);
+}
+.video-tile.is-large video {
+  cursor: default;
+}
+.video-tile-name {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  max-width: calc(100% - 12px);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font: 500 12px/1.2 var(--font-sans), sans-serif;
+  color: #f4f1e4;
+  background: rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.video-tile-block {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: none;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+.video-tile-block:hover {
+  background: rgba(180, 40, 40, 0.85);
+}
+.video-enlarged {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+}
+.video-enlarged-inner {
+  position: relative;
+}
+.video-enlarged-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+}
+@media (max-width: 560px) {
+  .video-chat {
+    bottom: 84px;
+  }
+  .video-tile {
+    width: 96px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seat-mic.speaking {
+    animation: none;
+  }
+}

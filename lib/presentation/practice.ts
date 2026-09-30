@@ -99,6 +99,7 @@ export function createPractice(
         autoRollEnabled: false,
         rematchReady: false,
         inVoice: false,
+        cameraOn: false,
         avatarId: i === 0 ? profile.avatarId || "fox" : ["fox", "panda", "owl", "frog"][i],
         country: i === 0 ? profile.country || "" : "",
       })),

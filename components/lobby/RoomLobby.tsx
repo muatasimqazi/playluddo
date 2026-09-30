@@ -599,6 +599,25 @@ export function RoomLobby({
                     : "Mute"
                   : "Join audio"}
             </button>
+            <button
+              className={voice.cameraOn ? "is-active" : ""}
+              disabled={voice.cameraStarting || (!voice.cameraOn && !voice.videoAvailable)}
+              title={
+                voice.videoAvailable || voice.cameraOn
+                  ? undefined
+                  : "Video isn't available at this table"
+              }
+              onClick={voice.startVideo}
+            >
+              <Icon name="camera" />
+              {voice.cameraStarting
+                ? "Starting…"
+                : voice.cameraOn
+                  ? "Stop video"
+                  : !voice.videoAvailable
+                    ? "Video unavailable"
+                    : "Start video"}
+            </button>
             {voice.joined && (
               <button className="leave-voice" onClick={voice.leave}>
                 <Icon name="phone-off" />

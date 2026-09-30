@@ -1886,6 +1886,48 @@ body.sim-piece-hover .sim-canvas {
   backdrop-filter: blur(14px);
   overscroll-behavior: contain;
 }
+.sim-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #111a14a8;
+  backdrop-filter: blur(14px);
+  overscroll-behavior: contain;
+}
+.sim-dialog {
+  width: min(400px, 100%);
+  padding: 28px;
+  border: 1px solid #e4dbc347;
+  border-radius: 18px;
+  background: #202e26f5;
+  box-shadow: 0 28px 90px #07100a99;
+  color: #f2eddf;
+}
+.sim-dialog h2 {
+  margin: 8px 0 10px;
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+}
+.sim-dialog p {
+  margin: 0 0 22px;
+  color: #c8cfbe;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.sim-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sim-dialog-actions .sim-primary,
+.sim-dialog-actions .panel-secondary {
+  width: 100%;
+  justify-content: center;
+}
 .profile-panel {
   position: relative;
   width: min(410px, 100%);

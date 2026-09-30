@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { GameRoomState, MatchStats, MatchResult } from "@/lib/board/types";
@@ -41,6 +42,7 @@ import {
   SIMULATOR_PREF_KEY,
   type BoardStyle,
 } from "@/lib/presentation/simulatorPrefs";
+import { gamePreferences } from "@/lib/preferences";
 import { Icon, type IconName } from "./Icon";
 import { TableLoading } from "./TableLoading";
 import { BRAND } from "@/lib/brand";
@@ -377,8 +379,9 @@ export default function Simulator({
     (me?.cosmetics?.board && BOARD_COSMETIC_STYLE[me.cosmetics.board]) || prefs.boardStyle;
   const screenQuality = useAdaptiveQuality(screen);
   const [mode, setMode] = useState<InteractionMode>("play");
+  const [leaving, setLeaving] = useState(false);
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "board" | "preferences" | "chat" | "help" | "leave" | null
+    "menu" | "camera" | "board" | "preferences" | "chat" | "help" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -579,6 +582,10 @@ export default function Simulator({
   useEffect(() => {
     function key(e: KeyboardEvent) {
       if (e.key === "Escape") {
+        if (leaving) {
+          setLeaving(false);
+          return;
+        }
         setPanel(null);
         reset();
         timeline.stopReplay();
@@ -615,7 +622,7 @@ export default function Simulator({
     }
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
-  }, [canRoll, onRoll, panel, reset, setPref, timeline]);
+  }, [canRoll, leaving, onRoll, panel, reset, setPref, timeline]);
   useEffect(() => {
     const update = () => setFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", update);
@@ -952,7 +959,7 @@ export default function Simulator({
         {state.status === "in_game" ? (
           // A game is in progress — warn before leaving rather than dropping
           // straight out of the match. (Reset view stays on the "1" key.)
-          <Tool icon="home" label="Home" onClick={() => setPanel("leave")} />
+          <Tool icon="home" label="Home" onClick={() => setLeaving(true)} />
         ) : (
           <Link
             className="sim-tool"
@@ -1147,6 +1154,44 @@ export default function Simulator({
           </button>
         </div>
       )}
+      {leaving &&
+        createPortal(
+          <div
+            className="sim-dialog-backdrop"
+            role="presentation"
+            onMouseDown={() => setLeaving(false)}
+          >
+            <section
+              className="sim-dialog"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="leave-dialog-title"
+              aria-describedby="leave-dialog-body"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <span className="eyebrow">AT YOUR TABLE</span>
+              <h2 id="leave-dialog-title">Leave the game?</h2>
+              <p id="leave-dialog-body">
+                This game is still in progress. If you head back to the
+                entrance now, you’ll leave the match.
+              </p>
+              <div className="sim-dialog-actions">
+                <button
+                  className="sim-primary"
+                  onClick={() => setLeaving(false)}
+                >
+                  <Icon name="play" />
+                  Keep playing
+                </button>
+                <Link href="/" className="panel-secondary">
+                  <Icon name="home" />
+                  Leave and go to the entrance
+                </Link>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )}
       {panel && (
         <section className="sim-panel" aria-label={`${panel} panel`}>
           <div className="panel-heading">
@@ -1163,9 +1208,7 @@ export default function Simulator({
                         ? "Table talk"
                         : panel === "help"
                           ? "Rules & controls"
-                          : panel === "leave"
-                            ? "Leave the game?"
-                            : "Your evening, your game"}
+                          : "Your evening, your game"}
               </h2>
             </div>
             <Tool
@@ -1174,25 +1217,6 @@ export default function Simulator({
               onClick={() => setPanel(null)}
             />
           </div>
-          {panel === "leave" && (
-            <>
-              <p>
-                This game is still in progress. If you head back to the
-                entrance now, you’ll leave the match.
-              </p>
-              <Link href="/" className="panel-secondary">
-                <Icon name="home" />
-                Leave and go to the entrance
-              </Link>
-              <button
-                className="sim-primary"
-                onClick={() => setPanel(null)}
-              >
-                <Icon name="play" />
-                Keep playing
-              </button>
-            </>
-          )}
           {panel === "camera" && (
             <>
               <p>Different perspectives. The same shared board.</p>
@@ -1254,6 +1278,10 @@ export default function Simulator({
                     className={prefs.boardStyle === value ? "is-selected" : ""}
                     onClick={() => {
                       setPref("boardStyle", value);
+                      // Also record it as the saved board preference (this
+                      // device, and the account when signed in), so the choice
+                      // carries to the entrance and other devices.
+                      gamePreferences.set("boardStyle", value);
                       setPanel(null);
                     }}
                   >

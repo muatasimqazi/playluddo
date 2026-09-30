@@ -984,7 +984,7 @@ export default function Simulator({
       <aside className="sim-side-tools" aria-label="Table tools">
         {homeTool}
         <Tool
-          icon="camera"
+          icon="views"
           label="Camera views"
           active={panel === "camera"}
           onClick={() => togglePanel("camera")}
@@ -1153,7 +1153,7 @@ export default function Simulator({
           )}
         </div>
         <div className="sim-view-note">
-          <Icon name="camera" size={15} />
+          <Icon name="views" size={15} />
           <span>
             {mode === "look"
               ? "Free look"

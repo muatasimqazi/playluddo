@@ -5,6 +5,7 @@ export type IconName =
   | "look"
   | "rotate"
   | "camera"
+  | "views"
   | "sound"
   | "muted"
   | "chat"
@@ -61,6 +62,16 @@ const paths: Record<IconName, React.ReactNode> = {
       <rect x="3" y="6" width="18" height="14" rx="3" />
       <path d="m8 6 2-3h4l2 3" />
       <circle cx="12" cy="13" r="4" />
+    </>
+  ),
+  // Camera views of the board (not the video camera): an eye looking down
+  // on a tabletop drawn in perspective.
+  views: (
+    <>
+      <path d="M3 21h18l-3-6.5H6Z" />
+      <path d="M12 14.5V21M4.5 17.75h15" />
+      <path d="M4.5 7.5S7.5 3 12 3s7.5 4.5 7.5 4.5S16.5 12 12 12 4.5 7.5 4.5 7.5Z" />
+      <circle cx="12" cy="7.5" r="1.8" />
     </>
   ),
   sound: (

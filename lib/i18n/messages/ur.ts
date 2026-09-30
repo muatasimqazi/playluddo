@@ -34,6 +34,7 @@ export const ur: Messages = {
     blue: "نیلا",
   },
   entrance: {
+    partyMode: "پارٹی موڈ · ٹی وی + فون",
     headerTagline: "تھوڑا اور قریب۔",
 
     eyebrowHome: "اپنے گھر جیسا محسوس کریں",

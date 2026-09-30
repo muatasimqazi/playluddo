@@ -35,6 +35,7 @@ export const ar: Messages = {
     blue: "الأزرق",
   },
   entrance: {
+    partyMode: "وضع الحفلة · تلفاز + هواتف",
     headerTagline: "أقرب قليلاً.",
 
     eyebrowHome: "اجعل المكان كبيتك",

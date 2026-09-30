@@ -34,6 +34,7 @@ export const hi: Messages = {
     blue: "नीला",
   },
   entrance: {
+    partyMode: "पार्टी मोड · टीवी + फ़ोन",
     headerTagline: "थोड़ा और करीब।",
 
     eyebrowHome: "अपने घर जैसा महसूस करें",

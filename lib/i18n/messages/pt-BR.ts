@@ -34,6 +34,7 @@ export const ptBR: Messages = {
     blue: "azul",
   },
   entrance: {
+    partyMode: "Modo festa · TV + celulares",
     headerTagline: "Um pouco mais perto.",
 
     eyebrowHome: "Fique à vontade",

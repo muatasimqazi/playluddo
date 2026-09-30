@@ -60,7 +60,7 @@
 }
 .entrance-game-choice button strong {
   color: var(--sim-ink);
-  font: 500 15px/1 Georgia, serif;
+  font: 500 15px/1 var(--font-sans), sans-serif;
 }
 .entrance-game-choice button span {
   color: var(--sim-muted);
@@ -100,7 +100,7 @@
   color: var(--sim-ink);
 }
 .entrance-player-count button strong {
-  font: 500 16px/1 Georgia, serif;
+  font: 500 16px/1 var(--font-sans), sans-serif;
 }
 .entrance-player-count button span {
   font-size: 8px;
@@ -1774,6 +1774,15 @@ body.sim-piece-hover .sim-canvas {
   letter-spacing: 2px;
   color: #d8dfcf;
 }
+.entrance-header-actions .profile-trigger {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.entrance-header-actions .profile-trigger small,
+.entrance-header-actions .language-switcher select {
+  font-size: inherit;
+}
 .profile-trigger {
   display: inline-flex;
   align-items: center;
@@ -3058,6 +3067,12 @@ body.sim-piece-hover .sim-canvas {
   }
   .entrance-header-actions > span {
     display: none;
+  }
+  .entrance-header-actions {
+    gap: 8px;
+  }
+  .entrance-header-actions .profile-trigger {
+    font-size: 12px;
   }
   .profile-trigger {
     min-height: 32px;

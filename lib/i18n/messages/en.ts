@@ -52,6 +52,7 @@ export const en = {
     hoursAgo: "{hours}h ago",
   },
   entrance: {
+    partyMode: "Party mode · TV + phones",
     headerTagline: "A little closer together.",
 
     eyebrowHome: "Make yourself at home",

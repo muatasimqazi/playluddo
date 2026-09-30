@@ -491,6 +491,10 @@ export default function Home() {
                       <span>{t("entrance.tableTogether")}</span>
                       <Icon name="users" />
                     </Link>
+                    <Link className="entrance-secondary" href="/screen">
+                      <span>{t("entrance.partyMode")}</span>
+                      <Icon name="screen" />
+                    </Link>
                   </div>
                   <p className="entrance-caption">{t("entrance.caption")}</p>
                 </>

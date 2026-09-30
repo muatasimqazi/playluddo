@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"],
+a.sim-primary,
+a.entrance-secondary {
+  font-family: var(--font-sans), sans-serif;
+}
+
 .player-avatar {
   position: relative;
   display: inline-block;

@@ -34,6 +34,7 @@ export const bn: Messages = {
     blue: "নীল",
   },
   entrance: {
+    partyMode: "পার্টি মোড · টিভি + ফোন",
     headerTagline: "একটু কাছাকাছি।",
 
     eyebrowHome: "নিজের বাড়ির মতো করে নিন",

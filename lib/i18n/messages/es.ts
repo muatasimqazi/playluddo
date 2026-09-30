@@ -35,6 +35,7 @@ export const es: Messages = {
     blue: "azul",
   },
   entrance: {
+    partyMode: "Modo fiesta · TV + teléfonos",
     headerTagline: "Un poco más cerca.",
 
     eyebrowHome: "Ponte cómodo",

@@ -34,6 +34,7 @@ export const id: Messages = {
     blue: "biru",
   },
   entrance: {
+    partyMode: "Mode pesta · TV + ponsel",
     headerTagline: "Sedikit lebih dekat.",
 
     eyebrowHome: "Buat dirimu nyaman",

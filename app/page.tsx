@@ -209,7 +209,7 @@ export default function Home() {
             <small>{t("common.leaderboard")}</small>
           </Link>
           <Link className="profile-trigger leaderboard-trigger" href="/tournaments">
-            <Icon name="trophy" />
+            <Icon name="bracket" />
             <small>{t("common.tournaments")}</small>
           </Link>
           <ProfilePanel

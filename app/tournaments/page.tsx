@@ -206,7 +206,7 @@ export default function TournamentsPage() {
               />
             ) : (
               <button type="button" className="sim-primary" onClick={() => setCreating(true)}>
-                <Icon name="trophy" size={16} />
+                <Icon name="bracket" size={16} />
                 {tx("tournaments.schedule")}
               </button>
             )}

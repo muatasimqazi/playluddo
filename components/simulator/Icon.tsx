@@ -30,6 +30,7 @@ export type IconName =
   | "cube"
   | "help"
   | "trophy"
+  | "bracket"
   | "grid";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
@@ -195,6 +196,11 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M7 3h10v3a5 5 0 0 1-10 0V3Z" />
       <path d="M7 4H4a3 3 0 0 0 3 5M17 4h3a3 3 0 0 1-3 5" />
       <path d="M12 11v4M9 20h6M9 20l3-5 3 5" />
+    </>
+  ),
+  bracket: (
+    <>
+      <path d="M3 3h5v6H3M3 15h5v6H3M8 6h7v12H8M15 12h6" />
     </>
   ),
   grid: (

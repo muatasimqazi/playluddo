@@ -816,6 +816,15 @@ export default function Simulator({
           myPlayerId={myPlayerId}
           blockedPlayerIds={blockedPlayerIds}
           onBlockPlayer={onBlockPlayer}
+          onReportPlayer={
+            onReportPlayer
+              ? (playerId) => {
+                  setModerationNote(null);
+                  setReporting(playerId);
+                  setPanel("chat");
+                }
+              : undefined
+          }
         />
       )}
       <button
@@ -1826,6 +1835,11 @@ export default function Simulator({
                                 }, "Thanks — we’ll review your report within 24 hours.");
                               }}
                             >
+                              {player.cameraOn && (
+                                <p className="panel-note">
+                                  We never record video, so tell us what you saw.
+                                </p>
+                              )}
                               <label>
                                 What happened?
                                 <select

@@ -8,7 +8,8 @@ import { Icon } from "./Icon";
 /**
  * The 2D fallback for video chat (Section 7, V3): a strip of camera tiles above
  * the controls, shown on small screens or wherever the 3D VideoTexture isn't in
- * play. Local preview is mirrored; each remote tile carries block and enlarge.
+ * play. Local preview is mirrored; each remote tile carries report, block and
+ * enlarge (V4: safety controls sit on the video itself).
  * Blocked seats and "hide everyone's video" drop tiles here, and the hook also
  * stops sending/receiving their media, so this is presentation only.
  */
@@ -18,12 +19,15 @@ export function VideoTiles({
   myPlayerId,
   blockedPlayerIds,
   onBlockPlayer,
+  onReportPlayer,
 }: {
   call: VoiceChat;
   players: Player[];
   myPlayerId: string | null;
   blockedPlayerIds: string[];
   onBlockPlayer?: (playerId: string, blocked: boolean) => Promise<unknown>;
+  /** Open the table's report form for this player. */
+  onReportPlayer?: (playerId: string) => void;
 }) {
   const [enlargedId, setEnlargedId] = useState<string | null>(null);
 
@@ -49,6 +53,23 @@ export function VideoTiles({
           const p = remotes.find((r) => r.id === enlargedId);
           return p ? { player: p, stream: call.remoteVideo.get(p.id) ?? null, mine: false } : null;
         })();
+
+  // Report and block for a remote tile. Blocking closes an enlarged view, as
+  // that player's tile disappears.
+  const safety = (id: string) => ({
+    onReport: onReportPlayer
+      ? () => {
+          setEnlargedId(null);
+          onReportPlayer(id);
+        }
+      : undefined,
+    onBlock: onBlockPlayer
+      ? () => {
+          setEnlargedId(null);
+          void onBlockPlayer(id, true);
+        }
+      : undefined,
+  });
 
   const hasTiles = (call.cameraOn && call.localVideoStream) || remotes.length > 0;
 
@@ -116,9 +137,7 @@ export function VideoTiles({
               stream={call.remoteVideo.get(p.id) ?? null}
               name={p.displayName}
               onEnlarge={() => setEnlargedId(p.id)}
-              onBlock={
-                onBlockPlayer ? () => void onBlockPlayer(p.id, true) : undefined
-              }
+              {...safety(p.id)}
             />
           ))}
         </div>
@@ -137,6 +156,7 @@ export function VideoTiles({
               name={enlarged.player.displayName}
               mine={enlarged.mine}
               large
+              {...(enlarged.mine ? {} : safety(enlarged.player.id))}
             />
             <button
               type="button"
@@ -159,6 +179,7 @@ function VideoTile({
   mine,
   large,
   onEnlarge,
+  onReport,
   onBlock,
 }: {
   stream: MediaStream | null;
@@ -166,6 +187,7 @@ function VideoTile({
   mine?: boolean;
   large?: boolean;
   onEnlarge?: () => void;
+  onReport?: () => void;
   onBlock?: () => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -188,16 +210,31 @@ function VideoTile({
         onClick={onEnlarge}
       />
       <span className="video-tile-name">{mine ? `${name} (you)` : name}</span>
-      {onBlock && (
-        <button
-          type="button"
-          className="video-tile-block"
-          title={`Block ${name}`}
-          aria-label={`Block ${name}`}
-          onClick={onBlock}
-        >
-          <Icon name="close" />
-        </button>
+      {(onReport || onBlock) && (
+        <div className="video-tile-safety">
+          {onReport && (
+            <button
+              type="button"
+              className="video-tile-report"
+              title={`Report ${name}`}
+              aria-label={`Report ${name}`}
+              onClick={onReport}
+            >
+              <Icon name="flag" size={14} />
+            </button>
+          )}
+          {onBlock && (
+            <button
+              type="button"
+              className="video-tile-block"
+              title={`Block ${name}`}
+              aria-label={`Block ${name}`}
+              onClick={onBlock}
+            >
+              <Icon name="close" />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

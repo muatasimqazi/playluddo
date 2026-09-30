@@ -34,7 +34,8 @@ export type IconName =
   | "trophy"
   | "bracket"
   | "screen"
-  | "grid";
+  | "grid"
+  | "flag";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -236,6 +237,7 @@ const paths: Record<IconName, React.ReactNode> = {
       <rect x="13" y="13" width="8" height="8" rx="1.6" />
     </>
   ),
+  flag: <path d="M5 21V4M5 4h12l-2.5 4.5L17 13H5" />,
 };
 export function Icon({
   name,

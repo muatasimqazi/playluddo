@@ -24,7 +24,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 | F0.4 Age check | ◐ | Guest→account answer carry-over (identity linking), the 30-day under-13 cleanup job, privacy and terms wording, the legal review for signed-in under-13s |
 | V1 TURN relay | ◐ | The manual cellular-to-cellular check; a PostHog insight on `call_ice_outcome` |
 | V3 Video in the 3D table | ◐ | `VideoTexture` on seat figures, frame-rate fallback, off-screen pause, mobile-data warning (the 2D tile strip is built) |
-| V4 Video safety | ◐ | Report on each video tile; privacy, terms and store privacy disclosures; store review notes |
+| V4 Video safety | ◐ | Privacy, terms and store privacy disclosures; store review notes |
 | V5 Party-screen video and voice | ☐ | All of it |
 | V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
 | F5.1 Localization | ◐ | Localized store listings; the 360px screenshot pass |
@@ -475,7 +475,7 @@ This fixes voice first. Ship it on its own, before any video work.
 - **Reduced motion:** no animated camera framing around video tiles.
 
 ### V4 Safety ◐ · M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), and one tap hides all incoming video. Missing: a **Report** control on each video tile (tiles only offer block); privacy-policy and terms updates for camera, video and the TURN relay; the App Store privacy label and Play Data Safety updates; store review notes. Video must stay off until these ship.
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), one tap hides all incoming video, and every remote video tile (and its enlarged view) carries **Report** and **Block**. Report opens the table's `player_reports` form, which notes that video is never recorded. Missing: privacy-policy and terms updates for camera, video and the TURN relay; the App Store privacy label and Play Data Safety updates; store review notes. Video must stay off until these ship.
 
 **Also see (Section 15):** R5 · R7 · R8
 

@@ -74,6 +74,53 @@ export function makeTongueTexture() {
   return texture(canvas);
 }
 
+/**
+ * A player's name, drawn to sit flat on their base quadrant in plain white.
+ * A faint dark halo keeps it legible on any of the base colours. Kept small
+ * and letter-spaced so it stays unobtrusive. Long names shrink to fit, then
+ * ellipsize, so the plate width never has to change per player. Transparent
+ * everywhere but the lettering.
+ */
+export function makeNameTexture(name: string) {
+  const width = 512;
+  const height = 132;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
+  if (!ctx) throw new Error("Could not prepare the name plate.");
+  const label = name.trim() || " ";
+  const maxWidth = width - 140;
+  const family = '500 SIZEpx "Inter", "Helvetica Neue", Arial, sans-serif';
+  let size = 48;
+  ctx.letterSpacing = "2px";
+  ctx.font = family.replace("SIZE", String(size));
+  // Shrink to fit the plate, down to a floor; below it, clip with an ellipsis.
+  while (size > 26 && ctx.measureText(label).width > maxWidth) {
+    size -= 2;
+    ctx.font = family.replace("SIZE", String(size));
+  }
+  let text = label;
+  if (ctx.measureText(text).width > maxWidth) {
+    while (text.length > 1 && ctx.measureText(`${text}…`).width > maxWidth) {
+      text = text.slice(0, -1);
+    }
+    text = `${text}…`;
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  // letterSpacing adds a trailing gap after the last glyph, nudging the
+  // visual centre left; shift right by half of one gap to recentre.
+  const cx = width / 2 + 1;
+  const cy = height / 2;
+  // A soft dark halo lifts the white off the base colour without a hard edge.
+  ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+  ctx.shadowBlur = 6;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(text, cx, cy);
+  return texture(canvas);
+}
+
 export function makeBoardTexture(
   image: HTMLImageElement,
   crop: "ludo" | "full" = "ludo",

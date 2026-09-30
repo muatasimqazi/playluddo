@@ -63,7 +63,7 @@ import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
-import { makeBoardTexture, makeTongueTexture } from "./textures";
+import { makeBoardTexture, makeNameTexture, makeTongueTexture } from "./textures";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -585,6 +585,9 @@ const DESKTOP_FOUR_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
   green: [3.5, 0.26, -1.3],
   yellow: [3.5, 0.26, 1.3],
   blue: [-3.5, 0.26, 1.3],
+  // F5.2: hex per-seat die points assigned in Phase 3; unused on the cross.
+  orange: [3.5, 0.26, -3.3],
+  black: [-3.5, 0.26, -3.3],
 };
 const DESKTOP_DIE_POINT: Point = [3.65, 0.26, 1.1];
 // Snakes & Ladders has no per-player corners to track, so the die just
@@ -1106,6 +1109,16 @@ function BoardObject(props: SceneProps) {
               }
             />
           ))}
+        {props.gameType !== "snakes_and_ladders" &&
+          !props.preview &&
+          !props.hideLabels &&
+          props.players.map((player) => (
+            <BaseName
+              key={player.id}
+              color={player.color}
+              name={player.id === props.myPlayerId ? "You" : player.displayName}
+            />
+          ))}
         {props.frame.pawns.map((pawn) => (
           <Piece
             key={`${props.gameType}:${props.frame.revision}:${pawn.id}`}
@@ -1251,6 +1264,63 @@ function TurnBaseGlow({
   );
 }
 
+// The name plate lies flat on the base, in the gap between its two bottom
+// (nearest-the-seat) nest slots.
+const BASE_NAME_WIDTH = 1.7; // world units; fits between the two bottom corner slots
+const BASE_NAME_HEIGHT = BASE_NAME_WIDTH * (132 / 512); // matches makeNameTexture's canvas aspect
+// How far from the base centre the plate drops toward the seat — about where
+// the two bottom nest slots sit (~0.94 from centre), pulled in a hair so the
+// plate stays clear of the base's edge.
+const BASE_NAME_DROP = 0.9;
+// Each name is written horizontally and turned so it reads upright from its
+// own seat: the two far bases (red top-left, green top-right) are flipped a
+// half-turn, the two near bases (blue, yellow) sit as drawn. Hex seats are
+// unused on the 4-arm board (F5.2), so they inherit the near orientation.
+const BASE_NAME_SPIN: Record<PlayerColor, number> = {
+  red: Math.PI,
+  green: Math.PI,
+  yellow: 0,
+  blue: 0,
+  orange: 0,
+  black: 0,
+};
+
+/**
+ * The player's name embedded on their base quadrant — flat on the board,
+ * centred between the four nest slots, and oriented to read upright from
+ * that base's own seat (see BASE_NAME_SPIN). Lives in the pieces group with
+ * the base glow so it spins with the board and hides during the Ludo/Snakes
+ * flip like the pawns do.
+ */
+function BaseName({ color, name }: { color: PlayerColor; name: string }) {
+  const area = BASE_AREA[color];
+  const [x, , z] = gridPoint(
+    (area.rowStart + area.rowEnd) / 2,
+    (area.colStart + area.colEnd) / 2,
+  );
+  const texture = useMemo(() => makeNameTexture(name), [name]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  // The plate drops toward the seat — the direction the text reads "down"
+  // (+z for the near bases at spin 0, -z for the far ones at spin π).
+  const spin = BASE_NAME_SPIN[color];
+  const nameZ = z + (spin === 0 ? 1 : -1) * BASE_NAME_DROP;
+  return (
+    <mesh
+      position={[x, BOARD_Y + 0.006, nameZ]}
+      rotation={[-Math.PI / 2, 0, spin]}
+      renderOrder={2}
+    >
+      <planeGeometry args={[BASE_NAME_WIDTH, BASE_NAME_HEIGHT]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+}
+
 /**
  * The snakes are baked into the static board texture — there's no live
  * body to re-animate — so "the snake is alive" comes from a small overlay
@@ -1362,12 +1432,17 @@ function Seats({
     green: [1.8, BOARD_Y, -3.5],
     yellow: [1.8, BOARD_Y, 3.5],
     blue: [-1.8, BOARD_Y, 3.5],
+    // F5.2: hex seat anchors assigned in Phase 3; unused on the cross.
+    orange: [3.5, BOARD_Y, 0],
+    black: [-3.5, BOARD_Y, 0],
   };
   const mobileCornerPositions: Record<PlayerColor, Point> = {
     red: [-2.15, BOARD_Y, -3.52],
     green: [2.15, BOARD_Y, -3.52],
     yellow: [2.15, BOARD_Y, 3.52],
     blue: [-2.15, BOARD_Y, 3.52],
+    orange: [3.52, BOARD_Y, 0],
+    black: [-3.52, BOARD_Y, 0],
   };
   // Left/right of the board only, same anchor as that color's die point
   // (DESKTOP_FOUR_PLAYER_DIE_POINTS) — the label is then pushed away from

@@ -91,7 +91,7 @@ export const es: Messages = {
 
     quickMatch: "Partida rápida · Juega con gente en línea",
     playWithFriends: "Jugar con amigos",
-    offlinePractice: "Sin conexión: Acomódate con una partida de práctica",
+    offlinePractice: "Sin conexión: Contra la computadora · Juega contra la máquina",
     tableTogether: "Sin conexión: Mesa Compartida · Una sola pantalla",
     caption: "Hasta cuatro jugadores · Una mesa 3D compartida · Sin descargas",
 

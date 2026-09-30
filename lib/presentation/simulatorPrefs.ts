@@ -10,6 +10,26 @@ export const SIMULATOR_PREF_KEY = "luddo-simulator-v1";
 // without duplicating Simulator's whole Preferences shape here. Merges
 // into whatever's already saved so it doesn't clobber a returning
 // player's other saved prefs (quality, sound, camera orientation, etc).
+const BOARD_STYLES: BoardStyle[] = ["signature", "classic", "geometric", "aladdin"];
+
+// Classic is the out-of-the-box board (docs entrance default). Kept in step
+// with Simulator's own loadPreferences fallback so the entrance shows — and
+// launches — the same board the table will render.
+export const DEFAULT_BOARD_STYLE: BoardStyle = "classic";
+
+// What the table will actually render, so the entrance's shown selection
+// matches it. A returning player's saved pick wins; otherwise Classic.
+export function preferredBoardStyle(): BoardStyle {
+  try {
+    const saved = JSON.parse(
+      localStorage.getItem(SIMULATOR_PREF_KEY) ?? "null",
+    )?.boardStyle;
+    return BOARD_STYLES.includes(saved) ? saved : DEFAULT_BOARD_STYLE;
+  } catch {
+    return DEFAULT_BOARD_STYLE;
+  }
+}
+
 export function setPreferredBoardStyle(boardStyle: BoardStyle) {
   try {
     const existing = JSON.parse(

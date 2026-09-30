@@ -90,7 +90,7 @@ export const id: Messages = {
 
     quickMatch: "Pertandingan cepat · Main dengan orang daring",
     playWithFriends: "Main dengan teman",
-    offlinePractice: "Luring: Bersantai dengan permainan latihan",
+    offlinePractice: "Luring: Lawan Komputer · Main lawan komputer",
     tableTogether: "Luring: Meja Bersama · Satu layar bersama",
     caption: "Hingga empat pemain · Meja 3D bersama · Tanpa unduhan",
 

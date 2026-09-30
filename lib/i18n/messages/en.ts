@@ -108,7 +108,7 @@ export const en = {
 
     quickMatch: "Quick match · Play people online",
     playWithFriends: "Play with friends",
-    offlinePractice: "Offline: Settle in with an offline practice game",
+    offlinePractice: "Offline: Vs Computer · Play the computer",
     tableTogether: "Offline: Table Together · Share single screen",
     caption: "Up to four players · A shared 3D table · No download",
 

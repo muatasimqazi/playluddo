@@ -14,7 +14,9 @@ import { preferredBotLevel, setPreferredBotLevel } from "@/lib/presentation/simu
 import { AVATARS, avatarDefinition, photoAvatar } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
 import {
+  preferredBoardStyle,
   setPreferredBoardStyle,
+  DEFAULT_BOARD_STYLE,
   type BoardStyle,
 } from "@/lib/presentation/simulatorPrefs";
 import { Icon } from "@/components/simulator/Icon";
@@ -61,8 +63,8 @@ export default function Home() {
   const { t } = useI18n();
   // Localized board labels/descriptions, mirroring BOARD_STYLE_VALUES' order.
   const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [
-    { value: "signature", label: t("entrance.boardSignature"), desc: t("entrance.boardSignatureDesc") },
     { value: "classic", label: t("entrance.boardClassic"), desc: t("entrance.boardClassicDesc") },
+    { value: "signature", label: t("entrance.boardSignature"), desc: t("entrance.boardSignatureDesc") },
     { value: "geometric", label: t("entrance.boardGeometric"), desc: t("entrance.boardGeometricDesc") },
     { value: "aladdin", label: t("entrance.boardAladdin"), desc: t("entrance.boardAladdinDesc") },
   ];
@@ -89,7 +91,15 @@ export default function Home() {
   // An uploaded photo isn't one of the presets, so it gets its own tile.
   const profilePhoto =
     profileAvatar && !avatarDefinition(profileAvatar) ? photoAvatar(profileAvatar) : null;
-  const [boardStyle, setBoardStyleChoice] = useState<BoardStyle>("signature");
+  // Read from the device after hydration so the highlighted board matches the
+  // one the table will actually render; Classic on the server and by default.
+  const savedBoardStyle = useSyncExternalStore(
+    noSubscription,
+    preferredBoardStyle,
+    () => DEFAULT_BOARD_STYLE,
+  );
+  const [pickedBoardStyle, setPickedBoardStyle] = useState<BoardStyle | null>(null);
+  const boardStyle = pickedBoardStyle ?? savedBoardStyle;
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const age = useAgeCheck();
   const [error, setError] = useState<string | null>(null);
@@ -389,7 +399,7 @@ export default function Home() {
                           }
                           aria-pressed={boardStyle === style.value}
                           onClick={() => {
-                            setBoardStyleChoice(style.value);
+                            setPickedBoardStyle(style.value);
                             setPreferredBoardStyle(style.value);
                           }}
                         >

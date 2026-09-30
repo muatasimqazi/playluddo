@@ -90,7 +90,7 @@ export const ptBR: Messages = {
 
     quickMatch: "Partida rápida · Jogue com pessoas on-line",
     playWithFriends: "Jogar com amigos",
-    offlinePractice: "Off-line: Relaxe com uma partida de treino",
+    offlinePractice: "Off-line: Contra o computador · Jogue contra o computador",
     tableTogether: "Off-line: Mesa Compartilhada · Uma única tela",
     caption: "Até quatro jogadores · Uma mesa 3D compartilhada · Sem download",
 

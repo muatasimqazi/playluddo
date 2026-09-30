@@ -101,6 +101,13 @@ export interface SceneProps {
   hideLabels?: boolean;
   brightness?: number;
   saturation?: number;
+  /**
+   * Party Mode's shared screen (docs/COMPETITIVE_ROADMAP.md P1): a passive
+   * TV display nobody plays from. Camera orbit and board-spin are locked so a
+   * stray touch or click can't knock the view askew with no on-screen control
+   * to put it back.
+   */
+  screen?: boolean;
   /** Matches the page's own `dynamic()` loading label so the text doesn't change mid-load. */
   loadingLabel?: string;
 }
@@ -112,6 +119,7 @@ function CameraRig({
   actionCamera,
   frame,
   preview,
+  screen,
 }: SceneProps) {
   const controls = useRef<CameraControlsImpl>(null);
   // The very first setLookAt below should snap into place, not glide —
@@ -180,29 +188,39 @@ function CameraRig({
       minPolarAngle={0.01}
       maxPolarAngle={Math.PI * 0.45}
       boundaryEnclosesCamera={false}
-      mouseButtons={{
-        // Orbiting and zooming work immediately, without switching into
-        // Look mode first — only the board-spin gesture (right mouse
-        // button, freed up here so BoardObject can claim it in "play")
-        // and screen-pan stay behind the explicit Look mode.
-        left: mode === "rotate" ? ACTION.NONE : ACTION.ROTATE,
-        middle: mode === "look" ? ACTION.DOLLY : ACTION.NONE,
-        right: mode === "look" ? ACTION.TRUCK : ACTION.NONE,
-        wheel: ACTION.DOLLY,
-      }}
-      touches={{
-        // One finger drags the view in play too — that's how the table reads
-        // as 3D, and how the phone overhead view reveals the room around it
-        // (see Surroundings). Taps stay safe: pawns and the die ignore a
-        // press that turned into a drag (TAP_SLOP_PX). On phones, pinch also
-        // zooms in on small cells.
-        one: mode === "rotate" ? ACTION.NONE : ACTION.TOUCH_ROTATE,
-        two:
-          mode === "look" || (coarse && mode === "play")
-            ? ACTION.TOUCH_DOLLY_TRUCK
-            : ACTION.NONE,
-        three: ACTION.NONE,
-      }}
+      mouseButtons={
+        // The party screen is a passive display with no controls to reset a
+        // nudged camera — freeze it so a stray click can't move the view.
+        screen
+          ? { left: ACTION.NONE, middle: ACTION.NONE, right: ACTION.NONE, wheel: ACTION.NONE }
+          : {
+              // Orbiting and zooming work immediately, without switching into
+              // Look mode first — only the board-spin gesture (right mouse
+              // button, freed up here so BoardObject can claim it in "play")
+              // and screen-pan stay behind the explicit Look mode.
+              left: mode === "rotate" ? ACTION.NONE : ACTION.ROTATE,
+              middle: mode === "look" ? ACTION.DOLLY : ACTION.NONE,
+              right: mode === "look" ? ACTION.TRUCK : ACTION.NONE,
+              wheel: ACTION.DOLLY,
+            }
+      }
+      touches={
+        screen
+          ? { one: ACTION.NONE, two: ACTION.NONE, three: ACTION.NONE }
+          : {
+              // One finger drags the view in play too — that's how the table reads
+              // as 3D, and how the phone overhead view reveals the room around it
+              // (see Surroundings). Taps stay safe: pawns and the die ignore a
+              // press that turned into a drag (TAP_SLOP_PX). On phones, pinch also
+              // zooms in on small cells.
+              one: mode === "rotate" ? ACTION.NONE : ACTION.TOUCH_ROTATE,
+              two:
+                mode === "look" || (coarse && mode === "play")
+                  ? ACTION.TOUCH_DOLLY_TRUCK
+                  : ACTION.NONE,
+              three: ACTION.NONE,
+            }
+      }
     />
   );
 }
@@ -943,6 +961,8 @@ function BoardObject(props: SceneProps) {
     // switching modes — it's freed from CameraControls (see mouseButtons
     // in CameraRig) specifically so the two never compete for the same
     // gesture. Explicit Rotate mode keeps accepting any button/touch.
+    // The party screen never spins the board — it has no way to spin it back.
+    if (props.screen) return;
     const defaultRotateDrag = props.mode === "play" && e.button === 2;
     if (props.mode !== "rotate" && !defaultRotateDrag) return;
     e.stopPropagation();

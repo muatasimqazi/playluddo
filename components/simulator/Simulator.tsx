@@ -177,7 +177,7 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
     orientation: HOME_ROTATION[color],
     snakeOrientation: 0,
     view: defaultCameraView(),
-    boardStyle: "signature",
+    boardStyle: "classic",
     immersive: false,
     brightness: 1,
     saturation: 1,
@@ -211,11 +211,11 @@ function loadPreferences(color: keyof typeof COLORS): Preferences {
       snakeOrientation: Number.isFinite(value.snakeOrientation)
         ? value.snakeOrientation
         : 0,
-      boardStyle: ["classic", "geometric", "aladdin"].includes(
+      boardStyle: ["signature", "classic", "geometric", "aladdin"].includes(
         value.boardStyle,
       )
         ? value.boardStyle
-        : "signature",
+        : "classic",
       // Session-only, like view — reopening the table should never come
       // back with everything mysteriously hidden.
       immersive: defaults.immersive,
@@ -759,6 +759,7 @@ export default function Simulator({
           canRoll={canRoll}
           view={prefs.view}
           mode={mode}
+          screen={screen}
           orientation={snakes ? prefs.snakeOrientation : prefs.orientation}
           quality={screen ? screenQuality : prefs.quality}
           actionCamera={prefs.actionCamera}
@@ -825,7 +826,7 @@ export default function Simulator({
                 : practice
                   ? localPlay
                     ? "TABLE TOGETHER"
-                    : "OFFLINE PRACTICE"
+                    : "VS COMPUTER"
                   : screen
                     ? "PARTY TABLE"
                     : "PRIVATE TABLE"}
@@ -892,7 +893,7 @@ export default function Simulator({
           {practice
             ? localPlay
               ? "OFFLINE · TABLE TOGETHER"
-              : "OFFLINE PRACTICE"
+              : "OFFLINE · VS COMPUTER"
             : connection === "connected"
               ? `ROOM ${state.code}`
               : "RECONNECTING"}

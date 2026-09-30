@@ -35,13 +35,10 @@ const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 // components/simulator/Simulator.tsx) are built with localized labels inside
 // the component — see BOARD_STYLES there.
 
-// One step visible at a time instead of a long scroll. "setup" gathers the
-// three quick table choices — player count, base color, and avatar — onto a
-// single step. "board" only applies to Ludo's skins, so it drops out of the
-// sequence entirely for Snakes & Ladders rather than showing empty or irrelevant.
-type StepId = "game" | "setup" | "board" | "start";
-const LUDO_STEPS: StepId[] = ["game", "setup", "board", "start"];
-const SNAKES_STEPS: StepId[] = ["game", "setup", "start"];
+// Choose game and player count, then color and avatar, then Ludo's board design.
+// Snakes & Ladders skips the board design step.
+const LUDO_STEPS = ["game", "setup", "board", "start"] as const;
+const SNAKES_STEPS = ["game", "setup", "start"] as const;
 
 // Maps a bot level to its localized label key (resolved via t() at render).
 const BOT_LEVEL_KEYS = {
@@ -251,6 +248,7 @@ export default function Home() {
             </div>
             <div className="entrance-wizard-step" key={step}>
               {currentStep === "game" && (
+                <>
                 <fieldset className="entrance-game-choice">
                   <legend>{t("entrance.chooseGame")}</legend>
                   <div>
@@ -276,9 +274,6 @@ export default function Home() {
                     </button>
                   </div>
                 </fieldset>
-              )}
-              {currentStep === "setup" && (
-                <>
                 <fieldset className="entrance-player-count">
                   <legend>{t("entrance.howManyPlayers")}</legend>
                   <div>
@@ -315,6 +310,10 @@ export default function Home() {
                   </div>
                   <small>{t("entrance.openSeatsNote")}</small>
                 </fieldset>
+                </>
+              )}
+              {currentStep === "setup" && (
+                <>
                 <fieldset className="entrance-color-choice">
                   <legend>{t("entrance.chooseBase")}</legend>
                   <div>
@@ -378,28 +377,28 @@ export default function Home() {
                 </>
               )}
               {currentStep === "board" && (
-                <fieldset className="entrance-board-choice">
-                  <legend>{t("entrance.chooseBoard")}</legend>
-                  <div>
-                    {BOARD_STYLES.map((style) => (
-                      <button
-                        key={style.value}
-                        type="button"
-                        className={
-                          boardStyle === style.value ? "is-selected" : ""
-                        }
-                        aria-pressed={boardStyle === style.value}
-                        onClick={() => {
-                          setBoardStyleChoice(style.value);
-                          setPreferredBoardStyle(style.value);
-                        }}
-                      >
-                        <strong>{style.label}</strong>
-                        <small>{style.desc}</small>
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
+                  <fieldset className="entrance-board-choice">
+                    <legend>{t("entrance.chooseBoard")}</legend>
+                    <div>
+                      {BOARD_STYLES.map((style) => (
+                        <button
+                          key={style.value}
+                          type="button"
+                          className={
+                            boardStyle === style.value ? "is-selected" : ""
+                          }
+                          aria-pressed={boardStyle === style.value}
+                          onClick={() => {
+                            setBoardStyleChoice(style.value);
+                            setPreferredBoardStyle(style.value);
+                          }}
+                        >
+                          <strong>{style.label}</strong>
+                          <small>{style.desc}</small>
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
               )}
               {currentStep === "start" && (
                 <>

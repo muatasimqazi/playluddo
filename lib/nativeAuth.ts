@@ -7,24 +7,32 @@ import {
 } from "@capgo/capacitor-social-login";
 
 /**
- * Native Sign in with Apple and Google in the iOS app
+ * Native Sign in with Apple (iOS) and Google (iOS and Android) in the app
  * (@capgo/capacitor-social-login). Each provider's own sheet returns an ID
  * token that Supabase verifies directly (auth.signInWithIdToken), so —
  * unlike the website — there's no redirect through a browser (Google blocks
  * its web sign-in inside the app's web view anyway).
  *
  * Supabase must list these tokens' audiences as allowed client IDs: the
- * bundle ID (com.luddohouse.app) for Apple, and GOOGLE_IOS_CLIENT_ID for
- * Google. Google's reversed client ID is also a URL scheme in Info.plist.
+ * bundle ID (com.luddohouse.app) for Apple, and GOOGLE_IOS_CLIENT_ID and
+ * GOOGLE_WEB_CLIENT_ID for Google. Google's reversed iOS client ID is also a
+ * URL scheme in Info.plist.
+ *
+ * Android uses Google's Credential Manager, which issues tokens for the Web
+ * client ID. It only works for builds whose signing key is registered: an
+ * Android OAuth client in the same Google Cloud project, with package name
+ * com.luddohouse.app and the SHA-1 of each signing key (debug, upload, and
+ * Play App Signing).
  */
 const GOOGLE_IOS_CLIENT_ID = "1026111066835-o0o0docc4rthuaefvijv1nv0eik4aohk.apps.googleusercontent.com";
+const GOOGLE_WEB_CLIENT_ID = "1026111066835-sp4142q1o5keumfpk36e32eq3i8r3rt5.apps.googleusercontent.com";
 
 export function nativeAppleSignInAvailable() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
 }
 
 export function nativeGoogleSignInAvailable() {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+  return Capacitor.isNativePlatform() && ["ios", "android"].includes(Capacitor.getPlatform());
 }
 
 export type NativeSignIn =
@@ -42,8 +50,10 @@ async function sha256Hex(value: string) {
 async function initialize() {
   try {
     initialized ??= SocialLogin.initialize({
-      apple: { clientId: "com.luddohouse.app" },
-      google: { iOSClientId: GOOGLE_IOS_CLIENT_ID, mode: "online" },
+      // Sign in with Apple is iOS-only here. On Android the plugin would need
+      // a web redirect flow, and rejects the whole initialize without one.
+      ...(Capacitor.getPlatform() === "ios" ? { apple: { clientId: "com.luddohouse.app" } } : {}),
+      google: { iOSClientId: GOOGLE_IOS_CLIENT_ID, webClientId: GOOGLE_WEB_CLIENT_ID, mode: "online" },
     });
     await initialized;
     return true;
@@ -108,7 +118,12 @@ export async function signInWithGoogleNative(client: SupabaseClient): Promise<Na
   try {
     const login = await SocialLogin.login({
       provider: "google",
-      options: { scopes: ["email", "profile"], nonce: await sha256Hex(nonce) },
+      options: {
+        // Android's Credential Manager ID token already carries email and
+        // profile; asking for scopes there needs a custom MainActivity.
+        ...(Capacitor.getPlatform() === "ios" ? { scopes: ["email", "profile"] } : {}),
+        nonce: await sha256Hex(nonce),
+      },
     });
     google = login.result as GoogleLoginResponseOnline;
   } catch (error) {
@@ -122,8 +137,9 @@ export async function signInWithGoogleNative(client: SupabaseClient): Promise<Na
   const { error } = await client.auth.signInWithIdToken({
     provider: "google",
     token: google.idToken,
-    // Google's ID token carries an at_hash of the access token.
-    access_token: google.accessToken?.token,
+    // Google's ID token carries an at_hash of the access token. Android's
+    // Credential Manager may return no access token; the ID token is enough.
+    access_token: google.accessToken?.token ?? undefined,
     nonce,
   });
   return error ? { status: "failed", message: error.message } : { status: "signed-in" };

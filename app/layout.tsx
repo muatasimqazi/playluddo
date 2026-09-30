@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/brand";
 import { NativeShell } from "@/components/NativeShell";
 import { I18nProvider } from "@/lib/i18n";
 import { PreferencesSync } from "@/components/preferences/PreferencesSync";
+import { AgeGateOnSignIn } from "@/components/auth/AgeGateOnSignIn";
 import "./globals.css";
 
 // Publishes the real visible viewport height to CSS as `--app-height`, so
@@ -102,6 +103,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             provider adopts the player's locale right after mount. */}
         <I18nProvider>
           <PreferencesSync />
+          <AgeGateOnSignIn />
           {children}
           <NativeShell />
         </I18nProvider>

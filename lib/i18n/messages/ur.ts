@@ -46,6 +46,7 @@ export const ur: Messages = {
     heroSubtitle:
       "کرسی کھینچیے۔ پانسا پھینکیے۔ دوستوں کے ساتھ ایک میز بانٹیے، شام آپ کو جہاں بھی لے جائے۔",
 
+    chooseMode: "آپ کیسے کھیلنا چاہتے ہیں؟",
     chooseGame: "اپنا کھیل چنیں",
     ludo: "Ludo",
     ludoDescription: "چھ لائیں، چاروں گوٹیاں گھر پہنچائیں",
@@ -89,9 +90,11 @@ export const ur: Messages = {
     botHard: "مشکل",
 
     quickMatch: "کوئک میچ · آن لائن لوگوں کے ساتھ کھیلیں",
-    playWithFriends: "دوستوں کے ساتھ کھیلیں",
-    offlinePractice: "آف لائن: کمپیوٹر کے خلاف · کمپیوٹر سے کھیلیں",
-    tableTogether: "آف لائن: ٹیبل ٹوگیدر · ایک ہی اسکرین بانٹیں",
+    playOnline: "آن لائن کھیلیں",
+    playOffline: "آف لائن کھیلیں",
+    playWithFriends: "دوستوں کے ساتھ کھیلیں · کوڈ سے نجی ٹیبل",
+    offlinePractice: "کمپیوٹر کے خلاف · کمپیوٹر سے کھیلیں",
+    tableTogether: "ٹیبل ٹوگیدر · ایک ہی اسکرین بانٹیں",
     caption: "چار کھلاڑیوں تک · ایک مشترکہ 3D میز · کوئی ڈاؤن لوڈ نہیں",
 
     eyebrowFriends: "اچھی صحبت یہیں سے شروع ہوتی ہے",

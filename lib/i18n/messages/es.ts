@@ -47,6 +47,7 @@ export const es: Messages = {
     heroSubtitle:
       "Acércate una silla. Tira los dados. Comparte mesa con tus amigos, dondequiera que te encuentre la noche.",
 
+    chooseMode: "¿Cómo quieres jugar?",
     chooseGame: "Elige tu juego",
     ludo: "Ludo",
     ludoDescription: "Saca un seis y lleva tus cuatro fichas a casa",
@@ -90,9 +91,11 @@ export const es: Messages = {
     botHard: "Difícil",
 
     quickMatch: "Partida rápida · Juega con gente en línea",
-    playWithFriends: "Jugar con amigos",
-    offlinePractice: "Sin conexión: Contra la computadora · Juega contra la máquina",
-    tableTogether: "Sin conexión: Mesa Compartida · Una sola pantalla",
+    playOnline: "Juega en línea",
+    playOffline: "Juega sin conexión",
+    playWithFriends: "Jugar con amigos · Mesa privada con código",
+    offlinePractice: "Contra la computadora · Juega contra la máquina",
+    tableTogether: "Mesa Compartida · Una sola pantalla",
     caption: "Hasta cuatro jugadores · Una mesa 3D compartida · Sin descargas",
 
     eyebrowFriends: "La buena compañía empieza aquí",

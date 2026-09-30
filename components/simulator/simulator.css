@@ -48,7 +48,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
-  padding: 11px 12px;
+  padding: 9px 10px;
   border: 1px solid var(--sim-line);
   border-radius: 8px;
   background: rgba(26, 36, 30, 0.48);
@@ -60,11 +60,65 @@
 }
 .entrance-game-choice button strong {
   color: var(--sim-ink);
-  font: 500 15px/1 var(--font-sans), sans-serif;
+  font-size: 11px;
+  font-weight: 500;
 }
 .entrance-game-choice button span {
   color: var(--sim-muted);
+  font-size: 8px;
+}
+/* "Play online" / "Play offline" subheadings that group the ways to play. */
+.entrance-mode-group {
+  margin: 15px 0 7px;
+  color: #b5c1a1;
   font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.entrance-mode-group:first-of-type {
+  margin-top: 2px;
+}
+/* "Party mode" is a link (no config to gather), styled like the buttons —
+   same board-design tile look as the rest of the wizard. */
+.entrance-mode-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 9px 10px;
+  border: 1px solid var(--sim-line);
+  border-radius: 8px;
+  background: rgba(26, 36, 30, 0.48);
+  text-align: left;
+}
+.entrance-mode-link strong {
+  color: var(--sim-ink);
+  font-size: 11px;
+  font-weight: 500;
+}
+.entrance-mode-link span {
+  color: var(--sim-muted);
+  font-size: 8px;
+}
+/* Optional display-name field on the quick-match launch step. */
+.entrance-inline-field {
+  width: min(390px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+  font-size: 10px;
+  color: #cdd6bd;
+}
+.entrance-inline-field input {
+  border: 1px solid #dce5cb30;
+  border-radius: 7px;
+  background: #31432988;
+  color: #eee9d6;
+  padding: 12px;
+  font-size: 13px;
+  outline: none;
 }
 .entrance-player-count {
   width: min(390px, 100%);
@@ -80,19 +134,20 @@
 }
 .entrance-player-count > div {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 7px;
 }
 .entrance-player-count button {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 6px;
-  padding: 11px 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 9px 10px;
   border: 1px solid var(--sim-line);
   border-radius: 8px;
   background: rgba(26, 36, 30, 0.48);
   color: var(--sim-muted);
+  text-align: left;
 }
 .entrance-player-count button.is-selected {
   border-color: #d8bd7f;
@@ -100,7 +155,9 @@
   color: var(--sim-ink);
 }
 .entrance-player-count button strong {
-  font: 500 16px/1 var(--font-sans), sans-serif;
+  color: var(--sim-ink);
+  font-size: 11px;
+  font-weight: 500;
 }
 .entrance-player-count button span {
   font-size: 8px;
@@ -4663,7 +4720,7 @@ body.sim-piece-hover .sim-canvas {
 }
 /* Offline computer level (app/page.tsx): the player-count picker, labels only. */
 .entrance-bot-level button strong {
-  font-size: 14px;
+  font-size: 11px;
 }
 /* /how-to-play, opened from a table: that table's house rules. */
 .info-callout {

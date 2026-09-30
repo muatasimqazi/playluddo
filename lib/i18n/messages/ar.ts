@@ -47,6 +47,7 @@ export const ar: Messages = {
     heroSubtitle:
       "اسحب كرسيًا. ارمِ النرد. شارك الطاولة مع الأصدقاء، أينما وجدتك السهرة.",
 
+    chooseMode: "كيف تريد أن تلعب؟",
     chooseGame: "اختر لعبتك",
     ludo: "Ludo",
     ludoDescription: "احصل على ستة، وأوصل قطعك الأربع إلى البيت",
@@ -90,9 +91,11 @@ export const ar: Messages = {
     botHard: "صعب",
 
     quickMatch: "مباراة سريعة · العب مع أشخاص عبر الإنترنت",
-    playWithFriends: "العب مع الأصدقاء",
-    offlinePractice: "دون اتصال: ضد الكمبيوتر · العب ضد الكمبيوتر",
-    tableTogether: "دون اتصال: طاولة مشتركة · شاشة واحدة",
+    playOnline: "العب عبر الإنترنت",
+    playOffline: "العب دون اتصال",
+    playWithFriends: "العب مع الأصدقاء · طاولة خاصة برمز",
+    offlinePractice: "ضد الكمبيوتر · العب ضد الكمبيوتر",
+    tableTogether: "طاولة مشتركة · شاشة واحدة",
     caption: "حتى أربعة لاعبين · طاولة ثلاثية الأبعاد مشتركة · دون تنزيل",
 
     eyebrowFriends: "الصحبة الطيبة تبدأ من هنا",

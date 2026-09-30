@@ -62,6 +62,7 @@ export const en = {
     heroSubtitle:
       "Pull up a chair. Roll the dice. Share a table with friends, wherever the evening finds you.",
 
+    chooseMode: "How do you want to play?",
     chooseGame: "Choose your game",
     ludo: "Ludo",
     ludoDescription: "Roll a six, race four pieces home",
@@ -107,9 +108,11 @@ export const en = {
     botHard: "Hard",
 
     quickMatch: "Quick match · Play people online",
-    playWithFriends: "Play with friends",
-    offlinePractice: "Offline: Vs Computer · Play the computer",
-    tableTogether: "Offline: Table Together · Share single screen",
+    playOnline: "Play online",
+    playOffline: "Play offline",
+    playWithFriends: "Play with friends · Private table by code",
+    offlinePractice: "Vs Computer · Play the computer",
+    tableTogether: "Table Together · Share one screen",
     caption: "Up to four players · A shared 3D table · No download",
 
     eyebrowFriends: "Good company starts here",

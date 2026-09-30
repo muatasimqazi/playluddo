@@ -46,6 +46,7 @@ export const id: Messages = {
     heroSubtitle:
       "Tarik kursimu. Lempar dadu. Berbagi meja bersama teman, di mana pun malam mempertemukan kalian.",
 
+    chooseMode: "Bagaimana kamu ingin bermain?",
     chooseGame: "Pilih permainanmu",
     ludo: "Ludo",
     ludoDescription: "Dapatkan angka enam, bawa empat bidak ke rumah",
@@ -89,9 +90,11 @@ export const id: Messages = {
     botHard: "Sulit",
 
     quickMatch: "Pertandingan cepat · Main dengan orang daring",
-    playWithFriends: "Main dengan teman",
-    offlinePractice: "Luring: Lawan Komputer · Main lawan komputer",
-    tableTogether: "Luring: Meja Bersama · Satu layar bersama",
+    playOnline: "Main online",
+    playOffline: "Main offline",
+    playWithFriends: "Main dengan teman · Meja privat dengan kode",
+    offlinePractice: "Lawan Komputer · Main lawan komputer",
+    tableTogether: "Meja Bersama · Satu layar bersama",
     caption: "Hingga empat pemain · Meja 3D bersama · Tanpa unduhan",
 
     eyebrowFriends: "Kebersamaan yang baik dimulai di sini",

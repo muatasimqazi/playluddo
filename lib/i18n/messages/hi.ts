@@ -46,6 +46,7 @@ export const hi: Messages = {
     heroSubtitle:
       "कुर्सी खींचिए। पासा फेंकिए। दोस्तों के साथ एक मेज़ साझा कीजिए, शाम आपको जहाँ भी ले जाए।",
 
+    chooseMode: "आप कैसे खेलना चाहते हैं?",
     chooseGame: "अपना खेल चुनें",
     ludo: "Ludo",
     ludoDescription: "छह लाएँ, चारों गोटियाँ घर पहुँचाएँ",
@@ -89,9 +90,11 @@ export const hi: Messages = {
     botHard: "कठिन",
 
     quickMatch: "क्विक मैच · ऑनलाइन लोगों के साथ खेलें",
-    playWithFriends: "दोस्तों के साथ खेलें",
-    offlinePractice: "ऑफ़लाइन: कंप्यूटर के विरुद्ध · कंप्यूटर से खेलें",
-    tableTogether: "ऑफ़लाइन: टेबल टुगेदर · एक ही स्क्रीन साझा करें",
+    playOnline: "ऑनलाइन खेलें",
+    playOffline: "ऑफ़लाइन खेलें",
+    playWithFriends: "दोस्तों के साथ खेलें · कोड से निजी टेबल",
+    offlinePractice: "कंप्यूटर के विरुद्ध · कंप्यूटर से खेलें",
+    tableTogether: "टेबल टुगेदर · एक ही स्क्रीन साझा करें",
     caption: "चार खिलाड़ियों तक · एक साझा 3D मेज़ · कोई डाउनलोड नहीं",
 
     eyebrowFriends: "अच्छी संगत यहीं से शुरू होती है",

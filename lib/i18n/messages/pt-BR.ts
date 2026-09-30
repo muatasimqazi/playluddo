@@ -46,6 +46,7 @@ export const ptBR: Messages = {
     heroSubtitle:
       "Puxe uma cadeira. Role os dados. Divida a mesa com os amigos, onde quer que a noite te encontre.",
 
+    chooseMode: "Como você quer jogar?",
     chooseGame: "Escolha seu jogo",
     ludo: "Ludo",
     ludoDescription: "Tire um seis e leve suas quatro peças para casa",
@@ -89,9 +90,11 @@ export const ptBR: Messages = {
     botHard: "Difícil",
 
     quickMatch: "Partida rápida · Jogue com pessoas on-line",
-    playWithFriends: "Jogar com amigos",
-    offlinePractice: "Off-line: Contra o computador · Jogue contra o computador",
-    tableTogether: "Off-line: Mesa Compartilhada · Uma única tela",
+    playOnline: "Jogar online",
+    playOffline: "Jogar offline",
+    playWithFriends: "Jogar com amigos · Mesa privada por código",
+    offlinePractice: "Contra o computador · Jogue contra o computador",
+    tableTogether: "Mesa Compartilhada · Uma única tela",
     caption: "Até quatro jogadores · Uma mesa 3D compartilhada · Sem download",
 
     eyebrowFriends: "A boa companhia começa aqui",

@@ -6,6 +6,8 @@
  * "Luddo House" and the game title "Ludo" are intentionally left untranslated.
  */
 import type { Messages } from "../types";
+// F5.1: `party` is not yet translated — placeholder English until a native pass.
+import { en } from "./en";
 
 export const es: Messages = {
   common: {
@@ -420,6 +422,16 @@ export const es: Messages = {
     typeReaction: "Paquetes de reacciones",
     equipped: "Equipado",
     equip: "Equipar",
+    viewProfileAria: "Ver el perfil de {name}",
+    profileAria: "Perfil de {name}",
+    playerProfile: "Perfil del jugador",
+    loadOneError: "No se pudo cargar este perfil.",
+    keepsPrivate: "{name} mantiene sus estadísticas privadas.",
+    guestNoProfile: "{name} está jugando como invitado — aún sin perfil.",
+    noProfileSeat: "No hay perfil para este asiento.",
+    friendRequestSent: "Solicitud de amistad enviada",
+    sending: "Enviando…",
+    addFailed: "No se pudo agregar — inténtalo de nuevo",
   },
   leaderboard: {
     loadError: "No se pudo cargar la clasificación.",
@@ -555,6 +567,7 @@ export const es: Messages = {
     deleteError: "No se pudo eliminar tu cuenta. Inténtalo de nuevo o contacta con soporte.",
 
   },
+  party: en.party,
 };
 
 export default es;

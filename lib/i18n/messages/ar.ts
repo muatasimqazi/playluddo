@@ -6,6 +6,8 @@
  * (kept in Latin script inside the RTL text on purpose).
  */
 import type { Messages } from "../types";
+// F5.1: `party` is not yet translated — placeholder English until a native pass.
+import { en } from "./en";
 
 export const ar: Messages = {
   common: {
@@ -420,6 +422,16 @@ export const ar: Messages = {
     typeReaction: "حزم التفاعلات",
     equipped: "مُجهّز",
     equip: "تجهيز",
+    viewProfileAria: "عرض ملف {name} الشخصي",
+    profileAria: "ملف {name} الشخصي",
+    playerProfile: "ملف اللاعب",
+    loadOneError: "تعذّر تحميل هذا الملف الشخصي.",
+    keepsPrivate: "يُبقي {name} إحصاءاته خاصة.",
+    guestNoProfile: "يلعب {name} كضيف — لا يوجد ملف شخصي بعد.",
+    noProfileSeat: "لا يوجد ملف شخصي لهذا المقعد.",
+    friendRequestSent: "تم إرسال طلب الصداقة",
+    sending: "جارٍ الإرسال…",
+    addFailed: "تعذّرت الإضافة — حاول مرة أخرى",
   },
   leaderboard: {
     loadError: "تعذّر تحميل لوحة الصدارة.",
@@ -555,6 +567,7 @@ export const ar: Messages = {
     deleteError: "تعذر حذف حسابك. حاول مجددًا أو تواصل مع الدعم.",
 
   },
+  party: en.party,
 };
 
 export default ar;

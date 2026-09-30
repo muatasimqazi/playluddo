@@ -8,9 +8,11 @@ import { getAgeEligibility, type AgeEligibility } from "@/lib/supabase/rpc";
 import { createClient } from "@/lib/supabase/client";
 import { AskAge, UnderAgeNotice } from "@/components/lobby/AgeCheck";
 import { TableLoading } from "@/components/simulator/TableLoading";
+import { useI18n } from "@/lib/i18n";
 
 /** P7 / decision 7: one agreement for players and audience, alongside age. */
 export function PartyAgreement({ onAgree }: { onAgree: () => void }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [age, setAge] = useState<AgeEligibility | null>(null);
   const [error, setError] = useState(false);
@@ -25,22 +27,23 @@ export function PartyAgreement({ onAgree }: { onAgree: () => void }) {
     return () => { cancelled = true; };
   }, [onAgree]);
   const agree = () => { acceptPartyRules(); onAgree(); };
-  if (error) return <main className="party-pad"><p role="alert">Couldn’t check your invitation. Please reload and try again.</p></main>;
-  if (!age) return <TableLoading label="Opening your invitation…" />;
+  if (error) return <main className="party-pad"><p role="alert">{t("party.checkError")}</p></main>;
+  if (!age) return <TableLoading label={t("lobby.opening")} />;
   if (restricted || (age.required && !age.online && (age.declared || deviceAgeBlocked()))) return <UnderAgeNotice />;
   if (age.required && !age.declared) return <AskAge partyAgreement onEligible={agree} onUnderAge={() => setRestricted(true)} onCancel={() => router.push("/")} />;
   return <PartyAgreementScreen onAgree={agree} />;
 }
 
 export function PartyAgreementScreen({ onAgree }: { onAgree: () => void }) {
+  const { t } = useI18n();
   return <main className="sim-entrance">
     <div className="entrance-shade" />
     <section className="entrance-content room-notice table-rules" aria-labelledby="party-agreement-heading">
-      <span className="eyebrow">BEFORE YOU JOIN THE PARTY</span>
-      <h1 id="party-agreement-heading">Be kind, and use a <em>friendly name.</em></h1>
-      <p className="table-rules-terms">By continuing you agree to the <Link href="/terms">Terms of Use</Link>.</p>
-      <button type="button" className="sim-primary" onClick={onAgree}>I agree</button>
-      <Link className="table-rules-back" href="/">Not now</Link>
+      <span className="eyebrow">{t("party.agreeEyebrow").toUpperCase()}</span>
+      <h1 id="party-agreement-heading">{t("party.agreeTitle1")} <em>{t("party.agreeTitleEm")}</em></h1>
+      <p className="table-rules-terms">{t("party.agreeTermsPre")}<Link href="/terms">{t("actions.terms")}</Link>.</p>
+      <button type="button" className="sim-primary" onClick={onAgree}>{t("actions.agree")}</button>
+      <Link className="table-rules-back" href="/">{t("party.notNow")}</Link>
     </section>
   </main>;
 }

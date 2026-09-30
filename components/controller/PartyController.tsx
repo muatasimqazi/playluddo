@@ -23,6 +23,7 @@ import { useCountdown } from "@/lib/hooks/useCountdown";
 import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
+import { useI18n, type Translator } from "@/lib/i18n";
 import { useShakeToRoll } from "./useShakeToRoll";
 import { PartyRound } from "@/components/party/PartyRound";
 import type { PartyRound as PartyRoundData } from "@/lib/supabase/rpc";
@@ -70,6 +71,7 @@ export function PartyController({
   round?: PartyRoundData | null;
   onGuess?: (guess: number) => Promise<unknown>;
 }) {
+  const { t } = useI18n();
   useWakeLock();
   const me = state.players.find((p) => p.id === myPlayerId);
   const phase = me ? controllerPhase(state, me) : "ended";
@@ -125,8 +127,8 @@ export function PartyController({
     return (
       <main className="party-pad">
         <section className="party-pad-card">
-          <h1>You&rsquo;re not at this table</h1>
-          <p>Watch the game on the shared screen.</p>
+          <h1>{t("party.notAtTable")}</h1>
+          <p>{t("party.watchOnScreen")}</p>
         </section>
       </main>
     );
@@ -145,7 +147,7 @@ export function PartyController({
         <PlayerAvatar player={me} size={40} crowned={state.hostPlayerId === me.id} />
         <div>
           <strong>{me.displayName}</strong>
-          <small>{capitalize(me.color)} pieces</small>
+          <small>{t("party.colorPieces", { color: capitalize(t(`colors.${me.color}`)) })}</small>
         </div>
         {shake.available && phase !== "ended" && (
           <button
@@ -154,14 +156,14 @@ export function PartyController({
             aria-pressed={shake.enabled}
             onClick={() => void shake.toggle()}
           >
-            Shake to roll
+            {t("party.shakeToRoll")}
           </button>
         )}
       </header>
 
       {offline && (
         <p className="party-pad-banner" role="status">
-          {sessionReplaced ? "Your seat is open on another device now." : "Reconnecting…"}
+          {sessionReplaced ? t("party.seatOpenElsewhere") : t("party.reconnecting")}
         </p>
       )}
       {error && (
@@ -181,11 +183,11 @@ export function PartyController({
           }}
         >
           <Icon name="dice" size={64} />
-          <span>{pending ? "Rolling…" : "Roll"}</span>
+          <span>{pending ? t("party.rolling") : t("party.roll")}</span>
           <small>
             {pending
-              ? "Watch the screen"
-              : `${secondsLeft !== null ? `${secondsLeft}s · ` : ""}Tap${shake.enabled ? " or shake" : ""}`}
+              ? t("party.watchScreenShort")
+              : `${secondsLeft !== null ? `${secondsLeft}s · ` : ""}${shake.enabled ? t("party.rollTapShake") : t("party.rollTap")}`}
           </small>
         </button>
       )}
@@ -203,17 +205,17 @@ export function PartyController({
           />
           {phase === "auto_roll" && (
             <button type="button" className="party-pad-secondary" disabled={!canAct} onClick={() => onAutoRoll(false)}>
-              Turn off auto-roll
+              {t("party.turnOffAutoRoll")}
             </button>
           )}
           {phase === "reclaim" && (
             <button type="button" className="party-pad-primary" disabled={!canAct} onClick={onReclaim}>
-              Take my seat back
+              {t("party.takeSeatBack")}
             </button>
           )}
           {phase === "paused" && state.hostPlayerId === me.id && state.pausedForPlayerId !== me.id && (
             <button type="button" className="party-pad-primary" disabled={!canAct} onClick={() => onPause(false)}>
-              {state.pausedForPlayerId ? "Carry on without them" : "Resume the game"}
+              {state.pausedForPlayerId ? t("party.carryOnWithout") : t("party.resumeGame")}
             </button>
           )}
           {phase === "ended" && state.status === "summary" && (
@@ -223,7 +225,7 @@ export function PartyController({
               disabled={!canAct || me.rematchReady}
               onClick={onRematch}
             >
-              {me.rematchReady ? "Ready. Waiting for the others…" : "Play again"}
+              {me.rematchReady ? t("party.readyWaiting") : t("lobby.playAgainLabel")}
             </button>
           )}
         </section>
@@ -267,61 +269,62 @@ function Status({
   secondsLeft: number | null;
   waitLeft: number | null;
 }) {
+  const { t } = useI18n();
   const die = state.activeDiceValue;
   switch (phase) {
     case "move":
       return (
         <>
-          <p className="party-pad-die" aria-label={`You rolled ${die}`}>
+          <p className="party-pad-die" aria-label={t("party.youRolledAria", { die: die ?? 0 })}>
             {die}
           </p>
-          <h1>{forced ? "Moving your piece…" : "Pick a piece"}</h1>
-          {!forced && secondsLeft !== null && <p>{secondsLeft}s left</p>}
+          <h1>{forced ? t("party.movingPiece") : t("party.pickPiece")}</h1>
+          {!forced && secondsLeft !== null && <p>{t("party.secondsLeftShort", { seconds: secondsLeft })}</p>}
         </>
       );
     case "resolving":
-      return <h1>Watch the screen…</h1>;
+      return <h1>{t("party.watchScreenEllipsis")}</h1>;
     case "auto_roll":
-      return <h1>Auto-roll is on. Rolling for you…</h1>;
+      return <h1>{t("party.autoRollOn")}</h1>;
     case "waiting":
       return (
         <>
-          <h1>{turnName ? `${turnName}'s turn` : "Waiting…"}</h1>
-          {die !== null && state.turnPhase !== "awaiting_roll" && <p>They rolled {die}</p>}
+          <h1>{turnName ? t("party.turnOf", { name: turnName }) : t("party.waiting")}</h1>
+          {die !== null && state.turnPhase !== "awaiting_roll" && <p>{t("party.theyRolled", { die })}</p>}
         </>
       );
     case "paused": {
       const waitingFor = state.players.find((p) => p.id === state.pausedForPlayerId);
-      if (!waitingFor) return <h1>The game is paused</h1>;
+      if (!waitingFor) return <h1>{t("party.gamePaused")}</h1>;
       if (waitingFor.id === meId)
         return (
           <>
-            <h1>Welcome back</h1>
-            <p>Picking up where you left off…</p>
+            <h1>{t("account.welcomeBack")}</h1>
+            <p>{t("party.pickingUp")}</p>
           </>
         );
       return (
         <>
-          <h1>Waiting for {waitingFor.displayName}&rsquo;s phone</h1>
-          {waitLeft !== null && <p>If they&rsquo;re not back, a computer takes their turn in {clock(waitLeft)}.</p>}
+          <h1>{t("party.waitingForPhone", { name: waitingFor.displayName })}</h1>
+          {waitLeft !== null && <p>{t("party.computerTakesTurn", { time: clock(waitLeft) })}</p>}
         </>
       );
     }
     case "reclaim":
       return (
         <>
-          <h1>A computer is holding your seat</h1>
-          <p>Take it back to carry on playing.</p>
+          <h1>{t("party.computerHoldingSeat")}</h1>
+          <p>{t("party.takeBackToPlay")}</p>
         </>
       );
     case "ended": {
-      if (state.status === "abandoned") return <h1>The game ended early</h1>;
+      if (state.status === "abandoned") return <h1>{t("party.gameEndedEarly")}</h1>;
       const place = placementOf(state, meId);
       const winner = state.players.find((p) => p.id === state.winnerIds[0]);
       return (
         <>
-          <h1>{place === 1 ? "You won!" : place ? `You came ${ordinal(place)}` : `${winner?.displayName ?? "Someone"} wins`}</h1>
-          <p>The full results are on the screen.</p>
+          <h1>{place === 1 ? t("party.youWon") : place ? t("party.youCame", { place: ordinal(t, place) }) : t("party.someoneWins", { name: winner?.displayName ?? t("common.player") })}</h1>
+          <p>{t("party.fullResults")}</p>
         </>
       );
     }
@@ -345,6 +348,7 @@ function Pieces({
   onMove: (pawnId: string) => void;
   onPreview?: (pawnId: string) => void;
 }) {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<string | null>(null);
   // A new roll or turn clears the choice.
   const choiceKey = `${state.eventSequence}`;
@@ -356,7 +360,7 @@ function Pieces({
   const total = routeLength(state);
   const chosen = selected ? previews.get(selected) : undefined;
   return (
-    <section className="party-pad-pieces" aria-label="Your pieces">
+    <section className="party-pad-pieces" aria-label={t("party.yourPiecesAria")}>
       <ul>
         {pieces.map((pawn) => {
           const preview = previews.get(pawn.id);
@@ -365,7 +369,7 @@ function Pieces({
           const body = (
             <>
               <span className="party-pad-piece-name">
-                {state.gameType === "snakes_and_ladders" ? "Your piece" : `Piece ${pawn.index + 1}`}
+                {state.gameType === "snakes_and_ladders" ? t("party.yourPiece") : t("party.pieceN", { n: pawn.index + 1 })}
               </span>
               <span className="party-pad-route" aria-hidden>
                 <span className="party-pad-route-fill" style={{ width: `${(at / total) * 100}%` }} />
@@ -413,8 +417,10 @@ function Pieces({
           }}
         >
           {chosen
-            ? `Move ${state.gameType === "snakes_and_ladders" ? "" : `piece ${(state.pawns.find((p) => p.id === chosen.pawnId)?.index ?? 0) + 1}`}`.trim()
-            : "Tap a glowing piece"}
+            ? state.gameType === "snakes_and_ladders"
+              ? t("party.moveGeneric")
+              : t("party.movePiece", { n: (state.pawns.find((p) => p.id === chosen.pawnId)?.index ?? 0) + 1 })
+            : t("party.tapGlowing")}
         </button>
       )}
     </section>
@@ -422,6 +428,7 @@ function Pieces({
 }
 
 export function Reactions({ onReact, disabled }: { onReact: (text: string) => Promise<unknown>; disabled: boolean }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<"emoji" | "phrases">("emoji");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState<string | null>(null);
@@ -440,23 +447,23 @@ export function Reactions({ onReact, disabled }: { onReact: (text: string) => Pr
     }
   }
   return (
-    <section className="party-pad-reactions" aria-label="Reactions">
-      <div className="reaction-tabs" role="tablist" aria-label="Reactions">
-        {(["emoji", "phrases"] as const).map((t) => (
+    <section className="party-pad-reactions" aria-label={t("party.reactionsAria")}>
+      <div className="reaction-tabs" role="tablist" aria-label={t("party.reactionsAria")}>
+        {(["emoji", "phrases"] as const).map((tabKey) => (
           <button
-            key={t}
+            key={tabKey}
             type="button"
             role="tab"
-            aria-selected={tab === t}
-            className={tab === t ? "is-selected" : ""}
-            onClick={() => setTab(t)}
+            aria-selected={tab === tabKey}
+            className={tab === tabKey ? "is-selected" : ""}
+            onClick={() => setTab(tabKey)}
           >
-            {t === "emoji" ? "Emoji" : "Phrases"}
+            {tabKey === "emoji" ? t("party.emoji") : t("party.phrases")}
           </button>
         ))}
       </div>
       {tab === "emoji" ? (
-        <div className="party-pad-emoji" role="tabpanel" aria-label="Emoji">
+        <div className="party-pad-emoji" role="tabpanel" aria-label={t("party.emoji")}>
           {REACTION_EMOJI_ROWS.flat().map((emoji) => (
             <button key={emoji} type="button" disabled={sending || disabled} onClick={() => void send(emoji)}>
               {emoji}
@@ -464,7 +471,7 @@ export function Reactions({ onReact, disabled }: { onReact: (text: string) => Pr
           ))}
         </div>
       ) : (
-        <div className="party-pad-phrases" role="tabpanel" aria-label="Phrases">
+        <div className="party-pad-phrases" role="tabpanel" aria-label={t("party.phrases")}>
           {REACTION_PHRASES.filter((phrase) => phrase !== REVENGE).map((phrase) => (
             <button key={phrase} type="button" disabled={sending || disabled} onClick={() => void send(phrase)}>
               {phrase}
@@ -473,7 +480,7 @@ export function Reactions({ onReact, disabled }: { onReact: (text: string) => Pr
         </div>
       )}
       <p className="party-pad-sent" role="status">
-        {sent ? `Sent ${sent} to the screen` : " "}
+        {sent ? t("party.sentToScreen", { emoji: sent }) : " "}
       </p>
     </section>
   );
@@ -483,6 +490,6 @@ function capitalize(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function ordinal(n: number) {
-  return n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`;
+function ordinal(t: Translator, n: number) {
+  return n === 2 ? t("tournaments.place2") : n === 3 ? t("tournaments.place3") : t("profile.ordinalNth", { n });
 }

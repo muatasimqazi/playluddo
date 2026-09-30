@@ -24,6 +24,7 @@ import { describeMoment, picksFor } from "@/lib/presentation/party";
 import type { GameRoomState } from "@/lib/board/types";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { TableLoading } from "@/components/simulator/TableLoading";
+import { useI18n } from "@/lib/i18n";
 import { RoomNotice } from "@/components/lobby/RoomNotice";
 import { Reactions } from "@/components/controller/PartyController";
 import { PartyRound } from "@/components/party/PartyRound";
@@ -36,6 +37,7 @@ import "@/components/simulator/simulator.css";
  * affects the rules or the dice.
  */
 export function AudienceView({ roomId }: { roomId: string }) {
+  const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [state, setState] = useState<GameRoomState | null>(null);
   const [extras, setExtras] = useState<PartyExtras | null>(null);
@@ -112,14 +114,14 @@ export function AudienceView({ roomId }: { roomId: string }) {
     } catch (e) {
       // Codes mean a picking window closed; a plain message is the one-a-second limit.
       setActionError(
-        e instanceof RpcError && e.code === "UNKNOWN" ? e.message : "That didn't go through. Try again.",
+        e instanceof RpcError && e.code === "UNKNOWN" ? e.message : t("party.roundSendError"),
       );
     }
   }
 
-  if (loadError === "PARTY_REMOVED") return <main className="party-pad"><p role="alert">The VIP removed you from this party table.</p><Link href="/">Back to the entrance</Link></main>;
+  if (loadError === "PARTY_REMOVED") return <main className="party-pad"><p role="alert">{t("lobby.partyRemoved")}</p><Link href="/">{t("actions.backEntrance")}</Link></main>;
   if (loadError) return <RoomNotice code={loadError === "NOT_AUDIENCE" ? "ROOM_NOT_FOUND" : loadError} />;
-  if (!state || !extras) return <TableLoading label="Finding your seat in the audience…" />;
+  if (!state || !extras) return <TableLoading label={t("party.findingSeat")} />;
   return (
     <AudienceScreen
       state={state}
@@ -154,7 +156,7 @@ export function AudienceScreen({
   onReact: (text: string) => Promise<unknown>;
   onGuess?: (guess: number) => Promise<unknown>;
 }) {
-
+  const { t } = useI18n();
   const winner = state.players.find((p) => p.id === state.winnerIds[0]);
   const turn = state.players.find((p) => p.id === state.turnPlayerId);
   const picked = state.players.find((p) => p.id === extras.lockedPrediction);
@@ -163,15 +165,15 @@ export function AudienceScreen({
     <main className="party-pad party-audience">
       <header className="party-pad-header">
         <div>
-          <strong>In the audience</strong>
+          <strong>{t("party.inAudience")}</strong>
           <small>
-            Party table {state.code} · {extras.audience.length} watching
+            {t("party.partyTableWatching", { code: state.code, count: extras.audience.length })}
           </small>
         </div>
       </header>
       {!connected && (
         <p className="party-pad-banner" role="status">
-          Reconnecting…
+          {t("party.reconnecting")}
         </p>
       )}
       {actionError && (
@@ -182,8 +184,8 @@ export function AudienceScreen({
 
       {state.status === "lobby" && (
         <section className="party-pad-status" aria-labelledby="pick-heading">
-          <h1 id="pick-heading">Who&rsquo;ll win?</h1>
-          <p>Pick before the game starts. Just for bragging rights.</p>
+          <h1 id="pick-heading">{t("party.whollWin")}</h1>
+          <p>{t("party.pickBefore")}</p>
           <ul className="party-audience-choices">
             {state.players.map((player) => (
               <li key={player.id}>
@@ -196,7 +198,11 @@ export function AudienceScreen({
                 >
                   <PlayerAvatar player={player} size={36} />
                   <span className="party-pad-piece-name">{player.displayName}</span>
-                  <small>{plural(picksFor(extras, player.id), "pick")}</small>
+                  <small>
+                    {picksFor(extras, player.id) === 1
+                      ? t("party.pickCountOne", { count: 1 })
+                      : t("party.pickCountOther", { count: picksFor(extras, player.id) })}
+                  </small>
                 </button>
               </li>
             ))}
@@ -206,17 +212,17 @@ export function AudienceScreen({
 
       {state.status === "in_game" && (
         <section className="party-pad-status" aria-live="polite">
-          <h1>{state.paused ? "The game is paused" : turn ? `${turn.displayName}'s turn` : "Watch the screen"}</h1>
-          <p>{picked ? `Your pick: ${picked.displayName}` : "Watch the screen, and cheer them on."}</p>
+          <h1>{state.paused ? t("party.gamePaused") : turn ? t("party.turnOf", { name: turn.displayName }) : t("party.watchScreenShort")}</h1>
+          <p>{picked ? t("party.yourPickName", { name: picked.displayName }) : t("party.watchCheer")}</p>
         </section>
       )}
 
       {state.status === "summary" && (
         <>
           <section className="party-pad-status" aria-live="polite">
-            <h1>{winner ? `${winner.displayName} wins!` : "Game over"}</h1>
+            <h1>{winner ? t("party.winsExcl", { name: winner.displayName }) : t("party.gameOver")}</h1>
             {picked && (
-              <p>{picked.id === winner?.id ? "You called it!" : `Not this time. You picked ${picked.displayName}.`}</p>
+              <p>{picked.id === winner?.id ? t("party.youCalledIt") : t("party.notThisTime", { name: picked.displayName })}</p>
             )}
           </section>
           {extras.round && onGuess && (
@@ -225,7 +231,7 @@ export function AudienceScreen({
           {extras.moments.length > 0 && (
             <section className="party-pad-pieces" aria-labelledby="moment-heading">
               <h2 id="moment-heading" className="party-audience-heading">
-                Moment of the match
+                {t("party.momentOfMatch")}
               </h2>
               <ul>
                 {extras.moments.map((moment) => {
@@ -240,7 +246,7 @@ export function AudienceScreen({
                         onClick={() => onVote(moment.sequence)}
                       >
                         <span className="party-pad-piece-name">{describeMoment(moment, state.players)}</span>
-                        <small>{plural(votes, "vote")}</small>
+                        <small>{votes === 1 ? t("party.voteCountOne") : t("party.voteCountOther", { count: votes })}</small>
                       </button>
                     </li>
                   );
@@ -253,7 +259,7 @@ export function AudienceScreen({
 
       {state.status === "abandoned" && (
         <section className="party-pad-status">
-          <h1>The game ended early</h1>
+          <h1>{t("party.gameEndedEarly")}</h1>
         </section>
       )}
 
@@ -263,8 +269,4 @@ export function AudienceScreen({
       <PartySafety state={state} myPlayerId={null} />
     </main>
   );
-}
-
-function plural(n: number, word: string) {
-  return `${n} ${word}${n === 1 ? "" : "s"}`;
 }

@@ -32,6 +32,7 @@ import type { TableMessage } from "@/lib/realtime/table-messages";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { Icon } from "@/components/simulator/Icon";
+import { useI18n } from "@/lib/i18n";
 import { QrCode } from "./QrCode";
 import "@/components/simulator/simulator.css";
 
@@ -52,6 +53,7 @@ export function PartyScreen() {
 }
 
 function StartScreen() {
+  const { t } = useI18n();
   const router = useRouter();
   const [gameType, setGameType] = useState<GameType>("ludo");
   const [pending, setPending] = useState(false);
@@ -66,7 +68,7 @@ function StartScreen() {
       const room = await createPartyRoom(client, gameType);
       router.replace(`/screen?id=${room.roomId}`);
     } catch {
-      setError("Couldn't open a table. Check your connection and try again.");
+      setError(t("party.openError"));
       setPending(false);
     }
   }
@@ -77,14 +79,14 @@ function StartScreen() {
       <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
       <div className="entrance-shade" />
       <section className="entrance-content party-start" aria-labelledby="party-start-heading">
-        <span className="eyebrow">PARTY MODE</span>
+        <span className="eyebrow">{t("party.partyMode").toUpperCase()}</span>
         <h1 id="party-start-heading">
-          The table on this screen.
+          {t("party.startTitle1")}
           <br />
-          <em>Everyone plays from their phone.</em>
+          <em>{t("party.startTitleEm")}</em>
         </h1>
         <fieldset className="entrance-player-count">
-          <legend>What are we playing?</legend>
+          <legend>{t("party.whatPlaying")}</legend>
           <div>
             {(["ludo", "snakes_and_ladders"] as const).map((game) => (
               <button
@@ -94,13 +96,13 @@ function StartScreen() {
                 aria-pressed={gameType === game}
                 onClick={() => setGameType(game)}
               >
-                <strong>{game === "ludo" ? "Ludo" : "Snakes & Ladders"}</strong>
+                <strong>{game === "ludo" ? t("entrance.ludo") : t("entrance.snakes")}</strong>
               </button>
             ))}
           </div>
         </fieldset>
         <button type="button" className="sim-primary" disabled={pending} onClick={() => void open()}>
-          <span>{pending ? "Opening the table…" : "Open the party table"}</span>
+          <span>{pending ? t("party.openingTable") : t("party.openPartyTable")}</span>
           <Icon name="arrow" />
         </button>
         {error && (
@@ -108,14 +110,15 @@ function StartScreen() {
             {error}
           </p>
         )}
-        <p className="party-hint">Family defaults: 30-second turns, a pause for a quiet phone, and an extra Ludo roll for getting home.</p>
-        <p className="party-hint">Best on a TV or a laptop everyone can see. No sign-in needed here.</p>
+        <p className="party-hint">{t("party.hintDefaults")}</p>
+        <p className="party-hint">{t("party.hintTv")}</p>
       </section>
     </main>
   );
 }
 
 function ConnectedScreen({ roomId }: { roomId: string }) {
+  const { t } = useI18n();
   const [state, setState] = useState<GameRoomState | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Reactions from the phones (party rooms carry no chat), shown over their seats.
@@ -223,23 +226,21 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
         <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
         <div className="entrance-shade" />
         <section className="entrance-content party-start" role="alert">
-          <span className="eyebrow">PARTY MODE</span>
+          <span className="eyebrow">{t("party.partyMode").toUpperCase()}</span>
           <h1>
-            This screen isn&rsquo;t showing
+            {t("party.notShowing1")}
             <br />
-            <em>that table.</em>
+            <em>{t("party.notShowingEm")}</em>
           </h1>
-          <p className="party-hint">
-            Only the screen that opened a party table can show it. Open a new one here.
-          </p>
+          <p className="party-hint">{t("party.onlyOpener")}</p>
           <Link className="sim-primary" href="/screen">
-            <span>Open a new party table</span>
+            <span>{t("party.openNewTable")}</span>
             <Icon name="arrow" />
           </Link>
         </section>
       </main>
     );
-  if (!state) return <TableLoading label="Finding your table…" />;
+  if (!state) return <TableLoading label={t("party.findingTable")} />;
   if (state.status === "lobby")
     return (
       <>
@@ -275,9 +276,10 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
 
 /** Audience reactions (P6) rise up the side of the screen with the sender's name. */
 function AudienceCheers({ cheers }: { cheers: AudienceReaction[] }) {
+  const { t } = useI18n();
   if (cheers.length === 0) return null;
   return (
-    <ul className="party-cheers" aria-label="Audience reactions">
+    <ul className="party-cheers" aria-label={t("party.audienceReactionsAria")}>
       {cheers.map((c) => (
         <li key={c.id} className={isPhrase(c.text) ? "is-phrase" : ""}>
           <span>{c.text}</span>
@@ -302,14 +304,16 @@ function AudienceOverlay({
   extras: PartyExtras | null;
   roomId: string;
 }) {
+  const { t } = useI18n();
   if (state.status === "in_game")
     return (
-      <aside className="party-audience-join" aria-label="Join the audience">
-        <QrCode value={webUrl(`/room?id=${roomId}`)} label="QR code to join the audience" />
+      <aside className="party-audience-join" aria-label={t("party.joinAudienceAria")}>
+        <QrCode value={webUrl(`/room?id=${roomId}`)} label={t("party.qrJoinAudience")} />
         <p>
-          <strong>Join the audience</strong>
+          <strong>{t("party.joinAudience")}</strong>
           <small>
-            {extras?.audience.length ? `${extras.audience.length} watching · ` : ""}code {state.code}
+            {extras?.audience.length ? t("party.watchingPrefix", { count: extras.audience.length }) : ""}
+            {t("party.codeLabel", { code: state.code })}
           </small>
         </p>
       </aside>
@@ -318,33 +322,37 @@ function AudienceOverlay({
   const top = topMoment(extras);
   const round = extras.round;
   return (
-    <aside className="party-audience-card" aria-label="The audience">
+    <aside className="party-audience-card" aria-label={t("party.theAudienceAria")}>
       {round && (
         <div className="party-screen-round">
-          <span className="eyebrow">{round.closed ? "THE ANSWER" : "EVERYONE ANSWER ON YOUR PHONE"}</span>
+          <span className="eyebrow">{round.closed ? t("party.theAnswer").toUpperCase() : t("party.everyoneAnswer").toUpperCase()}</span>
           <strong>{round.question}</strong>
           {round.closed ? (
             <p>
               {round.answer}
               {round.closest?.length
-                ? ` · Closest: ${round.closest.map((c) => c.name).join(", ")}`
-                : " · Nobody answered"}
+                ? t("party.screenClosest", { names: round.closest.map((c) => c.name).join(", ") })
+                : t("party.screenNobody")}
             </p>
           ) : (
-            <p>{round.guessCount === 1 ? "1 answer" : `${round.guessCount} answers`} so far</p>
+            <p>
+              {round.guessCount === 1
+                ? t("party.answersSoFarOne")
+                : t("party.answersSoFarOther", { count: round.guessCount })}
+            </p>
           )}
         </div>
       )}
-      <span className="eyebrow">MOMENT OF THE MATCH</span>
+      <span className="eyebrow">{t("party.momentOfMatch").toUpperCase()}</span>
       <strong>
-        {top ? describeMoment(top.moment, state.players) : extras.moments.length ? "The audience is voting…" : "No big moments this time"}
+        {top ? describeMoment(top.moment, state.players) : extras.moments.length ? t("party.audienceVoting") : t("party.noBigMoments")}
       </strong>
-      {top && <small>{top.votes === 1 ? "1 vote" : `${top.votes} votes`} so far</small>}
+      {top && <small>{top.votes === 1 ? t("party.votesSoFarOne") : t("party.votesSoFarOther", { count: top.votes })}</small>}
       {extras.calledIt && extras.predictionCount > 0 && (
         <p>
           {extras.calledIt.length
-            ? `Called it: ${extras.calledIt.join(", ")}`
-            : "Nobody in the audience called it."}
+            ? t("party.calledIt", { names: extras.calledIt.join(", ") })
+            : t("party.nobodyCalledIt")}
         </p>
       )}
     </aside>
@@ -360,6 +368,7 @@ export function PartyLobby({
   roomId: string;
   extras?: PartyExtras | null;
 }) {
+  const { t } = useI18n();
   const joinUrl = webUrl(`/room?id=${roomId}`);
   const domain = new URL(BRAND.url).host;
   const maxPlayers = state.maxPlayers ?? 4;
@@ -372,28 +381,28 @@ export function PartyLobby({
       <section className="party-lobby" aria-labelledby="party-lobby-heading">
         <div className="party-join">
           <span className="eyebrow">
-            PARTY TABLE · {state.gameType === "ludo" ? "LUDO" : "SNAKES & LADDERS"}
+            {t("lobby.partyEyebrow").toUpperCase()} · {state.gameType === "ludo" ? t("entrance.ludo").toUpperCase() : t("entrance.snakes").toUpperCase()}
           </span>
           <h1 id="party-lobby-heading">
-            Grab your phone.
+            {t("party.grabPhone1")}
             <br />
-            <em>Join the table.</em>
+            <em>{t("party.grabPhoneEm")}</em>
           </h1>
           <ol className="party-steps">
-            <li>Scan the code with your phone&rsquo;s camera. No app needed.</li>
+            <li>{t("party.step1")}</li>
             <li>
-              Or open <strong>{domain}</strong> and join with the code below.
+              {t("party.step2Pre")}<strong>{domain}</strong>{t("party.step2Post")}
             </li>
-            <li>The first to join picks the game and starts it.</li>
+            <li>{t("party.step3")}</li>
           </ol>
-          <p className="party-code" aria-label={`Room code ${state.code.split("").join(" ")}`}>
+          <p className="party-code" aria-label={t("party.roomCodeAria", { code: state.code.split("").join(" ") })}>
             {state.code}
           </p>
         </div>
         <div className="party-qr">
-          <QrCode value={joinUrl} label="QR code to join this table" />
+          <QrCode value={joinUrl} label={t("party.joinTableQr")} />
         </div>
-        <ul className="party-seats" aria-label="Players at the table">
+        <ul className="party-seats" aria-label={t("party.playersAtTableAria")}>
           {Array.from({ length: maxPlayers }, (_, seat) => {
             const player = state.players.find((p) => p.seatIndex === seat);
             return (
@@ -404,16 +413,18 @@ export function PartyLobby({
                     <strong>{player.displayName}</strong>
                     <small>
                       {player.id === vip?.id
-                        ? "Picks the game · starts it"
+                        ? t("party.picksGameStarts")
                         : player.isBot
-                          ? "Computer"
+                          ? t("party.computer")
                           : player.partyRemote
-                            ? "Joining from elsewhere"
-                            : "Ready"}
+                            ? t("party.joiningElsewhere")
+                            : t("party.ready")}
                     </small>
                     {extras && picksFor(extras, player.id) > 0 && (
                       <small className="party-seat-picks">
-                        {picksFor(extras, player.id) === 1 ? "1 pick" : `${picksFor(extras, player.id)} picks`} to win
+                        {picksFor(extras, player.id) === 1
+                          ? t("party.picksToWinOne")
+                          : t("party.picksToWinOther", { count: picksFor(extras, player.id) })}
                       </small>
                     )}
                   </>
@@ -422,7 +433,7 @@ export function PartyLobby({
                     <span className="party-seat-empty" aria-hidden>
                       +
                     </span>
-                    <small>Open seat</small>
+                    <small>{t("party.openSeat")}</small>
                   </>
                 )}
               </li>
@@ -431,10 +442,10 @@ export function PartyLobby({
         </ul>
         <p className="party-status" role="status" aria-live="polite">
           {vip
-            ? `Waiting for ${vip.displayName} to start the game…`
-            : "Waiting for the first player to join…"}
+            ? t("party.waitingForVip", { name: vip.displayName })
+            : t("party.waitingForFirst")}
           {extras && extras.audience.length > 0 &&
-            ` ${extras.audience.length} in the audience: scan the code to join them.`}
+            t("party.audienceInfo", { count: extras.audience.length })}
         </p>
       </section>
     </main>
@@ -442,6 +453,7 @@ export function PartyLobby({
 }
 
 export function PartyLock({ roomId, locked }: { roomId: string; locked: boolean }) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   return <aside className="party-lock">
@@ -450,8 +462,8 @@ export function PartyLock({ roomId, locked }: { roomId: string; locked: boolean 
       try { await setPartyLocked(createClient(), roomId, !locked); }
       catch { setError(true); }
       finally { setPending(false); }
-    }}>{pending ? "One moment…" : locked ? "Unlock seats" : "Lock seats"}</button>
-    <small>{locked ? "Audience can still join" : "Lock stays on between games"}</small>
-    {error && <small role="alert">Couldn’t change the lock. Try again.</small>}
+    }}>{pending ? t("actions.wait") : locked ? t("party.unlockSeats") : t("party.lockSeats")}</button>
+    <small>{locked ? t("party.audienceCanJoin") : t("party.lockStaysOn")}</small>
+    {error && <small role="alert">{t("party.lockError")}</small>}
   </aside>;
 }

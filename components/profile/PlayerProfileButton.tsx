@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getPlayerProfile, type PlayerProfile } from "@/lib/supabase/profile";
 import { addFriendFromSeat } from "@/lib/supabase/friends";
 import { ProfileCard } from "@/components/profile/ProfileCard";
+import { useI18n } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
 
 /**
@@ -27,6 +28,7 @@ export function PlayerProfileButton({
   className?: string;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -55,13 +57,15 @@ export function PlayerProfileButton({
         if (!cancelled) setProfile(data);
       } catch (err) {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : "Could not load this profile.");
+          setError(err instanceof Error ? err.message : t("profile.loadOneError"));
       }
     }
     void load();
     return () => {
       cancelled = true;
     };
+    // `t` only feeds the catch fallback; excluding it avoids a locale-change refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, client, playerId]);
 
   if (isBot) return <>{children}</>;
@@ -72,7 +76,7 @@ export function PlayerProfileButton({
         type="button"
         className={`profile-open-trigger ${className}`}
         onClick={() => setOpen(true)}
-        aria-label={`View ${displayName}'s profile`}
+        aria-label={t("profile.viewProfileAria", { name: displayName })}
       >
         {children}
       </button>
@@ -87,38 +91,38 @@ export function PlayerProfileButton({
               className="profile-panel profile-view-panel"
               role="dialog"
               aria-modal="true"
-              aria-label={`${displayName}'s profile`}
+              aria-label={t("profile.profileAria", { name: displayName })}
               onMouseDown={(event) => event.stopPropagation()}
             >
               <button
                 className="profile-close"
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Close profile"
+                aria-label={t("account.closeProfile")}
               >
                 ×
               </button>
-              <span className="eyebrow">PLAYER PROFILE</span>
+              <span className="eyebrow">{t("profile.playerProfile").toUpperCase()}</span>
               {error ? (
                 <p className="profile-message" role="alert">
                   {error}
                 </p>
               ) : !profile ? (
                 <p className="profile-message" role="status">
-                  Loading…
+                  {t("actions.loading")}
                 </p>
               ) : profile.visibility === "visible" ? (
                 <ProfileCard profile={profile} />
               ) : profile.visibility === "hidden" ? (
                 <p className="profile-message">
-                  {profile.displayName ?? displayName} keeps their stats private.
+                  {t("profile.keepsPrivate", { name: profile.displayName ?? displayName })}
                 </p>
               ) : profile.visibility === "guest" ? (
                 <p className="profile-message">
-                  {displayName} is playing as a guest — no profile yet.
+                  {t("profile.guestNoProfile", { name: displayName })}
                 </p>
               ) : (
-                <p className="profile-message">No profile for this seat.</p>
+                <p className="profile-message">{t("profile.noProfileSeat")}</p>
               )}
               {profile &&
                 ((profile.visibility === "visible" && !profile.isSelf) ||
@@ -130,12 +134,12 @@ export function PlayerProfileButton({
                     onClick={() => void addFriend()}
                   >
                     {friendState === "sent"
-                      ? "Friend request sent"
+                      ? t("profile.friendRequestSent")
                       : friendState === "sending"
-                        ? "Sending…"
+                        ? t("profile.sending")
                         : friendState === "failed"
-                          ? "Couldn't add — try again"
-                          : "Add friend"}
+                          ? t("profile.addFailed")
+                          : t("lobby.addFriend")}
                   </button>
                 )}
             </section>

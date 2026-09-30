@@ -5,6 +5,8 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
+// F5.1: `party` is not yet translated — placeholder English until a native pass.
+import { en } from "./en";
 
 export const ur: Messages = {
   common: {
@@ -419,6 +421,16 @@ export const ur: Messages = {
     typeReaction: "ری ایکشن پیک",
     equipped: "ایکوئپ شدہ",
     equip: "ایکوئپ کریں",
+    viewProfileAria: "{name} کی پروفائل دیکھیں",
+    profileAria: "{name} کی پروفائل",
+    playerProfile: "کھلاڑی کی پروفائل",
+    loadOneError: "یہ پروفائل لوڈ نہ ہو سکی۔",
+    keepsPrivate: "{name} اپنے اعداد و شمار نجی رکھتے ہیں۔",
+    guestNoProfile: "{name} بطور مہمان کھیل رہے ہیں — ابھی کوئی پروفائل نہیں۔",
+    noProfileSeat: "اس نشست کے لیے کوئی پروفائل نہیں۔",
+    friendRequestSent: "دوستی کی درخواست بھیج دی گئی",
+    sending: "بھیجا جا رہا ہے…",
+    addFailed: "شامل نہ ہو سکا — دوبارہ کوشش کریں",
   },
   leaderboard: {
     loadError: "لیڈر بورڈ لوڈ نہ ہو سکا۔",
@@ -554,6 +566,7 @@ export const ur: Messages = {
     deleteError: "آپ کا اکاؤنٹ حذف نہیں ہو سکا۔ دوبارہ کوشش کریں یا مدد سے رابطہ کریں۔",
 
   },
+  party: en.party,
 };
 
 export default ur;

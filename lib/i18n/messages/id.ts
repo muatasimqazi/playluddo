@@ -5,6 +5,8 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
+// F5.1: `party` is not yet translated — placeholder English until a native pass.
+import { en } from "./en";
 
 export const id: Messages = {
   common: {
@@ -419,6 +421,16 @@ export const id: Messages = {
     typeReaction: "Paket reaksi",
     equipped: "Terpasang",
     equip: "Pasang",
+    viewProfileAria: "Lihat profil {name}",
+    profileAria: "Profil {name}",
+    playerProfile: "Profil pemain",
+    loadOneError: "Tidak dapat memuat profil ini.",
+    keepsPrivate: "{name} merahasiakan statistiknya.",
+    guestNoProfile: "{name} bermain sebagai tamu — belum ada profil.",
+    noProfileSeat: "Tidak ada profil untuk kursi ini.",
+    friendRequestSent: "Permintaan pertemanan terkirim",
+    sending: "Mengirim…",
+    addFailed: "Tidak bisa menambahkan — coba lagi",
   },
   leaderboard: {
     loadError: "Tidak dapat memuat papan peringkat.",
@@ -554,6 +566,7 @@ export const id: Messages = {
     deleteError: "Tidak dapat menghapus akun Anda. Coba lagi atau hubungi dukungan.",
 
   },
+  party: en.party,
 };
 
 export default id;

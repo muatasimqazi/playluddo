@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useCountdown } from "@/lib/hooks/useCountdown";
 import { hapticTap } from "@/lib/hooks/useCoarsePointer";
 import { clock } from "@/lib/presentation/controller";
+import { useI18n } from "@/lib/i18n";
 import type { PartyRound as Round } from "@/lib/supabase/rpc";
 
 /**
@@ -20,6 +21,7 @@ export function PartyRound({
   onGuess: (guess: number) => Promise<unknown>;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function PartyRound({
       await onGuess(guess);
       setValue("");
     } catch {
-      setError("That didn't go through. Try again.");
+      setError(t("party.roundSendError"));
     } finally {
       setSending(false);
     }
@@ -48,13 +50,13 @@ export function PartyRound({
       <section className="party-pad-round" aria-labelledby="round-heading">
         <h2 id="round-heading">{round.question}</h2>
         <p className="party-pad-round-answer">{round.answer}</p>
-        {round.myGuess !== null && <p>You said {round.myGuess}.</p>}
+        {round.myGuess !== null && <p>{t("party.youSaid", { guess: round.myGuess })}</p>}
         <p>
           {!round.closest?.length
-            ? "Nobody answered this one."
+            ? t("party.nobodyAnswered")
             : won
-              ? "Closest! Nicely judged."
-              : `Closest: ${round.closest.map((c) => `${c.name} (${c.guess})`).join(", ")}`}
+              ? t("party.closestJudged")
+              : t("party.closestList", { list: round.closest.map((c) => `${c.name} (${c.guess})`).join(", ") })}
         </p>
       </section>
     );
@@ -62,16 +64,18 @@ export function PartyRound({
 
   return (
     <section className="party-pad-round" aria-labelledby="round-heading">
-      <span className="eyebrow">WHILE YOU&rsquo;RE HERE</span>
+      <span className="eyebrow">{t("party.whileYoureHere").toUpperCase()}</span>
       <h2 id="round-heading">{round.question}</h2>
       <p>
-        {secondsLeft !== null ? `${clock(secondsLeft)} left` : "Closing…"} ·{" "}
-        {round.guessCount === 1 ? "1 answer" : `${round.guessCount} answers`} so far
+        {secondsLeft !== null ? t("party.timeLeft", { time: clock(secondsLeft) }) : t("party.closing")} ·{" "}
+        {round.guessCount === 1
+          ? t("party.answersSoFarOne")
+          : t("party.answersSoFarOther", { count: round.guessCount })}
       </p>
       <div className="party-pad-round-entry">
         <label>
           <input
-            aria-label="Your answer"
+            aria-label={t("party.yourAnswerAria")}
             type="number"
             inputMode="numeric"
             min={0}
@@ -83,10 +87,10 @@ export function PartyRound({
           />
         </label>
         <button type="button" className="party-pad-primary" disabled={!valid || sending || disabled} onClick={() => void send()}>
-          {round.myGuess !== null ? "Change it" : "Answer"}
+          {round.myGuess !== null ? t("party.changeIt") : t("party.answer")}
         </button>
       </div>
-      {round.myGuess !== null && !sending && <p>Your answer: {round.myGuess}</p>}
+      {round.myGuess !== null && !sending && <p>{t("party.yourAnswer", { guess: round.myGuess })}</p>}
       {error && (
         <p role="alert" className="party-pad-round-error">
           {error}

@@ -5,6 +5,8 @@
  * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
  */
 import type { Messages } from "../types";
+// F5.1: `party` is not yet translated — placeholder English until a native pass.
+import { en } from "./en";
 
 export const ptBR: Messages = {
   common: {
@@ -419,6 +421,16 @@ export const ptBR: Messages = {
     typeReaction: "Pacotes de reação",
     equipped: "Equipado",
     equip: "Equipar",
+    viewProfileAria: "Ver o perfil de {name}",
+    profileAria: "Perfil de {name}",
+    playerProfile: "Perfil do jogador",
+    loadOneError: "Não foi possível carregar este perfil.",
+    keepsPrivate: "{name} mantém as estatísticas em privado.",
+    guestNoProfile: "{name} está jogando como convidado — ainda sem perfil.",
+    noProfileSeat: "Nenhum perfil para este lugar.",
+    friendRequestSent: "Pedido de amizade enviado",
+    sending: "Enviando…",
+    addFailed: "Não foi possível adicionar — tente de novo",
   },
   leaderboard: {
     loadError: "Não foi possível carregar o ranking.",
@@ -554,6 +566,7 @@ export const ptBR: Messages = {
     deleteError: "Não foi possível excluir sua conta. Tente novamente ou fale com o suporte.",
 
   },
+  party: en.party,
 };
 
 export default ptBR;

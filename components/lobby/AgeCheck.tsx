@@ -1,5 +1,10 @@
 "use client";
 
+
+
+import { useI18n, useT } from "@/lib/i18n";
+
+
 import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -17,10 +22,7 @@ import "@/components/simulator/simulator.css";
  * into this screen, then retries what the player was doing.
  */
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+
 
 function Backdrop({ children }: { children: ReactNode }) {
   return (
@@ -48,16 +50,18 @@ export function AskAge({
   onCancel: () => void;
   partyAgreement?: boolean;
 }) {
+  const { t: tx, locale } = useI18n();
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const months = Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, month, 1))));
   const thisYear = new Date().getFullYear();
   const years = Array.from({ length: thisYear - 1900 + 1 }, (_, i) => thisYear - i);
 
   async function submit() {
     if (!month || !year) {
-      setError("Choose your birth month and year.");
+      setError(tx("age.chooseBirth"));
       return;
     }
     setPending(true);
@@ -81,8 +85,8 @@ export function AskAge({
     } catch (e) {
       setError(
         e instanceof RpcError && e.code === "INVALID_BIRTH_DATE"
-          ? "That date doesn't look right. Check the month and year."
-          : "Couldn't save that. Check your connection and try again.",
+          ? tx("age.invalidDate")
+          : tx("age.saveError"),
       );
       setPending(false);
     }
@@ -91,23 +95,19 @@ export function AskAge({
   return (
     <Backdrop>
       <section className="entrance-content room-notice table-rules" aria-labelledby="age-check-heading">
-        <span className="eyebrow">ONE QUICK QUESTION</span>
+        <span className="eyebrow">{tx("age.eyebrow")}</span>
         <h1 id="age-check-heading">
-          When were
-          <br />
-          <em>you born?</em>
+          <em>{tx("age.birthQuestion")}</em>
         </h1>
         <p className="table-rules-terms">
-          We ask so we can keep online tables safe. We only keep your birth month and year.
-        </p>
+          {tx("age.retention")}</p>
         <div className="age-check-fields">
           <label>
-            <span className="eyebrow">MONTH</span>
+            <span className="eyebrow">{tx("age.month")}</span>
             <select value={month} disabled={pending} onChange={(e) => setMonth(e.target.value)}>
               <option value="" disabled>
-                Month
-              </option>
-              {MONTHS.map((name, i) => (
+                {tx("age.month")}</option>
+              {months.map((name, i) => (
                 <option key={name} value={i + 1}>
                   {name}
                 </option>
@@ -115,11 +115,10 @@ export function AskAge({
             </select>
           </label>
           <label>
-            <span className="eyebrow">YEAR</span>
-            <select value={year} disabled={pending} onChange={(e) => setYear(e.target.value)}>
+            <span className="eyebrow">{tx("age.year")}</span>
+            <select dir="ltr" value={year} disabled={pending} onChange={(e) => setYear(e.target.value)}>
               <option value="" disabled>
-                Year
-              </option>
+                {tx("age.year")}</option>
               {years.map((y) => (
                 <option key={y} value={y}>
                   {y}
@@ -128,19 +127,19 @@ export function AskAge({
             </select>
           </label>
         </div>
-        {partyAgreement && <p className="table-rules-terms">Be kind, and use a friendly name. By continuing you agree to the <Link href="/terms">Terms of Use</Link>.</p>}
+        {/* Draft consent translation requires native/legal review. */}
+        {partyAgreement && <p className="table-rules-terms"><Link href="/terms">{tx("agreement.partyConsent")}</Link></p>}
         {error && (
           <p className="age-check-error" role="alert">
             {error}
           </p>
         )}
         <button type="button" className="sim-primary" disabled={pending} onClick={() => void submit()}>
-          <span>{pending ? "One moment…" : "Continue"}</span>
+          <span>{pending ? tx("actions.wait") : tx("common.continue")}</span>
           <Icon name="arrow" />
         </button>
         <button type="button" className="table-rules-back" onClick={onCancel}>
-          Not now
-        </button>
+          {tx("actions.notNow")}</button>
       </section>
     </Backdrop>
   );
@@ -148,29 +147,24 @@ export function AskAge({
 
 /** Under 13: no online tables, but the offline games are right here. */
 export function UnderAgeNotice() {
+  const tx = useT();
   return (
     <Backdrop>
       <section className="entrance-content room-notice table-rules" role="alert">
-        <span className="eyebrow">ONLINE TABLES</span>
+        <span className="eyebrow">{tx("age.onlineTables")}</span>
         <h1>
-          Online tables
-          <br />
-          <em>are 13+.</em>
+          <em>{tx("age.minimumAge")}</em>
         </h1>
         <p className="table-rules-terms">
-          You can still play against the computer, or pass one device around the table with
-          Table Together.
-        </p>
+          {tx("age.offlineAlternative")}</p>
         <Link className="sim-primary" href="/practice">
-          <span>Play against the computer</span>
+          <span>{tx("age.computer")}</span>
           <Icon name="arrow" />
         </Link>
         <Link className="table-rules-back age-check-secondary" href="/table-together">
-          Table Together
-        </Link>
+          {tx("age.together")}</Link>
         <Link className="table-rules-back" href="/">
-          Back to the entrance
-        </Link>
+          {tx("actions.backEntrance")}</Link>
       </section>
     </Backdrop>
   );

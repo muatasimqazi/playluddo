@@ -1,33 +1,16 @@
-import Link from "next/link";
-import { BracketView } from "@/components/tournament/BracketView";
-import { Icon } from "@/components/simulator/Icon";
-import "@/components/simulator/simulator.css";
+import { LegacyTournamentRedirect } from "./LegacyTournamentRedirect";
 
-export default async function TournamentPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  return (
-    <main className="sim-entrance leaderboard-page">
-      {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
-      <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
-      <div className="entrance-shade" />
-      <header className="entrance-header">
-        <Link href="/" className="sim-brand" aria-label="Back to the apartment">
-          <span className="brand-mark">
-            <i />
-            <i />
-            <i />
-            <i />
-          </span>
-          <span>
-            LUDDO<small>HOUSE</small>
-          </span>
-        </Link>
-        <Link href="/tournaments" className="profile-trigger leaderboard-back">
-          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>All tournaments</small>
-        </Link>
-      </header>
-      <BracketView tournamentId={id} />
-    </main>
-  );
+// Legacy path route. Tournament detail moved to the query-param route
+// `/tournaments/view?id=…` so it prerenders under the Capacitor static export
+// (`output: "export"`) — arbitrary tournament IDs can't be enumerated for a
+// `[id]` segment. `output: "export"` still requires at least one generated
+// route, so we emit a single placeholder page whose only job is to redirect
+// the real id (read at runtime) to the new URL. On the dynamic web build this
+// also transparently forwards any old `/tournaments/<id>` deep link.
+export function generateStaticParams(): { id: string }[] {
+  return [{ id: "_" }];
+}
+
+export default function LegacyTournamentPage() {
+  return <LegacyTournamentRedirect />;
 }

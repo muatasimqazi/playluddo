@@ -14,10 +14,11 @@ import {
   type TournamentSummary,
 } from "@/lib/supabase/tournaments";
 import { Icon } from "@/components/simulator/Icon";
+import { useI18n, type LocaleCode } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
 
-function whenLabel(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+function whenLabel(iso: string, locale: LocaleCode): string {
+  return new Date(iso).toLocaleString(locale, {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -35,6 +36,9 @@ function defaultLocal(offsetHours: number): string {
 }
 
 export default function TournamentsPage() {
+  // `tx` (not `t`) avoids colliding with the `t` tournament item used in the
+  // list below — the same convention the other migrated components use.
+  const { t: tx, locale } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [user, setUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -74,7 +78,7 @@ export default function TournamentsPage() {
           setTournaments(list ?? []);
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load tournaments.");
+        if (!cancelled) setError(err instanceof Error ? err.message : tx("tournaments.loadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -83,6 +87,9 @@ export default function TournamentsPage() {
     return () => {
       cancelled = true;
     };
+    // `tx` is only read in the catch fallback; excluding it keeps a language
+    // change from refetching the whole list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, user, authenticated]);
 
   return (
@@ -91,7 +98,7 @@ export default function TournamentsPage() {
       <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
       <div className="entrance-shade" />
       <header className="entrance-header">
-        <Link href="/" className="sim-brand" aria-label="Back to the apartment">
+        <Link href="/" className="sim-brand" aria-label={tx("actions.homeLabel")}>
           <span className="brand-mark">
             <i />
             <i />
@@ -104,14 +111,15 @@ export default function TournamentsPage() {
         </Link>
         <Link href="/" className="profile-trigger leaderboard-back">
           <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>Back to the apartment</small>
+          <small>{tx("actions.backHome")}</small>
         </Link>
       </header>
 
       <section className="leaderboard-content">
-        <span className="eyebrow">TEAM TOURNAMENTS</span>
+        <span className="eyebrow">{tx("tournaments.eyebrow").toUpperCase()}</span>
         <h1>
-          Play for the <em>trophy</em>
+          {tx("tournaments.titlePre")}
+          <em>{tx("tournaments.titleEm")}</em>
         </h1>
 
         {error && (
@@ -121,21 +129,19 @@ export default function TournamentsPage() {
         )}
 
         {loading ? (
-          <div className="leaderboard-loading" aria-label="Loading tournaments">
+          <div className="leaderboard-loading" aria-label={tx("tournaments.loading")}>
             {Array.from({ length: 4 }, (_, i) => (
               <span key={i} />
             ))}
           </div>
         ) : !authenticated ? (
-          <p className="leaderboard-message">Sign in from your profile to run team tournaments.</p>
+          <p className="leaderboard-message">{tx("tournaments.signInPrompt")}</p>
         ) : teams.length === 0 ? (
-          <p className="leaderboard-message">
-            Tournaments are for teams. Create a team from your profile, then come back.
-          </p>
+          <p className="leaderboard-message">{tx("tournaments.needTeam")}</p>
         ) : (
           <>
             {tournaments.length === 0 ? (
-              <p className="leaderboard-message">No tournaments yet. Schedule the first one below.</p>
+              <p className="leaderboard-message">{tx("tournaments.none")}</p>
             ) : (
               <div className="tourney-list">
                 {tournaments.map((t) => (
@@ -143,12 +149,12 @@ export default function TournamentsPage() {
                     <div className="tourney-row-main">
                       <strong>{t.name}</strong>
                       <small>
-                        {t.teamName} · {t.size} players ·{" "}
-                        {t.status === "active" ? "Live now" : whenLabel(t.startsAt)}
+                        {t.teamName} · {tx("tournaments.playersCount", { count: t.size })} ·{" "}
+                        {t.status === "active" ? tx("tournaments.liveNow") : whenLabel(t.startsAt, locale)}
                       </small>
                     </div>
                     <span className={`tourney-badge is-${t.status}`}>
-                      {t.status === "active" ? "LIVE" : `${t.entrantCount}/${t.size}`}
+                      {t.status === "active" ? tx("tournaments.live") : `${t.entrantCount}/${t.size}`}
                     </span>
                     {t.status === "scheduled" && !t.entered ? (
                       <button
@@ -161,17 +167,17 @@ export default function TournamentsPage() {
                             await joinTournament(client, t.id);
                             await refresh();
                           } catch (err) {
-                            setError(err instanceof Error ? err.message : "Could not join.");
+                            setError(err instanceof Error ? err.message : tx("tournaments.joinError"));
                           } finally {
                             setPending(false);
                           }
                         }}
                       >
-                        Join
+                        {tx("actions.join")}
                       </button>
                     ) : (
-                      <Link href={`/tournaments/${t.id}`} className="panel-secondary">
-                        {t.status === "active" ? "Open bracket" : "View"}
+                      <Link href={`/tournaments/view?id=${t.id}`} className="panel-secondary">
+                        {t.status === "active" ? tx("tournaments.openBracket") : tx("actions.view")}
                       </Link>
                     )}
                   </div>
@@ -192,7 +198,7 @@ export default function TournamentsPage() {
                     setCreating(false);
                     await refresh();
                   } catch (err) {
-                    setError(err instanceof Error ? err.message : "Could not create the tournament.");
+                    setError(err instanceof Error ? err.message : tx("tournaments.createError"));
                   } finally {
                     setPending(false);
                   }
@@ -201,7 +207,7 @@ export default function TournamentsPage() {
             ) : (
               <button type="button" className="sim-primary" onClick={() => setCreating(true)}>
                 <Icon name="trophy" size={16} />
-                Schedule a tournament
+                {tx("tournaments.schedule")}
               </button>
             )}
           </>
@@ -229,6 +235,7 @@ function CreateForm({
   }) => void;
   onCancel: () => void;
 }) {
+  const { t: tx } = useI18n();
   const [teamId, setTeamId] = useState(teams[0]?.id ?? "");
   const [name, setName] = useState("");
   const [size, setSize] = useState<8 | 16>(8);
@@ -253,7 +260,7 @@ function CreateForm({
       }}
     >
       <label>
-        <span>Team</span>
+        <span>{tx("actions.team")}</span>
         <select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
           {teams.map((t) => (
             <option key={t.id} value={t.id}>
@@ -263,11 +270,11 @@ function CreateForm({
         </select>
       </label>
       <label>
-        <span>Name</span>
+        <span>{tx("actions.name")}</span>
         <input value={name} maxLength={40} required minLength={2} onChange={(e) => setName(e.target.value)} />
       </label>
       <fieldset className="tourney-choices">
-        <legend>Players</legend>
+        <legend>{tx("actions.players")}</legend>
         {([8, 16] as const).map((n) => (
           <button key={n} type="button" className={size === n ? "is-selected" : ""} onClick={() => setSize(n)}>
             {n}
@@ -275,27 +282,27 @@ function CreateForm({
         ))}
       </fieldset>
       <fieldset className="tourney-choices">
-        <legend>Game</legend>
+        <legend>{tx("tournaments.game")}</legend>
         {(["ludo", "snakes_and_ladders"] as const).map((g) => (
           <button key={g} type="button" className={gameType === g ? "is-selected" : ""} onClick={() => setGameType(g)}>
-            {g === "ludo" ? "Ludo" : "Snakes & Ladders"}
+            {g === "ludo" ? tx("entrance.ludo") : tx("entrance.snakes")}
           </button>
         ))}
       </fieldset>
       <label>
-        <span>Check-in opens</span>
+        <span>{tx("tournaments.checkInOpens")}</span>
         <input type="datetime-local" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} />
       </label>
       <label>
-        <span>Starts</span>
+        <span>{tx("tournaments.starts")}</span>
         <input type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
       </label>
       <div className="tourney-form-actions">
         <button type="button" className="panel-secondary" onClick={onCancel}>
-          Cancel
+          {tx("actions.cancel")}
         </button>
         <button type="submit" className="sim-primary" disabled={pending || !teamId || name.trim().length < 2}>
-          Schedule
+          {tx("tournaments.scheduleShort")}
         </button>
       </div>
     </form>

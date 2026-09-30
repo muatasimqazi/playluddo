@@ -12,17 +12,34 @@ import {
 } from "@/lib/supabase/tournaments";
 import { Icon } from "@/components/simulator/Icon";
 import { COLORS } from "@/lib/presentation/board";
+import { useI18n, type Translator } from "@/lib/i18n";
 
-const PLACE = ["", "1st", "2nd", "3rd", "4th"];
+// Placement (1–4) → localized ordinal label. 0/undefined has no label.
+function placeLabel(tx: Translator, placement: number): string {
+  switch (placement) {
+    case 1:
+      return tx("tournaments.place1");
+    case 2:
+      return tx("tournaments.place2");
+    case 3:
+      return tx("tournaments.place3");
+    case 4:
+      return tx("tournaments.place4");
+    default:
+      return "";
+  }
+}
 
-function roundName(round: number, totalRounds: number): string {
+function roundName(tx: Translator, round: number, totalRounds: number): string {
   const fromEnd = totalRounds - round;
-  if (fromEnd === 0) return "Final";
-  if (fromEnd === 1) return "Semi-finals";
-  return `Round ${round}`;
+  if (fromEnd === 0) return tx("tournaments.roundFinal");
+  if (fromEnd === 1) return tx("tournaments.roundSemi");
+  return tx("tournaments.roundN", { round });
 }
 
 export function BracketView({ tournamentId }: { tournamentId: string }) {
+  // `tx` (not `t`) — `t` is the tournament state below.
+  const { t: tx, locale } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [t, setT] = useState<Tournament | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -41,7 +58,7 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
           setNow(Date.now());
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load this tournament.");
+        if (!cancelled) setError(err instanceof Error ? err.message : tx("tournaments.loadErrorOne"));
       }
     }
     void load();
@@ -51,6 +68,9 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
       cancelled = true;
       if (timer) clearInterval(timer);
     };
+    // `tx` is only read in the catch fallback; excluding it keeps a language
+    // change from resetting the poll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, tournamentId]);
 
   if (error)
@@ -58,13 +78,13 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
       <div className="replay-message" role="alert">
         <p>{error}</p>
         <Link href="/tournaments" className="sim-primary">
-          Back to tournaments
+          {tx("tournaments.backToTournaments")}
         </Link>
       </div>
     );
   if (!t)
     return (
-      <div className="leaderboard-loading" aria-label="Loading the bracket">
+      <div className="leaderboard-loading" aria-label={tx("tournaments.loadingBracket")}>
         {Array.from({ length: 4 }, (_, i) => (
           <span key={i} />
         ))}
@@ -91,7 +111,7 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
       await checkInTournament(client, tournamentId);
       setT(await getTournament(client, tournamentId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not check in.");
+      setError(err instanceof Error ? err.message : tx("actions.genericError"));
     } finally {
       setPending(false);
     }
@@ -100,7 +120,13 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
   return (
     <section className="leaderboard-content bracket">
       <span className="eyebrow">
-        {t.status === "active" ? "LIVE TOURNAMENT" : t.status.toUpperCase()}
+        {t.status === "active"
+          ? tx("tournaments.liveTournament")
+          : t.status === "scheduled"
+            ? tx("tournaments.statusScheduled").toUpperCase()
+            : t.status === "complete"
+              ? tx("tournaments.statusComplete").toUpperCase()
+              : t.status.toUpperCase()}
       </span>
       <h1>{t.name}</h1>
 
@@ -108,7 +134,7 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
         <div className="bracket-champion">
           <Icon name="trophy" size={20} />
           <div>
-            <span className="eyebrow">CHAMPION</span>
+            <span className="eyebrow">{tx("tournaments.champion").toUpperCase()}</span>
             <strong>{champion.displayName}</strong>
           </div>
         </div>
@@ -117,7 +143,7 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
       {myTable?.roomId && (
         <Link className="sim-primary" href={`/room?id=${myTable.roomId}`}>
           <Icon name="play" size={16} />
-          Go to your table
+          {tx("tournaments.goToTable")}
         </Link>
       )}
 
@@ -125,21 +151,29 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
         <div className="bracket-checkin">
           <div>
             <span className="eyebrow">
-              {me ? (me.checkedIn ? "YOU'RE CHECKED IN" : "CHECK IN") : "NOT ENTERED"}
+              {(me
+                ? me.checkedIn
+                  ? tx("tournaments.checkedIn")
+                  : tx("tournaments.checkIn")
+                : tx("tournaments.notEntered")
+              ).toUpperCase()}
             </span>
             <p>
-              {t.entrants.length}/{t.size} entered · starts{" "}
-              {new Date(t.startsAt).toLocaleString(undefined, {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
+              {tx("tournaments.entered", {
+                entered: t.entrants.length,
+                size: t.size,
+                when: new Date(t.startsAt).toLocaleString(locale, {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                }),
               })}
             </p>
           </div>
           {me && !me.checkedIn && (
             <button type="button" className="sim-primary" disabled={pending || !checkInOpen} onClick={() => void checkIn()}>
-              {checkInOpen ? "Check in" : "Check-in not open yet"}
+              {checkInOpen ? tx("tournaments.checkInBtn") : tx("tournaments.checkInNotOpen")}
             </button>
           )}
         </div>
@@ -158,7 +192,7 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
         <div className="bracket-rounds">
           {rounds.map((round) => (
             <div key={round} className="bracket-round">
-              <span className="eyebrow">{roundName(round, totalRounds)}</span>
+              <span className="eyebrow">{roundName(tx, round, totalRounds)}</span>
               {t.tables
                 .filter((tbl) => tbl.round === round)
                 .map((tbl) => (
@@ -173,6 +207,7 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
 }
 
 function TableCard({ table }: { table: TournamentTable }) {
+  const { t: tx } = useI18n();
   return (
     <div className={`bracket-table ${table.mine ? "is-mine" : ""}`}>
       <ol>
@@ -180,13 +215,13 @@ function TableCard({ table }: { table: TournamentTable }) {
           <li key={i} className={seat.placement && seat.placement <= 2 ? "is-advancing" : ""}>
             <span className="bracket-dot" style={{ background: COLORS[seat.color] }} />
             <span className="bracket-seat-name">{seat.displayName}</span>
-            {seat.placement ? <small>{PLACE[seat.placement]}</small> : null}
+            {seat.placement ? <small>{placeLabel(tx, seat.placement)}</small> : null}
           </li>
         ))}
       </ol>
       {table.status === "in_progress" && table.roomId && !table.mine && (
         <Link className="bracket-watch" href={`/watch?room=${table.roomId}`}>
-          <Icon name="look" size={13} /> Watch
+          <Icon name="look" size={13} /> {tx("tournaments.watch")}
         </Link>
       )}
     </div>

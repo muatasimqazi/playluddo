@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import {
   addRecentPlayerFriend,
@@ -32,6 +33,7 @@ export function PlayAgain({
   name: string;
   onJoin: (roomCode: string) => void;
 }) {
+  const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [added, setAdded] = useState<Record<string, boolean>>({});
@@ -96,8 +98,8 @@ export function PlayAgain({
   if (entries.length === 0) return null;
 
   return (
-    <section className="play-again" aria-label="Play again">
-      <span className="eyebrow">PLAY AGAIN</span>
+    <section className="play-again" aria-label={t("lobby.playAgainLabel")}>
+      <span className="eyebrow">{t("lobby.playAgainLabel").toUpperCase()}</span>
       <ul>
         {entries.map((e) => (
           <li key={e.userId}>
@@ -109,10 +111,10 @@ export function PlayAgain({
             <span className="play-again-name">{e.displayName}</span>
             {e.roomCode ? (
               <button type="button" disabled={!name.trim()} onClick={() => onJoin(e.roomCode!)}>
-                Join
+                {t("actions.join")}
               </button>
             ) : e.isFriend ? (
-              <span className="play-again-friend">Friend</span>
+              <span className="play-again-friend">{t("lobby.friend")}</span>
             ) : (
               <button
                 type="button"
@@ -120,7 +122,7 @@ export function PlayAgain({
                 disabled={!!added[e.userId]}
                 onClick={() => void add(e.userId)}
               >
-                {added[e.userId] ? "Added" : "Add friend"}
+                {added[e.userId] ? t("lobby.added") : t("lobby.addFriend")}
               </button>
             )}
           </li>

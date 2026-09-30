@@ -8,6 +8,7 @@ import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { Icon } from "@/components/simulator/Icon";
+import { useI18n } from "@/lib/i18n";
 import { RoomNotice } from "./RoomNotice";
 import "@/components/simulator/simulator.css";
 
@@ -38,6 +39,7 @@ export function JoinTable({
   /** Party Mode (P6): this phone is in the room's audience. */
   onAudience?: () => void;
 }) {
+  const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [invite, setInvite] = useState<RoomInvite | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -83,7 +85,7 @@ export function JoinTable({
   async function join() {
     const displayName = name.trim();
     if (!displayName) {
-      setError("What should we call you at the table?");
+      setError(t("entrance.nameError"));
       return;
     }
     setPending(true);
@@ -106,33 +108,29 @@ export function JoinTable({
       const code = err instanceof RpcError ? err.code : "UNKNOWN";
       if (invite?.isParty && onAudience && (code === "ROOM_FULL" || code === "ALREADY_STARTED" || code === "PARTY_LOCKED")) {
         setSeatsGone(true);
-        setError("The last seat just went. You can still join the audience.");
+        setError(t("lobby.lastSeatAudience"));
       } else if (code === "PARTY_REMOVED") {
-        setError("The VIP removed you from this party table.");
+        setError(t("lobby.partyRemoved"));
       } else if (code === "SEATS_OPEN") {
         // A seat opened up meanwhile: take it instead.
         setSeatsGone(false);
         setInvite((current) => (current ? { ...current, seatsTaken: current.maxPlayers - 1, status: "lobby" } : current));
-        setError("A seat just opened up. Take it!");
+        setError(t("lobby.seatOpened"));
       } else if (code === "ROOM_FULL" || code === "ALREADY_STARTED" || code === "ROOM_NOT_FOUND") {
         setLoadError(code);
       } else {
-        setError(
-          audience
-            ? "Couldn't get you into the audience. Check your connection and try again."
-            : "Couldn't take your seat. Check your connection and try again.",
-        );
+        setError(audience ? t("lobby.audienceError") : t("lobby.seatError"));
       }
       setPending(false);
     }
   }
 
   if (loadError) return <RoomNotice code={loadError} />;
-  if (!invite) return <TableLoading label="Opening your invitation…" />;
+  if (!invite) return <TableLoading label={t("lobby.opening")} />;
   if (!audience && invite.status !== "lobby") return <RoomNotice code="ALREADY_STARTED" />;
   if (!audience && invite.seatsTaken >= invite.maxPlayers) return <RoomNotice code="ROOM_FULL" />;
 
-  const gameName = invite.gameType === "ludo" ? "Ludo" : "Snakes & Ladders";
+  const gameName = invite.gameType === "ludo" ? t("entrance.ludo") : t("entrance.snakes");
   return (
     <main className="sim-entrance room-lobby-page">
       {age.gate}
@@ -157,27 +155,40 @@ export function JoinTable({
       <section className="entrance-content room-lobby join-table">
         {audience ? (
           <>
-            <span className="eyebrow">PARTY TABLE · {gameName.toUpperCase()}</span>
+            <span className="eyebrow">
+              {t("lobby.partyEyebrow").toUpperCase()} · {gameName.toUpperCase()}
+            </span>
             <h1>
-              Join the
+              {t("lobby.audienceTitle1")}
               <br />
-              <em>audience.</em>
+              <em>{t("lobby.audienceTitleEm")}</em>
             </h1>
             <p className="join-table-host">
-              {invite.partyLocked ? "The seats are locked" : invite.status === "lobby" ? "Every seat is taken" : "The game has started"}, but you can still
-              join in: react on the TV, pick a winner and vote for the moment of the match.
+              {t("lobby.audienceBody", {
+                state: invite.partyLocked
+                  ? t("lobby.audienceStateLocked")
+                  : invite.status === "lobby"
+                    ? t("lobby.audienceStateFull")
+                    : t("lobby.audienceStateStarted"),
+              })}
             </p>
           </>
         ) : (
           <>
-            <span className="eyebrow">YOU&apos;RE INVITED</span>
+            <span className="eyebrow">{t("lobby.invitedEyebrow").toUpperCase()}</span>
             <h1>
-              Pull up
-              <br />a <em>chair.</em>
+              {t("lobby.inviteTitle1")}
+              <br />
+              {t("lobby.inviteTitleLead")} <em>{t("lobby.inviteTitleEm")}</em>
             </h1>
             <p className="join-table-host">
-              {invite.hostName ?? "A friend"} saved you a seat at a {invite.maxPlayers}-player{" "}
-              {gameName} table · {invite.seatsTaken} of {invite.maxPlayers} seated.
+              {t("lobby.inviteHost", {
+                host: invite.hostName ?? t("lobby.aFriend"),
+                count: invite.maxPlayers,
+                game: gameName,
+                seated: invite.seatsTaken,
+                max: invite.maxPlayers,
+              })}
             </p>
           </>
         )}
@@ -189,13 +200,13 @@ export function JoinTable({
           }}
         >
           <label>
-            Your name
+            {t("entrance.yourName")}
             <input
               autoFocus
               value={name}
               onChange={(event) => setName(event.target.value)}
               maxLength={24}
-              placeholder="How should we call you?"
+              placeholder={t("entrance.yourNamePlaceholder")}
               autoComplete="nickname"
             />
           </label>
@@ -203,11 +214,11 @@ export function JoinTable({
             <span>
               {audience
                 ? pending
-                  ? "Joining…"
-                  : "Join the audience"
+                  ? t("lobby.joining")
+                  : t("lobby.joinAudience")
                 : pending
-                  ? "Taking your seat…"
-                  : "Join the table"}
+                  ? t("lobby.takingSeat")
+                  : t("lobby.joinTable")}
             </span>
             <Icon name="arrow" />
           </button>
@@ -217,9 +228,7 @@ export function JoinTable({
             </p>
           )}
         </form>
-        <p className="join-table-note">
-          No account needed. Sign in from the top corner if you&apos;d like to keep your stats.
-        </p>
+        <p className="join-table-note">{t("lobby.joinNote")}</p>
       </section>
     </main>
   );

@@ -20,12 +20,14 @@ import {
   showGameCenterAchievements,
   showGameCenterLeaderboard,
 } from "@/lib/gameCenter";
+import { useI18n } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
 
 // Platform never changes while the page is open.
 const noSubscription = () => () => {};
 
 export default function LeaderboardPage() {
+  const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [user, setUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -45,7 +47,7 @@ export default function LeaderboardPage() {
     setGameCenterNote(null);
     // false = the player isn't signed in to Game Center on this device.
     if (!(await show()))
-      setGameCenterNote("Sign in to Game Center in the Settings app to see your ranking and achievements.");
+      setGameCenterNote(t("leaderboard.gameCenterNote"));
   }
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export default function LeaderboardPage() {
         if (!cancelled) setEntries(data);
       } catch (err) {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : "Could not load the leaderboard.");
+          setError(err instanceof Error ? err.message : t("leaderboard.loadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -83,9 +85,11 @@ export default function LeaderboardPage() {
     return () => {
       cancelled = true;
     };
+    // `t` only feeds the catch fallback; excluding it avoids a locale-change refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, user, scope]);
 
-  const scopes = [{ id: "global", name: "Global" }, ...teams.map(({ id, name }) => ({ id, name }))];
+  const scopes = [{ id: "global", name: t("leaderboard.global") }, ...teams.map(({ id, name }) => ({ id, name }))];
 
   return (
     <main className="sim-entrance leaderboard-page">
@@ -95,7 +99,7 @@ export default function LeaderboardPage() {
       <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
       <div className="entrance-shade" />
       <header className="entrance-header">
-        <Link href="/" className="sim-brand" aria-label="Back to the apartment">
+        <Link href="/" className="sim-brand" aria-label={t("actions.homeLabel")}>
           <span className="brand-mark">
             <i />
             <i />
@@ -108,31 +112,33 @@ export default function LeaderboardPage() {
         </Link>
         <Link href="/" className="profile-trigger leaderboard-back">
           <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>Back to the apartment</small>
+          <small>{t("actions.backHome")}</small>
         </Link>
       </header>
 
       <section className="leaderboard-content">
-        <span className="eyebrow">THE LEADERBOARD</span>
+        <span className="eyebrow">{t("leaderboard.eyebrow").toUpperCase()}</span>
         <h1>
-          Who&rsquo;s winning
+          {t("leaderboard.title1")}
           <br />
-          the <em>most?</em>
+          {t("leaderboard.titleLead")} <em>{t("leaderboard.titleEm")}</em>
         </h1>
 
         <div className="leaderboard-record">
           <Icon name="trophy" size={18} />
           {authenticated ? (
             <div>
-              <span className="eyebrow">YOUR RECORD</span>
+              <span className="eyebrow">{t("leaderboard.yourRecord").toUpperCase()}</span>
               <strong>
-                {myWins ?? "…"} {myWins === 1 ? "win" : "wins"}
+                {myWins === null
+                  ? "…"
+                  : t(myWins === 1 ? "leaderboard.winOne" : "leaderboard.winOther", { count: myWins })}
               </strong>
             </div>
           ) : (
             <div>
-              <span className="eyebrow">NOT ON THE BOARD YET</span>
-              <p>Sign in from your profile to start counting your wins.</p>
+              <span className="eyebrow">{t("leaderboard.notOnBoard").toUpperCase()}</span>
+              <p>{t("leaderboard.signInToCount")}</p>
             </div>
           )}
         </div>
@@ -145,14 +151,14 @@ export default function LeaderboardPage() {
             </button>
             <button type="button" onClick={() => void openGameCenter(showGameCenterAchievements)}>
               <Icon name="check" size={15} />
-              Achievements
+              {t("leaderboard.achievements")}
             </button>
           </div>
         )}
         {gameCenterNote && <p className="leaderboard-game-center-note">{gameCenterNote}</p>}
 
         {scopes.length > 1 && (
-          <div className="leaderboard-scopes" role="tablist" aria-label="Leaderboard">
+          <div className="leaderboard-scopes" role="tablist" aria-label={t("leaderboard.scopeAria")}>
             {scopes.map((option) => (
               <button
                 key={option.id}
@@ -172,23 +178,23 @@ export default function LeaderboardPage() {
         )}
 
         {scope !== "global" && (
-          <div className="leaderboard-scopes" role="tablist" aria-label="Team view">
+          <div className="leaderboard-scopes" role="tablist" aria-label={t("leaderboard.teamViewAria")}>
             {(
               [
-                ["All-time", null],
-                ["This week", 0],
-                ["Last week", 1],
+                ["leaderboard.allTime", null],
+                ["leaderboard.thisWeek", 0],
+                ["leaderboard.lastWeek", 1],
               ] as const
-            ).map(([label, weeks]) => (
+            ).map(([labelKey, weeks]) => (
               <button
-                key={label}
+                key={labelKey}
                 type="button"
                 role="tab"
                 aria-selected={seasonWeeks === weeks}
                 className={seasonWeeks === weeks ? "is-selected" : undefined}
                 onClick={() => setSeasonWeeks(weeks)}
               >
-                {label}
+                {t(labelKey)}
               </button>
             ))}
           </div>
@@ -198,7 +204,7 @@ export default function LeaderboardPage() {
           <TeamSeasonPanel
             client={client}
             teamId={scope}
-            teamName={teams.find((team) => team.id === scope)?.name ?? "Team"}
+            teamName={teams.find((team) => team.id === scope)?.name ?? t("leaderboard.teamFallback")}
             weeksAgo={seasonWeeks}
             myUserId={user?.id ?? null}
           />
@@ -207,7 +213,7 @@ export default function LeaderboardPage() {
             {error}
           </p>
         ) : loading ? (
-          <div className="leaderboard-loading" aria-label="Loading the leaderboard">
+          <div className="leaderboard-loading" aria-label={t("leaderboard.loading")}>
             {Array.from({ length: 5 }, (_, i) => (
               <span key={i} />
             ))}
@@ -218,8 +224,8 @@ export default function LeaderboardPage() {
             myUserId={user?.id ?? null}
             emptyMessage={
               scope === "global"
-                ? "No wins on the board yet — play a match to be the first."
-                : "No one on this team has a win yet."
+                ? t("leaderboard.emptyGlobal")
+                : t("leaderboard.emptyTeam")
             }
           />
         )}

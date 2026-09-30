@@ -23,21 +23,17 @@ import { QuickMatch } from "@/components/lobby/QuickMatch";
 import { PlayAgain } from "@/components/lobby/PlayAgain";
 import type { Team } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import "@/components/simulator/simulator.css";
 
 // Matches the seat_index a color maps to server-side (private.ludo_color_for_seat /
 // set_player_color), same order as components/lobby/RoomLobby.tsx's SEAT_COLORS.
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue"];
 
-// Same four styles/descriptions as the in-game "Board design" panel
-// (components/simulator/Simulator.tsx) — choosing one here just seeds
-// that same saved preference before the first game ever starts.
-const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [
-  { value: "signature", label: "Signature", desc: "The Luddo House artwork" },
-  { value: "classic", label: "Classic", desc: "A traditional printed board" },
-  { value: "geometric", label: "Geometric", desc: "Bold shapes, gold accents" },
-  { value: "aladdin", label: "Aladdin", desc: "An Arabian-nights table" },
-];
+// The four board styles (same as the in-game "Board design" panel in
+// components/simulator/Simulator.tsx) are built with localized labels inside
+// the component — see BOARD_STYLES there.
 
 // One step visible at a time instead of a long scroll. "setup" gathers the
 // three quick table choices — player count, base color, and avatar — onto a
@@ -47,12 +43,32 @@ type StepId = "game" | "setup" | "board" | "start";
 const LUDO_STEPS: StepId[] = ["game", "setup", "board", "start"];
 const SNAKES_STEPS: StepId[] = ["game", "setup", "start"];
 
-const BOT_LEVEL_LABELS: Record<BotLevel, string> = { easy: "Easy", normal: "Normal", hard: "Hard" };
+// Maps a bot level to its localized label key (resolved via t() at render).
+const BOT_LEVEL_KEYS = {
+  easy: "entrance.botEasy",
+  normal: "entrance.botNormal",
+  hard: "entrance.botHard",
+} as const satisfies Record<BotLevel, string>;
+// Maps a base color to its localized name key.
+const COLOR_KEYS = {
+  red: "colors.red",
+  green: "colors.green",
+  yellow: "colors.yellow",
+  blue: "colors.blue",
+} as const satisfies Record<PlayerColor, string>;
 // The saved level only changes through this page's own picker.
 const noSubscription = () => () => {};
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useI18n();
+  // Localized board labels/descriptions, mirroring BOARD_STYLE_VALUES' order.
+  const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [
+    { value: "signature", label: t("entrance.boardSignature"), desc: t("entrance.boardSignatureDesc") },
+    { value: "classic", label: t("entrance.boardClassic"), desc: t("entrance.boardClassicDesc") },
+    { value: "geometric", label: t("entrance.boardGeometric"), desc: t("entrance.boardGeometricDesc") },
+    { value: "aladdin", label: t("entrance.boardAladdin"), desc: t("entrance.boardAladdinDesc") },
+  ];
   const [friends, setFriends] = useState(false);
   const [quickMatch, setQuickMatch] = useState(false);
   const [name, setName] = useState("");
@@ -93,11 +109,11 @@ export default function Home() {
   }
   async function enter(kind: "create" | "join") {
     if (!name.trim()) {
-      setError("What should we call you at the table?");
+      setError(t("entrance.nameError"));
       return;
     }
     if (kind === "join" && !code.trim()) {
-      setError("Enter the room code your friend shared.");
+      setError(t("entrance.codeError"));
       return;
     }
     setPending(kind);
@@ -121,7 +137,7 @@ export default function Home() {
       setPending(null);
       if (age.handle(e, () => void enter(kind))) return;
       setError(
-        e instanceof Error ? e.message : "Could not connect. Please try again.",
+        e instanceof Error ? e.message : t("common.connectError"),
       );
     }
   }
@@ -133,7 +149,7 @@ export default function Home() {
     action: (client: ReturnType<typeof createClient>) => Promise<{ roomId: string }>,
   ) {
     if (!name.trim()) {
-      setError("What should we call you at the table?");
+      setError(t("entrance.nameError"));
       return;
     }
     setPending(kind);
@@ -149,7 +165,7 @@ export default function Home() {
       setPending(null);
       if (age.handle(e, () => void goToRoom(kind, action))) return;
       setError(
-        e instanceof Error ? e.message : "Could not connect. Please try again.",
+        e instanceof Error ? e.message : t("common.connectError"),
       );
     }
   }
@@ -186,14 +202,15 @@ export default function Home() {
           </span>
         </div>
         <div className="entrance-header-actions">
-          <span>A LITTLE CLOSER TOGETHER.</span>
+          <span>{t("entrance.headerTagline").toUpperCase()}</span>
+          <LanguageSwitcher className="profile-trigger" />
           <Link className="profile-trigger leaderboard-trigger" href="/leaderboard">
             <Icon name="trophy" />
-            <small>Leaderboard</small>
+            <small>{t("common.leaderboard")}</small>
           </Link>
           <Link className="profile-trigger leaderboard-trigger" href="/tournaments">
             <Icon name="trophy" />
-            <small>Tournaments</small>
+            <small>{t("common.tournaments")}</small>
           </Link>
           <ProfilePanel
             onNameChange={setName}
@@ -208,22 +225,20 @@ export default function Home() {
           <QuickMatch
             gameType={gameType}
             playerCount={playerCount}
-            displayName={name.trim() || "Player"}
+            displayName={name.trim() || t("common.player")}
             onCancel={() => setQuickMatch(false)}
           />
         ) : !friends ? (
           <>
-            <span className="eyebrow">MAKE YOURSELF AT HOME</span>
+            <span className="eyebrow">{t("entrance.eyebrowHome").toUpperCase()}</span>
             <h1>
-              A familiar game.
-              <br />A whole new
+              {t("entrance.heroLine1")}
               <br />
-              <em>place to play.</em>
+              {t("entrance.heroLine2")}
+              <br />
+              <em>{t("entrance.heroEmphasis")}</em>
             </h1>
-            <p>
-              Pull up a chair. Roll the dice. Share a table with friends,
-              wherever the evening finds you.
-            </p>
+            <p>{t("entrance.heroSubtitle")}</p>
             <div className="entrance-wizard-progress" role="presentation">
               {steps.map((s, i) => (
                 <span
@@ -237,7 +252,7 @@ export default function Home() {
             <div className="entrance-wizard-step" key={step}>
               {currentStep === "game" && (
                 <fieldset className="entrance-game-choice">
-                  <legend>Choose your game</legend>
+                  <legend>{t("entrance.chooseGame")}</legend>
                   <div>
                     <button
                       type="button"
@@ -245,8 +260,8 @@ export default function Home() {
                       aria-pressed={gameType === "ludo"}
                       onClick={() => setGameType("ludo")}
                     >
-                      <strong>Ludo</strong>
-                      <span>Roll a six, race four pieces home</span>
+                      <strong>{t("entrance.ludo")}</strong>
+                      <span>{t("entrance.ludoDescription")}</span>
                     </button>
                     <button
                       type="button"
@@ -256,8 +271,8 @@ export default function Home() {
                       aria-pressed={gameType === "snakes_and_ladders"}
                       onClick={() => setGameType("snakes_and_ladders")}
                     >
-                      <strong>Snakes & Ladders</strong>
-                      <span>Climb ladders, dodge snakes, reach 100</span>
+                      <strong>{t("entrance.snakes")}</strong>
+                      <span>{t("entrance.snakesDescription")}</span>
                     </button>
                   </div>
                 </fieldset>
@@ -265,7 +280,7 @@ export default function Home() {
               {currentStep === "setup" && (
                 <>
                 <fieldset className="entrance-player-count">
-                  <legend>How many players?</legend>
+                  <legend>{t("entrance.howManyPlayers")}</legend>
                   <div>
                     {([2, 3, 4] as const).map((count) => (
                       <button
@@ -291,15 +306,17 @@ export default function Home() {
                       >
                         <strong>{count}</strong>
                         <span>
-                          {count === 2 ? "You + 1" : `You + ${count - 1}`}
+                          {count === 2
+                            ? t("entrance.youPlusOne")
+                            : t("entrance.youPlusN", { count: count - 1 })}
                         </span>
                       </button>
                     ))}
                   </div>
-                  <small>Open seats can be friends or computer players.</small>
+                  <small>{t("entrance.openSeatsNote")}</small>
                 </fieldset>
                 <fieldset className="entrance-color-choice">
-                  <legend>Choose your base</legend>
+                  <legend>{t("entrance.chooseBase")}</legend>
                   <div>
                     {(playerCount === 2
                       ? SEAT_COLORS
@@ -309,24 +326,24 @@ export default function Home() {
                         key={color}
                         type="button"
                         className={playerColor === color ? "is-selected" : ""}
-                        aria-label={`${color} base`}
+                        aria-label={t("entrance.baseAria", { color: t(COLOR_KEYS[color]) })}
                         aria-pressed={playerColor === color}
                         onClick={() => setPlayerColorChoice(color)}
                       >
                         <i style={{ background: COLORS[color] }} />
-                        {color}
+                        {t(COLOR_KEYS[color])}
                       </button>
                     ))}
                   </div>
                 </fieldset>
                 <fieldset className="entrance-avatar-choice">
-                  <legend>Choose your avatar</legend>
+                  <legend>{t("entrance.chooseAvatar")}</legend>
                   <div>
                     {profileAvatar && profilePhoto && (
                       <button
                         type="button"
                         className={playerAvatar === profileAvatar ? "is-selected" : ""}
-                        aria-label="Your profile photo"
+                        aria-label={t("entrance.yourProfilePhoto")}
                         aria-pressed={playerAvatar === profileAvatar}
                         onClick={() => setPlayerAvatar(null)}
                       >
@@ -354,15 +371,15 @@ export default function Home() {
                   </div>
                   <small>
                     {profileAvatar
-                      ? "Your profile avatar is picked. Choose another for just this game."
-                      : "Sign in from your profile to keep a photo avatar."}
+                      ? t("entrance.profileAvatarPicked")
+                      : t("entrance.signInForPhoto")}
                   </small>
                 </fieldset>
                 </>
               )}
               {currentStep === "board" && (
                 <fieldset className="entrance-board-choice">
-                  <legend>Choose your board design</legend>
+                  <legend>{t("entrance.chooseBoard")}</legend>
                   <div>
                     {BOARD_STYLES.map((style) => (
                       <button
@@ -387,20 +404,21 @@ export default function Home() {
               {currentStep === "start" && (
                 <>
                   <button type="button" className="back-button" onClick={back}>
-                    ← Back
+                    {t("common.backArrow")}
                   </button>
                   {teams.length > 0 && (
                     <div className="entrance-team-card">
                       {teams.map((team) => (
                         <div key={team.id} className="entrance-team-row">
                           <div>
-                            <span className="eyebrow">YOUR TEAM</span>
+                            <span className="eyebrow">{t("entrance.yourTeam").toUpperCase()}</span>
                             <strong>{team.name}</strong>
                             <small>
-                              {team.members.length}{" "}
-                              {team.members.length === 1 ? "member" : "members"}
+                              {team.members.length === 1
+                                ? t("entrance.memberOne", { count: team.members.length })
+                                : t("entrance.memberOther", { count: team.members.length })}
                               {team.activeRoom &&
-                                ` · Table open · ${team.activeRoom.seatsTaken}/4 seated`}
+                                t("entrance.tableOpen", { seated: team.activeRoom.seatsTaken })}
                             </small>
                           </div>
                           <button
@@ -414,7 +432,9 @@ export default function Home() {
                             }
                           >
                             <span>
-                              {team.activeRoom ? "Join now" : "Start a table"}
+                              {team.activeRoom
+                                ? t("entrance.joinNow")
+                                : t("entrance.startTable")}
                             </span>
                             <Icon name="arrow" />
                           </button>
@@ -424,7 +444,7 @@ export default function Home() {
                   )}
                   {gameType === "ludo" && (
                     <fieldset className="entrance-player-count entrance-bot-level">
-                      <legend>Offline computer level</legend>
+                      <legend>{t("entrance.offlineComputerLevel")}</legend>
                       <div>
                         {BOT_LEVELS.map((level) => (
                           <button
@@ -437,7 +457,7 @@ export default function Home() {
                               setPreferredBotLevel(level);
                             }}
                           >
-                            <strong>{BOT_LEVEL_LABELS[level]}</strong>
+                            <strong>{t(BOT_LEVEL_KEYS[level])}</strong>
                           </button>
                         ))}
                       </div>
@@ -448,34 +468,32 @@ export default function Home() {
                       className="sim-primary"
                       onClick={() => setQuickMatch(true)}
                     >
-                      <span>Quick match · Play people online</span>
+                      <span>{t("entrance.quickMatch")}</span>
                       <Icon name="arrow" />
                     </button>
                     <button
                       className="entrance-secondary"
                       onClick={() => setFriends(true)}
                     >
-                      <span>Play with friends</span>
+                      <span>{t("entrance.playWithFriends")}</span>
                       <Icon name="users" />
                     </button>
                     <Link
                       className="entrance-secondary"
                       href={`/practice?players=${playerCount}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
                     >
-                      <span>Offline: Settle in with an offline practice game</span>
+                      <span>{t("entrance.offlinePractice")}</span>
                       <Icon name="dice" />
                     </Link>
                     <Link
                       className="entrance-secondary"
                       href={`/table-together?players=${playerCount}&game=${gameType}`}
                     >
-                      <span>Offline: Table Together · Share single screen</span>
+                      <span>{t("entrance.tableTogether")}</span>
                       <Icon name="users" />
                     </Link>
                   </div>
-                  <p className="entrance-caption">
-                    Up to four players · A shared 3D table · No download
-                  </p>
+                  <p className="entrance-caption">{t("entrance.caption")}</p>
                 </>
               )}
             </div>
@@ -483,11 +501,11 @@ export default function Home() {
               <div className="entrance-wizard-nav">
                 {step > 0 && (
                   <button type="button" className="back-button" onClick={back}>
-                    ← Back
+                    {t("common.backArrow")}
                   </button>
                 )}
                 <button type="button" className="sim-primary" onClick={next}>
-                  <span>Continue</span>
+                  <span>{t("common.continue")}</span>
                   <Icon name="arrow" />
                 </button>
               </div>
@@ -495,11 +513,11 @@ export default function Home() {
           </>
         ) : (
           <>
-            <span className="eyebrow">GOOD COMPANY STARTS HERE</span>
+            <span className="eyebrow">{t("entrance.eyebrowFriends").toUpperCase()}</span>
             <h1 style={{ fontSize: 48 }}>
-              A seat
+              {t("entrance.heroFriendsLine1")}
               <br />
-              for <em>everyone.</em>
+              {t("entrance.heroFriendsLine2")} <em>{t("entrance.heroFriendsEmphasis")}</em>
             </h1>
             <form
               className="entrance-form"
@@ -513,34 +531,37 @@ export default function Home() {
                 type="button"
                 onClick={() => setFriends(false)}
               >
-                ← Back to the apartment
+                {t("entrance.backToApartment")}
               </button>
               <label>
-                Your name
+                {t("entrance.yourName")}
                 <input
                   autoFocus
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={24}
-                  placeholder="How should we call you?"
+                  placeholder={t("entrance.yourNamePlaceholder")}
                   autoComplete="nickname"
                 />
               </label>
               <button className="sim-primary" disabled={pending !== null}>
                 {pending === "create"
-                  ? "Preparing your room…"
-                  : "Create a private table"}
+                  ? t("entrance.preparingRoom")
+                  : t("entrance.createTable")}
                 <Icon name="arrow" />
               </button>
-              <span className="form-divider">Already have an invitation?</span>
+              <span className="form-divider">{t("entrance.haveInvitation")}</span>
               <label>
-                Room code
+                {t("entrance.roomCode")}
                 <input
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   maxLength={6}
-                  placeholder="ABC123"
+                  placeholder={t("entrance.roomCodePlaceholder")}
                   autoComplete="off"
+                  // Room codes are always Latin/numeric — keep them LTR even
+                  // when the surrounding UI is a right-to-left language.
+                  dir="ltr"
                 />
               </label>
               <button
@@ -550,8 +571,8 @@ export default function Home() {
                 onClick={() => void enter("join")}
               >
                 {pending === "join"
-                  ? "Finding your friends…"
-                  : "Join their table"}
+                  ? t("entrance.findingFriends")
+                  : t("entrance.joinTheirTable")}
               </button>
               {error && (
                 <p className="error" role="alert">
@@ -563,18 +584,22 @@ export default function Home() {
         )}
       </section>
       <div className="entrance-room-label">
-        <span>CLASSIC MEETS MODERN</span>
+        <span>{t("entrance.roomLabelEyebrow").toUpperCase()}</span>
         <p>{BRAND.name}</p>
       </div>
       <footer className="entrance-footer">
         <span>
-          {BRAND.tagline.toUpperCase()}. SHARED MOMENTS.
-          <Link href="/support" className="entrance-footer-link">SUPPORT</Link>
-          <Link href="/privacy" className="entrance-footer-link">PRIVACY</Link>
+          {BRAND.tagline.toUpperCase()}. {t("entrance.footerTagline").toUpperCase()}
+          <Link href="/support" className="entrance-footer-link">
+            {t("common.support").toUpperCase()}
+          </Link>
+          <Link href="/privacy" className="entrance-footer-link">
+            {t("common.privacy").toUpperCase()}
+          </Link>
         </span>
         <span>
           <i className="connection-dot" />
-          TAKE YOUR TIME. STAY A WHILE.
+          {t("entrance.footerRight").toUpperCase()}
         </span>
       </footer>
     </main>

@@ -11,9 +11,11 @@ import { CosmeticsLocker } from "@/components/profile/CosmeticsLocker";
 import { FriendsPanel } from "@/components/profile/FriendsPanel";
 import { MatchHistory } from "@/components/profile/MatchHistory";
 import { Icon } from "@/components/simulator/Icon";
+import { useI18n } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -43,7 +45,7 @@ export default function ProfilePage() {
         if (!cancelled) setProfile(data);
       } catch (err) {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : "Could not load your profile.");
+          setError(err instanceof Error ? err.message : t("profile.loadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -52,6 +54,8 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
+    // `t` only feeds the catch fallback; excluding it avoids a locale-change refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, user, authenticated]);
 
   return (
@@ -61,7 +65,7 @@ export default function ProfilePage() {
       <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
       <div className="entrance-shade" />
       <header className="entrance-header">
-        <Link href="/" className="sim-brand" aria-label="Back to the apartment">
+        <Link href="/" className="sim-brand" aria-label={t("actions.homeLabel")}>
           <span className="brand-mark">
             <i />
             <i />
@@ -74,14 +78,15 @@ export default function ProfilePage() {
         </Link>
         <Link href="/" className="profile-trigger leaderboard-back">
           <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>Back to the apartment</small>
+          <small>{t("actions.backHome")}</small>
         </Link>
       </header>
 
       <section className="leaderboard-content">
-        <span className="eyebrow">YOUR RECORD</span>
+        <span className="eyebrow">{t("profile.eyebrow").toUpperCase()}</span>
         <h1>
-          Your <em>profile</em>
+          {t("profile.titlePre")}
+          <em>{t("profile.titleEm")}</em>
         </h1>
 
         {error ? (
@@ -89,7 +94,7 @@ export default function ProfilePage() {
             {error}
           </p>
         ) : loading ? (
-          <div className="leaderboard-loading" aria-label="Loading your profile">
+          <div className="leaderboard-loading" aria-label={t("profile.loading")}>
             {Array.from({ length: 5 }, (_, i) => (
               <span key={i} />
             ))}
@@ -98,8 +103,8 @@ export default function ProfilePage() {
           <div className="leaderboard-record">
             <Icon name="users" size={18} />
             <div>
-              <span className="eyebrow">NO PROFILE YET</span>
-              <p>Sign in from your profile on the home page to start tracking your stats.</p>
+              <span className="eyebrow">{t("profile.noProfileEyebrow").toUpperCase()}</span>
+              <p>{t("profile.noProfileBody")}</p>
             </div>
           </div>
         ) : profile && profile.visibility === "visible" ? (
@@ -110,7 +115,7 @@ export default function ProfilePage() {
             <CosmeticsLocker />
           </>
         ) : (
-          <p className="leaderboard-message">Play a match to start your profile.</p>
+          <p className="leaderboard-message">{t("profile.playToStart")}</p>
         )}
       </section>
     </main>

@@ -1,5 +1,8 @@
 "use client";
 
+import { useT } from "@/lib/i18n";
+
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -24,6 +27,7 @@ const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
 type Phase = "loading" | "watching" | "ended" | "error";
 
 export function WatchView({ roomId }: { roomId: string }) {
+  const tx = useT();
   const client = useMemo(() => createClient(), []);
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("loading");
@@ -31,7 +35,7 @@ export function WatchView({ roomId }: { roomId: string }) {
   const [state, setState] = useState<GameRoomState | null>(null);
   const [events, setEvents] = useState<MatchEventRow[]>([]);
   const [cheers, setCheers] = useState<AudienceReaction[]>([]);
-  const nameRef = useRef<string>("Watcher");
+  const nameRef = useRef<string>(tx("watching.watcher"));
 
   const cheer = (reaction: AudienceReaction) => {
     setCheers((all) => [...all.slice(-5), reaction]);
@@ -60,7 +64,7 @@ export function WatchView({ roomId }: { roomId: string }) {
         await ensureSession(c);
         const { data } = await c.auth.getUser();
         nameRef.current =
-          (data.user?.user_metadata?.display_name as string) || "Watcher";
+          (data.user?.user_metadata?.display_name as string) || tx("watching.watcher");
         const { watchTopic } = await joinWatch(c, roomId, nameRef.current);
         if (cancelled) return;
 
@@ -89,14 +93,14 @@ export function WatchView({ roomId }: { roomId: string }) {
         const text = err instanceof Error ? err.message : "Could not join.";
         setMessage(
           text.includes("WATCHING_OFF")
-            ? "This table isn't open for watching right now."
+            ? tx("watching.closed")
             : text.includes("AGE_RESTRICTED")
-              ? "Watching online tables is for players 13 and older."
+              ? tx("watching.minimumAge")
               : text.includes("AGE_REQUIRED")
-                ? "Answer the age question on the home page first, then come back to watch."
+                ? tx("watching.ageRequired")
                 : text.includes("ALREADY_SEATED")
-                  ? "You're seated at this table — you're already in the game."
-                  : "This table isn't available to watch.",
+                  ? tx("watching.alreadySeated")
+                  : tx("watching.unavailable"),
         );
         setPhase("error");
       }
@@ -107,25 +111,27 @@ export function WatchView({ roomId }: { roomId: string }) {
       void leaveWatch(c, roomId).catch(() => {});
       if (channel) void c.removeChannel(channel);
     };
+    // `tx` is only read in error branches; excluding it keeps a language change
+    // from re-joining the table. Existing error text stays until the next join.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId]);
 
-  if (phase === "loading") return <TableLoading label="Joining the table…" />;
+  if (phase === "loading") return <TableLoading label={tx("watching.joining")} />;
 
   if (phase === "error" || phase === "ended")
     return (
       <div className="replay-message" role="alert">
         <p>
           {phase === "ended"
-            ? "The table closed watching."
-            : message ?? "This table isn't available to watch."}
+            ? tx("watching.ended")
+            : message ?? tx("watching.unavailable")}
         </p>
         <Link href="/" className="sim-primary">
-          Back to the apartment
-        </Link>
+          {tx("actions.backHome")}</Link>
       </div>
     );
 
-  if (!state) return <TableLoading label="Joining the table…" />;
+  if (!state) return <TableLoading label={tx("watching.joining")} />;
 
   return (
     <main className="simulator watch-simulator">
@@ -143,7 +149,7 @@ export function WatchView({ roomId }: { roomId: string }) {
         <button
           type="button"
           className="replay-exit"
-          aria-label="Stop watching"
+          aria-label={tx("watching.stop")}
           onClick={() => {
             void leaveWatch(client, roomId).catch(() => {});
             router.push("/");
@@ -152,11 +158,10 @@ export function WatchView({ roomId }: { roomId: string }) {
           <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
         </button>
         <span className="replay-tag">
-          <Icon name="look" size={13} /> WATCHING
-        </span>
+          <Icon name="look" size={13} /> {tx("watching.label")}</span>
       </header>
 
-      <div className="watch-reactions" aria-label="Send a reaction">
+      <div className="watch-reactions" aria-label={tx("watching.sendReaction")}>
         {REACTION_EMOJI_ROWS[0].map((emoji) => (
           <button
             key={emoji}
@@ -169,7 +174,7 @@ export function WatchView({ roomId }: { roomId: string }) {
       </div>
 
       {cheers.length > 0 && (
-        <ul className="party-cheers" aria-label="Watcher reactions">
+        <ul className="party-cheers" aria-label={tx("watching.reactions")}>
           {cheers.map((c) => (
             <li key={c.id} className={isPhrase(c.text) ? "is-phrase" : ""}>
               <span>{c.text}</span>

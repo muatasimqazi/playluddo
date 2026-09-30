@@ -6,6 +6,7 @@ import { QUADRANT_CLASSES } from "@/components/shared/colors";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { useCountdown } from "@/lib/hooks/useCountdown";
+import { useT } from "@/lib/i18n";
 import type { GameRoomState, Player } from "@/lib/board/types";
 
 // Shared spring for anything on the pod that "pops" rather than fades —
@@ -49,6 +50,7 @@ export function StatusPod({
   align = "left",
   lastRoll,
 }: StatusPodProps) {
+  const t = useT();
   const classes = QUADRANT_CLASSES[player.color];
   const secondsLeft = useCountdown(isCurrentTurn ? turnDeadlineAt : null);
   const isLow = secondsLeft !== null && secondsLeft <= 5;
@@ -130,18 +132,18 @@ export function StatusPod({
     <div className={`min-w-0 flex-1 ${isRight ? "text-right" : ""}`}>
       <div className={`flex items-center gap-1.5 ${isRight ? "justify-end" : ""}`}>
         {isRight && isYou && (
-          <span className="shrink-0 rounded-full bg-action px-1.5 py-0.5 text-label-sm text-white">YOU</span>
+          <span className="shrink-0 rounded-full bg-action px-1.5 py-0.5 text-label-sm text-white">{t("game.you")}</span>
         )}
         <span className="truncate text-body-sm font-medium text-foreground">{player.displayName}</span>
         {!isRight && isYou && (
-          <span className="shrink-0 rounded-full bg-action px-1.5 py-0.5 text-label-sm text-white">YOU</span>
+          <span className="shrink-0 rounded-full bg-action px-1.5 py-0.5 text-label-sm text-white">{t("game.you")}</span>
         )}
       </div>
       <div className={`flex items-center gap-1 text-label-sm text-text-secondary ${isRight ? "justify-end" : ""}`}>
         <StatusBadge player={player} />
         <span aria-hidden>·</span>
         <span>
-          {pawnCount.finished}/{pawnCount.total} home
+          {t("game.homeCount", pawnCount)}
         </span>
         {/* Always mounted (unlike the old "only once they've rolled"
             version) so this segment's presence never itself resizes the
@@ -164,7 +166,7 @@ export function StatusPod({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
             transition={POP_TRANSITION}
-            aria-label={lastRoll != null ? `Rolled ${lastRoll}` : "No roll yet"}
+            aria-label={lastRoll != null ? t("game.rolled", { value: lastRoll }) : t("game.noRollYet")}
           >
             <span aria-hidden>·</span>
             {lastRoll != null && <DicePipFace value={lastRoll} />}
@@ -213,6 +215,7 @@ export function StatusPod({
 }
 
 function TimerPill({ isLow, secondsLeft }: { isLow: boolean; secondsLeft: number }) {
+  const t = useT();
   return (
     <motion.div
       className={`shrink-0 rounded-full px-2 py-0.5 text-label-sm tabular-nums ${
@@ -225,16 +228,17 @@ function TimerPill({ isLow, secondsLeft }: { isLow: boolean; secondsLeft: number
       role="timer"
       aria-live="polite"
     >
-      {secondsLeft}s
+      {t("game.seconds", { seconds: secondsLeft })}
     </motion.div>
   );
 }
 
 function StatusBadge({ player }: { player: Player }) {
-  if (player.isBot || player.status === "bot") return <span>Bot</span>;
-  if (player.status === "inactive") return <span>Inactive</span>;
-  if (player.status === "disconnected") return <span>Disconnected</span>;
-  return <span>Connected</span>;
+  const t = useT();
+  if (player.isBot || player.status === "bot") return <span>{t("game.bot")}</span>;
+  if (player.status === "inactive") return <span>{t("game.inactive")}</span>;
+  if (player.status === "disconnected") return <span>{t("game.disconnected")}</span>;
+  return <span>{t("game.connected")}</span>;
 }
 
 export function pawnCountFor(roomState: GameRoomState, color: Player["color"]) {

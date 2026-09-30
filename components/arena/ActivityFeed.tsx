@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { Player } from "@/lib/board/types";
+import { useT, type Translator } from "@/lib/i18n";
 
 interface ActivityFeedProps {
   events: MatchEventRow[];
@@ -13,6 +14,7 @@ interface ActivityFeedProps {
 
 /** PRD 5.2: concise event feed — rolls, moves, captures, home entries, bot takeovers, reconnects, win state. */
 export function ActivityFeed({ events, players }: ActivityFeedProps) {
+  const t = useT();
   const playerById = new Map(players.map((p) => [p.id, p]));
   // Newest first, matching the reference's "Just now" → "4m ago" ordering.
   const ordered = [...events].reverse();
@@ -20,14 +22,14 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 items-center justify-between px-1 pb-3">
-        <span className="text-label-md text-foreground">Match Events</span>
+        <span className="text-label-md text-foreground">{t("game.matchEvents")}</span>
         <span className="flex items-center gap-1 rounded-full bg-quadrant-green-tint px-2 py-0.5 text-label-sm text-quadrant-green">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-quadrant-green" aria-hidden />
-          LIVE
+          {t("game.live").toUpperCase()}
         </span>
       </div>
       <div className="flex-1 space-y-2 overflow-y-auto">
-        {ordered.length === 0 && <p className="px-1 text-body-sm text-text-muted">No events yet.</p>}
+        {ordered.length === 0 && <p className="px-1 text-body-sm text-text-muted">{t("game.noEventsYet")}</p>}
         {/* initial={false}: only events that arrive AFTER first mount get
             the slide-in — the feed a player joins mid-match to shouldn't
             cascade-animate its whole backlog in at once. */}
@@ -47,9 +49,9 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-1.5">
                     {player && <PlayerAvatar player={player} size={24} />}
-                    <span className="truncate text-label-md text-foreground">{player?.displayName ?? "Match"}</span>
+                    <span className="truncate text-label-md text-foreground">{player?.displayName ?? t("game.match")}</span>
                   </div>
-                  <RelativeTime iso={event.created_at} />
+                  <RelativeTime iso={event.created_at} t={t} />
                 </div>
                 <p className="text-body-sm text-text-secondary">{describeEvent(event)}</p>
               </motion.div>
@@ -61,7 +63,7 @@ export function ActivityFeed({ events, players }: ActivityFeedProps) {
   );
 }
 
-function RelativeTime({ iso }: { iso: string }) {
+function RelativeTime({ iso, t }: { iso: string; t: Translator }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15_000);
@@ -70,10 +72,10 @@ function RelativeTime({ iso }: { iso: string }) {
 
   const seconds = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
   let label: string;
-  if (seconds < 10) label = "Just now";
-  else if (seconds < 60) label = `${seconds}s ago`;
-  else if (seconds < 3600) label = `${Math.floor(seconds / 60)}m ago`;
-  else label = `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 10) label = t("game.justNow");
+  else if (seconds < 60) label = t("game.secondsAgo", { seconds });
+  else if (seconds < 3600) label = t("game.minutesAgo", { minutes: Math.floor(seconds / 60) });
+  else label = t("game.hoursAgo", { hours: Math.floor(seconds / 3600) });
 
   return <span className="shrink-0 text-label-sm text-text-muted">{label}</span>;
 }

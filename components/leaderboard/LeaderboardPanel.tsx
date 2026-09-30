@@ -1,5 +1,8 @@
+"use client";
+
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import type { LeaderboardEntry } from "@/lib/supabase/leaderboard";
+import { useI18n } from "@/lib/i18n";
 
 // Podium order left to right: 2nd, 1st (raised), 3rd.
 const PODIUM_ORDER = [1, 0, 2];
@@ -18,6 +21,7 @@ export function LeaderboardPanel({
   myUserId: string | null;
   emptyMessage: string;
 }) {
+  const { t } = useI18n();
   if (entries.length === 0) {
     return <p className="leaderboard-message">{emptyMessage}</p>;
   }
@@ -46,8 +50,10 @@ export function LeaderboardPanel({
               />
               <strong>{entry.displayName}</strong>
               <span>
-                {entry.wins} {entry.wins === 1 ? "win" : "wins"}
-                {entry.userId === myUserId && <small className="leaderboard-you">YOU</small>}
+                {t(entry.wins === 1 ? "leaderboard.winOne" : "leaderboard.winOther", { count: entry.wins })}
+                {entry.userId === myUserId && (
+                  <small className="leaderboard-you">{t("leaderboard.you").toUpperCase()}</small>
+                )}
               </span>
               <i aria-hidden>{entry.rank}</i>
             </li>
@@ -69,9 +75,11 @@ export function LeaderboardPanel({
                 size={30}
               />
               <strong>{entry.displayName}</strong>
-              {entry.userId === myUserId && <small className="leaderboard-you">YOU</small>}
+              {entry.userId === myUserId && (
+                <small className="leaderboard-you">{t("leaderboard.you").toUpperCase()}</small>
+              )}
               <span className="leaderboard-wins">
-                {entry.wins} {entry.wins === 1 ? "win" : "wins"}
+                {t(entry.wins === 1 ? "leaderboard.winOne" : "leaderboard.winOther", { count: entry.wins })}
               </span>
             </li>
           ))}

@@ -6,13 +6,14 @@ import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
 import { BRAND } from "@/lib/brand";
 import { getTeamSeason, type TeamSeason } from "@/lib/supabase/seasons";
+import { useI18n, type LocaleCode, type Translator } from "@/lib/i18n";
 
-function formatWeek(startISO: string, endISO: string): string {
+function formatWeek(startISO: string, endISO: string, locale: LocaleCode): string {
   const start = new Date(`${startISO}T00:00:00Z`);
   const end = new Date(`${endISO}T00:00:00Z`);
   const sameMonth = start.getUTCMonth() === end.getUTCMonth();
   const day = (d: Date, withMonth: boolean) =>
-    d.toLocaleDateString(undefined, {
+    d.toLocaleDateString(locale, {
       timeZone: "UTC",
       day: "numeric",
       ...(withMonth ? { month: "short" } : {}),
@@ -21,17 +22,22 @@ function formatWeek(startISO: string, endISO: string): string {
 }
 
 /** The one-line story of the season, reused in the card and the shared image. */
-function headline(season: TeamSeason): string {
+function headline(t: Translator, season: TeamSeason): string {
   const leader = season.champion ?? season.standings[0] ?? null;
-  if (!leader) return "No games played this week yet.";
-  const record = `${leader.wins} of ${leader.played}`;
+  if (!leader) return t("leaderboard.noGamesWeek");
+  const record = t("leaderboard.headlineRecord", { wins: leader.wins, played: leader.played });
   return season.isCurrent
-    ? `${leader.displayName} leads with ${record} so far.`
-    : `${leader.displayName} won ${record} this week.`;
+    ? t("leaderboard.leadsWith", { name: leader.displayName, record })
+    : t("leaderboard.wonThisWeek", { name: leader.displayName, record });
 }
 
 /** Draws the recap card to a PNG so it can be shared to social media (F4.2). */
-function drawRecap(season: TeamSeason, teamName: string): Promise<Blob | null> {
+function drawRecap(
+  t: Translator,
+  locale: LocaleCode,
+  season: TeamSeason,
+  teamName: string,
+): Promise<Blob | null> {
   const size = 1080;
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -59,7 +65,7 @@ function drawRecap(season: TeamSeason, teamName: string): Promise<Blob | null> {
   ctx.fillStyle = "#a9b6a0";
   ctx.font = "400 40px system-ui, -apple-system, sans-serif";
   ctx.fillText(
-    `${season.isCurrent ? "This week" : "Season"} · ${formatWeek(season.seasonStart, season.seasonEnd)}`,
+    `${season.isCurrent ? t("leaderboard.thisWeek") : t("leaderboard.season")} · ${formatWeek(season.seasonStart, season.seasonEnd, locale)}`,
     pad,
     322,
   );
@@ -67,7 +73,7 @@ function drawRecap(season: TeamSeason, teamName: string): Promise<Blob | null> {
   // Headline, wrapped to the card width.
   ctx.fillStyle = "#f3f4e8";
   ctx.font = "600 58px system-ui, -apple-system, sans-serif";
-  const words = headline(season).split(" ");
+  const words = headline(t, season).split(" ");
   let line = "";
   let y = 470;
   for (const word of words) {
@@ -117,6 +123,7 @@ export function TeamSeasonPanel({
   weeksAgo: number;
   myUserId: string | null;
 }) {
+  const { t, locale } = useI18n();
   const [season, setSeason] = useState<TeamSeason | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +139,7 @@ export function TeamSeasonPanel({
         if (!cancelled) setSeason(data);
       } catch (err) {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : "Could not load the season.");
+          setError(err instanceof Error ? err.message : t("leaderboard.seasonLoadError"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -141,17 +148,19 @@ export function TeamSeasonPanel({
     return () => {
       cancelled = true;
     };
+    // `t` only feeds the catch fallback; excluding it avoids a locale-change reload.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, teamId, weeksAgo]);
 
   async function shareRecap() {
     if (!season) return;
     setSharing(true);
     try {
-      const blob = await drawRecap(season, teamName);
+      const blob = await drawRecap(t, locale, season, teamName);
       if (!blob) return;
       const file = new File([blob], `${teamName}-season.png`, { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], text: headline(season) });
+        await navigator.share({ files: [file], text: headline(t, season) });
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -162,7 +171,7 @@ export function TeamSeasonPanel({
       URL.revokeObjectURL(url);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setError("Could not share the recap. Try again.");
+      setError(t("leaderboard.shareError"));
     } finally {
       setSharing(false);
     }
@@ -170,7 +179,7 @@ export function TeamSeasonPanel({
 
   if (loading)
     return (
-      <div className="leaderboard-loading" aria-label="Loading the season">
+      <div className="leaderboard-loading" aria-label={t("leaderboard.loadingSeason")}>
         {Array.from({ length: 5 }, (_, i) => (
           <span key={i} />
         ))}
@@ -189,24 +198,22 @@ export function TeamSeasonPanel({
       <div className="season-head">
         <div>
           <span className="eyebrow">
-            {season.isCurrent ? "THIS WEEK" : "SEASON"}
+            {season.isCurrent ? t("leaderboard.thisWeek").toUpperCase() : t("leaderboard.season").toUpperCase()}
           </span>
-          <strong>{formatWeek(season.seasonStart, season.seasonEnd)}</strong>
+          <strong>{formatWeek(season.seasonStart, season.seasonEnd, locale)}</strong>
         </div>
         {season.champion && (
           <span className="season-champion-badge">
             <Icon name="trophy" size={15} />
-            Champion
+            {t("tournaments.champion")}
           </span>
         )}
       </div>
 
-      <p className="season-headline">{headline(season)}</p>
+      <p className="season-headline">{headline(t, season)}</p>
 
       {season.standings.length === 0 ? (
-        <p className="leaderboard-message">
-          No completed games in a team room this week yet — play one to open the season.
-        </p>
+        <p className="leaderboard-message">{t("leaderboard.seasonEmpty")}</p>
       ) : (
         <>
           <ol className="season-standings">
@@ -233,11 +240,11 @@ export function TeamSeasonPanel({
                 <span className="season-name">
                   {entry.displayName}
                   {entry.userId === myUserId && (
-                    <small className="leaderboard-you">YOU</small>
+                    <small className="leaderboard-you">{t("leaderboard.you").toUpperCase()}</small>
                   )}
                 </span>
                 <span className="season-record">
-                  <strong>{entry.wins}</strong> of {entry.played}
+                  <strong>{entry.wins}</strong> {t("leaderboard.of")} {entry.played}
                 </span>
               </li>
             ))}
@@ -249,7 +256,7 @@ export function TeamSeasonPanel({
             disabled={sharing}
           >
             <Icon name="share" size={15} />
-            {sharing ? "Preparing…" : "Share recap"}
+            {sharing ? t("leaderboard.preparing") : t("leaderboard.shareRecap")}
           </button>
         </>
       )}

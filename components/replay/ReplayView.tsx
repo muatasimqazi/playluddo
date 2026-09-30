@@ -1,5 +1,8 @@
 "use client";
 
+import { useT } from "@/lib/i18n";
+
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -46,6 +49,7 @@ function frameFor(replay: Replay, index: number): PresentationFrame {
 }
 
 export function ReplayView({ matchId }: { matchId: string }) {
+  const tx = useT();
   const client = useMemo(() => createClient(), []);
   const [replay, setReplay] = useState<Replay | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -68,13 +72,17 @@ export function ReplayView({ matchId }: { matchId: string }) {
         }
       } catch (err) {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : "Could not load this replay.");
+          setError(err instanceof Error ? err.message : tx("replay.loadError"));
       }
     }
     void load();
     return () => {
       cancelled = true;
     };
+    // `tx` is only read in the catch fallback; excluding it keeps a language
+    // change from refetching the whole transcript. The message it produces is
+    // shown until the next load anyway.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, matchId]);
 
   const steps = replay?.steps ?? [];
@@ -100,13 +108,13 @@ export function ReplayView({ matchId }: { matchId: string }) {
       const blob = await recordHighlight({
         source: canvas,
         durationMs: 8000,
-        caption: steps[index]?.caption ?? "Highlight",
+        caption: steps[index]?.caption ?? tx("replay.highlight"),
       });
       setClipState("sharing");
-      await shareClip(blob, steps[index]?.caption ?? "Highlight");
+      await shareClip(blob, steps[index]?.caption ?? tx("replay.highlight"));
     } catch (err) {
       if (!(err instanceof DOMException && err.name === "AbortError"))
-        setError(err instanceof Error ? err.message : "Could not save the highlight.");
+        setError(err instanceof Error ? err.message : tx("replay.saveError"));
     } finally {
       setClipState("idle");
     }
@@ -117,11 +125,10 @@ export function ReplayView({ matchId }: { matchId: string }) {
       <div className="replay-message" role="alert">
         <p>{error}</p>
         <Link href="/" className="sim-primary">
-          Back to the apartment
-        </Link>
+          {tx("actions.backHome")}</Link>
       </div>
     );
-  if (!replay) return <TableLoading label="Loading the replay" />;
+  if (!replay) return <TableLoading label={tx("replay.loading")} />;
 
   const step = steps[index];
   const frame = frameFor(replay, index);
@@ -129,7 +136,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
   return (
     <main className="simulator replay-simulator" ref={rootRef}>
       <Scene
-        loadingLabel="Loading the replay"
+        loadingLabel={tx("replay.loading")}
         gameType={replay.gameType}
         snakesBoard={0}
         frame={frame}
@@ -152,10 +159,10 @@ export function ReplayView({ matchId }: { matchId: string }) {
       />
 
       <header className="replay-top">
-        <Link href="/" className="replay-exit" aria-label="Leave the replay">
+        <Link href="/" className="replay-exit" aria-label={tx("replay.leave")}>
           <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
         </Link>
-        <span className="replay-tag">REPLAY</span>
+        <span className="replay-tag">{tx("replay.label")}</span>
       </header>
 
       <div className="replay-caption" role="status" aria-live="polite">
@@ -166,7 +173,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
         <div className="replay-buttons">
           <button
             type="button"
-            aria-label="Restart"
+            aria-label={tx("actions.restart")}
             onClick={() => {
               setIndex(0);
               setPlaying(true);
@@ -177,7 +184,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
           <button
             type="button"
             className="replay-play"
-            aria-label={playing ? "Pause" : atEnd ? "Watch again" : "Play"}
+            aria-label={playing ? tx("actions.pause") : atEnd ? tx("actions.watchAgain") : tx("actions.play")}
             onClick={() => {
               if (atEnd) setIndex(0);
               setPlaying((p) => !p || atEnd);
@@ -188,7 +195,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
           <button
             type="button"
             className="replay-speed"
-            aria-label="Playback speed"
+            aria-label={tx("replay.speed")}
             onClick={() => setSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1))}
           >
             {speed}×
@@ -202,10 +209,10 @@ export function ReplayView({ matchId }: { matchId: string }) {
             >
               <Icon name="share" size={15} />
               {clipState === "recording"
-                ? "Recording…"
+                ? tx("replay.recording")
                 : clipState === "sharing"
-                  ? "Saving…"
-                  : "Save clip"}
+                  ? tx("actions.saving")
+                  : tx("replay.saveClip")}
             </button>
           )}
         </div>
@@ -216,7 +223,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
           min={0}
           max={steps.length - 1}
           value={index}
-          aria-label="Scrub through the match"
+          aria-label={tx("replay.scrub")}
           onChange={(e) => {
             setPlaying(false);
             setIndex(Number(e.target.value));

@@ -28,6 +28,7 @@ import {
 import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { useCast } from "@/lib/hooks/useCast";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
@@ -179,7 +180,10 @@ export function RoomLobby({
             LUDDO<small>House</small>
           </span>
         </Link>
-        <span>THE EVENING IS JUST BEGINNING.</span>
+        <div className="entrance-header-actions">
+          <span>THE EVENING IS JUST BEGINNING.</span>
+          <LanguageSwitcher className="profile-trigger" />
+        </div>
       </header>
       <section className="entrance-content room-lobby">
         <span className="eyebrow">YOUR PRIVATE TABLE</span>

@@ -7,6 +7,7 @@ import { ensureSession } from "@/lib/supabase/auth";
 import { cancelMatchmaking, matchmake } from "@/lib/supabase/rpc";
 import type { GameType } from "@/lib/board/types";
 import { Icon } from "@/components/simulator/Icon";
+import { useI18n, type Translator } from "@/lib/i18n";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 
 const POLL_MS = 2000;
@@ -38,6 +39,7 @@ export function QuickMatch({
   onCancel: () => void;
 }) {
   const router = useRouter();
+  const { t: tx } = useI18n();
   const [phase, setPhase] = useState<Phase>({ kind: "searching" });
   const [elapsed, setElapsed] = useState(0);
   const [found, setFound] = useState(0);
@@ -95,10 +97,10 @@ export function QuickMatch({
         setPhase({
           kind: "error",
           message: askedForAge
-            ? "Online tables need your birth month and year first."
+            ? tx("quickMatch.needBirthFirst")
             : error instanceof Error
               ? error.message
-              : "Could not reach the table.",
+              : tx("quickMatch.couldNotReach"),
         });
       }
     }
@@ -111,7 +113,7 @@ export function QuickMatch({
         if (current.stopped) return;
         setPhase({
           kind: "error",
-          message: error instanceof Error ? error.message : "Could not sign in to play online.",
+          message: error instanceof Error ? error.message : tx("quickMatch.couldNotSignIn"),
         });
       },
     );
@@ -130,6 +132,9 @@ export function QuickMatch({
           .then(() => cancelMatchmaking(client))
           .catch(() => {});
     };
+    // `tx` is only read in the error branches; excluding it keeps a language
+    // change from restarting the matchmaking poll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameType, playerCount, displayName, router, attempt, handleAge]);
 
   useEffect(() => {
@@ -165,27 +170,47 @@ export function QuickMatch({
 
   const remaining = Math.max(0, Math.ceil(TIMEOUT_SECONDS - elapsed));
   const progress = Math.min(1, elapsed / TIMEOUT_SECONDS);
-  const gameName = gameType === "ludo" ? "Ludo" : "Snakes & Ladders";
+  const gameName = gameType === "ludo" ? tx("entrance.ludo") : tx("entrance.snakes");
   const needed = playerCount - 1;
+  const seatsFound = tx(needed === 1 ? "quickMatch.opponentFound" : "quickMatch.opponentsFound", {
+    found,
+    needed,
+  });
+
+  // [first line, emphasized second line] for whichever phase is showing.
+  const headline: [string, string] =
+    phase.kind === "matched"
+      ? matchedHeadline(tx, phase.players, phase.computers)
+      : phase.kind === "error"
+        ? [tx("quickMatch.errorTitle1"), tx("quickMatch.errorTitleEm")]
+        : needed === 1
+          ? [tx("quickMatch.searchOpponent1"), tx("quickMatch.searchOpponentEm")]
+          : [tx("quickMatch.searchTable1"), tx("quickMatch.searchTableEm")];
 
   return (
     <>
       {age.gate}
       <div className="quick-match" role="status" aria-live="polite">
-        <span className="eyebrow">QUICK MATCH · {gameName.toUpperCase()}</span>
+        <span className="eyebrow">
+          {tx("quickMatch.eyebrow").toUpperCase()} · {gameName.toUpperCase()}
+        </span>
         {phase.kind === "matched" ? (
           <>
-            <h1 style={{ fontSize: 44 }}>{matchedHeadline(phase.players, phase.computers)}</h1>
+            <h1 style={{ fontSize: 44 }}>
+              {headline[0]}
+              <br />
+              <em>{headline[1]}</em>
+            </h1>
             <p className="quick-match-note">
-              {matchedLineup(phase.players, phase.computers)} Setting the table…
+              {matchedLineup(tx, phase.players, phase.computers)} {tx("quickMatch.settingTable")}
             </p>
           </>
         ) : phase.kind === "error" ? (
           <>
             <h1 style={{ fontSize: 40 }}>
-              Couldn&apos;t reach
+              {headline[0]}
               <br />
-              the <em>table.</em>
+              <em>{headline[1]}</em>
             </h1>
             <p className="quick-match-note">{phase.message}</p>
             <div className="quick-match-actions">
@@ -198,28 +223,20 @@ export function QuickMatch({
                   setAttempt((n) => n + 1);
                 }}
               >
-                <span>Try again</span>
+                <span>{tx("actions.retry")}</span>
                 <Icon name="arrow" />
               </button>
               <button type="button" className="back-button" onClick={onCancel}>
-                ← Back
+                {tx("common.backArrow")}
               </button>
             </div>
           </>
         ) : (
           <>
             <h1 style={{ fontSize: 44 }}>
-              Finding you
+              {headline[0]}
               <br />
-              {needed === 1 ? (
-                <>
-                  an <em>opponent.</em>
-                </>
-              ) : (
-                <>
-                  a <em>table.</em>
-                </>
-              )}
+              <em>{headline[1]}</em>
             </h1>
             <div className="quick-match-timer">
               <svg viewBox="0 0 100 100" aria-hidden>
@@ -233,24 +250,25 @@ export function QuickMatch({
                 />
               </svg>
               <strong>{remaining}</strong>
-              <small>sec</small>
+              <small>{tx("quickMatch.sec")}</small>
             </div>
-            <div className="quick-match-seats" aria-label={`${found} of ${needed} opponents found`}>
+            <div className="quick-match-seats" aria-label={seatsFound}>
               {Array.from({ length: needed }, (_, i) => (
                 <i key={i} className={i < found ? "is-filled" : undefined} />
               ))}
-              <span>
-                {found} of {needed} {needed === 1 ? "opponent" : "opponents"} found
-              </span>
+              <span>{seatsFound}</span>
             </div>
             <p className="quick-match-note">
-              Looking for {needed === 1 ? "someone else" : `${needed} others`} starting a{" "}
-              {playerCount}-player {gameName} game. The table starts as soon as it fills — or
-              after {TIMEOUT_SECONDS} seconds, with computer players in any empty seats.
+              {tx(needed === 1 ? "quickMatch.lookingForOne" : "quickMatch.lookingForMany", {
+                others: needed,
+                count: playerCount,
+                game: gameName,
+                seconds: TIMEOUT_SECONDS,
+              })}
             </p>
             <div className="quick-match-actions">
               <button type="button" className="back-button" onClick={() => void cancel()}>
-                ← Cancel
+                {tx("quickMatch.cancelArrow")}
               </button>
             </div>
           </>
@@ -260,48 +278,33 @@ export function QuickMatch({
   );
 }
 
-function matchedHeadline(players: number, computers: number) {
+// Returns the [first line, emphasized second line] for the matched headline.
+// The whole second line is emphasized (rather than one word) so the phrasing
+// stays natural across languages with different word order.
+function matchedHeadline(tx: Translator, players: number, computers: number): [string, string] {
   const humans = players - computers;
   if (computers === 0)
-    return players === 2 ? (
-      <>
-        Opponent
-        <br />
-        <em>found.</em>
-      </>
-    ) : (
-      <>
-        The table&apos;s
-        <br />
-        <em>full.</em>
-      </>
-    );
+    return players === 2
+      ? [tx("quickMatch.matchedOpponentFound1"), tx("quickMatch.matchedOpponentFoundEm")]
+      : [tx("quickMatch.matchedTableFull1"), tx("quickMatch.matchedTableFullEm")];
   if (humans === 1)
-    return computers === 1 ? (
-      <>
-        A computer
-        <br />
-        takes the <em>seat.</em>
-      </>
-    ) : (
-      <>
-        Computers take
-        <br />
-        the <em>seats.</em>
-      </>
-    );
-  return (
-    <>
-      Let&apos;s
-      <br />
-      <em>play.</em>
-    </>
-  );
+    return computers === 1
+      ? [tx("quickMatch.matchedComputerSeat1"), tx("quickMatch.matchedComputerSeatEm")]
+      : [tx("quickMatch.matchedComputerSeats1"), tx("quickMatch.matchedComputerSeatsEm")];
+  return [tx("quickMatch.matchedLetsPlay1"), tx("quickMatch.matchedLetsPlayEm")];
 }
 
-function matchedLineup(players: number, computers: number) {
+function matchedLineup(tx: Translator, players: number, computers: number): string {
   const others = players - computers - 1;
-  const people = others === 0 ? "" : `${others} ${others === 1 ? "player" : "players"} online`;
-  const bots = computers === 0 ? "" : `${computers} ${computers === 1 ? "computer" : "computers"}`;
-  return `You vs ${[people, bots].filter(Boolean).join(" and ")}.`;
+  const people =
+    others === 0
+      ? ""
+      : tx(others === 1 ? "quickMatch.playerOnline" : "quickMatch.playersOnline", { count: others });
+  const bots =
+    computers === 0
+      ? ""
+      : tx(computers === 1 ? "quickMatch.computerOne" : "quickMatch.computersN", { count: computers });
+  if (people && bots) return tx("quickMatch.lineupPeopleAndBots", { people, bots });
+  if (people) return tx("quickMatch.lineupPeopleOnly", { people });
+  return tx("quickMatch.lineupBotsOnly", { bots });
 }

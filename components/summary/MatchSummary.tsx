@@ -1,5 +1,8 @@
 "use client";
 
+import { useT } from "@/lib/i18n";
+
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -21,6 +24,7 @@ interface MatchSummaryProps {
 }
 
 export function MatchSummary({ client, roomId }: MatchSummaryProps) {
+  const tx = useT();
   const router = useRouter();
   const roomState = useRoomStore((s) => s.roomState);
   const myPlayerId = useRoomStore((s) => s.myPlayerId);
@@ -56,7 +60,9 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
   // Team Up standings: each side's eight pawns counted together, and the
   // winning side (the one holding the first placement) shown first.
   const winningSide = roomState.winnerIds[0]
-    ? sideOf(playerById.get(roomState.winnerIds[0])?.color ?? "red")
+    ? // A PlayerColor drives team-side logic here, not display text — never a
+      // localized string. The fallback is the literal color, not tx("colors.*").
+      sideOf(playerById.get(roomState.winnerIds[0])?.color ?? "red")
     : 0;
   const teams = ([0, 1] as const)
     .map((side) => {
@@ -93,10 +99,10 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
   const rematchAction = !myPlayer
     ? null
     : myPlayer.rematchReady
-      ? { label: "Waiting for others…", disabled: true, onClick: () => {} }
+      ? { label: tx("summary.waiting"), disabled: true, onClick: () => {} }
       : roomState.players.some((p) => p.rematchReady)
-        ? { label: "Accept Rematch", disabled: false, onClick: () => run(() => acceptRematch(client, roomId)) }
-        : { label: "Request Rematch", disabled: false, onClick: () => run(() => requestRematch(client, roomId)) };
+        ? { label: tx("summary.acceptRematch"), disabled: false, onClick: () => run(() => acceptRematch(client, roomId)) }
+        : { label: tx("summary.requestRematch"), disabled: false, onClick: () => run(() => requestRematch(client, roomId)) };
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
@@ -111,11 +117,11 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
           </div>
         )}
         <p className="text-label-lg text-action">
-          {isAbandoned ? "Match Abandoned" : teamUp ? "Team Victory!" : "Victory!"}
+          {isAbandoned ? tx("summary.abandoned") : teamUp ? tx("summary.teamVictory") : tx("summary.victory")}
         </p>
         <h1 className="mt-1 text-headline-md tracking-tight text-foreground">
           {isAbandoned
-            ? "No active players remained"
+            ? tx("summary.noPlayers")
             : teamUp
               ? `${winningTeam.members.map((m) => m.displayName).join(" & ")} win as a team!`
               : `${playerById.get(roomState.winnerIds[0])?.displayName ?? "A player"} is the champion!`}
@@ -123,7 +129,7 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
       </div>
 
       <div className="flex flex-col gap-2 rounded-lg border border-hairline bg-surface p-3 shadow-elevation-1">
-        <h2 className="text-label-md text-foreground">Final Standings</h2>
+        <h2 className="text-label-md text-foreground">{tx("summary.standings")}</h2>
         {teamUp
           ? teams.map((team, index) => (
               <div key={team.side} className="flex flex-col gap-1">
@@ -170,7 +176,7 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
                     />
                   </PlayerProfileButton>
                   <span className="flex-1 truncate text-body-sm text-foreground">
-                    {player.displayName} {player.id === myPlayerId && "(You)"}
+                    {player.displayName} {player.id === myPlayerId && tx("summary.youSuffix")}
                   </span>
                   <span className="text-label-sm text-text-secondary">{finished}/4 home</span>
                 </div>
@@ -193,8 +199,7 @@ export function MatchSummary({ client, roomId }: MatchSummaryProps) {
         onClick={() => router.push("/")}
         className="h-12.5 rounded-md border border-hairline bg-white text-label-lg text-foreground transition-transform active:scale-97"
       >
-        Return to Lobby
-      </button>
+        {tx("summary.returnLobby")}</button>
 
       {error && (
         <p role="alert" className="text-center text-body-sm text-quadrant-red">

@@ -1,19 +1,31 @@
+"use client";
+
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
 import type { PlayerColor } from "@/lib/board/types";
 import type { VisibleProfile } from "@/lib/supabase/profile";
+import { useI18n, type Translator } from "@/lib/i18n";
 
-const MODE_LABELS: Record<string, string> = {
-  ludo: "Ludo",
-  snakes_and_ladders: "Snakes & Ladders",
+const MODE_KEYS: Record<string, "entrance.ludo" | "entrance.snakes"> = {
+  ludo: "entrance.ludo",
+  snakes_and_ladders: "entrance.snakes",
 };
 
-function modeLabel(mode: string) {
-  return MODE_LABELS[mode] ?? mode;
+function modeLabel(t: Translator, mode: string) {
+  const key = MODE_KEYS[mode];
+  return key ? t(key) : mode;
 }
 
-function colourLabel(colour: PlayerColor) {
-  return colour.charAt(0).toUpperCase() + colour.slice(1);
+const COLOUR_KEYS: Record<PlayerColor, "colors.red" | "colors.green" | "colors.yellow" | "colors.blue"> = {
+  red: "colors.red",
+  green: "colors.green",
+  yellow: "colors.yellow",
+  blue: "colors.blue",
+};
+
+function colourLabel(t: Translator, colour: PlayerColor) {
+  const label = t(COLOUR_KEYS[colour]);
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 function winRate(wins: number, games: number) {
@@ -29,6 +41,7 @@ function xpForLevelStart(level: number) {
 
 /** Progress toward the next level (F3.2). */
 function ProfileXpBar({ level, xp }: { level: number; xp: number }) {
+  const { t, locale } = useI18n();
   const start = xpForLevelStart(level);
   const next = xpForLevelStart(level + 1);
   const into = xp - start;
@@ -40,7 +53,11 @@ function ProfileXpBar({ level, xp }: { level: number; xp: number }) {
         <span style={{ width: `${pct}%` }} />
       </div>
       <small>
-        {xp.toLocaleString()} XP · {(next - xp).toLocaleString()} to level {level + 1}
+        {t("profile.xpProgress", {
+          xp: xp.toLocaleString(locale),
+          remaining: (next - xp).toLocaleString(locale),
+          level: level + 1,
+        })}
       </small>
     </div>
   );
@@ -52,6 +69,7 @@ function ProfileXpBar({ level, xp }: { level: number; xp: number }) {
  * it renders a profile the caller is already allowed to see.
  */
 export function ProfileCard({ profile }: { profile: VisibleProfile }) {
+  const { t } = useI18n();
   const {
     displayName,
     avatarId,
@@ -88,11 +106,11 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
         />
         <div>
           <strong>{displayName}</strong>
-          <small>{isSelf ? "This is you" : "At the table"}</small>
+          <small>{isSelf ? t("profile.thisIsYou") : t("profile.atTheTable")}</small>
         </div>
-        <span className="profile-level" aria-label={`Level ${level}, ${xp} XP`}>
+        <span className="profile-level" aria-label={t("profile.levelAria", { level, xp })}>
           <b>{level}</b>
-          <small>LEVEL</small>
+          <small>{t("profile.levelLabel").toUpperCase()}</small>
         </span>
       </div>
 
@@ -102,13 +120,11 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
         <p className="profile-streak">
           <span className="profile-streak-flame" aria-hidden="true">🔥</span>
           <span>
-            <strong>
-              {currentStreak}-day streak
-            </strong>
+            <strong>{t("profile.streakDays", { count: currentStreak })}</strong>
             <small>
-              Longest {longestStreak}
+              {t("profile.streakLongest", { count: longestStreak })}
               {isSelf && streakFreezes > 0
-                ? ` · ${streakFreezes} freeze${streakFreezes === 1 ? "" : "s"}`
+                ? ` · ${t(streakFreezes === 1 ? "profile.freezeOne" : "profile.freezeOther", { count: streakFreezes })}`
                 : ""}
             </small>
           </span>
@@ -117,55 +133,54 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
 
       {!played ? (
         <p className="profile-stats-empty">
-          No completed online games yet — {isSelf ? "your" : "their"} stats appear here after the
-          first finished match.
+          {isSelf ? t("profile.noGamesSelf") : t("profile.noGamesOther")}
         </p>
       ) : (
         <>
           <div className="profile-stats-grid">
             <div className="profile-stat">
               <span>{gamesPlayed}</span>
-              <small>Games played</small>
+              <small>{t("profile.statGamesPlayed")}</small>
             </div>
             <div className="profile-stat">
               <span>{winRate(wins, gamesPlayed)}</span>
-              <small>Win rate</small>
+              <small>{t("profile.statWinRate")}</small>
             </div>
             <div className="profile-stat">
               <span>{wins}</span>
-              <small>{wins === 1 ? "Win" : "Wins"}</small>
+              <small>{wins === 1 ? t("profile.statWin") : t("profile.statWins")}</small>
             </div>
             <div className="profile-stat">
               <span>{totalCaptures}</span>
-              <small>Captures</small>
+              <small>{t("profile.statCaptures")}</small>
             </div>
             <div className="profile-stat">
               <span>{totalSixes}</span>
-              <small>Sixes rolled</small>
+              <small>{t("profile.statSixes")}</small>
             </div>
             <div className="profile-stat">
               <span className="profile-stat-colour">
                 {favouriteColour ? (
                   <>
                     <i data-colour={favouriteColour} />
-                    {colourLabel(favouriteColour)}
+                    {colourLabel(t, favouriteColour)}
                   </>
                 ) : (
                   "—"
                 )}
               </span>
-              <small>Favourite colour</small>
+              <small>{t("profile.statFavColour")}</small>
             </div>
           </div>
 
           {winRateByMode.length > 0 && (
             <section className="profile-stats-section">
-              <span className="eyebrow">BY GAME</span>
+              <span className="eyebrow">{t("profile.byGame").toUpperCase()}</span>
               <ul className="profile-modes">
                 {winRateByMode.map((row) => (
                   <li key={row.mode}>
                     <Icon name="dice" size={14} />
-                    <span>{modeLabel(row.mode)}</span>
+                    <span>{modeLabel(t, row.mode)}</span>
                     <strong>
                       {winRate(row.wins, row.games)}
                       <small>
@@ -181,13 +196,13 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
           {bestComeback > 0 && (
             <p className="profile-comeback">
               <Icon name="trophy" size={14} />
-              Best comeback: won after <strong>{bestComeback}</strong> rolls without a six.
+              {t("profile.comebackPre")} <strong>{bestComeback}</strong> {t("profile.comebackPost")}
             </p>
           )}
 
           {headToHead.length > 0 && (
             <section className="profile-stats-section">
-              <span className="eyebrow">HEAD-TO-HEAD</span>
+              <span className="eyebrow">{t("profile.headToHead").toUpperCase()}</span>
               <ul className="profile-rivals">
                 {headToHead.map((rival, index) => (
                   <li key={`${rival.displayName}-${index}`}>
@@ -214,7 +229,7 @@ export function ProfileCard({ profile }: { profile: VisibleProfile }) {
           {achievements.length > 0 && (
             <section className="profile-stats-section">
               <span className="eyebrow">
-                ACHIEVEMENTS · {unlockedCount} of {achievements.length}
+                {t("profile.achievements", { unlocked: unlockedCount, total: achievements.length }).toUpperCase()}
               </span>
               <ul className="profile-achievements">
                 {achievements.map((a) => (

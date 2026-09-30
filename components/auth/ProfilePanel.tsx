@@ -32,11 +32,18 @@ import {
   signInWithGoogleNative,
 } from "@/lib/nativeAuth";
 import { deleteAccount } from "@/lib/supabase/account";
+import { useI18n, type Translator } from "@/lib/i18n";
 
 type LoginMethod = "email" | "phone";
 
 const AVATAR_PHOTO_SIZE = 512;
 const AVATAR_STYLES: PhotoAvatarStyle[] = ["natural", "warm", "cool", "mono"];
+const STYLE_KEYS = {
+  natural: "account.styleNatural",
+  warm: "account.styleWarm",
+  cool: "account.styleCool",
+  mono: "account.styleMono",
+} as const satisfies Record<PhotoAvatarStyle, string>;
 
 /** Center-cropped to a square and downsized, matching how every avatar
  * chip already renders with object-fit: cover — the upload never needs
@@ -47,7 +54,7 @@ const AVATAR_STYLES: PhotoAvatarStyle[] = ["natural", "warm", "cool", "mono"];
  * iPhone camera roll in particular) that the ordinary image pipeline —
  * the same one every <img> on the page already relies on — handles fine.
  */
-async function squareWebpFromFile(file: File): Promise<Blob> {
+async function squareWebpFromFile(file: File, t: Translator): Promise<Blob> {
   const url = URL.createObjectURL(file);
   try {
     const image = new Image();
@@ -55,15 +62,13 @@ async function squareWebpFromFile(file: File): Promise<Blob> {
     try {
       await image.decode();
     } catch {
-      throw new Error(
-        "That photo couldn't be processed — try a different image (JPG, PNG, or WebP work best).",
-      );
+      throw new Error(t("account.photoProcessError"));
     }
     const side = Math.min(image.naturalWidth, image.naturalHeight);
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = AVATAR_PHOTO_SIZE;
     const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Could not process that image.");
+    if (!ctx) throw new Error(t("account.imageProcessError"));
     ctx.drawImage(
       image,
       (image.naturalWidth - side) / 2,
@@ -78,7 +83,7 @@ async function squareWebpFromFile(file: File): Promise<Blob> {
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/webp", 0.85),
     );
-    if (!blob) throw new Error("Could not process that image.");
+    if (!blob) throw new Error(t("account.imageProcessError"));
     return blob;
   } finally {
     URL.revokeObjectURL(url);
@@ -87,20 +92,20 @@ async function squareWebpFromFile(file: File): Promise<Blob> {
 
 const COUNTRY_CODES = `AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW`.split(" ");
 
-function countryOptions() {
+function countryOptions(locale: string) {
   // Intl.DisplayNames is Chrome 81+/Safari 14+: guard it so older browsers
   // (e.g. LG webOS TVs on Chromium 79) fall back to the bare region code
   // instead of throwing "Intl.DisplayNames is not a constructor" at render.
   let names: Intl.DisplayNames | null = null;
   try {
     if (typeof Intl !== "undefined" && "DisplayNames" in Intl) {
-      names = new Intl.DisplayNames(["en"], { type: "region" });
+      names = new Intl.DisplayNames([locale], { type: "region" });
     }
   } catch {
     names = null;
   }
   return COUNTRY_CODES.map((code) => ({ code, name: names?.of(code) ?? code })).sort((a, b) =>
-    a.name.localeCompare(b.name),
+    a.name.localeCompare(b.name, locale),
   );
 }
 
@@ -145,7 +150,7 @@ function AnimatedAvatar({ id, fallback = "P" }: { id?: string; fallback?: string
   );
 }
 
-function profileName(user: User | null) {
+function profileName(user: User | null, t: Translator) {
   if (!user) return "";
   return (
     user.user_metadata?.display_name ||
@@ -154,7 +159,7 @@ function profileName(user: User | null) {
     // A Game Center account's email is a private placeholder, not a name.
     (!user.app_metadata?.game_center && user.email?.split("@")[0]) ||
     user.phone ||
-    "Player"
+    t("common.player")
   );
 }
 
@@ -168,8 +173,9 @@ export function ProfilePanel({
   /** The signed-in profile's saved avatar id, or null when signed out/anonymous. */
   onAvatarChange?: (avatarId: string | null) => void;
 }) {
+  const { t, locale, dir } = useI18n();
   const client = useMemo(() => createClient(), []);
-  const countries = useMemo(() => countryOptions(), []);
+  const countries = useMemo(() => countryOptions(locale), [locale]);
   const avatarRail = useRef<HTMLDivElement>(null);
   const photoInput = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -204,7 +210,7 @@ export function ProfilePanel({
   useEffect(() => {
     const applyUser = (nextUser: User | null) => {
       setUser(nextUser);
-      const nextName = profileName(nextUser);
+      const nextName = profileName(nextUser, t);
       setDisplayName(nextName);
       setAvatarId(nextUser?.user_metadata?.avatar_id ?? "");
       setCountry(nextUser?.user_metadata?.country ?? "");
@@ -220,7 +226,7 @@ export function ProfilePanel({
       applyUser(session?.user ?? null);
     });
     return () => data.subscription.unsubscribe();
-  }, [client, onNameChange, onAvatarChange]);
+  }, [client, onNameChange, onAvatarChange, t]);
 
   useEffect(() => {
     const invited = new URLSearchParams(window.location.search).get("team");
@@ -241,11 +247,11 @@ export function ProfilePanel({
     if (!user || user.is_anonymous) return;
     void getMyTeams(client)
       .then(setTeams)
-      .catch((error: unknown) =>
-        setMessage(error instanceof Error ? error.message : "Could not load teams."),
+      .catch(() =>
+        setMessage(t("account.couldNotLoadTeams")),
       );
     void getMyWins(client).then(setWins).catch(() => setWins(null));
-  }, [client, user, open]);
+  }, [client, user, open, t]);
 
   useEffect(() => {
     onTeamsChange?.(teams);
@@ -263,8 +269,8 @@ export function ProfilePanel({
 
   const authenticated = !!user && !user.is_anonymous;
   const identity = user?.app_metadata?.game_center
-    ? "Signed in with Game Center"
-    : user?.email || user?.phone || "Signed-in player";
+    ? t("account.signedInGameCenter")
+    : user?.email || user?.phone || t("account.signedInPlayer");
 
   async function signInWithGoogle() {
     setPending("google");
@@ -272,7 +278,7 @@ export function ProfilePanel({
     if (native) {
       const result = await signInWithGoogleNative(client);
       setPending(null);
-      if (result.status === "failed") setMessage(result.message);
+      if (result.status === "failed") setMessage(t("common.connectError"));
       if (result.status === "signed-in") setOpen(false);
       return;
     }
@@ -281,7 +287,7 @@ export function ProfilePanel({
       options: { redirectTo: webUrl("/") },
     });
     if (error) {
-      setMessage(error.message);
+      setMessage(t("common.connectError"));
       setPending(null);
     }
   }
@@ -295,14 +301,14 @@ export function ProfilePanel({
         options: { redirectTo: webUrl("/") },
       });
       if (error) {
-        setMessage(error.message);
+        setMessage(t("common.connectError"));
         setPending(null);
       }
       return;
     }
     const result = await signInWithAppleNative(client);
     setPending(null);
-    if (result.status === "failed") setMessage(result.message);
+    if (result.status === "failed") setMessage(t("common.connectError"));
     if (result.status === "signed-in") setOpen(false);
   }
 
@@ -312,7 +318,7 @@ export function ProfilePanel({
     const problem = await signInWithGameCenter(client);
     setPending(null);
     if (problem) {
-      setMessage(problem);
+      setMessage(t("common.connectError"));
       return;
     }
     setOpen(false);
@@ -336,14 +342,14 @@ export function ProfilePanel({
     );
     setPending(null);
     if (error) {
-      setMessage(error.message);
+      setMessage(t("account.authError"));
       return;
     }
     setSent(true);
     setMessage(
       method === "email"
-        ? "Check your email for a sign-in link or verification code."
-        : "Enter the verification code sent to your phone.",
+        ? t("account.checkEmail")
+        : t("account.enterPhoneCode"),
     );
   }
 
@@ -358,7 +364,7 @@ export function ProfilePanel({
     );
     setPending(null);
     if (error) {
-      setMessage(error.message);
+      setMessage(t("account.codeError"));
       return;
     }
     setUser(data.user);
@@ -371,17 +377,17 @@ export function ProfilePanel({
   async function uploadPhoto(file: File) {
     if (!user) return;
     if (!file.type.startsWith("image/")) {
-      setMessage("Choose an image file for your avatar.");
+      setMessage(t("account.chooseImageFile"));
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setMessage("That image is too large — try one under 8MB.");
+      setMessage(t("account.imageTooLarge"));
       return;
     }
     setUploadingPhoto(true);
     setMessage(null);
     try {
-      const blob = await squareWebpFromFile(file);
+      const blob = await squareWebpFromFile(file, t);
       const path = `${user.id}/avatar.webp`;
       const { error: uploadError } = await client.storage
         .from("avatar-photos")
@@ -391,10 +397,8 @@ export function ProfilePanel({
       // Cache-bust: the path is stable per user (upsert), so a re-upload
       // would otherwise keep showing whatever was cached under that URL.
       setAvatarId(makePhotoAvatar(`${data.publicUrl}?v=${Date.now()}`, "natural"));
-    } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Could not upload that photo.",
-      );
+    } catch {
+      setMessage(t("account.couldNotUploadPhoto"));
     } finally {
       setUploadingPhoto(false);
     }
@@ -416,13 +420,13 @@ export function ProfilePanel({
     });
     setPending(null);
     if (error) {
-      setMessage(error.message);
+      setMessage(t("account.profileSaveError"));
       return;
     }
     setUser(data.user);
     onNameChange(name);
     onAvatarChange?.(avatarId);
-    setMessage("Profile saved.");
+    setMessage(t("account.profileSaved"));
   }
 
   // The profile page's stats show to other players from your seat's avatar
@@ -437,7 +441,7 @@ export function ProfilePanel({
     setPending(null);
     if (error) {
       setProfileHidden(!next);
-      setMessage(error.message);
+      setMessage(t("account.privacyError"));
       return;
     }
     setUser(data.user);
@@ -448,7 +452,7 @@ export function ProfilePanel({
     const { error } = await client.auth.signOut();
     setPending(null);
     if (error) {
-      setMessage(error.message);
+      setMessage(t("account.signOutError"));
       return;
     }
     setUser(null);
@@ -479,14 +483,14 @@ export function ProfilePanel({
     const problem = await deleteAccount(client, { appleAuthorizationCode: appleCode });
     setPending(null);
     if (problem) {
-      setMessage(problem);
+      setMessage(t("account.deleteError"));
       return;
     }
     setConfirmingDelete(false);
     setUser(null);
     setTeams([]);
     setWins(null);
-    setMessage("Your account and its data have been deleted.");
+    setMessage(t("account.accountDeleted"));
   }
 
   async function makeTeam() {
@@ -497,9 +501,9 @@ export function ProfilePanel({
     try {
       setTeams(await createTeam(client, value, displayName, avatarId));
       setTeamName("");
-      setMessage("Private team created. Share its invite with your friends.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not create the team.");
+      setMessage(t("account.teamCreated"));
+    } catch {
+      setMessage(t("account.couldNotCreateTeam"));
     } finally {
       setPending(null);
     }
@@ -516,9 +520,9 @@ export function ProfilePanel({
       const url = new URL(window.location.href);
       url.searchParams.delete("team");
       window.history.replaceState({}, "", url);
-      setMessage("You joined the team.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not join the team.");
+      setMessage(t("account.joinedTeam"));
+    } catch {
+      setMessage(t("account.couldNotJoinTeam"));
     } finally {
       setPending(null);
     }
@@ -529,9 +533,9 @@ export function ProfilePanel({
     setMessage(null);
     try {
       setTeams(await leaveTeam(client, team.id));
-      setMessage(team.ownerUserId === user?.id ? "Team deleted." : "You left the team.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not update the team.");
+      setMessage(team.ownerUserId === user?.id ? t("account.teamDeleted") : t("account.leftTeam"));
+    } catch {
+      setMessage(t("account.couldNotUpdateTeam"));
     } finally {
       setPending(null);
     }
@@ -542,8 +546,8 @@ export function ProfilePanel({
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Join ${team.name} on ${BRAND.name}`,
-          text: `Join my private ${BRAND.gameName} team, ${team.name}, on ${BRAND.name}.`,
+          title: t("account.shareTeamTitle", { team: team.name, brand: BRAND.name }),
+          text: t("account.shareTeamText", { game: BRAND.gameName, team: team.name, brand: BRAND.name }),
           url,
         });
       } else {
@@ -553,7 +557,7 @@ export function ProfilePanel({
       window.setTimeout(() => setSharedTeamId(null), 1800);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      setMessage("Could not share the invite. Copy the team code instead.");
+      setMessage(t("account.couldNotShareInvite"));
     }
   }
 
@@ -563,17 +567,17 @@ export function ProfilePanel({
         className="profile-trigger"
         type="button"
         onClick={() => setOpen(true)}
-        aria-label={authenticated ? "Open your profile" : "Sign in or create a profile"}
+        aria-label={authenticated ? t("account.openProfile") : t("account.signInCreate")}
       >
         {authenticated ? (
           <AnimatedAvatar
             id={user.user_metadata?.avatar_id}
-            fallback={profileName(user).slice(0, 1).toUpperCase()}
+            fallback={profileName(user, t).slice(0, 1).toUpperCase()}
           />
         ) : (
           <span className="profile-guest-avatar">○</span>
         )}
-        {authenticated ? profileName(user) : "Sign in"}
+        {authenticated ? profileName(user, t) : t("account.signIn")}
       </button>
       {open && createPortal(
         <div className="profile-backdrop" role="presentation" onMouseDown={() => setOpen(false)}>
@@ -588,12 +592,12 @@ export function ProfilePanel({
               className="profile-close"
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Close profile"
+              aria-label={t("account.closeProfile")}
             >
               ×
             </button>
-            <span className="eyebrow">YOUR SEAT AT THE TABLE</span>
-            <h2 id="profile-heading">{authenticated ? "Your profile" : "Welcome back"}</h2>
+            <span className="eyebrow">{t("account.eyebrowSeat").toUpperCase()}</span>
+            <h2 id="profile-heading">{authenticated ? t("account.yourProfile") : t("account.welcomeBack")}</h2>
             {authenticated ? (
               <>
                 <div className="profile-identity">
@@ -603,10 +607,10 @@ export function ProfilePanel({
                     // eslint-disable-next-line @next/next/no-img-element -- provider avatars are remote and domains vary.
                     <img src={user.user_metadata.avatar_url} alt="" />
                   ) : (
-                    <span>{profileName(user).slice(0, 1).toUpperCase()}</span>
+                    <span>{profileName(user, t).slice(0, 1).toUpperCase()}</span>
                   )}
                   <div>
-                    <strong>{profileName(user)}</strong>
+                    <strong>{profileName(user, t)}</strong>
                     <small>{identity}</small>
                   </div>
                 </div>
@@ -616,7 +620,7 @@ export function ProfilePanel({
                   onClick={() => setOpen(false)}
                 >
                   <Icon name="users" />
-                  Your profile and stats
+                  {t("account.yourProfileStats")}
                 </Link>
                 <Link
                   className="profile-secondary"
@@ -624,7 +628,11 @@ export function ProfilePanel({
                   onClick={() => setOpen(false)}
                 >
                   <Icon name="trophy" />
-                  {wins === null ? "Leaderboard" : `${wins} ${wins === 1 ? "win" : "wins"} · Leaderboard`}
+                  {wins === null
+                    ? t("common.leaderboard")
+                    : t("account.winsAndLeaderboard", {
+                        wins: t(wins === 1 ? "leaderboard.winOne" : "leaderboard.winOther", { count: wins }),
+                      })}
                 </Link>
                 <label className="profile-privacy">
                   <input
@@ -634,12 +642,12 @@ export function ProfilePanel({
                     onChange={() => void toggleProfileHidden()}
                   />
                   <span>
-                    <strong>Hide my stats from other players</strong>
-                    <small>Your name and avatar still show at the table.</small>
+                    <strong>{t("account.hideStats")}</strong>
+                    <small>{t("account.hideStatsNote")}</small>
                   </span>
                 </label>
                 <label className="profile-field">
-                  Display name
+                  {t("account.displayName")}
                   <input
                     value={displayName}
                     onChange={(event) => setDisplayName(event.target.value)}
@@ -649,19 +657,19 @@ export function ProfilePanel({
                 </label>
                 <div className="profile-avatar-field">
                   <div className="profile-avatar-heading">
-                    <span>Choose your avatar</span>
-                    <div className="profile-avatar-controls" aria-label="Scroll avatars">
+                    <span>{t("entrance.chooseAvatar")}</span>
+                    <div className="profile-avatar-controls" aria-label={t("account.scrollAvatars")}>
                       <button
                         type="button"
-                        aria-label="Previous avatars"
-                        onClick={() => avatarRail.current?.scrollBy({ left: -190, behavior: "smooth" })}
+                        aria-label={t("account.prevAvatars")}
+                        onClick={() => avatarRail.current?.scrollBy({ left: dir === "rtl" ? 190 : -190, behavior: "smooth" })}
                       >
                         ‹
                       </button>
                       <button
                         type="button"
-                        aria-label="Next avatars"
-                        onClick={() => avatarRail.current?.scrollBy({ left: 190, behavior: "smooth" })}
+                        aria-label={t("account.nextAvatars")}
+                        onClick={() => avatarRail.current?.scrollBy({ left: dir === "rtl" ? -190 : 190, behavior: "smooth" })}
                       >
                         ›
                       </button>
@@ -673,8 +681,8 @@ export function ProfilePanel({
                       className={`profile-avatar-upload ${photoAvatar(avatarId) ? "is-selected" : ""}`}
                       aria-label={
                         photoAvatar(avatarId)
-                          ? "Change your photo"
-                          : "Upload your own photo"
+                          ? t("account.changePhoto")
+                          : t("account.uploadPhoto")
                       }
                       aria-pressed={!!photoAvatar(avatarId)}
                       disabled={uploadingPhoto}
@@ -714,7 +722,7 @@ export function ProfilePanel({
                     ))}
                   </div>
                   {photoAvatar(avatarId) && (
-                    <div className="profile-style-picker" role="radiogroup" aria-label="Photo style">
+                    <div className="profile-style-picker" role="radiogroup" aria-label={t("account.photoStyle")}>
                       {AVATAR_STYLES.map((style) => (
                         <button
                           key={style}
@@ -726,16 +734,16 @@ export function ProfilePanel({
                           aria-pressed={photoAvatar(avatarId)?.style === style}
                           onClick={() => setPhotoStyle(style)}
                         >
-                          {style}
+                          {t(STYLE_KEYS[style])}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
                 <label className="profile-field">
-                  Country
+                  {t("account.country")}
                   <select value={country} onChange={(event) => setCountry(event.target.value)}>
-                    <option value="">Select your country</option>
+                    <option value="">{t("account.selectCountry")}</option>
                     {countries.map((option) => (
                       <option key={option.code} value={option.code}>
                         {option.name}
@@ -749,13 +757,13 @@ export function ProfilePanel({
                   disabled={pending !== null || !displayName.trim() || !avatarId}
                   onClick={() => void saveProfile()}
                 >
-                  {pending === "profile" ? "Saving…" : "Save profile"}
+                  {pending === "profile" ? t("actions.saving") : t("account.save")}
                 </button>
                 <section className="profile-teams" aria-labelledby="teams-heading">
                   <div className="profile-team-heading">
                     <div>
-                      <span className="eyebrow">PRIVATE GROUPS</span>
-                      <h3 id="teams-heading">Your teams</h3>
+                      <span className="eyebrow">{t("account.privateGroups").toUpperCase()}</span>
+                      <h3 id="teams-heading">{t("account.yourTeams")}</h3>
                     </div>
                     <small>{teams.length}</small>
                   </div>
@@ -763,32 +771,33 @@ export function ProfilePanel({
                     <input
                       value={teamName}
                       onChange={(event) => setTeamName(event.target.value)}
-                      placeholder="New team name"
+                      placeholder={t("account.newTeamName")}
                       maxLength={32}
-                      aria-label="New team name"
+                      aria-label={t("account.newTeamName")}
                     />
                     <button
                       type="button"
                       disabled={pending !== null || teamName.trim().length < 2}
                       onClick={() => void makeTeam()}
                     >
-                      {pending === "create-team" ? "Creating…" : "Create"}
+                      {pending === "create-team" ? t("account.creating") : t("account.create")}
                     </button>
                   </div>
                   <div className="profile-team-create">
                     <input
                       value={inviteCode}
                       onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-                      placeholder="Friend’s team code"
+                      placeholder={t("account.friendTeamCode")}
                       maxLength={10}
-                      aria-label="Team invite code"
+                      aria-label={t("account.teamInviteCode")}
+                      dir="ltr"
                     />
                     <button
                       type="button"
                       disabled={pending !== null || !inviteCode.trim()}
                       onClick={() => void acceptTeamInvite()}
                     >
-                      {pending === "join-team" ? "Joining…" : "Join"}
+                      {pending === "join-team" ? t("lobby.joining") : t("actions.join")}
                     </button>
                   </div>
                   <div className="profile-team-list">
@@ -797,27 +806,31 @@ export function ProfilePanel({
                         <div className="profile-team-title">
                           <div>
                             <strong>{team.name}</strong>
-                            <small>{team.members.length} {team.members.length === 1 ? "member" : "members"}</small>
+                            <small>
+                              {t(team.members.length === 1 ? "entrance.memberOne" : "entrance.memberOther", {
+                                count: team.members.length,
+                              })}
+                            </small>
                           </div>
-                          <code>{team.inviteCode}</code>
+                          <code dir="ltr">{team.inviteCode}</code>
                         </div>
-                        <div className="profile-team-members" aria-label={`${team.name} members`}>
+                        <div className="profile-team-members" aria-label={t("account.teamMembersAria", { team: team.name })}>
                           {team.members.map((member) => (
-                            <span key={member.userId} title={`${member.displayName}${member.role === "owner" ? " · Owner" : ""}`}>
+                            <span key={member.userId} title={`${member.displayName}${member.role === "owner" ? ` · ${t("account.owner")}` : ""}`}>
                               <AnimatedAvatar id={member.avatarId ?? undefined} fallback={member.displayName.slice(0, 1)} />
                             </span>
                           ))}
                         </div>
                         <div className="profile-team-actions">
                           <button type="button" onClick={() => void shareTeam(team)}>
-                            {sharedTeamId === team.id ? "Shared" : "Share invite"}
+                            {sharedTeamId === team.id ? t("account.shared") : t("account.shareInvite")}
                           </button>
                           <button
                             type="button"
                             disabled={pending !== null}
                             onClick={() => void removeTeam(team)}
                           >
-                            {team.ownerUserId === user.id ? "Delete" : "Leave"}
+                            {team.ownerUserId === user.id ? t("account.delete") : t("account.leave")}
                           </button>
                         </div>
                       </article>
@@ -830,15 +843,15 @@ export function ProfilePanel({
                   disabled={pending !== null}
                   onClick={() => void signOut()}
                 >
-                  Sign out
+                  {t("account.signOut")}
                 </button>
+                {/* Draft account-deletion copy requires native and legal review. */}
                 {confirmingDelete ? (
                   <div className="profile-delete" role="group" aria-labelledby="delete-heading">
-                    <strong id="delete-heading">Delete your account?</strong>
+                    <strong id="delete-heading">{t("account.deleteAccountQ")}</strong>
                     <p>
-                      This permanently deletes your account, profile, photo, wins and the teams you own. Games
-                      you&rsquo;ve played stay in the other players&rsquo; history. This can&rsquo;t be undone.
-                      {confirmWithApple && " You’ll confirm with Apple first."}
+                      {t("account.deleteBody")}
+                      {confirmWithApple && t("account.deleteAppleNote")}
                     </p>
                     <div className="profile-delete-actions">
                       <button
@@ -846,7 +859,7 @@ export function ProfilePanel({
                         disabled={pending !== null}
                         onClick={() => setConfirmingDelete(false)}
                       >
-                        Cancel
+                        {t("actions.cancel")}
                       </button>
                       <button
                         type="button"
@@ -854,7 +867,7 @@ export function ProfilePanel({
                         disabled={pending !== null}
                         onClick={() => void removeAccount()}
                       >
-                        {pending === "delete" ? "Deleting…" : "Delete my account"}
+                        {pending === "delete" ? t("account.deleting") : t("account.deleteMine")}
                       </button>
                     </div>
                   </div>
@@ -865,13 +878,13 @@ export function ProfilePanel({
                     disabled={pending !== null}
                     onClick={() => setConfirmingDelete(true)}
                   >
-                    Delete account
+                    {t("account.deleteAccount")}
                   </button>
                 )}
               </>
             ) : (
               <>
-                <p>Save your name and return to the same identity on any device.</p>
+                <p>{t("account.guestPrompt")}</p>
                 {/* In the apps Apple and Google use their native sheets (Google
                     blocks its web sign-in inside embedded web views). Apple
                     comes first — App Store guideline 4.8 wants it offered
@@ -888,13 +901,13 @@ export function ProfilePanel({
                           onClick={() => void continueWithApple()}
                         >
                           <AppleLogo />
-                          {pending === "apple" ? "Signing in…" : "Continue with Apple"}
+                          {pending === "apple" ? t("account.signingIn") : t("account.continueApple")}
                         </button>
                       )}
                       {google && (
                         <button type="button" disabled={pending !== null} onClick={() => void signInWithGoogle()}>
                           <b>G</b>
-                          {pending === "google" && native ? "Signing in…" : "Continue with Google"}
+                          {pending === "google" && native ? t("account.signingIn") : t("account.continueGoogle")}
                         </button>
                       )}
                       {gameCenter && (
@@ -904,14 +917,14 @@ export function ProfilePanel({
                           onClick={() => void continueWithGameCenter()}
                         >
                           <Icon name="trophy" size={16} />
-                          {pending === "game-center" ? "Signing in…" : "Continue with Game Center"}
+                          {pending === "game-center" ? t("account.signingIn") : t("account.continueGameCenter")}
                         </button>
                       )}
                     </div>
-                    <span className="profile-divider">or use a code</span>
+                    <span className="profile-divider">{t("account.orUseCode")}</span>
                   </>
                 )}
-                <div className="profile-methods" role="tablist" aria-label="Sign-in method">
+                <div className="profile-methods" role="tablist" aria-label={t("account.signInMethod")}>
                   {(["email", "phone"] as const).map((value) => (
                     <button
                       key={value}
@@ -927,28 +940,30 @@ export function ProfilePanel({
                         setMessage(null);
                       }}
                     >
-                      {value === "email" ? "Email" : "Phone"}
+                      {value === "email" ? t("account.email") : t("account.phone")}
                     </button>
                   ))}
                 </div>
                 <label className="profile-field">
-                  {method === "email" ? "Email address" : "Phone number"}
+                  {method === "email" ? t("account.emailAddress") : t("account.phoneNumber")}
                   <input
                     type={method === "email" ? "email" : "tel"}
                     value={destination}
                     onChange={(event) => setDestination(event.target.value)}
-                    placeholder={method === "email" ? "you@example.com" : "+1 555 123 4567"}
+                    placeholder={method === "email" ? t("account.emailExample") : t("account.phoneExample")}
+                    dir="ltr"
                     autoComplete={method === "email" ? "email" : "tel"}
                   />
                 </label>
                 {sent && (
                   <label className="profile-field">
-                    Verification code
+                    {t("account.verificationCode")}
                     <input
                       inputMode="numeric"
                       value={token}
                       onChange={(event) => setToken(event.target.value.replace(/\D/g, "").slice(0, 8))}
-                      placeholder="123456"
+                      placeholder={t("account.codeExample")}
+                      dir="ltr"
                       autoComplete="one-time-code"
                     />
                   </label>
@@ -960,12 +975,14 @@ export function ProfilePanel({
                   onClick={() => void (sent ? verifyCode() : sendCode())}
                 >
                   {pending
-                    ? "Please wait…"
+                    ? t("account.pleaseWait")
                     : sent
-                      ? "Verify and sign in"
-                      : `Send ${method === "email" ? "email" : "text"} code`}
+                      ? t("account.verifySignIn")
+                      : method === "email"
+                        ? t("account.sendEmailCode")
+                        : t("account.sendTextCode")}
                 </button>
-                <small className="profile-guest-note">You can keep playing as a guest without signing in.</small>
+                <small className="profile-guest-note">{t("account.guestNote")}</small>
               </>
             )}
             {message && <p className="profile-message" role="status">{message}</p>}

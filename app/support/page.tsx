@@ -1,5 +1,6 @@
+import { SUPPORT_EMAIL } from "@/lib/support";
 import type { Metadata } from "next";
-import { InfoPage, SUPPORT_EMAIL } from "@/components/site/InfoPage";
+import { InfoPage } from "@/components/site/InfoPage";
 import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {

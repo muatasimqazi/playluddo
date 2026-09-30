@@ -6268,3 +6268,49 @@ body.sim-piece-hover .sim-canvas {
   font-size: 11px;
   line-height: 1.4;
 }
+
+/* F5.1 Localization — the language picker in the entrance header. Reuses the
+   .profile-trigger pill; the native <select> is made transparent so it reads
+   as part of the pill rather than an OS form control. */
+.language-switcher {
+  gap: 6px;
+  cursor: pointer;
+}
+.language-switcher-icon {
+  display: inline-flex;
+  align-items: center;
+  color: #cdd6c2;
+}
+.language-switcher select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  padding: 2px 2px;
+  max-width: 130px;
+  cursor: pointer;
+}
+.language-switcher select:focus-visible {
+  outline: 2px solid #f7c94a;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* The dropdown list is drawn by the OS; force dark, readable option text since
+   the pill background it inherits from is dark/translucent. */
+.language-switcher select option {
+  color: #1d1d1f;
+  background: #fff;
+}
+
+/* F5.1 — RTL support. Direction on <html> flips flex rows and text alignment
+   automatically; these rules cover the few places that need a nudge. */
+[dir="rtl"] .entrance-footer .entrance-footer-link {
+  margin-left: 0;
+  margin-right: 14px;
+}
+[dir="rtl"] .form-divider {
+  text-align: center;
+}

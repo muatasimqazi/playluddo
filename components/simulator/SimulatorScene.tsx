@@ -270,6 +270,10 @@ function Piece({
     : aladdinPawn
       ? ALADDIN_PAWN_HEIGHT
       : GLASS_PAWN_HEIGHT;
+  // Outer radius of the legal-move highlight ring and the move-flash disc.
+  // The cell-filling glass disc needs a wider ring than the slimmer
+  // classic/aladdin figures.
+  const highlightRadius = spreadPawn ? 0.218 : 0.26;
   const point = (piece: Pawn) => pawnPoint(piece, gameType);
   const [initial] = useState(() => pawnPoint(pawn, gameType));
   const stack = allPawns
@@ -496,7 +500,10 @@ function Piece({
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, 0.009, 0]}
         >
-          <ringGeometry args={[0.195, 0.218, 32]} />
+          {/* The signature glass disc now fills a cell, so its highlight ring
+              and move-flash sit further out than the smaller classic/aladdin
+              figures' do. */}
+          <ringGeometry args={[highlightRadius - 0.023, highlightRadius, 32]} />
           <meshBasicMaterial
             color="#ffdf94"
             transparent
@@ -504,6 +511,7 @@ function Piece({
             side={THREE.DoubleSide}
           />
         </mesh>
+        <PieceMoveFlash active={legal} color={pawn.color} radius={highlightRadius} />
         {clickable && (
           <mesh position={[0, 0.12, 0]} visible={false}>
             <cylinderGeometry
@@ -1144,19 +1152,21 @@ function BoardObject(props: SceneProps) {
 }
 
 /**
- * Marks the base of whoever's turn it is with a lit edge and a soft halo
- * in that player's color, pulsing in step with the active seat label's
- * glow (never fully off, never flashing) so it reads as "live" without
- * pulling focus from the pawns,
- * and nothing is drawn over the base's own artwork beyond a faint inner
- * falloff. When the turn passes, the old base fades out as the new one
+ * Marks the base of whoever's turn it is with a single "torch" flash: a
+ * bright bar of light that sweeps across the base interior, tinted toward
+ * white over that player's colour. No lit rim, halo, or drop shadow — just
+ * the travelling light. When the turn passes, it fades out as the next base's
  * fades in. Lives in the pieces group so it spins with the board and hides
  * during the Ludo/Snakes flip like the pawns do.
  */
-const BASE_GLOW_WIDTH = 0.1; // stays well within the slab's 0.18 wooden rim
-// One full in-and-out cycle of the seat label's `active-seat-pulse`
-// (1.15s ease-in-out, alternate), so base and label pulse together.
-const BASE_BREATH_SECONDS = 2.3;
+const BASE_FLASH_MARGIN = 0.05; // small plane margin past the base edge
+// Shared torch-flash tuning, used by the active base and by movable pieces so
+// the two read as the same light: how fast the band travels (cycles/sec) and
+// how wide it is (in normalised 0..1 sweep space). SWEEP_PARK is the uTime
+// that parks the band mid-region under prefers-reduced-motion.
+const SWEEP_SPEED = 0.22;
+const SWEEP_BAND = 0.13;
+const SWEEP_PARK = 0.5 / SWEEP_SPEED;
 const BASE_GLOW_VERTEX = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -1167,30 +1177,44 @@ const BASE_GLOW_VERTEX = /* glsl */ `
 const BASE_GLOW_FRAGMENT = /* glsl */ `
   uniform vec3 uColor;
   uniform float uIntensity;
-  uniform float uBreath;
+  uniform float uTime;
   uniform float uHalf;
   uniform float uExtent;
-  uniform float uGlow;
-  uniform float uLine;
   varying vec2 vUv;
   void main() {
     vec2 p = (vUv - 0.5) * uExtent;
     vec2 q = abs(p) - vec2(uHalf);
     // Signed distance to the base's square edge: < 0 inside, > 0 outside.
     float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-    float aa = fwidth(d);
-    float line = 1.0 - smoothstep(uLine * 0.5 - aa, uLine * 0.5 + aa, abs(d));
-    // Mirrors .sim-seat.is-active's pulse: the halo's reach swells like
-    // its box-shadow blur (9px -> 24px), and the edge lightens like its
-    // border (10% -> 34% white).
-    float reach = uGlow * mix(0.4, 1.0, uBreath);
-    float halo = d > 0.0
-      ? exp(-3.0 * d / reach)
-      : exp(-3.0 * -d / (reach * 0.6)) * 0.3;
-    halo *= 1.0 - smoothstep(uGlow * 0.85, uGlow, d);
-    float lineAlpha = mix(0.55, 0.8, uBreath);
-    float alpha = uIntensity * max(line * lineAlpha, halo * mix(0.12, 0.3, uBreath));
-    vec3 color = mix(uColor, vec3(1.0), line * mix(0.1, 0.34, uBreath));
+    // A bright bar of light travelling across the base interior — a diagonal
+    // band swept edge to edge, with a clear entry/exit past each side.
+    float inside = 1.0 - smoothstep(-0.03, 0.0, d);
+    float s = (p.x + p.y) / (2.0 * uHalf) * 0.5 + 0.5;
+    float sweepPos = fract(uTime * ${SWEEP_SPEED}) * 1.4 - 0.2;
+    float e = (s - sweepPos) / ${SWEEP_BAND};
+    float sweep = exp(-e * e) * inside;
+    float alpha = uIntensity * sweep * 0.55;
+    vec3 color = mix(uColor, vec3(1.0), sweep * 0.7);
+    gl_FragColor = vec4(color, alpha);
+  }
+`;
+// The same travelling light, masked to a disc — for a movable piece.
+const PIECE_FLASH_FRAGMENT = /* glsl */ `
+  uniform vec3 uColor;
+  uniform float uIntensity;
+  uniform float uTime;
+  uniform float uRadius;
+  uniform float uExtent;
+  varying vec2 vUv;
+  void main() {
+    vec2 p = (vUv - 0.5) * uExtent;
+    float inside = 1.0 - smoothstep(uRadius - 0.02, uRadius, length(p));
+    float s = (p.x + p.y) / (2.0 * uRadius) * 0.5 + 0.5;
+    float sweepPos = fract(uTime * ${SWEEP_SPEED}) * 1.4 - 0.2;
+    float e = (s - sweepPos) / ${SWEEP_BAND};
+    float sweep = exp(-e * e) * inside;
+    float alpha = uIntensity * sweep * 0.6;
+    vec3 color = mix(uColor, vec3(1.0), sweep * 0.7);
     gl_FragColor = vec4(color, alpha);
   }
 `;
@@ -1216,16 +1240,14 @@ function TurnBaseGlow({
     (area.colStart + area.colEnd) / 2,
   );
   const half = ((area.colEnd - area.colStart + 1) * CELL) / 2;
-  const extent = (half + BASE_GLOW_WIDTH) * 2;
+  const extent = (half + BASE_FLASH_MARGIN) * 2;
   const uniforms = useMemo(
     () => ({
       uColor: { value: new THREE.Color(COLORS[color]) },
       uIntensity: { value: 0 },
-      uBreath: { value: 1 },
+      uTime: { value: 0 },
       uHalf: { value: half },
       uExtent: { value: extent },
-      uGlow: { value: BASE_GLOW_WIDTH },
-      uLine: { value: CELL * 0.05 },
     }),
     [color, half, extent],
   );
@@ -1235,11 +1257,9 @@ function TurnBaseGlow({
       ((active ? 1 : 0) - intensity.current) * (1 - Math.exp(-delta * 7));
     const u = material.current.uniforms;
     u.uIntensity.value = intensity.current;
-    u.uBreath.value = reducedMotion
-      ? 0.6
-      : 0.5 -
-        0.5 *
-          Math.cos((clock.elapsedTime * Math.PI * 2) / BASE_BREATH_SECONDS);
+    // Under reduced motion the band is parked mid-base (no travel) so it reads
+    // as a steady soft light rather than a moving flash.
+    u.uTime.value = reducedMotion ? SWEEP_PARK : clock.elapsedTime;
     mesh.current.visible = intensity.current > 0.002;
   });
   return (
@@ -1256,6 +1276,72 @@ function TurnBaseGlow({
         uniforms={uniforms}
         vertexShader={BASE_GLOW_VERTEX}
         fragmentShader={BASE_GLOW_FRAGMENT}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+}
+
+/**
+ * The same travelling torch flash as the active base, on a small disc laid
+ * flat under a movable piece — so a pawn you can move reads as "lit" by the
+ * same light. Rides inside the Piece group, so it follows the pawn as it
+ * hops. Fades in/out as the piece becomes (un)movable.
+ */
+function PieceMoveFlash({
+  active,
+  color,
+  radius,
+}: {
+  active: boolean;
+  color: PlayerColor;
+  radius: number;
+}) {
+  const mesh = useRef<THREE.Mesh>(null);
+  const material = useRef<THREE.ShaderMaterial>(null);
+  const intensity = useRef(0);
+  const reducedMotion = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  const extent = (radius + 0.02) * 2;
+  const uniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color(COLORS[color]) },
+      uIntensity: { value: 0 },
+      uTime: { value: 0 },
+      uRadius: { value: radius },
+      uExtent: { value: extent },
+    }),
+    [color, radius, extent],
+  );
+  useFrame(({ clock }, delta) => {
+    if (!mesh.current || !material.current) return;
+    intensity.current +=
+      ((active ? 1 : 0) - intensity.current) * (1 - Math.exp(-delta * 7));
+    const u = material.current.uniforms;
+    u.uIntensity.value = intensity.current;
+    u.uTime.value = reducedMotion ? SWEEP_PARK : clock.elapsedTime;
+    mesh.current.visible = intensity.current > 0.002;
+  });
+  return (
+    <mesh
+      ref={mesh}
+      position={[0, 0.006, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      renderOrder={1}
+      visible={false}
+    >
+      <planeGeometry args={[extent, extent]} />
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        vertexShader={BASE_GLOW_VERTEX}
+        fragmentShader={PIECE_FLASH_FRAGMENT}
         transparent
         depthWrite={false}
         toneMapped={false}

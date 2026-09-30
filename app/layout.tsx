@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Noto_Nastaliq_Urdu, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { BRAND } from "@/lib/brand";
 import { NativeShell } from "@/components/NativeShell";
@@ -30,6 +30,17 @@ const FLEX_GAP_DETECT = `(function(){try{var f=document.createElement('div');f.s
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+// Urdu is read in Nastaliq, not the Naskh shapes a system Arabic font falls
+// back to. Declared for every page but not preloaded: browsers only fetch
+// the (large) files once Urdu text is on screen — the Urdu UI, or the
+// "اردو" row in the language picker. Applied via :lang(ur) in globals.css.
+const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
+  variable: "--font-nastaliq",
+  weight: "variable",
+  subsets: ["arabic"],
+  preload: false,
 });
 
 const title = `${BRAND.name} – Play ${BRAND.gameName} Online with Friends`;
@@ -81,7 +92,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
+    <html lang="en" className={`${plusJakartaSans.variable} ${notoNastaliqUrdu.variable} h-full antialiased`}>
       {/* JSON-LD lives in <head>, not <body>: PostHog (instrumentation-client.ts)
           injects its loader <script> next to the body's existing scripts before
           React hydrates, and a React-rendered script there made every page

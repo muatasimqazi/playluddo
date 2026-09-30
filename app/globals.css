@@ -10,6 +10,31 @@ a.entrance-secondary {
   font-family: var(--font-sans), sans-serif;
 }
 
+/* Urdu in Nastaliq (font loaded in app/layout.tsx). :lang() matches every
+   element in Urdu — the whole UI when Urdu is chosen, or just an element
+   marked lang="ur" (the language picker's row) — and !important overrides
+   the serif headings and per-component families, none of which carry Urdu
+   glyphs anyway. Plus Jakarta Sans stays first: its @font-face rules only
+   cover Latin ranges, so Latin text (brand, room codes, digits) keeps the
+   house face while Urdu letters fall through to Nastaliq. The Jakarta
+   fallback (plain Arial, which has Arabic glyphs) must come after Nastaliq. */
+:lang(ur) {
+  font-family:
+    "Plus Jakarta Sans",
+    var(--font-nastaliq),
+    "Plus Jakarta Sans Fallback",
+    serif !important;
+  /* Nastaliq letters must join, so no tracking anywhere (the UI's uppercase
+     eyebrows and labels are letter-spaced); and its diagonal stacking needs
+     roughly twice Latin's line height. Elements with their own tight
+     line-height get Urdu overrides in simulator.css. */
+  letter-spacing: 0 !important;
+  line-height: 1.9;
+  /* Nastaliq has no italic; the browser would fake one by slanting an
+     already-slanted script. Emphasis (the hero's <em>) keeps its color. */
+  font-style: normal !important;
+}
+
 .player-avatar {
   position: relative;
   display: inline-block;

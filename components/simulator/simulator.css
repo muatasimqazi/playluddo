@@ -6879,6 +6879,35 @@ body.sim-die-blocked .sim-canvas {
 [dir="rtl"] .form-divider {
   text-align: center;
 }
+/* Urdu (Nastaliq, see app/globals.css): the serif display headings are set
+   tight for Latin; Nastaliq's tall diagonal words need far more line height
+   and read large at the same size, so give them room and scale them down. */
+/* Nastaliq strokes (the ک in کھیل, کمپیوٹر) rise above the line and reach
+   past the start of their word; the entrance panel scrolls, so its edges
+   clip, and words at its top or start edge lost those strokes. Inset the
+   content from the clipping edges instead. */
+.entrance-content:lang(ur) {
+  padding-top: 14px;
+  padding-inline-start: 14px;
+}
+.entrance-content h1:lang(ur) {
+  font-size: clamp(28px, 4.4vh, 42px);
+  line-height: 1.75;
+}
+.entrance-content > .entrance-screen > p:not([class]):lang(ur) {
+  line-height: 2;
+}
+.entrance-setup-head h2:lang(ur),
+.entrance-sheet h2:lang(ur),
+.language-menu h2:lang(ur) {
+  font-size: 24px;
+  line-height: 1.9;
+}
+.entrance-segmented button:lang(ur),
+.entrance-mode-choice button:lang(ur) strong,
+.entrance-mode-link:lang(ur) strong {
+  line-height: 1.8;
+}
 /* Letter-spacing pulls Arabic/Urdu letters apart and breaks their joining. */
 [dir="rtl"] .entrance-field-label {
   letter-spacing: 0;

@@ -808,7 +808,9 @@ export default function Home() {
       </div>
       <footer className="entrance-footer">
         <span>
-          {BRAND.tagline.toUpperCase()}. {t("entrance.footerTagline").toUpperCase()}
+          <span className="entrance-footer-tagline">
+            {BRAND.tagline.toUpperCase()}. {t("entrance.footerTagline").toUpperCase()}
+          </span>
           <Link href="/support" className="entrance-footer-link">
             {t("common.support").toUpperCase()}
           </Link>
@@ -816,7 +818,7 @@ export default function Home() {
             {t("common.privacy").toUpperCase()}
           </Link>
         </span>
-        <span>
+        <span className="entrance-footer-tagline">
           <i className="connection-dot" />
           {t("entrance.footerRight").toUpperCase()}
         </span>

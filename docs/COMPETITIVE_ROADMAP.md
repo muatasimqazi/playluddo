@@ -21,10 +21,10 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 
 | Feature | Status | Missing |
 |---|---|---|
-| F0.4 Age check | ◐ | Guest→account answer carry-over (identity linking), the 30-day under-13 cleanup job, privacy and terms wording, the legal review for signed-in under-13s |
+| F0.4 Age check | ◐ | Guest→account answer carry-over (identity linking); the legal review for signed-in under-13s |
 | V1 TURN relay | ◐ | The manual cellular-to-cellular check; a PostHog insight on `call_ice_outcome` |
 | V3 Video in the 3D table | ◐ | `VideoTexture` on seat figures, frame-rate fallback, off-screen pause, mobile-data warning (the 2D tile strip is built) |
-| V4 Video safety | ◐ | Privacy, terms and store privacy disclosures; store review notes |
+| V4 Video safety | ◐ | App Store privacy label and Play Data Safety; store review notes |
 | V5 Party-screen video and voice | ☐ | All of it |
 | V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
 | F5.1 Localization | ◐ | Localized store listings; the 360px screenshot pass |
@@ -123,7 +123,7 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 - Guests get a `match_results` row with a null `user_id`, so the summary still works for them.
 
 ### F0.4 Age check before online play ◐ · M
-**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. Missing: guest answers don't carry over to a signed-in account (`ProfilePanel.tsx` still uses `signInWithOAuth`/`signInWithOtp`, not identity linking); no scheduled job deletes inactive under-13 anonymous accounts after 30 days; the privacy policy doesn't yet mention birth month and year, and the terms don't state the 18+ video age. The legal review for signed-in under-13 accounts is still open.
+**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. The 30-day cleanup of inactive under-13 guests runs as `purge-inactive-under13-guests` (pg_cron), and the privacy policy and terms describe the age check. Missing: guest answers don't carry over to a signed-in account (`ProfilePanel.tsx` still uses `signInWithOAuth`/`signInWithOtp`, not identity linking). The legal review for signed-in under-13 accounts is still open.
 
 **Also see (Section 15):** R3 · R7 · R8
 
@@ -404,7 +404,7 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - **Privacy policy:** `app/privacy` says voice goes directly between devices and is never recorded. It must be updated for video, and for any relay or media server we add.
 
 ### V0 Age check before video ✅ · S (after F0.4)
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — built behind the `video_chat` flag, which is **off**. The privacy-policy update in the acceptance list is still missing (see V4).
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — built behind the `video_chat` flag, which is **off**.
 
 **Also see (Section 15):** R3 · R5 · R8
 
@@ -475,7 +475,7 @@ This fixes voice first. Ship it on its own, before any video work.
 - **Reduced motion:** no animated camera framing around video tiles.
 
 ### V4 Safety ◐ · M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), one tap hides all incoming video, and every remote video tile (and its enlarged view) carries **Report** and **Block**. Report opens the table's `player_reports` form, which notes that video is never recorded. Missing: privacy-policy and terms updates for camera, video and the TURN relay; the App Store privacy label and Play Data Safety updates; store review notes. Video must stay off until these ship.
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), one tap hides all incoming video, and every remote video tile (and its enlarged view) carries **Report** and **Block**. Report opens the table's `player_reports` form, which notes that video is never recorded. The privacy policy and terms cover camera, video, the TURN relay and the 18+ rule. Missing: the App Store privacy label and Play Data Safety updates, and store review notes. Video must stay off until these ship.
 
 **Also see (Section 15):** R5 · R7 · R8
 

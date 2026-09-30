@@ -20,7 +20,7 @@ export default function TermsPage() {
       accent="rules."
       intro={
         <>
-          Effective September 28, 2026. These terms apply when you play {BRAND.name} on luddohouse.com or in
+          Effective September 30, 2026. These terms apply when you play {BRAND.name} on luddohouse.com or in
           the {BRAND.name} app. By playing, you agree to them.
         </>
       }
@@ -36,12 +36,14 @@ export default function TermsPage() {
         <li>post or say anything hateful, discriminatory, sexual, violent or otherwise objectionable;</li>
         <li>use a name or photo that does any of the above, or impersonates someone else;</li>
         <li>share anyone&rsquo;s personal information, including your own, or send spam or scams;</li>
+        <li>record, capture or share anyone&rsquo;s voice or video without their permission;</li>
         <li>cheat, exploit bugs, or disrupt other players&rsquo; games.</li>
       </ul>
       <p>
         Chat is filtered for offensive language, but no filter is perfect. At any table you can open{" "}
-        <strong>Chat</strong> to <strong>block</strong> a player (you won&rsquo;t see their messages or hear
-        their voice again) or <strong>report</strong> them to us.
+        <strong>Chat</strong> to <strong>block</strong> a player (you won&rsquo;t see their messages, hear
+        their voice or see their video again, and they stop receiving yours) or <strong>report</strong> them
+        to us. During a video call, report and block are also on each player&rsquo;s video.
       </p>
 
       <h2>How we moderate</h2>
@@ -51,11 +53,18 @@ export default function TermsPage() {
         emailing <a href={`mailto:${SUPPORT_EMAIL}?subject=Report%20a%20player`}>{SUPPORT_EMAIL}</a>.
       </p>
 
+      <h2>Age</h2>
+      <p>
+        Online tables are for players <strong>13 and older</strong>. Video chat is for signed-in players{" "}
+        <strong>18 and older</strong>, and only at private tables where every player qualifies. Before your
+        first online table we ask for your birth month and year; give your real one. You can&rsquo;t change
+        it in the app, so if you made a mistake, email us.
+      </p>
+
       <h2>Your account</h2>
       <p>
         You can play without an account. If you create one, keep your sign-in secure; you&rsquo;re responsible
-        for what happens under it. You can delete your account at any time from your profile. {BRAND.name}{" "}
-        isn&rsquo;t intended for children under 13.
+        for what happens under it. You can delete your account at any time from your profile.
       </p>
 
       <h2>What you share</h2>

@@ -4,6 +4,7 @@ import Script from "next/script";
 import { BRAND } from "@/lib/brand";
 import { NativeShell } from "@/components/NativeShell";
 import { I18nProvider } from "@/lib/i18n";
+import { PreferencesSync } from "@/components/preferences/PreferencesSync";
 import "./globals.css";
 
 // Publishes the real visible viewport height to CSS as `--app-height`, so
@@ -100,6 +101,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             server always renders the default (English) HTML above; the
             provider adopts the player's locale right after mount. */}
         <I18nProvider>
+          <PreferencesSync />
           {children}
           <NativeShell />
         </I18nProvider>

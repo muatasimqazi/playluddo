@@ -10,6 +10,7 @@
  */
 import { useId } from "react";
 import { LOCALES, useI18n, type LocaleCode } from "@/lib/i18n";
+import { persistLocalePreference } from "@/lib/preferences";
 
 export function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, setLocale, t } = useI18n();
@@ -29,7 +30,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
         id={id}
         aria-label={label}
         value={locale}
-        onChange={(e) => setLocale(e.target.value as LocaleCode)}
+        onChange={(e) => {
+          const next = e.target.value as LocaleCode;
+          setLocale(next);
+          persistLocalePreference(next);
+        }}
       >
         {LOCALES.map((l) => (
           <option key={l.code} value={l.code} lang={l.code}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -10,15 +10,10 @@ import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import { BOT_LEVELS, type BotLevel } from "@/lib/board/bot";
-import { preferredBotLevel, setPreferredBotLevel } from "@/lib/presentation/simulatorPrefs";
 import { AVATARS, avatarDefinition, photoAvatar } from "@/lib/avatars/catalog";
 import { usePreloadBoardScene } from "@/lib/presentation/preloadScene";
-import {
-  preferredBoardStyle,
-  setPreferredBoardStyle,
-  DEFAULT_BOARD_STYLE,
-  type BoardStyle,
-} from "@/lib/presentation/simulatorPrefs";
+import { type BoardStyle } from "@/lib/presentation/simulatorPrefs";
+import { useGamePreference } from "@/lib/preferences-react";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { QuickMatch } from "@/components/lobby/QuickMatch";
@@ -55,8 +50,6 @@ const COLOR_KEYS = {
   yellow: "colors.yellow",
   blue: "colors.blue",
 } as const satisfies Record<PlayerColor, string>;
-// The saved level only changes through this page's own picker.
-const noSubscription = () => () => {};
 
 export default function Home() {
   const router = useRouter();
@@ -77,29 +70,32 @@ export default function Home() {
   // Must stay valid for the default playerCount (2): a seat's color maps
   // 1:1 to its index (red=0 ... blue=3), and red (seat 0) is the only
   // choice guaranteed in range for every possible player count.
-  const [playerColor, setPlayerColorChoice] = useState<PlayerColor>("red");
+  // Favorite base color is a saved preference (this device, or the account
+  // when signed in). A session pick overrides it, and either way it's clamped
+  // to a real seat for the current table size: every color is valid for 2
+  // players, but a smaller non-2 table can leave a higher-index color out of
+  // range, which the create_room / set_player_color RPCs would reject.
+  const [favoriteColor, setFavoriteColor] = useGamePreference("baseColor");
+  const [pickedColor, setPickedColor] = useState<PlayerColor | null>(null);
+  const chosenColor = pickedColor ?? favoriteColor;
+  const playerColor =
+    playerCount !== 2 && SEAT_COLORS.indexOf(chosenColor) >= playerCount
+      ? SEAT_COLORS[0]
+      : chosenColor;
   // null = follow the signed-in profile's saved avatar (PracticeTable
   // applies it itself when the link carries no ?avatar=); a string is an
   // explicit pick on this screen and wins over the profile.
   const [pickedAvatar, setPlayerAvatar] = useState<string | null>(null);
-  // Read from the device after hydration; "normal" on the server.
-  const savedBotLevel = useSyncExternalStore(noSubscription, preferredBotLevel, () => "normal" as const);
-  const [pickedBotLevel, setPickedBotLevel] = useState<BotLevel | null>(null);
-  const botLevel = pickedBotLevel ?? savedBotLevel;
+  // Offline computer difficulty — a saved preference, synced when signed in.
+  const [botLevel, setBotLevel] = useGamePreference("botLevel");
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const playerAvatar = pickedAvatar ?? profileAvatar ?? AVATARS[0].id;
   // An uploaded photo isn't one of the presets, so it gets its own tile.
   const profilePhoto =
     profileAvatar && !avatarDefinition(profileAvatar) ? photoAvatar(profileAvatar) : null;
-  // Read from the device after hydration so the highlighted board matches the
-  // one the table will actually render; Classic on the server and by default.
-  const savedBoardStyle = useSyncExternalStore(
-    noSubscription,
-    preferredBoardStyle,
-    () => DEFAULT_BOARD_STYLE,
-  );
-  const [pickedBoardStyle, setPickedBoardStyle] = useState<BoardStyle | null>(null);
-  const boardStyle = pickedBoardStyle ?? savedBoardStyle;
+  // Board design — a saved preference, synced when signed in; the entrance's
+  // highlight then matches what the table will render (Classic by default).
+  const [boardStyle, setBoardStyle] = useGamePreference("boardStyle");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const age = useAgeCheck();
   const [error, setError] = useState<string | null>(null);
@@ -293,21 +289,12 @@ export default function Home() {
                         type="button"
                         className={playerCount === count ? "is-selected" : ""}
                         aria-pressed={playerCount === count}
-                        onClick={() => {
-                          setPlayerCount(count);
-                          // A seat's color maps 1:1 to its index (red=0 ... blue=3),
-                          // so shrinking the table can leave the previously chosen
-                          // color out of range — reset it before that can reach the
-                          // create_room/set_player_color RPCs as an INVALID_SEAT.
-                          // Every color is valid for 2 (the second seat becomes
-                          // whichever base is diagonally opposite), so no reset
-                          // is needed there.
-                          if (
-                            count !== 2 &&
-                            SEAT_COLORS.indexOf(playerColor) >= count
-                          )
-                            setPlayerColorChoice(SEAT_COLORS[0]);
-                        }}
+                        // The effective playerColor is clamped to a valid seat
+                        // for the table size (see its derivation above), so
+                        // shrinking the table never leaves an out-of-range
+                        // color — and the saved favorite is preserved for when
+                        // the table grows back.
+                        onClick={() => setPlayerCount(count)}
                       >
                         <strong>{count}</strong>
                         <span>
@@ -337,7 +324,10 @@ export default function Home() {
                         className={playerColor === color ? "is-selected" : ""}
                         aria-label={t("entrance.baseAria", { color: t(COLOR_KEYS[color]) })}
                         aria-pressed={playerColor === color}
-                        onClick={() => setPlayerColorChoice(color)}
+                        onClick={() => {
+                          setPickedColor(color);
+                          setFavoriteColor(color);
+                        }}
                       >
                         <i style={{ background: COLORS[color] }} />
                         {t(COLOR_KEYS[color])}
@@ -398,10 +388,7 @@ export default function Home() {
                             boardStyle === style.value ? "is-selected" : ""
                           }
                           aria-pressed={boardStyle === style.value}
-                          onClick={() => {
-                            setPickedBoardStyle(style.value);
-                            setPreferredBoardStyle(style.value);
-                          }}
+                          onClick={() => setBoardStyle(style.value)}
                         >
                           <strong>{style.label}</strong>
                           <small>{style.desc}</small>
@@ -461,10 +448,7 @@ export default function Home() {
                             type="button"
                             className={botLevel === level ? "is-selected" : ""}
                             aria-pressed={botLevel === level}
-                            onClick={() => {
-                              setPickedBotLevel(level);
-                              setPreferredBotLevel(level);
-                            }}
+                            onClick={() => setBotLevel(level)}
                           >
                             <strong>{t(BOT_LEVEL_KEYS[level])}</strong>
                           </button>

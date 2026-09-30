@@ -148,9 +148,15 @@ export function makeBoardTexture(
   if (crop === "ludo")
     gradeLudoInks(ctx, canvas.width, canvas.height, inkStrength);
 
-  // The 2024px artwork has a 128px print margin around its 15×15 grid.
-  // Crop only through UVs, preserving the original image and square centers.
-  const inset = crop === "full" ? 0 : 128 / 2024;
+  // The 2024px artwork has a ~134px print margin around its 15×15 grid
+  // (measured from the colored quadrant edges). Cropping exactly that margin
+  // makes the printed grid fill the board plane edge to edge, so each printed
+  // cell lands at 6/15 = one geometry cell — pieces (placed at gridPoint cell
+  // centers) then sit squarely on the printed cells and base nest circles.
+  // An earlier 128px guess left the grid slightly small and inset, so pieces
+  // drifted off the cells toward the board's edges. Crop only through UVs,
+  // preserving the original image and square centers.
+  const inset = crop === "full" ? 0 : 134 / 2024;
   const map = texture(canvas);
   map.offset.set(inset, inset);
   map.repeat.set(1 - inset * 2, 1 - inset * 2);

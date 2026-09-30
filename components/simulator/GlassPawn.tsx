@@ -20,15 +20,14 @@ const PROFILE = [
   [0, GLASS_PAWN_HEIGHT],
 ].map(([radius, height]) => new THREE.Vector2(radius, height));
 
-// The lathe profile above tops out at r=0.186 (diameter 0.372), and its flat
-// top face (r=0.156) — the part that actually reads as the piece from above —
-// is smaller still, so the disc looked undersized both on the track and,
-// especially, inside the base's nest circles (~1 cell across). Scale the
-// footprint out so the top face fills a cell: a cell is CELL = BOARD_SIZE/15
-// = 0.4, and we aim the ~0.156 top face at ~0.2 radius. Only x/z scale —
-// height (and the stack spacing keyed off GLASS_PAWN_HEIGHT) stays put.
-const TOP_FACE_RADIUS = 0.156;
-const FOOTPRINT_SCALE = 0.2 / TOP_FACE_RADIUS;
+// The lathe profile above tops out at r=0.186 (diameter 0.372), leaving the
+// disc smaller than a board cell. A cell is CELL = BOARD_SIZE/15 = 0.4, so
+// scale the widest point out to exactly fill one cell (radius 0.2) — as big
+// as it can be without spilling into neighbouring cells on the track. Only
+// x/z scale, so height (and the stack spacing keyed off GLASS_PAWN_HEIGHT)
+// stays put.
+const FOOTPRINT_RADIUS = Math.max(...PROFILE.map((v) => v.x));
+const FOOTPRINT_SCALE = 0.2 / FOOTPRINT_RADIUS;
 
 // Board ink samples converted from the artwork's Adobe RGB profile to sRGB.
 // Use the same hue for the surface and absorption so glass doesn't shift it.

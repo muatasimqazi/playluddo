@@ -242,6 +242,39 @@ function CameraRig({
   );
 }
 
+type BoardStyle = "signature" | "classic" | "geometric" | "aladdin";
+
+// The signature artwork (designs/board-design.webp) prints its base nest
+// circles at ~9.6% / ~90.4% of each quadrant — closer to the corners than
+// the shared NEST_SLOT_POSITIONS, which match the classic/geometric/aladdin
+// artworks. Slot order matches those: 0 top-left, 1 top-right, 2 bottom-left,
+// 3 bottom-right.
+const SIGNATURE_NEST_LO = 9.6;
+const SIGNATURE_NEST_HI = 90.4;
+
+/** pawnPoint, with parked pieces moved onto the signature board's own nest circles. */
+function simPawnPoint(
+  pawn: Pawn,
+  gameType: GameType,
+  spec: BoardSpec,
+  boardStyle: BoardStyle,
+): Point {
+  if (
+    boardStyle !== "signature" ||
+    gameType !== "ludo" ||
+    spec.arms !== 4 ||
+    pawn.pathIndex !== null
+  )
+    return pawnPoint(pawn, gameType, spec);
+  const base = BASE_AREA[pawn.color];
+  const left = pawn.index % 2 ? SIGNATURE_NEST_HI : SIGNATURE_NEST_LO;
+  const top = pawn.index >= 2 ? SIGNATURE_NEST_HI : SIGNATURE_NEST_LO;
+  return gridPoint(
+    base.rowStart + (top / 100) * 6 - 0.5,
+    base.colStart + (left / 100) * 6 - 0.5,
+  );
+}
+
 function Piece({
   pawn,
   allPawns,
@@ -297,9 +330,9 @@ function Piece({
   // Outer radius of the legal-move highlight ring and the move-flash disc.
   // The cell-filling glass disc needs a wider ring than the slimmer
   // classic/aladdin figures.
-  const highlightRadius = spreadPawn ? 0.218 : 0.26;
-  const point = (piece: Pawn) => pawnPoint(piece, gameType, spec);
-  const [initial] = useState(() => pawnPoint(pawn, gameType, spec));
+  const highlightRadius = spreadPawn ? 0.218 : 0.225;
+  const point = (piece: Pawn) => simPawnPoint(piece, gameType, spec, boardStyle);
+  const [initial] = useState(() => point(pawn));
   const stack = allPawns
     .filter(
       (p) =>
@@ -342,12 +375,17 @@ function Piece({
           : null;
       const movingSteps =
         start === null ? 1 : Math.max(1, (moved?.pathIndex ?? start) - start);
+      const waypoints = moveWaypoints(from, pawn, gameType, move, spec);
+      // A capture sends the piece back to its nest; land it on this board's
+      // own nest circle rather than the shared slot position.
+      if (pawn.pathIndex === null && waypoints.length)
+        waypoints[waypoints.length - 1] = point(pawn);
       motion.current = {
         points: [
           ref.current
             ? (ref.current.position.toArray() as Point)
-            : pawnPoint(from, gameType, spec),
-          ...moveWaypoints(from, pawn, gameType, move, spec),
+            : point(from),
+          ...waypoints,
         ],
         elapsed: 0,
         delay: isCapture ? (movingSteps * HOP_MS) / 1000 : 0,
@@ -381,7 +419,7 @@ function Piece({
         }
       }
       if (index >= m.points.length - 1) {
-        const p = pawnPoint(pawn, gameType, spec);
+        const p = point(pawn);
         ref.current.position.set(
           p[0] + offset[0],
           p[1] + offset[1],
@@ -418,7 +456,7 @@ function Piece({
       // Not this pawn's turn to hop, but its stack offset can still shift
       // when another pawn joins/leaves the same cell — ease into that
       // instead of snapping, so a stationary piece never visibly teleports.
-      const p = pawnPoint(pawn, gameType, spec);
+      const p = point(pawn);
       const damp = 1 - Math.exp(-delta * 10);
       ref.current.position.set(
         THREE.MathUtils.lerp(ref.current.position.x, p[0] + offset[0], damp),
@@ -1025,7 +1063,12 @@ function BoardObject(props: SceneProps) {
     let best: { id: string; distance: number } | null = null;
     for (const pawn of props.frame.pawns) {
       if (!props.legalPawnIds.includes(pawn.id)) continue;
-      const [x, , z] = pawnPoint(pawn, props.gameType, spec);
+      const [x, , z] = simPawnPoint(
+        pawn,
+        props.gameType ?? "ludo",
+        spec,
+        props.boardStyle ?? "signature",
+      );
       const distance = Math.hypot(x - local.x, z - local.z);
       if (!best || distance < best.distance) best = { id: pawn.id, distance };
     }

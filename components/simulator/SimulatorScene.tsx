@@ -66,6 +66,7 @@ import {
   HEX_SLAB_APOTHEM,
   hexBaseAngle,
   hexBaseCenter,
+  hexPolar,
   hexSeatPoint,
 } from "@/lib/presentation/hexBoard";
 import boardArtwork from "@/designs/board-design.webp";
@@ -638,32 +639,74 @@ const DIE_ROTATION: Record<number, Point> = {
   6: [Math.PI, 0, 0],
 };
 const TOUCH_DIE_SCALE = 1.45;
-// On phones the die stays put at the near edge, bottom-center — in thumb
-// reach and never hidden behind a far-side seat's 3D figure or tucked
-// under a corner label. The glowing base and seat label already say
-// whose turn it is, so the die doesn't need to travel to show it.
-// z clears the board's frame (edge at 3.18) by the touch-sized die's
-// half-width, so it sits on the table rather than overlapping the rim.
-const MOBILE_DIE_POINT: Point = [0, 0.26, 3.6];
-// Same Z as that color's label (desktopSidePositions below) so the die
-// sits right next to their name, just closer to the board — same pairing
-// mobile already uses (die x-magnitude < label x-magnitude, shared Z).
-// Beyond the board's own edge (its frame spans +-3.18), never toward the
-// far/near corners.
+// Where each colour's 4-player desktop seat label is anchored (Seats pushes
+// the label a fixed screen distance outward from this point), so the die
+// rests right beside the name. Beyond the board's own edge (its frame spans
+// +-3.18), never toward the far/near corners.
 const DESKTOP_FOUR_PLAYER_DIE_POINTS: Record<PlayerColor, Point> = {
   red: [-3.5, 0.26, -1.3],
   green: [3.5, 0.26, -1.3],
   yellow: [3.5, 0.26, 1.3],
   blue: [-3.5, 0.26, 1.3],
-  // Hex-only colours: the die stays in one fixed spot (followsPlayer is off).
+  // Hex-only colours never use this table (5-6 players are on the hexagon).
   orange: [3.5, 0.26, -3.3],
   black: [-3.5, 0.26, -3.3],
 };
-const DESKTOP_DIE_POINT: Point = [3.65, 0.26, 1.1];
-// Snakes & Ladders has no per-player corners to track, so the die just
-// sits in one fixed spot — bottom-right, never following whoever's turn
-// it is or rotating with the board.
-const SNAKES_DIE_POINT: Point = [1.8, 0.26, 3.3];
+// Seat label anchors, board-local — shared by Seats and the die so the die
+// always lands beside the active player's label. Phones pin labels near the
+// board's corners; wider screens put 2-3 players above/below the board.
+const SEAT_POINTS: Record<PlayerColor, Point> = {
+  red: [-1.8, BOARD_Y, -3.5],
+  green: [1.8, BOARD_Y, -3.5],
+  yellow: [1.8, BOARD_Y, 3.5],
+  blue: [-1.8, BOARD_Y, 3.5],
+  // Hex-only colours: 5-6 player seats use hexSeatPoint() instead.
+  orange: [3.5, BOARD_Y, 0],
+  black: [-3.5, BOARD_Y, 0],
+};
+const MOBILE_CORNER_SEAT_POINTS: Record<PlayerColor, Point> = {
+  red: [-2.15, BOARD_Y, -3.52],
+  green: [2.15, BOARD_Y, -3.52],
+  yellow: [2.15, BOARD_Y, 3.52],
+  blue: [-2.15, BOARD_Y, 3.52],
+  orange: [3.52, BOARD_Y, 0],
+  black: [-3.52, BOARD_Y, 0],
+};
+const DIE_Y = 0.26;
+// How long the die takes to slide to the next player when the turn passes.
+const DIE_PASS_MS = 480;
+
+/** Which seat-label layout a table uses (mirrors the choice in Seats). */
+function seatLayout(
+  compact: boolean,
+  hex: boolean,
+  playerCount: number,
+): "hex" | "corners" | "sides" | "edges" {
+  if (hex) return "hex";
+  if (compact && (playerCount === 4 || playerCount === 2)) return "corners";
+  if (!compact && playerCount === 4) return "sides";
+  return "edges";
+}
+
+/**
+ * Board-local resting point for the die on `color`'s turn: beside that
+ * player's seat label, on the board side of it, so the die reads as being
+ * in their hands — like a real die passed around the table.
+ */
+function dieSeatPoint(
+  layout: ReturnType<typeof seatLayout>,
+  color: PlayerColor,
+): Point {
+  if (layout === "hex") {
+    // A little along the rim from the label, toward the next seat.
+    const [x, z] = hexPolar(hexBaseAngle(color) + 0.3, HEX_SLAB_RADIUS + 0.35);
+    return [x, DIE_Y, z];
+  }
+  if (layout === "sides") return DESKTOP_FOUR_PLAYER_DIE_POINTS[color];
+  const [x, , z] = (layout === "corners" ? MOBILE_CORNER_SEAT_POINTS : SEAT_POINTS)[color];
+  // Just inside the label, toward the middle of the same board edge.
+  return [Math.sign(x) * (layout === "corners" ? 0.78 : 0.55), DIE_Y, Math.sign(z) * 3.58];
+}
 
 function rotateTablePoint(point: Point, angle: number): Point {
   const cosine = Math.cos(angle);
@@ -709,23 +752,29 @@ function PhysicalDie({
   const activePlayer = players.find(
     (player) => player.id === (frame.actorId ?? turnPlayerId),
   );
-  const snakes = gameType === "snakes_and_ladders";
-  // Per direct instruction: the die stays in one fixed spot every turn —
-  // only its colour changes to reflect the acting player. (Previously, in
-  // 4-player desktop it travelled to each player's corner; that movement
-  // is disabled so the die never relocates.)
-  const followsPlayer = false;
+  // The die travels to whoever's turn it is and rests beside their seat
+  // label (see dieSeatPoint): where the die is says whose turn it is. On a
+  // phone your own turn brings it to your near corner, in thumb reach.
+  const hex = sceneSpec({ gameType, players, frame }).arms === 6;
+  const layout = seatLayout(compact, hex, players.length);
+  const activeColor = activePlayer?.color;
   const baseRestingPoint = useMemo<Point>(() => {
-    // Phones first, for both games: Snakes & Ladders' desktop spot sits
-    // right where a phone draws the second seat label, hiding the die.
-    if (compact) return MOBILE_DIE_POINT;
-    if (snakes) return SNAKES_DIE_POINT;
-    if (!followsPlayer || !activePlayer) return DESKTOP_DIE_POINT;
-    return rotateTablePoint(
-      DESKTOP_FOUR_PLAYER_DIE_POINTS[activePlayer.color],
-      orientation,
-    );
-  }, [activePlayer, compact, followsPlayer, orientation, snakes]);
+    if (!activeColor) return [0, DIE_Y, 3.58];
+    if (!compact || layout === "hex")
+      return rotateTablePoint(dieSeatPoint(layout, activeColor), orientation);
+    // A phone's portrait view only has room above and below the board, and
+    // the board turns (by up to 90deg) to put your base bottom-left — which
+    // swings a board-local spot off the side of the screen. So on a phone
+    // the die goes to the screen corner that player's seat turned into:
+    // above the board for far seats, below it for near ones.
+    const seat = (layout === "corners" ? MOBILE_CORNER_SEAT_POINTS : SEAT_POINTS)[activeColor];
+    const [x, , z] = rotateTablePoint(seat, orientation);
+    // Corner labels sit over the board's bases, so the die can come out to
+    // the base's own x; edge labels (3 players, Snakes & Ladders) sit just
+    // past the board, so it tucks further in to clear them.
+    const inset = layout === "corners" ? 0.78 : 0.42;
+    return [Math.sign(x || 1) * inset, DIE_Y, Math.sign(z || 1) * 3.6];
+  }, [activeColor, compact, layout, orientation]);
   const restingPoint = useMemo<Point>(
     () => [baseRestingPoint[0], baseRestingPoint[1] + lift, baseRestingPoint[2]],
     [baseRestingPoint, lift],
@@ -734,25 +783,11 @@ function PhysicalDie({
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
   );
-  // Per direct instruction: each turn the die takes on a lighter shade of
-  // the acting player's base color instead of a fixed white — the base hue
-  // mixed most of the way toward white, so it reads as (e.g.) a soft red
-  // while the deep pips stay fully legible. Falls back to white when there
-  // is no active player (e.g. between turns).
-  // Light body tint (the visible surface colour) and the deeper, fully
-  // saturated hue that drives the glass's transmission tint. Splitting the
-  // two keeps the die looking light while still reading clearly as the
-  // acting player's colour — a plain light `color` alone washes out to
-  // white through the reflective clearcoat.
-  const dieColor = useMemo(() => {
-    if (!activePlayer) return "#ffffff";
-    return `#${new THREE.Color(COLORS[activePlayer.color])
-      .lerp(new THREE.Color("#ffffff"), 0.25)
-      .getHexString()}`;
-  }, [activePlayer]);
-  const dieAttenuationColor = activePlayer
-    ? COLORS[activePlayer.color]
-    : "#ffffff";
+  // A plain white die: where it rests (beside the active player's seat,
+  // see dieSeatPoint) already says whose turn it is, so it no longer takes
+  // on the acting player's colour.
+  const dieColor = "#ffffff";
+  const dieAttenuationColor = "#ffffff";
   const pipColor = "#111111";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
@@ -763,6 +798,23 @@ function PhysicalDie({
     [frame.dice],
   );
   const lastRoll = useRef(frame.rollId);
+  // Passing the die: when the turn changes, it slides (with a small hop) from
+  // where it sat to the next player's spot instead of teleporting, so the
+  // eye follows it to whoever is up. Skipped under prefers-reduced-motion.
+  const passFrom = useRef<THREE.Vector3 | null>(null);
+  const passElapsed = useRef(0);
+  const reducedMotion = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  useEffect(() => {
+    if (!mesh.current || reducedMotion) return;
+    if (mesh.current.position.distanceTo(restingVector) < 0.01) return;
+    passFrom.current = mesh.current.position.clone();
+    passElapsed.current = 0;
+  }, [restingVector, reducedMotion]);
   useEffect(() => {
     const overDie = hovered && mode === "play";
     // Roll-ready → pointer cursor; hovering the die when it isn't this
@@ -822,6 +874,16 @@ function PhysicalDie({
           restingPoint[2] + (1 - t) * 0.4,
         );
       }
+    } else if (passFrom.current) {
+      mesh.current.quaternion.slerp(target, 1 - Math.exp(-delta * 24));
+      passElapsed.current += Math.min(delta, 0.1);
+      const p = Math.min(1, passElapsed.current / (DIE_PASS_MS / 1000));
+      const eased = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+      mesh.current.position
+        .copy(passFrom.current)
+        .lerp(restingVector, eased);
+      mesh.current.position.y += Math.sin(p * Math.PI) * 0.55 * dieScale;
+      if (p === 1) passFrom.current = null;
     } else {
       mesh.current.quaternion.slerp(target, 1 - Math.exp(-delta * 24));
       mesh.current.position.lerp(
@@ -846,15 +908,6 @@ function PhysicalDie({
           toneMapped={false}
         />
       </mesh>
-      {!followsPlayer && !compact && (
-        <RoundedBox
-          args={[0.92, 0.055, 1.55]}
-          radius={0.02}
-          position={[3.65, 0.028, 1.1]}
-        >
-          <meshStandardMaterial color="#9b9c98" roughness={0.84} />
-        </RoundedBox>
-      )}
       <group
         ref={mesh}
         position={restingPoint}
@@ -1252,19 +1305,33 @@ function BoardObject(props: SceneProps) {
       <group ref={pieces}>
         {props.gameType !== "snakes_and_ladders" &&
           !props.preview &&
-          spec.colors.map((color) => (
-            <TurnBaseGlow
-              key={color}
-              color={color}
-              hex={hex}
-              active={
-                props.players.find(
-                  (player) =>
-                    player.id === (props.frame.actorId ?? props.turnPlayerId),
-                )?.color === color
-              }
-            />
-          ))}
+          (() => {
+            const activeColor = props.players.find(
+              (player) =>
+                player.id === (props.frame.actorId ?? props.turnPlayerId),
+            )?.color;
+            return spec.colors.map((color) => (
+              <BaseHighlight
+                key={color}
+                color={color}
+                hex={hex}
+                active={activeColor === color}
+                anyActive={!!activeColor}
+              />
+            ));
+          })()}
+        {!props.preview && (
+          <TurnBoardFlash
+            hex={hex}
+            snakes={props.gameType === "snakes_and_ladders"}
+            color={
+              props.players.find(
+                (player) =>
+                  player.id === (props.frame.actorId ?? props.turnPlayerId),
+              )?.color
+            }
+          />
+        )}
         {props.gameType !== "snakes_and_ladders" &&
           !props.preview &&
           !props.hideLabels &&
@@ -1302,14 +1369,14 @@ function BoardObject(props: SceneProps) {
 }
 
 /**
- * Marks the base of whoever's turn it is with a single "torch" flash: a
- * bright bar of light that sweeps across the base interior, tinted toward
- * white over that player's colour. No lit rim, halo, or drop shadow — just
- * the travelling light. When the turn passes, it fades out as the next base's
- * fades in. Lives in the pieces group so it spins with the board and hides
- * during the Ludo/Snakes flip like the pawns do.
+ * Marks whose turn it is with a single "torch" flash across the whole board:
+ * a bright bar of light, tinted toward white over the active player's
+ * colour, that sweeps from their base across to the far side. No lit rim,
+ * halo, or drop shadow — just the travelling light. When the turn passes,
+ * the tint eases to the next player's colour and the sweep turns to start
+ * from their base. Lives in the pieces group so it spins with the board and
+ * hides during the Ludo/Snakes flip like the pawns do.
  */
-const BASE_FLASH_MARGIN = 0.05; // small plane margin past the base edge
 // Shared torch-flash tuning, used by the active base and by movable pieces so
 // the two read as the same light: how fast the band travels (cycles/sec) and
 // how wide it is (in normalised 0..1 sweep space). SWEEP_PARK is the uTime
@@ -1317,6 +1384,10 @@ const BASE_FLASH_MARGIN = 0.05; // small plane margin past the base edge
 const SWEEP_SPEED = 0.22;
 const SWEEP_BAND = 0.13;
 const SWEEP_PARK = 0.5 / SWEEP_SPEED;
+// The board-wide flash crosses the whole board, not one small base, so at
+// the shared speed it read as rushing past; it travels at half the speed.
+const BOARD_SWEEP_SPEED = SWEEP_SPEED / 2;
+const BOARD_SWEEP_PARK = 0.5 / BOARD_SWEEP_SPEED;
 const BASE_GLOW_VERTEX = /* glsl */ `
   varying vec2 vUv;
   void main() {
@@ -1324,30 +1395,150 @@ const BASE_GLOW_VERTEX = /* glsl */ `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
-const BASE_GLOW_FRAGMENT = /* glsl */ `
+const BOARD_FLASH_FRAGMENT = /* glsl */ `
   uniform vec3 uColor;
   uniform float uIntensity;
   uniform float uTime;
   uniform float uHalf;
   uniform float uExtent;
+  uniform float uRound;
+  uniform vec2 uDir;
+  varying vec2 vUv;
+  void main() {
+    vec2 p = (vUv - 0.5) * uExtent;
+    // Inside the board: its square, or (uRound) the disc inside the hexagon.
+    vec2 q = abs(p) - vec2(uHalf);
+    float square = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+    float d = mix(square, length(p) - uHalf, uRound);
+    float inside = 1.0 - smoothstep(-0.04, 0.0, d);
+    // A band travelling along uDir: from the active player's base (s = 0)
+    // across the board to the far side (s = 1), entering and leaving past
+    // each edge. 1.42 covers the square's corner-to-corner diagonal.
+    float s = dot(p, uDir) / (2.0 * uHalf * 1.42) + 0.5;
+    float sweepPos = fract(uTime * ${BOARD_SWEEP_SPEED}) * 1.4 - 0.2;
+    float e = (s - sweepPos) / ${SWEEP_BAND};
+    float sweep = exp(-e * e) * inside;
+    // Kept faint and mostly the player's own hue (little white wash) so the
+    // band glazes the board rather than hiding the squares beneath it.
+    float alpha = uIntensity * sweep * 0.14;
+    vec3 color = mix(uColor, vec3(1.0), sweep * 0.25);
+    gl_FragColor = vec4(color, alpha);
+  }
+`;
+// The current base, marked the way Ludo King makes the active player stand
+// out: by contrast. The active base gets a lit rim (its colour washed toward
+// warm white) with a brighter spot drifting round it like a marquee light,
+// and every other base sits under a light veil. uActive/uDim are eased
+// per base so a turn change cross-fades; uRound switches the square base
+// for the hexagon's round one.
+const BASE_HIGHLIGHT_FRAGMENT = /* glsl */ `
+  uniform vec3 uColor;
+  uniform float uActive;
+  uniform float uDim;
+  uniform float uTime;
+  uniform float uHalf;
+  uniform float uExtent;
+  uniform float uRound;
   varying vec2 vUv;
   void main() {
     vec2 p = (vUv - 0.5) * uExtent;
     vec2 q = abs(p) - vec2(uHalf);
-    // Signed distance to the base's square edge: < 0 inside, > 0 outside.
-    float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-    // A bright bar of light travelling across the base interior — a diagonal
-    // band swept edge to edge, with a clear entry/exit past each side.
-    float inside = 1.0 - smoothstep(-0.03, 0.0, d);
-    float s = (p.x + p.y) / (2.0 * uHalf) * 0.5 + 0.5;
-    float sweepPos = fract(uTime * ${SWEEP_SPEED}) * 1.4 - 0.2;
-    float e = (s - sweepPos) / ${SWEEP_BAND};
-    float sweep = exp(-e * e) * inside;
-    float alpha = uIntensity * sweep * 0.55;
-    vec3 color = mix(uColor, vec3(1.0), sweep * 0.7);
-    gl_FragColor = vec4(color, alpha);
+    float square = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
+    float d = mix(square, length(p) - uHalf, uRound);
+    float inside = 1.0 - smoothstep(-0.02, 0.0, d);
+    // Rim: a bright line straddling the base's edge, softly haloed.
+    float rim = exp(-pow(d / 0.035, 2.0)) + 0.35 * exp(-pow(d / 0.12, 2.0));
+    // Marquee: a brighter spot travelling slowly round the rim, once
+    // every ~7s — a gentle drift, not a spin.
+    float around = atan(p.y, p.x) / 6.2831853 + 0.5;
+    float gap = fract(around - uTime * 0.14);
+    float chase = exp(-pow(min(gap, 1.0 - gap) / 0.07, 2.0));
+    vec3 lit = mix(uColor, vec3(1.0, 0.96, 0.84), 0.55 + 0.4 * chase);
+    float rimAlpha = uActive * rim * (0.55 + 0.45 * chase);
+    // A light veil over bases that aren't up: enough to let the active
+    // base lead, not so much that the board reads dark.
+    float veil = uDim * inside * 0.1;
+    vec3 color = mix(vec3(0.02, 0.03, 0.02), lit, rimAlpha / max(rimAlpha + veil, 1e-4));
+    gl_FragColor = vec4(color, clamp(rimAlpha + veil, 0.0, 1.0));
   }
 `;
+function BaseHighlight({
+  color,
+  active,
+  anyActive,
+  hex = false,
+}: {
+  color: PlayerColor;
+  active: boolean;
+  /** Someone is up — only then do the other bases dim. */
+  anyActive: boolean;
+  hex?: boolean;
+}) {
+  const mesh = useRef<THREE.Mesh>(null);
+  const material = useRef<THREE.ShaderMaterial>(null);
+  const reducedMotion = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    [],
+  );
+  let x: number, z: number, half: number;
+  if (hex) {
+    [x, z] = hexBaseCenter(color);
+    half = HEX_BASE_RADIUS;
+  } else {
+    const area = BASE_AREA[color];
+    [x, , z] = gridPoint(
+      (area.rowStart + area.rowEnd) / 2,
+      (area.colStart + area.colEnd) / 2,
+    );
+    half = ((area.colEnd - area.colStart + 1) * CELL) / 2;
+  }
+  // Room past the edge for the rim's halo.
+  const extent = (half + 0.2) * 2;
+  const uniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color(COLORS[color]) },
+      uActive: { value: 0 },
+      uDim: { value: 0 },
+      uTime: { value: 0 },
+      uHalf: { value: half },
+      uExtent: { value: extent },
+      uRound: { value: hex ? 1 : 0 },
+    }),
+    [color, half, extent, hex],
+  );
+  useFrame(({ clock }, delta) => {
+    if (!mesh.current || !material.current) return;
+    const u = material.current.uniforms;
+    const ease = 1 - Math.exp(-delta * 7);
+    u.uActive.value += ((active ? 1 : 0) - u.uActive.value) * ease;
+    u.uDim.value += ((anyActive && !active ? 1 : 0) - u.uDim.value) * ease;
+    // Under reduced motion the rim stays lit but the marquee stands still.
+    u.uTime.value = reducedMotion ? 0 : clock.elapsedTime;
+    mesh.current.visible = u.uActive.value > 0.002 || u.uDim.value > 0.002;
+  });
+  return (
+    <mesh
+      ref={mesh}
+      position={[x, BOARD_Y + 0.005, z]}
+      rotation={[-Math.PI / 2, 0, 0]}
+      renderOrder={2}
+      visible={false}
+    >
+      <planeGeometry args={[extent, extent]} />
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        vertexShader={BASE_GLOW_VERTEX}
+        fragmentShader={BASE_HIGHLIGHT_FRAGMENT}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+}
 // The same travelling light, masked to a disc — for a movable piece.
 const PIECE_FLASH_FRAGMENT = /* glsl */ `
   uniform vec3 uColor;
@@ -1368,15 +1559,16 @@ const PIECE_FLASH_FRAGMENT = /* glsl */ `
     gl_FragColor = vec4(color, alpha);
   }
 `;
-function TurnBaseGlow({
+function TurnBoardFlash({
   color,
-  active,
   hex = false,
+  snakes = false,
 }: {
-  color: PlayerColor;
-  active: boolean;
-  /** On the hexagon the bases are round: the same sweep, masked to a disc. */
+  /** The active player's colour; no flash while nobody is up. */
+  color?: PlayerColor;
   hex?: boolean;
+  /** Snakes & Ladders has no bases: the sweep runs from square 1's corner. */
+  snakes?: boolean;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const material = useRef<THREE.ShaderMaterial>(null);
@@ -1387,46 +1579,59 @@ function TurnBaseGlow({
       window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
-  let x: number, z: number, half: number;
-  if (hex) {
-    [x, z] = hexBaseCenter(color);
-    half = HEX_BASE_RADIUS;
-  } else {
-    const area = BASE_AREA[color];
-    [x, , z] = gridPoint(
-      (area.rowStart + area.rowEnd) / 2,
-      (area.colStart + area.colEnd) / 2,
-    );
-    half = ((area.colEnd - area.colStart + 1) * CELL) / 2;
-  }
-  const extent = (half + BASE_FLASH_MARGIN) * 2;
+  const half = hex ? HEX_ART_RADIUS * Math.cos(Math.PI / 6) : BOARD_SIZE / 2;
+  const extent = half * 2 + 0.1;
+  // The sweep's direction: from the active base through the centre.
+  const direction = useMemo(() => {
+    // Plane-local (1, 1) points from the bottom-left corner (square 1).
+    if (!color || snakes) return new THREE.Vector2(1, 1).normalize();
+    let x: number, z: number;
+    if (hex) [x, z] = hexBaseCenter(color);
+    else {
+      const area = BASE_AREA[color];
+      [x, , z] = gridPoint(
+        (area.rowStart + area.rowEnd) / 2,
+        (area.colStart + area.colEnd) / 2,
+      );
+    }
+    // Plane space: the mesh lies flat (rotated -90deg about x), so its local
+    // y runs along the board's -z.
+    return new THREE.Vector2(-x, z).normalize();
+  }, [color, hex, snakes]);
   const uniforms = useMemo(
     () => ({
-      uColor: { value: new THREE.Color(COLORS[color]) },
+      uColor: { value: new THREE.Color("#ffffff") },
       uIntensity: { value: 0 },
       uTime: { value: 0 },
-      // The square shader reads uHalf, the disc one uRadius.
       uHalf: { value: half },
-      uRadius: { value: half },
       uExtent: { value: extent },
+      uRound: { value: hex ? 1 : 0 },
+      uDir: { value: new THREE.Vector2(1, 0) },
     }),
-    [color, half, extent],
+    [half, extent, hex],
+  );
+  const targetColor = useMemo(
+    () => new THREE.Color(color ? COLORS[color] : "#ffffff"),
+    [color],
   );
   useFrame(({ clock }, delta) => {
     if (!mesh.current || !material.current) return;
-    intensity.current +=
-      ((active ? 1 : 0) - intensity.current) * (1 - Math.exp(-delta * 7));
+    const ease = 1 - Math.exp(-delta * 7);
+    intensity.current += ((color ? 1 : 0) - intensity.current) * ease;
     const u = material.current.uniforms;
     u.uIntensity.value = intensity.current;
-    // Under reduced motion the band is parked mid-base (no travel) so it reads
-    // as a steady soft light rather than a moving flash.
-    u.uTime.value = reducedMotion ? SWEEP_PARK : clock.elapsedTime;
+    // The tint and the sweep's heading ease over to the next player.
+    (u.uColor.value as THREE.Color).lerp(targetColor, ease);
+    (u.uDir.value as THREE.Vector2).lerp(direction, ease).normalize();
+    // Under reduced motion the band is parked mid-board (no travel) so it
+    // reads as a steady soft light rather than a moving flash.
+    u.uTime.value = reducedMotion ? BOARD_SWEEP_PARK : clock.elapsedTime;
     mesh.current.visible = intensity.current > 0.002;
   });
   return (
     <mesh
       ref={mesh}
-      position={[x, BOARD_Y + 0.004, z]}
+      position={[0, BOARD_Y + 0.004, 0]}
       rotation={[-Math.PI / 2, 0, 0]}
       renderOrder={1}
       visible={false}
@@ -1436,7 +1641,7 @@ function TurnBaseGlow({
         ref={material}
         uniforms={uniforms}
         vertexShader={BASE_GLOW_VERTEX}
-        fragmentShader={hex ? PIECE_FLASH_FRAGMENT : BASE_GLOW_FRAGMENT}
+        fragmentShader={BOARD_FLASH_FRAGMENT}
         transparent
         depthWrite={false}
         toneMapped={false}
@@ -1700,31 +1905,17 @@ function Seats({
   speakingPlayerIds,
   preview,
   gameType,
-  orientation,
   hideLabels,
 }: SceneProps) {
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
   );
   if (preview || hideLabels) return null;
-  // Board-local anchors follow the same rotation as the artwork and pawns.
-  const positions: Record<PlayerColor, Point> = {
-    red: [-1.8, BOARD_Y, -3.5],
-    green: [1.8, BOARD_Y, -3.5],
-    yellow: [1.8, BOARD_Y, 3.5],
-    blue: [-1.8, BOARD_Y, 3.5],
-    // Hex-only colours: 5-6 player seats use hexSeat() below instead.
-    orange: [3.5, BOARD_Y, 0],
-    black: [-3.5, BOARD_Y, 0],
-  };
-  const mobileCornerPositions: Record<PlayerColor, Point> = {
-    red: [-2.15, BOARD_Y, -3.52],
-    green: [2.15, BOARD_Y, -3.52],
-    yellow: [2.15, BOARD_Y, 3.52],
-    blue: [-2.15, BOARD_Y, 3.52],
-    orange: [3.52, BOARD_Y, 0],
-    black: [-3.52, BOARD_Y, 0],
-  };
+  // Board-local anchors follow the same rotation as the artwork and pawns
+  // (SEAT_POINTS / MOBILE_CORNER_SEAT_POINTS, shared with the die so it
+  // always rests beside the active player's label).
+  const positions = SEAT_POINTS;
+  const mobileCornerPositions = MOBILE_CORNER_SEAT_POINTS;
   // Left/right of the board only, same anchor as that color's die point
   // (DESKTOP_FOUR_PLAYER_DIE_POINTS) — the label is then pushed away from
   // it by a fixed screen-pixel amount below, since a 3D-space gap shrinks
@@ -1738,27 +1929,19 @@ function Seats({
     const [x, z] = hexSeatPoint(color, HEX_SLAB_RADIUS + 0.45);
     return [x, BOARD_Y, z];
   };
-  const mobileDuel = !hex && compact && players.length === 2;
-  const mobileFourPlayer = !hex && compact && players.length === 4;
-  const desktopFourPlayerSide = !hex && players.length === 4 && !mobileFourPlayer;
-  const duelPlayers = [...players].sort((a, b) => {
-    if (a.id === myPlayerId) return -1;
-    if (b.id === myPlayerId) return 1;
-    return a.seatIndex - b.seatIndex;
-  });
+  // Phones pin 2- and 4-player labels by their own corners (a duel used to
+  // put both labels side by side under the board, which said nothing about
+  // whose base was whose — or whose die it was).
+  const cornerSeats =
+    seatLayout(compact, hex, players.length) === "corners";
+  const desktopFourPlayerSide = !hex && players.length === 4 && !cornerSeats;
   return (
     <>
       {players.map((player) => {
         const active = player.id === (frame.actorId ?? turnPlayerId);
-        const duelIndex = duelPlayers.findIndex(({ id }) => id === player.id);
         const position = hex
           ? hexSeat(player.color)
-          : mobileDuel
-          ? rotateTablePoint(
-              [duelIndex === 0 ? -1.45 : 1.45, BOARD_Y, 3.46],
-              -orientation,
-            )
-          : mobileFourPlayer
+          : cornerSeats
             ? mobileCornerPositions[player.color]
             : players.length === 4
               ? desktopSidePositions[player.color]
@@ -1780,7 +1963,7 @@ function Seats({
                 : 0;
               const projectedY = ((1 - point.y) * size.height) / 2;
               const labelY =
-                mobileDuel || mobileFourPlayer
+                cornerSeats
                   ? projectedY
                   : compact && portrait
                   ? projectedY < size.height / 2
@@ -1796,7 +1979,7 @@ function Seats({
                 THREE.MathUtils.clamp(
                   labelY,
                   portrait ? 155 : 75,
-                  size.height - (portrait ? (mobileDuel ? 76 : 92) : 75),
+                  size.height - (portrait ? 92 : 75),
                 ),
               ];
             }}
@@ -1804,7 +1987,7 @@ function Seats({
             style={{ pointerEvents: "none" }}
           >
             <div
-              className={`sim-seat ${mobileDuel ? "is-mobile-duel" : ""} ${active ? "is-active" : ""}`}
+              className={`sim-seat ${active ? "is-active" : ""}`}
               style={
                 { "--seat-color": COLORS[player.color] } as React.CSSProperties
               }
@@ -2180,7 +2363,9 @@ export default function SimulatorScene(props: SceneProps) {
           )}
           </Surroundings>
           <BoardObject {...props} />
-          <PhysicalDie key={props.frame.revision} {...props} />
+          {/* Not keyed by frame revision: it stays mounted so the die can
+              slide from one player to the next when the turn passes. */}
+          <PhysicalDie {...props} />
           <SceneReady onReady={markReady} />
         </Suspense>
         <CameraRig {...props} />

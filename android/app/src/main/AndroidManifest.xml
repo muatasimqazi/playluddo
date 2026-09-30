@@ -32,6 +32,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Push notifications (F1.7): Android 13+ asks before an app may post them. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Voice chat: lib/hooks/useTableCall.ts calls getUserMedia({ audio: true }). -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />

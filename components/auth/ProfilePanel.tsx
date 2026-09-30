@@ -33,6 +33,7 @@ import {
 } from "@/lib/nativeAuth";
 import { deleteAccount } from "@/lib/supabase/account";
 import { useI18n, type Translator } from "@/lib/i18n";
+import { NotificationSettings } from "@/components/preferences/NotificationSettings";
 
 type LoginMethod = "email" | "phone";
 
@@ -837,6 +838,7 @@ export function ProfilePanel({
                     ))}
                   </div>
                 </section>
+                <NotificationSettings signedIn />
                 <button
                   className="profile-secondary"
                   type="button"
@@ -983,6 +985,7 @@ export function ProfilePanel({
                         : t("account.sendTextCode")}
                 </button>
                 <small className="profile-guest-note">{t("account.guestNote")}</small>
+                <NotificationSettings signedIn={false} />
               </>
             )}
             {message && <p className="profile-message" role="status">{message}</p>}

@@ -414,6 +414,11 @@ verify_jwt = false
 [functions.ice-servers]
 verify_jwt = false
 
+# Push notification sender (F1.7). Called only by the push-sweep cron job via
+# pg_net, which presents PUSH_DISPATCH_SECRET (Vault: push_dispatch_secret).
+[functions.push-dispatch]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

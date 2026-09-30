@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { App } from "@capacitor/app";
 import { createClient } from "../supabase/client";
 import { ensureSession } from "../supabase/auth";
+import { isNativeApp } from "../native";
+import { reportSeatBackgrounded } from "../push";
 import { claimSeat, getRoomState, RpcError } from "../supabase/rpc";
 import { fetchRecentEvents, subscribeToPlayerSignals, subscribeToRoom } from "../realtime/room-channel";
 import { fetchTableMessages } from "../realtime/table-messages";
@@ -178,6 +181,26 @@ export function useRoomConnection(roomId: string) {
       void channel?.unsubscribe();
       void signalChannel?.unsubscribe();
       store().reset();
+    };
+  }, [client, roomId]);
+
+  // Tell the server when this seat's app goes to the background, so a "your
+  // turn" push (F1.7) only reaches a player who isn't already looking. The
+  // RPC does nothing for a caller without a seat here.
+  useEffect(() => {
+    const report = (backgrounded: boolean) => void reportSeatBackgrounded(client, roomId, backgrounded);
+    const onVisibility = () => report(document.visibilityState === "hidden");
+    document.addEventListener("visibilitychange", onVisibility);
+    // The app shell's own signal, in case the web view doesn't fire visibilitychange.
+    const appListener = isNativeApp()
+      ? App.addListener("appStateChange", ({ isActive }) => report(!isActive))
+      : null;
+    report(document.visibilityState === "hidden");
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      void appListener?.then((handle) => handle.remove());
+      // Leaving the table screen with a seat still held counts as away.
+      report(true);
     };
   }, [client, roomId]);
 

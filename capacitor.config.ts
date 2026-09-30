@@ -35,6 +35,12 @@ const config: CapacitorConfig = {
       backgroundColor: "#1e2720",
       showSpinner: false,
     },
+    // Push notifications (lib/push). A table invitation that arrives while
+    // the app is open still shows as a banner; turn alerts are only sent
+    // while the app is in the background.
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
     // Native Sign in with Apple and Google (lib/nativeAuth.ts). Only the
     // providers the app uses are bundled — `false` keeps the Facebook SDK
     // out of the app entirely. Rerun `npx cap sync` after changing this.

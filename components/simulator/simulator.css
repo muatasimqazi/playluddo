@@ -6566,3 +6566,77 @@ body.sim-die-blocked .sim-canvas {
     animation: none;
   }
 }
+
+/* F1.7 Push notifications: the Notifications section of the profile panel. */
+.notification-settings .profile-team-heading {
+  margin-bottom: 4px;
+}
+.notification-kinds {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.notification-on-here {
+  color: #b9d3a3;
+  font-size: 11px;
+}
+.notification-note {
+  margin: 8px 0 0;
+  color: #c0c8b5;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.notification-quiet {
+  display: flex;
+  gap: 12px;
+  padding-inline-start: 26px;
+}
+.notification-quiet label {
+  display: grid;
+  gap: 4px;
+  color: #c0c8b5;
+  font-size: 11px;
+}
+.notification-quiet input {
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid #ffffff25;
+  border-radius: 8px;
+  background: #ffffff0d;
+  color: #eef0e4;
+  font: inherit;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+/* F1.7: the lobby's one-line offer of "your turn" notifications. */
+.lobby-push-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #ffffff1f;
+  border-radius: 12px;
+  background: #ffffff0a;
+  color: #dfe5d6;
+  font-size: 13px;
+}
+.lobby-push-prompt span {
+  flex: 1 1 180px;
+}
+.lobby-push-prompt button {
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid #d8bd7f80;
+  border-radius: 999px;
+  background: #d8bd7f24;
+  color: #f1e3bd;
+  font-size: 12px;
+}
+.lobby-push-prompt button.is-quiet {
+  border-color: transparent;
+  background: none;
+  color: #b5bfae;
+}

@@ -29,6 +29,7 @@ import { useRoomStore } from "@/lib/store/room-store";
 import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { TurnReminderPrompt } from "@/components/lobby/TurnReminderPrompt";
 import { useCast } from "@/lib/hooks/useCast";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
@@ -741,6 +742,7 @@ export function RoomLobby({
             {isParty ? "The VIP will start the game shortly." : "Your host will start the match shortly."}
           </p>
         )}
+        <TurnReminderPrompt client={client} />
         {error && (
           <p className="lobby-error" role="alert">
             {error}

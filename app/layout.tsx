@@ -6,6 +6,7 @@ import { NativeShell } from "@/components/NativeShell";
 import { I18nProvider } from "@/lib/i18n";
 import { PreferencesSync } from "@/components/preferences/PreferencesSync";
 import { AgeGateOnSignIn } from "@/components/auth/AgeGateOnSignIn";
+import { PushRegistration } from "@/components/preferences/PushRegistration";
 import "./globals.css";
 
 // Publishes the real visible viewport height to CSS as `--app-height`, so
@@ -104,6 +105,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <I18nProvider>
           <PreferencesSync />
           <AgeGateOnSignIn />
+          <PushRegistration />
           {children}
           <NativeShell />
         </I18nProvider>

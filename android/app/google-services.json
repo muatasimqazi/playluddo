@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "303637127304",
+    "project_id": "luddohouse",
+    "storage_bucket": "luddohouse.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303637127304:android:baad816639cc29faedbf3d",
+        "android_client_info": {
+          "package_name": "com.luddohouse.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWB17WCGy8p0AOirjo8bn_qq6ukD-ocq4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

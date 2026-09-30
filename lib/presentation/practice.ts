@@ -64,6 +64,8 @@ export function createPractice(
   playerColor: PlayerColor = "blue",
   profile: PracticeProfile = {},
   botLevel: BotLevel = "normal",
+  /** Which printed Snakes & Ladders board to play (F2.6); ignored by Ludo. */
+  snakesBoard = 0,
 ): PracticeSession {
   // A 2-player game seats the two players diagonally across the board
   // (same pairing the SQL room engine uses); 3-4 players fill the bases
@@ -85,7 +87,7 @@ export function createPractice(
       code: "LOCAL",
       gameType,
       status: "in_game",
-      rules: DEFAULT_ROOM_RULES,
+      rules: snakesBoard === 1 ? { ...DEFAULT_ROOM_RULES, snakesBoard: 1 } : DEFAULT_ROOM_RULES,
       players: colors.map((color, i) => ({
         id: `practice-${i}`,
         seatIndex: i,
@@ -145,6 +147,7 @@ export function practiceReducer(
       session.state.players[0].color,
       session.state.players[0],
       session.botLevel,
+      session.state.rules?.snakesBoard,
     );
   if (action.type === "undo") return undoLastMove(session);
   const { state } = session;

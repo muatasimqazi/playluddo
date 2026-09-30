@@ -25,8 +25,20 @@ function requestedGameType(params: URLSearchParams): GameType | undefined {
   return value === "ludo" || value === "snakes_and_ladders" ? value : undefined;
 }
 
-function newSession(gameType: GameType, names: string[]): PracticeSession {
-  const session = createPractice(gameType, names.length as 2 | 3 | 4, "red");
+/** The Snakes & Ladders board picked on the entrance (?board=1 = second). */
+function requestedSnakesBoard(params: URLSearchParams): 0 | 1 {
+  return params.get("board") === "1" ? 1 : 0;
+}
+
+function newSession(gameType: GameType, names: string[], snakesBoard = 0): PracticeSession {
+  const session = createPractice(
+    gameType,
+    names.length as 2 | 3 | 4,
+    "red",
+    {},
+    undefined,
+    snakesBoard,
+  );
   return {
     ...session,
     state: {
@@ -98,7 +110,11 @@ export default function TableTogether() {
     const playerNames = names.slice(0, count);
     setSessions({
       ludo: newSession("ludo", playerNames),
-      snakes_and_ladders: newSession("snakes_and_ladders", playerNames),
+      snakes_and_ladders: newSession(
+        "snakes_and_ladders",
+        playerNames,
+        requestedSnakesBoard(searchParams),
+      ),
     });
     setReadyPlayerId(null);
   }
@@ -190,6 +206,7 @@ export default function TableTogether() {
                   [gameType]: newSession(
                     gameType,
                     state.players.map((player) => player.displayName),
+                    state.rules?.snakesBoard,
                   ),
                 }
               : current,

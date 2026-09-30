@@ -37,6 +37,12 @@ function requestedBotLevel(params: URLSearchParams): BotLevel | undefined {
   return BOT_LEVELS.includes(value as BotLevel) ? (value as BotLevel) : undefined;
 }
 
+/** The Snakes & Ladders board picked on the entrance (?board=1 = second). */
+function requestedSnakesBoard(params: URLSearchParams): 0 | 1 | undefined {
+  const value = params.get("board");
+  return value === "0" || value === "1" ? (Number(value) as 0 | 1) : undefined;
+}
+
 function requestedGameType(params: URLSearchParams): GameType | undefined {
   const value = params.get("game");
   return value === "ludo" || value === "snakes_and_ladders" ? value : undefined;
@@ -48,14 +54,16 @@ function load(
   playerColor?: PlayerColor,
   playerAvatar?: string,
   botLevel?: BotLevel,
+  snakesBoard?: 0 | 1,
 ): PracticeSession {
-  if (playerCount || playerColor || playerAvatar || botLevel)
+  if (playerCount || playerColor || playerAvatar || botLevel || snakesBoard !== undefined)
     return createPractice(
       gameType,
       playerCount ?? 4,
       playerColor ?? "blue",
       { avatarId: playerAvatar },
       botLevel,
+      snakesBoard,
     );
   try {
     const saved = JSON.parse(
@@ -90,6 +98,7 @@ export default function PracticeTable() {
   const [initialPlayerAvatar] = useState(() => requestedPlayerAvatar(searchParams));
   const [initialGameType] = useState(() => requestedGameType(searchParams));
   const [initialBotLevel] = useState(() => requestedBotLevel(searchParams));
+  const [initialSnakesBoard] = useState(() => requestedSnakesBoard(searchParams));
   const appliedSearch = useRef(searchParams.toString());
   const [gameType, setGameType] = useState<GameType>(() => {
     if (initialGameType) return initialGameType;
@@ -109,6 +118,7 @@ export default function PracticeTable() {
       initialPlayerColor,
       initialPlayerAvatar,
       initialBotLevel,
+      initialSnakesBoard,
     ),
     snakes_and_ladders: load(
       "snakes_and_ladders",
@@ -116,6 +126,7 @@ export default function PracticeTable() {
       initialPlayerColor,
       initialPlayerAvatar,
       initialBotLevel,
+      initialSnakesBoard,
     ),
   }));
   const session = sessions[gameType];
@@ -137,7 +148,15 @@ export default function PracticeTable() {
       const playerAvatar = requestedPlayerAvatar(searchParams);
       const requestedGame = requestedGameType(searchParams);
       const botLevel = requestedBotLevel(searchParams);
-      if (!playerCount && !playerColor && !playerAvatar && !requestedGame && !botLevel)
+      const snakesBoard = requestedSnakesBoard(searchParams);
+      if (
+        !playerCount &&
+        !playerColor &&
+        !playerAvatar &&
+        !requestedGame &&
+        !botLevel &&
+        snakesBoard === undefined
+      )
         return;
       const profile = { avatarId: playerAvatar };
       setSessions({
@@ -147,6 +166,7 @@ export default function PracticeTable() {
           playerColor ?? "blue",
           profile,
           botLevel,
+          snakesBoard,
         ),
         snakes_and_ladders: createPractice(
           "snakes_and_ladders",
@@ -154,6 +174,7 @@ export default function PracticeTable() {
           playerColor ?? "blue",
           profile,
           botLevel,
+          snakesBoard,
         ),
       });
       if (requestedGame) setGameType(requestedGame);
@@ -257,6 +278,7 @@ export default function PracticeTable() {
             state.players[0].color,
             state.players[0],
             session.botLevel,
+            state.rules?.snakesBoard,
           ),
         }));
         setGeneration((n) => n + 1);

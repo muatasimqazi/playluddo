@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
-import { createRoom, joinRoom, roomIdForCode, setPlayerColor, setRoomGame } from "@/lib/supabase/rpc";
+import {
+  createRoom,
+  joinRoom,
+  roomIdForCode,
+  setPlayerColor,
+  setRoomGame,
+  setRoomRules,
+} from "@/lib/supabase/rpc";
+import { resolveRoomRules } from "@/lib/board/rules";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import type { GameType, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
@@ -21,6 +29,8 @@ import hexClassicBoardArt from "@/designs/board-hex-classic.svg";
 import hexSignatureBoardArt from "@/designs/board-hex-signature.svg";
 import hexGeometricBoardArt from "@/designs/board-hex-geometric.svg";
 import hexAladdinBoardArt from "@/designs/board-hex-aladdin.svg";
+import snakesBoardArt from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
+import snakesBoardArt2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
 import { useGamePreference } from "@/lib/preferences-react";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
@@ -105,6 +115,13 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
   },
 };
 
+// The two printed Snakes & Ladders boards (F2.6), by their snakesBoard rule
+// value — the same artwork the 3D table renders for each.
+const SNAKES_BOARD_THUMBNAILS: Record<0 | 1, string> = {
+  0: snakesBoardArt.src as string,
+  1: snakesBoardArt2.src as string,
+};
+
 // Maps a bot level to its localized label key (resolved via t() at render).
 const BOT_LEVEL_KEYS = {
   easy: "entrance.botEasy",
@@ -180,6 +197,10 @@ export default function Home() {
   // Board design — a saved preference, synced when signed in; the entrance's
   // highlight then matches what the table will render (Classic by default).
   const [boardStyle, setBoardStyle] = useGamePreference("boardStyle");
+  // Which printed Snakes & Ladders board to play — a game rule (it moves the
+  // snakes and ladders), so it rides along to the table rather than being a
+  // look-only preference like the Ludo board design.
+  const [snakesBoard, setSnakesBoard] = useState<0 | 1>(0);
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const age = useAgeCheck();
   const [error, setError] = useState<string | null>(null);
@@ -275,8 +296,14 @@ export default function Home() {
       const room = await createRoom(client, name.trim(), undefined, tableSize);
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
-      if (kind === "create" && gameType !== "ludo")
-        await setRoomGame(client, room.roomId, gameType);
+      if (kind === "create" && gameType !== "ludo") {
+        const state = await setRoomGame(client, room.roomId, gameType);
+        if (gameType === "snakes_and_ladders" && snakesBoard === 1)
+          await setRoomRules(client, room.roomId, {
+            ...resolveRoomRules(state.rules),
+            snakesBoard,
+          });
+      }
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setPending(null);
@@ -647,6 +674,33 @@ export default function Home() {
                     }
                   />
                 )}
+                {mode !== "quick" && gameType === "snakes_and_ladders" && (
+                  <Segmented
+                    label={t("entrance.boardLabel")}
+                    options={([0, 1] as const).map((board) => ({
+                      value: board,
+                      label: board === 0 ? t("entrance.snakesBoardOriginal") : t("entrance.snakesBoardSecond"),
+                    }))}
+                    value={snakesBoard}
+                    onChange={setSnakesBoard}
+                    hint={
+                      <span className="entrance-board-preview">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local board artwork shared with the 3D table's cache. */}
+                        <img
+                          key={`snakes-${snakesBoard}`}
+                          src={SNAKES_BOARD_THUMBNAILS[snakesBoard]}
+                          alt=""
+                          decoding="async"
+                        />
+                        <span>
+                          {snakesBoard === 0
+                            ? t("entrance.snakesBoardOriginalDesc")
+                            : t("entrance.snakesBoardSecondDesc")}
+                        </span>
+                      </span>
+                    }
+                  />
+                )}
               </>
             )}
             {(mode === "quick" || mode === "friends") && (
@@ -692,7 +746,7 @@ export default function Home() {
               {mode === "practice" && (
                 <Link
                   className="sim-primary"
-                  href={`/practice?players=${tableSize}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : ""}`}
+                  href={`/practice?players=${tableSize}&color=${playerColor}${pickedAvatar ? `&avatar=${encodeURIComponent(pickedAvatar)}` : ""}&game=${gameType}${gameType === "ludo" ? `&level=${botLevel}` : `&board=${snakesBoard}`}`}
                 >
                   <span>{modeTitle(t("entrance.offlinePractice"))}</span>
                   <Icon name="dice" />
@@ -701,7 +755,7 @@ export default function Home() {
               {mode === "together" && (
                 <Link
                   className="sim-primary"
-                  href={`/table-together?players=${tableSize}&game=${gameType}`}
+                  href={`/table-together?players=${tableSize}&game=${gameType}${gameType === "snakes_and_ladders" ? `&board=${snakesBoard}` : ""}`}
                 >
                   <span>{modeTitle(t("entrance.tableTogether"))}</span>
                   <Icon name="users" />

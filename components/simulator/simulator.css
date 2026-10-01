@@ -5759,8 +5759,37 @@ body.sim-die-blocked .sim-canvas {
 .simulator.is-screen .sim-turn time {
   font-size: 16px;
 }
+/* Seat labels go flat on the shared screen: a slim name pill, not a card,
+   so the table isn't crowded with panels. The status line and progress
+   drop out (each base is engraved with its player's name, and the turn bar
+   says whose go it is); the player who's up gets a pill in their colour. */
 .simulator.is-screen .sim-seat {
   zoom: var(--screen-zoom);
+  gap: 7px;
+  min-width: 0;
+  padding: 3px 12px 3px 3px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 27, 22, 0.62);
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.simulator.is-screen .sim-seat.is-active {
+  background: color-mix(in srgb, var(--seat-color), #1e2720 45%);
+  box-shadow: none;
+  animation: none;
+}
+.simulator.is-screen .sim-seat:not(.is-active) {
+  opacity: 0.85;
+}
+.simulator.is-screen .seat-copy small,
+.simulator.is-screen .seat-dot {
+  display: none;
+}
+.simulator.is-screen .seat-copy strong {
+  max-width: 120px;
+  font-size: 13px;
+  text-shadow: 0 1px 6px #0009;
 }
 .simulator.is-screen .seat-reaction {
   font-size: 48px;

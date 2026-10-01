@@ -27,7 +27,7 @@ copy of the build, it doesn't load the website.
   Google Analytics is left out of the app build.
 - **Export compliance:** `ITSAppUsesNonExemptEncryption = NO` (HTTPS only), so
   uploads don't ask the encryption question.
-- **Microphone:** usage text is set for voice chat.
+- **Microphone and camera:** usage text is set for voice and video chat.
 - **Game Center:** leaderboard, achievements and sign-in (see "Game Center" below).
 - **Sign-in:** email and phone codes. "Continue with Google" is hidden in the
   app — Google blocks its sign-in inside embedded web views, and offering it
@@ -64,15 +64,10 @@ copy of the build, it doesn't load the website.
      tools (see "Before review" below).
    - Privacy Policy URL: `https://luddohouse.com/privacy` (on the App Privacy page).
    - Support URL: `https://luddohouse.com/support` (support@luddohouse.com).
-7. **Privacy label** (App Store Connect → App Privacy) — match the manifest:
-   - *Linked to the user, used for App Functionality:* Name, Email Address,
-     Phone Number, User ID, Photos (optional avatar photo), Other User Content
-     (table chat), Gameplay Content (results for the leaderboard).
-   - *Not linked, used for Analytics:* Product Interaction (anonymous page views).
-   - *Not used for tracking.*
-8. **Review notes:** tell reviewers no account is needed — "Settle in with an
-   offline practice game" plays immediately against computers, and Quick match
-   finds an opponent or seats computers after 45 seconds.
+7. **Privacy label, age rating and review notes:** see
+   [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md). It matches the manifest and
+   covers voice, video, the age check, push and the demo accounts reviewers
+   need for video.
 
 ## Game Center
 

@@ -8,7 +8,13 @@
     used only to run the app.
   - Product interaction: anonymous PostHog page views (no identify call), not
     linked to the player. Google Analytics is left out of the app build.
-  - Voice chat is peer-to-peer WebRTC and is not collected or stored.
+  - Other data: birth month and year (the age check before online play) and
+    the optional country on a profile; linked, app functionality only.
+  - Device ID: the push token a device registers for turn and rematch
+    alerts (APNs); linked, app functionality only.
+  - Voice and video are WebRTC, sent directly between players or through a
+    TURN relay (Twilio) that forwards them in real time without storing them,
+    so they are not collected. Nothing is recorded.
   No tracking, no tracking domains. Capacitor's own frameworks ship their own
   manifests for the required-reason APIs they use.
 -->
@@ -114,6 +120,30 @@
 			<key>NSPrivacyCollectedDataTypePurposes</key>
 			<array>
 				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherDataTypes</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeDeviceID</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<true/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
 	</array>

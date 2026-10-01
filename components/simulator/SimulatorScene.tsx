@@ -100,6 +100,8 @@ import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
 import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
+import { MarblePawn, MARBLE_PAWN_HEIGHT, WoodPawn, WOOD_PAWN_HEIGHT } from "./TurnedPawns";
+import { isFigure, pieceStyleFor, type PieceStyle } from "@/lib/presentation/pieceStyles";
 import { Icon } from "./Icon";
 import { PlayerAvatars3D } from "./PlayerAvatar3D";
 import { TableLoading } from "./TableLoading";
@@ -383,6 +385,7 @@ function Piece({
   gameType = "ludo",
   soundEnabled = true,
   boardStyle = "signature",
+  style = "glass",
   spec = BOARD_4,
   colorBlind = false,
   reducedMotion = false,
@@ -397,6 +400,8 @@ function Piece({
   gameType?: GameType;
   soundEnabled?: boolean;
   boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
+  /** How this piece is drawn: its owner's equipped style, or the board's own (F3.5). */
+  style?: PieceStyle;
   /** Which Luddo board: the 4-arm cross or the 6-arm hexagon (F5.2). */
   spec?: BoardSpec;
   colorBlind?: boolean;
@@ -423,21 +428,21 @@ function Piece({
   // Reduced motion: the next frame puts the piece straight on its square.
   const snap = useRef(false);
   const [hovered, setHovered] = useState(false);
-  const classicPawn = boardStyle === "classic" && gameType === "ludo";
-  const aladdinPawn = boardStyle === "aladdin" && gameType === "ludo";
-  const spreadPawn = classicPawn || aladdinPawn;
+  const spreadPawn = isFigure(style);
   // Hex cells are smaller than the cross's, so the whole piece (and its
   // ring, flash and stack spacing) shrinks to fit one.
   const scale = pieceScale(spec);
   const pawnHeight =
-    (classicPawn
-      ? CLASSIC_PAWN_HEIGHT
-      : aladdinPawn
-        ? ALADDIN_PAWN_HEIGHT
-        : GLASS_PAWN_HEIGHT) * scale;
+    {
+      glass: GLASS_PAWN_HEIGHT,
+      classic: CLASSIC_PAWN_HEIGHT,
+      aladdin: ALADDIN_PAWN_HEIGHT,
+      wood: WOOD_PAWN_HEIGHT,
+      marble: MARBLE_PAWN_HEIGHT,
+    }[style] * scale;
   // Outer radius of the legal-move highlight ring and the move-flash disc.
   // The cell-filling glass disc needs a wider ring than the slimmer
-  // classic/aladdin figures.
+  // standing figures.
   const highlightRadius = spreadPawn ? 0.218 : 0.225;
   const point = (piece: Pawn) => simPawnPoint(piece, gameType, spec, boardStyle);
   const [initial] = useState(() => point(pawn));
@@ -676,10 +681,14 @@ function Piece({
           setHovered(false);
         }}
       >
-        {classicPawn ? (
+        {style === "classic" ? (
           <ClassicPawn color={pawn.color} colorBlind={colorBlind} />
-        ) : aladdinPawn ? (
+        ) : style === "aladdin" ? (
           <AladdinPawn color={pawn.color} colorBlind={colorBlind} />
+        ) : style === "wood" ? (
+          <WoodPawn color={pawn.color} colorBlind={colorBlind} />
+        ) : style === "marble" ? (
+          <MarblePawn color={pawn.color} colorBlind={colorBlind} />
         ) : (
           <GlassPawn color={pawn.color} colorBlind={colorBlind} />
         )}
@@ -1607,6 +1616,11 @@ function BoardObject(props: SceneProps) {
             onMove={props.onMove}
             soundEnabled={props.soundEnabled}
             boardStyle={props.boardStyle}
+            style={pieceStyleFor(
+              props.players.find((player) => player.color === pawn.color)?.cosmetics?.piece,
+              props.boardStyle,
+              props.gameType ?? "ludo",
+            )}
             colorBlind={colorBlind}
             reducedMotion={props.reducedMotion}
             focused={props.focusedPawnId === pawn.id}

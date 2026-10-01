@@ -50,7 +50,7 @@ import {
 } from "@/lib/presentation/simulatorPrefs";
 import { gamePreferences, isSignedIn } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/client";
-import { getMyCosmetics } from "@/lib/supabase/cosmetics";
+import { getMyCosmetics, type EquippedCosmetics } from "@/lib/supabase/cosmetics";
 import { useGamePreference } from "@/lib/preferences-react";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { seatColors } from "@/lib/presentation/accessibility";
@@ -380,11 +380,11 @@ export default function Simulator({
   useEffect(() => () => clearTimeout(flipTimer.current), []);
   const me = state.players.find((p) => p.id === myPlayerId);
   // Online, every seat's equipped cosmetics ride in the room state (F3.5).
-  // Offline seats carry none, so a signed-in player's own equipped die is
-  // fetched once and put on their seat for the scene: practice rolls look
-  // the same as their online ones.
+  // Offline seats carry none, so a signed-in player's own equipped die and
+  // pieces are fetched once and put on their seat for the scene: practice
+  // looks the same as their online games.
   const offlineSeat = me !== undefined && me.cosmetics === undefined;
-  const [myDice, setMyDice] = useState<string | null>(null);
+  const [myLoadout, setMyLoadout] = useState<EquippedCosmetics | null>(null);
   useEffect(() => {
     if (!offlineSeat) return;
     let cancelled = false;
@@ -393,12 +393,14 @@ export default function Simulator({
         const client = createClient();
         const { data } = await client.auth.getUser();
         if (!isSignedIn(data.user)) return;
-        const equipped = (await getMyCosmetics(client)).find(
-          (item) => item.type === "dice" && item.equipped,
-        );
-        if (!cancelled && equipped) setMyDice(equipped.id);
+        const loadout: EquippedCosmetics = {};
+        for (const item of await getMyCosmetics(client)) {
+          if (item.equipped && (item.type === "dice" || item.type === "piece"))
+            loadout[item.type] = item.id;
+        }
+        if (!cancelled) setMyLoadout(loadout);
       } catch {
-        /* Offline or signed out: the classic die. */
+        /* Offline or signed out: the classic die and the board's own pieces. */
       }
     })();
     return () => {
@@ -407,12 +409,12 @@ export default function Simulator({
   }, [offlineSeat]);
   const scenePlayers = useMemo(
     () =>
-      offlineSeat && myDice
+      offlineSeat && myLoadout
         ? state.players.map((p) =>
-            p.id === myPlayerId ? { ...p, cosmetics: { dice: myDice } } : p,
+            p.id === myPlayerId ? { ...p, cosmetics: myLoadout } : p,
           )
         : state.players,
-    [offlineSeat, myDice, state.players, myPlayerId],
+    [offlineSeat, myLoadout, state.players, myPlayerId],
   );
   // The 5-6 player hexagon or the 4-arm cross (F5.2), from the seat colours.
   const boardSpec = boardSpecForPawns(state.players);

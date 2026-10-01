@@ -792,7 +792,7 @@ Now **Party Mode**, Section 6 (P1–P8).
 Now a committed feature: **Video chat**, Section 7 (V0–V6).
 
 ### F5.5 Accessibility ◐ · M
-**Status (2026-09-30):** [`1dc0117`](https://github.com/muatasimqazi/playluddo/commit/1dc0117) — 12px minimum text size. Then:
+**Status (2026-09-30):** [`1dc0117`](https://github.com/muatasimqazi/playluddo/commit/1dc0117) — 12px minimum text size. [`0150d3e`](https://github.com/muatasimqazi/playluddo/commit/0150d3e):
 - **Symbols:** every seat has a symbol (`lib/presentation/accessibility.ts`). It shows on seat labels, base name plates, the turn bar, the keyboard piece list and the Party screen's move preview, whatever the palette.
 - **Colour-blind mode:** a synced preference (`colorBlind`, with the board-style pattern). It switches pawns, glows, seat figures and the Party phone board to a palette whose closest pair stays ΔE₀₀ ≥ 20 under simulated protanopia, deuteranopia and tritanopia, counting the board's cream as a colour (`tests/presentation/accessibility.test.ts`; today's palette bottoms out at ~6). All eight board artworks are recoloured to match: the vector boards in their SVG source, the raster signature board in its ink pass. Pawns and bases also get their symbol.
 - **Screen-reader announcements:** rolls, captures, base exits, pieces home, finishes, timeouts, Snakes & Ladders ladders and snakes, turns and the result, in a polite log (`lib/presentation/announcements.ts`). The turn bar's ticking clock is no longer a live region.

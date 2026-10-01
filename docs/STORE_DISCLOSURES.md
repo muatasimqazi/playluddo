@@ -110,6 +110,12 @@ Sign-in uses one-time codes, so a reviewer can't type a password. Before submitt
 
 ## V1: the two manual checks
 
+**First, give the relay its Twilio credentials.** The `ice-servers` function needs `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` (Twilio Console → Account → API keys & tokens). As of 2026-09-30 only the SID is set in production, so every call falls back to STUN only, and calls between cellular networks will fail. Set the token, which takes effect without a redeploy:
+
+```bash
+supabase secrets set TWILIO_AUTH_TOKEN=<auth token>
+```
+
 **Voice between two phones on separate cellular networks.** Use two phones on different carriers with Wi-Fi off on both. Sign in on each, open a private table on one and join it from the other, and both tap the microphone. Pass: both hear each other within a few seconds. In PostHog, the two `call_ice_outcome` events for that call should show `outcome = connected`. Expect `candidate_type = relay` on at least one side, since carrier NAT usually defeats direct connections.
 
 **The PostHog insight for the <2% target.** Run:

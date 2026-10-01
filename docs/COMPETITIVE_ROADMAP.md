@@ -21,7 +21,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 
 | Feature | Status | Missing |
 |---|---|---|
-| V1 TURN relay | ◐ | The manual cellular-to-cellular check and the PostHog insight (steps in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md)) |
+| V1 TURN relay | ◐ | `TWILIO_AUTH_TOKEN` in production (none set, so no relay yet); the cellular-to-cellular check; running the insights script (steps in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md)) |
 | V4 Video safety | ◐ | Entering the drafted privacy label, Data Safety, age-rating answers and review notes in the store consoles; demo accounts for reviewers |
 | V5 Party-screen video and voice | ☐ | All of it |
 | V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
@@ -432,7 +432,7 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - The privacy policy explains that we ask for birth month and year, why, and how long we keep it.
 
 ### V1 Reliable connections: a TURN relay ◐ · S–M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Remaining: the manual check that voice connects between two phones on separate cellular networks, and a PostHog insight for the <2% target. Both are written up step by step in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md).
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Remaining: production is missing `TWILIO_AUTH_TOKEN` (checked 2026-09-30), so it offers no TURN relay yet. After that comes the manual check that voice connects between two phones on separate cellular networks, and the PostHog insights, now scripted (`scripts/posthog-ice-insights.mjs`). The steps are in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md).
 
 **Also see (Section 15):** R5 · R6
 

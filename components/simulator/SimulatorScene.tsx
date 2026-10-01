@@ -91,6 +91,7 @@ import { SeatSymbol } from "@/components/shared/SeatSymbol";
 import { SEAT_SYMBOLS, seatColors } from "@/lib/presentation/accessibility";
 import { Apartment } from "./Apartment";
 import { MahoganyRoom } from "./MahoganyRoom";
+import { CafeRoom } from "./CafeRoom";
 import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -203,9 +204,9 @@ function CameraRig({
     );
   }, []);
   // The full-table view orbits out to the walls. The Apartment's window wall
-  // is glass, so passing it just shows the city; the study's walls are solid
-  // and its fireplace, bookcases and sideboard stand proud of them, so there
-  // the camera is pulled in to stay in front of them.
+  // is glass, so passing it just shows the city; the other rooms' walls are
+  // solid, with fireplaces, shelves and counters standing proud of them, so
+  // there the camera is pulled in to stay in front of them.
   const roomColliders = useMemo(() => {
     const material = new THREE.MeshBasicMaterial();
     const walls: [THREE.Vector3Tuple, THREE.Vector3Tuple][] = [
@@ -230,7 +231,7 @@ function CameraRig({
   );
   useEffect(() => {
     const c = controls.current;
-    if (c) c.colliderMeshes = room === "mahogany" ? roomColliders : [];
+    if (c) c.colliderMeshes = room && room !== "apartment" ? roomColliders : [];
   }, [room, roomColliders]);
   useEffect(() => {
     const c = controls.current;
@@ -2458,6 +2459,20 @@ const ROOM_LIGHTING: Record<
     ],
     tabletopTint: "#7a3228",
   },
+  cafe: {
+    background: "#dfe6ea",
+    fog: [40, 95],
+    hemisphere: ["#fff8ec", "#6b6257", 1.7],
+    key: ["#fff3e2", 3.1],
+    fill: ["#e8efff", 0.6],
+    formers: [
+      ["#f2f7ff", 2.4],
+      ["#fff6e8", 1.3],
+      ["#fff4e6", 3.2],
+      ["#ffeedd", 2.6],
+    ],
+    tabletopTint: "#9a7454",
+  },
 };
 
 export default function SimulatorScene(props: SceneProps) {
@@ -2592,6 +2607,8 @@ export default function SimulatorScene(props: SceneProps) {
               quality={props.quality}
               reducedMotion={props.reducedMotion}
             />
+          ) : props.room === "cafe" ? (
+            <CafeRoom quality={props.quality} />
           ) : (
             <Apartment quality={props.quality} />
           )}

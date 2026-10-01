@@ -1,17 +1,20 @@
 "use client";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  type ReactNode,
-} from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RoundedBox, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import type { Point, Quality } from "@/lib/presentation/board";
-import { Box, makeOcclusionTextures, Occlusion } from "./roomParts";
+import {
+  Box,
+  BoxInstances,
+  canvasTexture,
+  drawVeins,
+  grain,
+  makeOcclusionTextures,
+  Occlusion,
+  seeded,
+} from "./roomParts";
 
 /*
  * A panelled mahogany study: the same footprint, seat positions and table
@@ -31,47 +34,6 @@ const MAHOGANY = "#a0604a";
 const MAHOGANY_DARK = "#763f2e";
 const LEATHER = "#6d2219";
 const BRASS = "#b48a4e";
-
-/** Deterministic, so the room is the same room on every mount and device. */
-function seeded(seed: number) {
-  return () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-}
-
-function canvasTexture(
-  width: number,
-  height: number,
-  paint: (ctx: CanvasRenderingContext2D) => void,
-  color = true,
-) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { colorSpace: "srgb" });
-  if (!ctx) throw new Error("Could not prepare the study's textures.");
-  paint(ctx);
-  const t = new THREE.CanvasTexture(canvas);
-  if (color) t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 8;
-  return t;
-}
-
-function grain(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  amount: number,
-  seed: number,
-) {
-  const random = seeded(seed);
-  const pixels = ctx.getImageData(0, 0, w, h);
-  for (let i = 0; i < pixels.data.length; i += 4) {
-    const n = (random() - 0.5) * amount;
-    pixels.data[i] += n;
-    pixels.data[i + 1] += n;
-    pixels.data[i + 2] += n;
-  }
-  ctx.putImageData(pixels, 0, 0);
-}
 
 /** Grey leather hide (multiplied into the leather colour): soft mottling and pores. */
 function makeLeather() {
@@ -153,36 +115,17 @@ function makeTufted() {
 
 /** Honed Carrara: warm white with soft grey veins. */
 function makeMarble() {
-  const t = canvasTexture(512, 512, (ctx) => {
-    const random = seeded(23);
+  return canvasTexture(512, 512, (ctx) => {
     ctx.fillStyle = "#eee8de";
     ctx.fillRect(0, 0, 512, 512);
-    ctx.lineCap = "round";
-    for (let v = 0; v < 14; v++) {
-      const major = v < 5;
-      ctx.filter = major ? "blur(1.5px)" : "blur(0.8px)";
-      ctx.strokeStyle = major
-        ? "rgba(105,98,92,0.38)"
-        : "rgba(120,112,104,0.22)";
-      ctx.lineWidth = major ? 2.5 + random() * 3 : 1;
-      let x = random() * 512,
-        y = -20;
-      let angle = Math.PI / 2 + (random() - 0.5) * 1.2;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      while (y < 540 && x > -40 && x < 552) {
-        angle += (random() - 0.5) * 0.7;
-        angle = THREE.MathUtils.clamp(angle, 0.3, Math.PI - 0.3);
-        x += Math.cos(angle) * 14;
-        y += Math.sin(angle) * 14;
-        ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-    ctx.filter = "none";
+    drawVeins(
+      ctx,
+      [0, 0, 512, 512],
+      ["rgba(105,98,92,0.38)", "rgba(120,112,104,0.22)"],
+      23,
+    );
     grain(ctx, 512, 512, 6, 3);
   });
-  return t;
 }
 
 /**
@@ -338,53 +281,6 @@ function makeDusk() {
     }
     ctx.fillRect(0, H * 0.78, W, H);
   });
-}
-
-/** Many boxes in one draw call: panels, beams, books. */
-function BoxInstances({
-  boxes,
-  colors,
-  castShadow = false,
-  children,
-}: {
-  boxes: [Point, Point, number?][];
-  colors?: string[];
-  castShadow?: boolean;
-  children: ReactNode;
-}) {
-  const ref = useRef<THREE.InstancedMesh>(null);
-  useLayoutEffect(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
-    const matrix = new THREE.Matrix4();
-    const rotation = new THREE.Quaternion();
-    const euler = new THREE.Euler();
-    const color = new THREE.Color();
-    boxes.forEach(([p, s, tilt = 0], i) => {
-      rotation.setFromEuler(euler.set(0, 0, tilt));
-      matrix.compose(
-        new THREE.Vector3(...p),
-        rotation,
-        new THREE.Vector3(...s),
-      );
-      mesh.setMatrixAt(i, matrix);
-      if (colors) mesh.setColorAt(i, color.set(colors[i]));
-    });
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    mesh.computeBoundingSphere();
-  }, [boxes, colors]);
-  return (
-    <instancedMesh
-      ref={ref}
-      args={[undefined, undefined, boxes.length]}
-      castShadow={castShadow}
-      receiveShadow
-    >
-      <boxGeometry />
-      {children}
-    </instancedMesh>
-  );
 }
 
 type Range = [number, number];

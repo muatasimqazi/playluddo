@@ -1567,6 +1567,7 @@ export default function Simulator({
                   [
                     ["apartment", "Apartment", "A bright city living room"],
                     ["mahogany", "Mahogany study", "Panelled walls, a fire, evening"],
+                    ["cafe", "Corner café", "Espresso bar, street window, afternoon"],
                   ] as const
                 ).map(([value, label, desc]) => (
                   <button

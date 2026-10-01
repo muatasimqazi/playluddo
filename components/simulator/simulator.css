@@ -7354,3 +7354,6 @@ body.sim-die-blocked .sim-canvas {
   background: none;
   color: #b5bfae;
 }
+.sim-panel > p.panel-subsection {
+  margin: 22px 0 12px;
+}

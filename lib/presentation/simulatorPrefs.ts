@@ -59,3 +59,25 @@ export function setPreferredBotLevel(level: BotLevel) {
     localStorage.setItem(BOT_LEVEL_KEY, level);
   } catch {}
 }
+
+// The room around the table. Kept apart from the simulator's own JSON blob,
+// like the bot level, since the entrance and replays read it too.
+export type RoomStyle = "apartment" | "mahogany";
+export const ROOM_STYLES: RoomStyle[] = ["apartment", "mahogany"];
+export const DEFAULT_ROOM_STYLE: RoomStyle = "apartment";
+const ROOM_STYLE_KEY = "luddo-room";
+
+export function preferredRoomStyle(): RoomStyle {
+  try {
+    const saved = localStorage.getItem(ROOM_STYLE_KEY);
+    return ROOM_STYLES.includes(saved as RoomStyle) ? (saved as RoomStyle) : DEFAULT_ROOM_STYLE;
+  } catch {
+    return DEFAULT_ROOM_STYLE;
+  }
+}
+
+export function setPreferredRoomStyle(room: RoomStyle) {
+  try {
+    localStorage.setItem(ROOM_STYLE_KEY, room);
+  } catch {}
+}

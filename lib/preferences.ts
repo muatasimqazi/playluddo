@@ -26,11 +26,16 @@ import type { PlayerColor } from "./board/types";
 import { BOT_LEVELS, type BotLevel } from "./board/bot";
 import {
   DEFAULT_BOARD_STYLE,
+  DEFAULT_ROOM_STYLE,
   preferredBoardStyle,
   preferredBotLevel,
+  preferredRoomStyle,
+  ROOM_STYLES,
   setPreferredBoardStyle,
   setPreferredBotLevel,
+  setPreferredRoomStyle,
   type BoardStyle,
+  type RoomStyle,
 } from "./presentation/simulatorPrefs";
 
 /** Every preference this module manages. */
@@ -38,6 +43,8 @@ export interface UserPreferences {
   locale: LocaleCode;
   baseColor: PlayerColor;
   boardStyle: BoardStyle;
+  /** The room around the table. */
+  room: RoomStyle;
   botLevel: BotLevel;
   /** F5.5: the colour-blind palette, plus symbols on pawns and bases. */
   colorBlind: boolean;
@@ -50,6 +57,7 @@ export type GamePreferenceKey = Exclude<keyof UserPreferences, "locale">;
 export const GAME_PREFERENCE_KEYS: GamePreferenceKey[] = [
   "baseColor",
   "boardStyle",
+  "room",
   "botLevel",
   "colorBlind",
   "reduceMotion",
@@ -69,6 +77,7 @@ const METADATA_FIELD: Record<keyof UserPreferences, string> = {
   locale: "pref_locale",
   baseColor: "pref_base_color",
   boardStyle: "pref_board_style",
+  room: "pref_room",
   botLevel: "pref_bot_level",
   colorBlind: "pref_color_blind",
   reduceMotion: "pref_reduce_motion",
@@ -84,6 +93,10 @@ function isBoardStyle(value: unknown): value is BoardStyle {
   return (
     value === "signature" || value === "classic" || value === "geometric" || value === "aladdin"
   );
+}
+
+function isRoomStyle(value: unknown): value is RoomStyle {
+  return ROOM_STYLES.includes(value as RoomStyle);
 }
 
 /** Preferences are only synced for a real account; a guest's anonymous session
@@ -129,6 +142,8 @@ function readLocalGamePreference<K extends GamePreferenceKey>(key: K): UserPrefe
       return readBaseColor() as UserPreferences[K];
     case "boardStyle":
       return preferredBoardStyle() as UserPreferences[K];
+    case "room":
+      return preferredRoomStyle() as UserPreferences[K];
     case "botLevel":
       return preferredBotLevel() as UserPreferences[K];
     case "colorBlind":
@@ -146,6 +161,8 @@ function writeLocalGamePreference<K extends GamePreferenceKey>(key: K, value: Us
       return writeBaseColor(value as PlayerColor);
     case "boardStyle":
       return setPreferredBoardStyle(value as BoardStyle);
+    case "room":
+      return setPreferredRoomStyle(value as RoomStyle);
     case "botLevel":
       return setPreferredBotLevel(value as BotLevel);
     case "colorBlind":
@@ -158,6 +175,7 @@ function defaultGamePreference<K extends GamePreferenceKey>(key: K): UserPrefere
   const defaults: Pick<UserPreferences, GamePreferenceKey> = {
     baseColor: DEFAULT_BASE_COLOR,
     boardStyle: DEFAULT_BOARD_STYLE,
+    room: DEFAULT_ROOM_STYLE,
     botLevel: DEFAULT_BOT_LEVEL,
     colorBlind: false,
     reduceMotion: false,
@@ -179,6 +197,8 @@ export function preferencesFromMetadata(
   if (isPlayerColor(baseColor)) out.baseColor = baseColor;
   const boardStyle = metadata[METADATA_FIELD.boardStyle];
   if (isBoardStyle(boardStyle)) out.boardStyle = boardStyle;
+  const room = metadata[METADATA_FIELD.room];
+  if (isRoomStyle(room)) out.room = room;
   const botLevel = metadata[METADATA_FIELD.botLevel];
   if (isBotLevel(botLevel)) out.botLevel = botLevel;
   const colorBlind = metadata[METADATA_FIELD.colorBlind];
@@ -230,6 +250,7 @@ class GamePreferenceStore {
       this.cache = {
         baseColor: readLocalGamePreference("baseColor"),
         boardStyle: readLocalGamePreference("boardStyle"),
+        room: readLocalGamePreference("room"),
         botLevel: readLocalGamePreference("botLevel"),
         colorBlind: readLocalGamePreference("colorBlind"),
         reduceMotion: readLocalGamePreference("reduceMotion"),

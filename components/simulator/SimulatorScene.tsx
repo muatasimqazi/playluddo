@@ -90,6 +90,8 @@ import { SeatSymbolMark } from "./SeatSymbolMark";
 import { SeatSymbol } from "@/components/shared/SeatSymbol";
 import { SEAT_SYMBOLS, seatColors } from "@/lib/presentation/accessibility";
 import { Apartment } from "./Apartment";
+import { MahoganyRoom } from "./MahoganyRoom";
+import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
 import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
@@ -121,6 +123,8 @@ export interface SceneProps {
   preview?: boolean;
   soundEnabled?: boolean;
   boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
+  /** The room around the table. Apartment unless the player picked another. */
+  room?: RoomStyle;
   /** Snakes & Ladders (F2.6): which printed board — 0 (default) or 1. */
   snakesBoard?: number;
   hideLabels?: boolean;
@@ -164,6 +168,7 @@ function CameraRig({
   preview,
   screen,
   reducedMotion,
+  room,
 }: SceneProps) {
   const controls = useRef<CameraControlsImpl>(null);
   // The very first setLookAt below should snap into place, not glide —
@@ -197,6 +202,36 @@ function CameraRig({
       ),
     );
   }, []);
+  // The full-table view orbits out to the walls. The Apartment's window wall
+  // is glass, so passing it just shows the city; the study's walls are solid
+  // and its fireplace, bookcases and sideboard stand proud of them, so there
+  // the camera is pulled in to stay in front of them.
+  const roomColliders = useMemo(() => {
+    const material = new THREE.MeshBasicMaterial();
+    const walls: [THREE.Vector3Tuple, THREE.Vector3Tuple][] = [
+      [[0, 6, -12.6], [27, 17, 0.5]],
+      [[0, 6, 13.3], [27, 17, 0.4]],
+      [[12.45, 6, 0], [0.5, 17, 28]],
+      [[-12.95, 6, 0], [0.5, 17, 28]],
+    ];
+    return walls.map(([position, size]) => {
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+      wall.position.set(...position);
+      wall.updateMatrixWorld();
+      return wall;
+    });
+  }, []);
+  useEffect(
+    () => () => {
+      roomColliders.forEach((wall) => wall.geometry.dispose());
+      (roomColliders[0].material as THREE.Material).dispose();
+    },
+    [roomColliders],
+  );
+  useEffect(() => {
+    const c = controls.current;
+    if (c) c.colliderMeshes = room === "mahogany" ? roomColliders : [];
+  }, [room, roomColliders]);
   useEffect(() => {
     const c = controls.current;
     if (!c) return;
@@ -2203,10 +2238,12 @@ const REVEAL_ZOOM_OUT: readonly [number, number] = [1.1, 1.3]; // x the overhead
 function Surroundings({
   view,
   preview,
+  tabletopTint,
   children,
 }: {
   view: CameraView;
   preview?: boolean;
+  tabletopTint: string;
   children: React.ReactNode;
 }) {
   const compact = useThree(
@@ -2260,7 +2297,7 @@ function Surroundings({
   return (
     <>
       <group ref={room}>{children}</group>
-      {focused && <FocusedTabletop meshRef={tabletop} />}
+      {focused && <FocusedTabletop meshRef={tabletop} tint={tabletopTint} />}
     </>
   );
 }
@@ -2271,13 +2308,15 @@ function Surroundings({
 const FOCUSED_TABLETOP_SIZE = 40;
 // The real table sits in the room's shade and reads as a muted greige;
 // alone and fully lit, the same texture comes out far lighter. Matte,
-// with no environment reflections, and this tint lands it on the room
-// table's rendered color (measured ~#8f8980 on both).
-const FOCUSED_TABLETOP_TINT = "#8c98a8";
+// with no environment reflections, each room's `tabletopTint` (ROOM_LIGHTING)
+// lands it on that room's table as rendered (the Apartment's measured
+// ~#8f8980 on both).
 function FocusedTabletop({
   meshRef,
+  tint,
 }: {
   meshRef: React.RefObject<THREE.Mesh | null>;
+  tint: string;
 }) {
   const source = useTexture("/textures/table-top.webp");
   const texture = useMemo(() => {
@@ -2301,7 +2340,7 @@ function FocusedTabletop({
         map={texture}
         roughness={1}
         envMapIntensity={0}
-        color={FOCUSED_TABLETOP_TINT}
+        color={tint}
       />
     </mesh>
   );
@@ -2372,7 +2411,57 @@ function SceneLoadingOverlay({ ready, label }: { ready: boolean; label?: string 
   );
 }
 
+/**
+ * Each room's light. The Apartment is cool daylight from its window wall;
+ * the mahogany study is evening, lit warm and low by lamps, sconces and the
+ * fire. The key light keeps one position so the table's shadows land the
+ * same in every room. The printed board is self-lit and never changes.
+ */
+const ROOM_LIGHTING: Record<
+  RoomStyle,
+  {
+    background: string;
+    fog: [number, number];
+    hemisphere: [string, string, number];
+    key: [string, number];
+    fill: [string, number];
+    /** Reflection sources: window wall, ceiling, two side panels. */
+    formers: [string, number][];
+    tabletopTint: string;
+  }
+> = {
+  apartment: {
+    background: "#d4ddd4",
+    fog: [32, 85],
+    hemisphere: ["#edf3fa", "#717475", 1.8],
+    key: ["#ffffff", 3.2],
+    fill: ["#e6efff", 0.7],
+    formers: [
+      ["#edf4ff", 2],
+      ["#ffffff", 1.3],
+      ["#ffffff", 3.5],
+      ["#dfeaff", 2.8],
+    ],
+    tabletopTint: "#8c98a8",
+  },
+  mahogany: {
+    background: "#1a110c",
+    fog: [36, 90],
+    hemisphere: ["#ffdcb4", "#3a2418", 1.15],
+    key: ["#ffe0bc", 2.6],
+    fill: ["#ffc890", 0.55],
+    formers: [
+      ["#8a9cc8", 0.8],
+      ["#ffe2bc", 1.1],
+      ["#ffd0a0", 2.4],
+      ["#ffc890", 2.0],
+    ],
+    tabletopTint: "#7a3228",
+  },
+};
+
 export default function SimulatorScene(props: SceneProps) {
+  const lighting = ROOM_LIGHTING[props.room ?? "apartment"];
   // Render-scale ceiling PerformanceMonitor has stepped down to after
   // sustained low frame rates; null = no throttling, use the quality's max.
   const [performanceCap, setPerformanceCap] = useState<number | null>(null);
@@ -2436,13 +2525,13 @@ export default function SimulatorScene(props: SceneProps) {
           </div>
         }
       >
-        <color attach="background" args={["#d4ddd4"]} />
-        <fog attach="fog" args={["#d4ddd4", 32, 85]} />
-        <hemisphereLight args={["#edf3fa", "#717475", 1.8]} />
+        <color attach="background" args={[lighting.background]} />
+        <fog attach="fog" args={[lighting.background, ...lighting.fog]} />
+        <hemisphereLight args={lighting.hemisphere} />
         <directionalLight
           position={[-9, 10, 3]}
-          intensity={3.2}
-          color="#ffffff"
+          intensity={lighting.key[1]}
+          color={lighting.key[0]}
           castShadow
           shadow-mapSize={[shadowSize, shadowSize]}
           shadow-camera-left={-10}
@@ -2454,11 +2543,13 @@ export default function SimulatorScene(props: SceneProps) {
         />
         <directionalLight
           position={[6, 8, -6]}
-          intensity={0.7}
-          color="#e6efff"
+          intensity={lighting.fill[1]}
+          color={lighting.fill[0]}
         />
         <Suspense fallback={null}>
           <Environment
+            // Rendered once (frames={1}); a new room re-renders it.
+            key={props.room ?? "apartment"}
             resolution={props.quality === "low" ? 64 : 128}
             frames={1}
           >
@@ -2466,33 +2557,44 @@ export default function SimulatorScene(props: SceneProps) {
               position={[-10, 5, 0]}
               scale={[12, 8]}
               rotation={[0, Math.PI / 2, 0]}
-              intensity={2}
-              color="#edf4ff"
+              intensity={lighting.formers[0][1]}
+              color={lighting.formers[0][0]}
             />
             <Lightformer
               position={[0, 8, 0]}
               scale={[10, 8]}
               rotation={[Math.PI / 2, 0, 0]}
-              intensity={1.3}
-              color="#ffffff"
+              intensity={lighting.formers[1][1]}
+              color={lighting.formers[1][0]}
             />
             <Lightformer
               position={[0, 2, 9]}
               scale={[3, 7]}
               rotation={[0, Math.PI, 0]}
-              intensity={3.5}
-              color="#ffffff"
+              intensity={lighting.formers[2][1]}
+              color={lighting.formers[2][0]}
             />
             <Lightformer
               position={[9, 2, 0]}
               scale={[2, 6]}
               rotation={[0, -Math.PI / 2, 0]}
-              intensity={2.8}
-              color="#dfeaff"
+              intensity={lighting.formers[3][1]}
+              color={lighting.formers[3][0]}
             />
           </Environment>
-          <Surroundings view={props.view} preview={props.preview}>
-          <Apartment quality={props.quality} />
+          <Surroundings
+            view={props.view}
+            preview={props.preview}
+            tabletopTint={lighting.tabletopTint}
+          >
+          {props.room === "mahogany" ? (
+            <MahoganyRoom
+              quality={props.quality}
+              reducedMotion={props.reducedMotion}
+            />
+          ) : (
+            <Apartment quality={props.quality} />
+          )}
           {/* Its own boundary: each player's avatar face is a separate
               texture that loads independently (see AvatarFace in
               PlayerAvatar3D.tsx). Sharing the outer Suspense meant every

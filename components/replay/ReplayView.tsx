@@ -54,6 +54,7 @@ function frameFor(replay: Replay, index: number): PresentationFrame {
 export function ReplayView({ matchId }: { matchId: string }) {
   const tx = useT();
   const [colorBlind] = useGamePreference("colorBlind");
+  const [room] = useGamePreference("room");
   const reducedMotion = useReducedMotion();
   const client = useMemo(() => createClient(), []);
   const [replay, setReplay] = useState<Replay | null>(null);
@@ -161,6 +162,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
         onMove={() => {}}
         soundEnabled={false}
         boardStyle="signature"
+        room={room}
         colorBlind={colorBlind}
         reducedMotion={reducedMotion}
       />

@@ -420,6 +420,8 @@ export default function Simulator({
   // Accessibility (F5.5): follow the player across devices like board style.
   const [colorBlind, setColorBlind] = useGamePreference("colorBlind");
   const [reduceMotion, setReduceMotion] = useGamePreference("reduceMotion");
+  // The room around the table follows the player across devices too.
+  const [room, setRoom] = useGamePreference("room");
   const reducedMotion = useReducedMotion();
   const palette = seatColors(colorBlind);
   // Video (Section 7, V3): remote cameras sit on cards above the seat figures
@@ -958,6 +960,7 @@ export default function Simulator({
           speakingPlayerIds={voice?.speakingPlayerIds}
           soundEnabled={prefs.sound}
           boardStyle={effectiveBoardStyle}
+          room={room}
           hideLabels={prefs.immersive}
           brightness={prefs.brightness}
           saturation={prefs.saturation}
@@ -1177,7 +1180,7 @@ export default function Simulator({
         />
         <Tool
           icon="grid"
-          label="Board design"
+          label="Board & room"
           active={panel === "board"}
           onClick={() => togglePanel("board")}
         />
@@ -1465,7 +1468,7 @@ export default function Simulator({
                 {panel === "camera"
                   ? "Find your perspective"
                   : panel === "board"
-                    ? "Board design"
+                    ? "Board & room"
                     : panel === "preferences"
                       ? "Preferences"
                       : panel === "chat"
@@ -1555,6 +1558,31 @@ export default function Simulator({
                       <small>{desc}</small>
                     </span>
                     {prefs.boardStyle === value && <Icon name="check" size={14} />}
+                  </button>
+                ))}
+              </div>
+              <p className="panel-subsection">And the room you play it in.</p>
+              <div className="camera-options">
+                {(
+                  [
+                    ["apartment", "Apartment", "A bright city living room"],
+                    ["mahogany", "Mahogany study", "Panelled walls, a fire, evening"],
+                  ] as const
+                ).map(([value, label, desc]) => (
+                  <button
+                    key={value}
+                    className={room === value ? "is-selected" : ""}
+                    onClick={() => {
+                      setRoom(value);
+                      setPanel(null);
+                    }}
+                  >
+                    <Icon name="home" />
+                    <span>
+                      <strong>{label}</strong>
+                      <small>{desc}</small>
+                    </span>
+                    {room === value && <Icon name="check" size={14} />}
                   </button>
                 ))}
               </div>
@@ -1654,7 +1682,7 @@ export default function Simulator({
                 onClick={() => setPanel("board")}
               >
                 <Icon name="grid" />
-                Board design
+                Board &amp; room
               </button>
               <button
                 className="panel-secondary"

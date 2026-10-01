@@ -1087,12 +1087,12 @@ function PhysicalDie({
 /** Marble for the marble die: black Nero Marquina with white veins. */
 function makeDieMarble() {
   const t = canvasTexture(256, 256, (ctx) => {
-    ctx.fillStyle = "#1c1b1a";
+    ctx.fillStyle = "#141312";
     ctx.fillRect(0, 0, 256, 256);
     drawVeins(
       ctx,
       [0, 0, 256, 256],
-      ["rgba(235,230,220,0.55)", "rgba(235,230,220,0.25)"],
+      ["rgba(240,236,226,0.8)", "rgba(240,236,226,0.35)"],
       191,
     );
   });
@@ -1132,19 +1132,21 @@ function DieBody({
   const body =
     skin === "glass" ? (
       <meshPhysicalMaterial
-        color="#d6ecf3"
-        roughness={0.04}
+        // Saturated sea glass: tinted through, so the white pips stand out,
+        // and only softly reflective, so the light overhead doesn't wash the
+        // top face out to grey.
+        color="#5fb3c9"
+        roughness={0.08}
         metalness={0}
-        clearcoat={1}
-        clearcoatRoughness={0.02}
-        transmission={0.9}
+        clearcoat={0.6}
+        clearcoatRoughness={0.12}
+        transmission={0.6}
         thickness={0.46}
         ior={1.5}
-        // Deep enough a sea-glass blue that the white pips stand out.
-        attenuationColor="#2f7f9e"
-        attenuationDistance={0.32}
-        specularIntensity={1}
-        envMapIntensity={2.4}
+        attenuationColor="#1f6f8c"
+        attenuationDistance={0.18}
+        specularIntensity={0.6}
+        envMapIntensity={0.9}
       />
     ) : skin === "wood" ? (
       <meshPhysicalMaterial
@@ -1158,10 +1160,12 @@ function DieBody({
       <meshPhysicalMaterial
         color="#ffffff"
         map={marble}
-        roughness={0.18}
-        clearcoat={1}
-        clearcoatRoughness={0.05}
-        envMapIntensity={1.6}
+        // Honed, not mirror-polished: a soft sheen that keeps the black
+        // black under the light overhead.
+        roughness={0.35}
+        clearcoat={0.45}
+        clearcoatRoughness={0.25}
+        envMapIntensity={0.45}
       />
     ) : (
       <meshPhysicalMaterial

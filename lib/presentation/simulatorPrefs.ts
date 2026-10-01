@@ -62,8 +62,8 @@ export function setPreferredBotLevel(level: BotLevel) {
 
 // The room around the table. Kept apart from the simulator's own JSON blob,
 // like the bot level, since the entrance and replays read it too.
-export type RoomStyle = "apartment" | "mahogany" | "cafe" | "lake";
-export const ROOM_STYLES: RoomStyle[] = ["apartment", "mahogany", "cafe", "lake"];
+export type RoomStyle = "apartment" | "mahogany" | "cafe" | "lake" | "rooftop";
+export const ROOM_STYLES: RoomStyle[] = ["apartment", "mahogany", "cafe", "lake", "rooftop"];
 export const DEFAULT_ROOM_STYLE: RoomStyle = "apartment";
 const ROOM_STYLE_KEY = "luddo-room";
 

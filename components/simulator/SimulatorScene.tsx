@@ -93,6 +93,7 @@ import { Apartment } from "./Apartment";
 import { MahoganyRoom } from "./MahoganyRoom";
 import { CafeRoom } from "./CafeRoom";
 import { LakeCabin } from "./LakeCabin";
+import { Rooftop } from "./Rooftop";
 import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -205,34 +206,56 @@ function CameraRig({
     );
   }, []);
   // The full-table view orbits out to the walls. The Apartment's window wall
-  // is glass, so passing it just shows the city; the other rooms' walls are
-  // solid, with fireplaces, shelves and counters standing proud of them, so
-  // there the camera is pulled in to stay in front of them.
+  // is glass, so passing it just shows the city, and the rooftop is open to
+  // the sky; the other rooms' walls are solid, with fireplaces, shelves and
+  // counters standing proud of them, so there the camera is pulled in to
+  // stay in front of them. On the rooftop the stair bulkhead is solid, and
+  // the parapet keeps a low camera from ending up outside the glass.
   const roomColliders = useMemo(() => {
     const material = new THREE.MeshBasicMaterial();
-    const walls: [THREE.Vector3Tuple, THREE.Vector3Tuple][] = [
-      [[0, 6, -12.6], [27, 17, 0.5]],
-      [[0, 6, 13.3], [27, 17, 0.4]],
-      [[12.45, 6, 0], [0.5, 17, 28]],
-      [[-12.95, 6, 0], [0.5, 17, 28]],
-    ];
-    return walls.map(([position, size]) => {
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
-      wall.position.set(...position);
-      wall.updateMatrixWorld();
-      return wall;
-    });
+    const box = ([position, size]: [THREE.Vector3Tuple, THREE.Vector3Tuple]) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), material);
+      mesh.position.set(...position);
+      mesh.updateMatrixWorld();
+      return mesh;
+    };
+    const walls = (
+      [
+        [[0, 6, -12.6], [27, 17, 0.5]],
+        [[0, 6, 13.3], [27, 17, 0.4]],
+        [[12.45, 6, 0], [0.5, 17, 28]],
+        [[-12.95, 6, 0], [0.5, 17, 28]],
+      ] as [THREE.Vector3Tuple, THREE.Vector3Tuple][]
+    ).map(box);
+    const rooftop = (
+      [
+        [[10.2, 1.8, -10.7], [7.4, 9.6, 6.4]],
+        [[0, 0.9, -13.0], [27, 7, 0.5]],
+        [[0, 0.9, 13.0], [27, 7, 0.5]],
+        [[13.0, 0.9, 0], [0.5, 7, 27]],
+        [[-13.0, 0.9, 0], [0.5, 7, 27]],
+      ] as [THREE.Vector3Tuple, THREE.Vector3Tuple][]
+    ).map(box);
+    return { material, walls, rooftop };
   }, []);
   useEffect(
     () => () => {
-      roomColliders.forEach((wall) => wall.geometry.dispose());
-      (roomColliders[0].material as THREE.Material).dispose();
+      [...roomColliders.walls, ...roomColliders.rooftop].forEach((mesh) =>
+        mesh.geometry.dispose(),
+      );
+      roomColliders.material.dispose();
     },
     [roomColliders],
   );
   useEffect(() => {
     const c = controls.current;
-    if (c) c.colliderMeshes = room && room !== "apartment" ? roomColliders : [];
+    if (!c) return;
+    c.colliderMeshes =
+      !room || room === "apartment"
+        ? []
+        : room === "rooftop"
+          ? roomColliders.rooftop
+          : roomColliders.walls;
   }, [room, roomColliders]);
   useEffect(() => {
     const c = controls.current;
@@ -2488,6 +2511,20 @@ const ROOM_LIGHTING: Record<
     ],
     tabletopTint: "#a6784e",
   },
+  rooftop: {
+    background: "#141a33",
+    fog: [60, 130],
+    hemisphere: ["#9aa6dc", "#2c2430", 1.35],
+    key: ["#ffc497", 2.2],
+    fill: ["#8495d6", 0.6],
+    formers: [
+      ["#f2a46e", 1.6],
+      ["#3b4a86", 1.0],
+      ["#ffd6a6", 2.6],
+      ["#6b7bc4", 2.0],
+    ],
+    tabletopTint: "#90705a",
+  },
 };
 
 export default function SimulatorScene(props: SceneProps) {
@@ -2624,6 +2661,8 @@ export default function SimulatorScene(props: SceneProps) {
             />
           ) : props.room === "cafe" ? (
             <CafeRoom quality={props.quality} />
+          ) : props.room === "rooftop" ? (
+            <Rooftop quality={props.quality} />
           ) : props.room === "lake" ? (
             <LakeCabin
               quality={props.quality}

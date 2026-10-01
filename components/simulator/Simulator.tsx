@@ -1569,6 +1569,7 @@ export default function Simulator({
                     ["mahogany", "Mahogany study", "Panelled walls, a fire, evening"],
                     ["cafe", "Corner café", "Espresso bar, street window, afternoon"],
                     ["lake", "Lake cabin", "Log walls, a stone hearth, the water"],
+                    ["rooftop", "Rooftop", "City lights at dusk, string lights overhead"],
                   ] as const
                 ).map(([value, label, desc]) => (
                   <button

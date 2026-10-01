@@ -21,7 +21,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 
 | Feature | Status | Missing |
 |---|---|---|
-| F0.4 Age check | ◐ | Hosted auth settings (manual linking, `email_change` template); the legal review for signed-in under-13s |
+| F0.4 Age check | ◐ | Hosted auth settings (manual linking, `email_change` template), entered in the dashboard; the legal review for signed-in under-13s |
 | V1 TURN relay | ◐ | The manual cellular-to-cellular check and the PostHog insight (steps in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md)) |
 | V4 Video safety | ◐ | Entering the drafted privacy label, Data Safety, age-rating answers and review notes in the store consoles; demo accounts for reviewers |
 | V5 Party-screen video and voice | ☐ | All of it |
@@ -122,7 +122,7 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 - Guests get a `match_results` row with a null `user_id`, so the summary still works for them.
 
 ### F0.4 Age check before online play ◐ · M
-**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. The 30-day cleanup of inactive under-13 guests runs as `purge-inactive-under13-guests` (pg_cron), and the privacy policy and terms describe the age check. Signing in as a guest now links the new sign-in to the guest (`lib/supabase/linkAccount.ts`, and the Game Center function server-side), so the answer carries over; an identity that already has an account signs in to it and nothing is copied (`tests/integration/account-link.test.ts`). Remaining: turn on manual linking and add the `email_change` code template on the hosted project; the legal review for signed-in under-13 accounts.
+**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. The 30-day cleanup of inactive under-13 guests runs as `purge-inactive-under13-guests` (pg_cron), and the privacy policy and terms describe the age check. Signing in as a guest now links the new sign-in to the guest (`lib/supabase/linkAccount.ts`, and the Game Center function server-side), so the answer carries over; an identity that already has an account signs in to it and nothing is copied (`tests/integration/account-link.test.ts`). Support corrections are built: `private.support_correct_age` sets or clears an answer for staff only, with an audit trail (`private.age_corrections`) that is deleted with the account. It's covered by pgTAP, and the procedure is in [`SUPPORT.md`](SUPPORT.md). Remaining: turn on manual linking and add the `email_change` code template on the hosted project (dashboard only); the legal review for signed-in under-13 accounts.
 
 **Also see (Section 15):** R3 · R7 · R8
 

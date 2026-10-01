@@ -284,7 +284,9 @@ export function ProfilePanel({
     if (native) {
       const result = await signInWithGoogleNative(client);
       setPending(null);
-      if (result.status === "failed") setMessage(t("common.connectError"));
+      // Show what actually went wrong (the sheet, or Supabase's check of
+      // Google's token) rather than a generic "could not connect".
+      if (result.status === "failed") setMessage(result.message);
       if (result.status === "signed-in") setOpen(false);
       return;
     }

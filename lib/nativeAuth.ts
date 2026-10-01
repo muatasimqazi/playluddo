@@ -124,13 +124,18 @@ export async function signInWithGoogleNative(client: SupabaseClient): Promise<Na
       options: {
         // Android's Credential Manager ID token already carries email and
         // profile; asking for scopes there needs a custom MainActivity.
-        ...(Capacitor.getPlatform() === "ios" ? { scopes: ["email", "profile"] } : {}),
+        // On iOS, forcePrompt always runs a fresh sign-in: otherwise the
+        // plugin restores the device's previous Google session, whose ID
+        // token carries that earlier sign-in's nonce, and Supabase rejects
+        // it as not matching this one.
+        ...(Capacitor.getPlatform() === "ios" ? { scopes: ["email", "profile"], forcePrompt: true } : {}),
         nonce: await sha256Hex(nonce),
       },
     });
     google = login.result as GoogleLoginResponseOnline;
   } catch (error) {
     if (isCancel(error)) return { status: "cancelled" };
+    console.error("Google sign-in failed", error);
     return { status: "failed", message: "Google sign-in didn't finish. Try again in a moment." };
   }
   if (!google.idToken) {
@@ -145,6 +150,7 @@ export async function signInWithGoogleNative(client: SupabaseClient): Promise<Na
     access_token: google.accessToken?.token ?? undefined,
     nonce,
   });
+  if (error) console.error("Google sign-in: Supabase rejected the ID token", error);
   return error ? { status: "failed", message: error.message } : { status: "signed-in" };
 }
 

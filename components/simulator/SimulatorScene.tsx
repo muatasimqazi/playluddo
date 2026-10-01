@@ -92,6 +92,7 @@ import { SEAT_SYMBOLS, seatColors } from "@/lib/presentation/accessibility";
 import { Apartment } from "./Apartment";
 import { MahoganyRoom } from "./MahoganyRoom";
 import { CafeRoom } from "./CafeRoom";
+import { LakeCabin } from "./LakeCabin";
 import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -2473,6 +2474,20 @@ const ROOM_LIGHTING: Record<
     ],
     tabletopTint: "#9a7454",
   },
+  lake: {
+    background: "#cfd8dc",
+    fog: [40, 95],
+    hemisphere: ["#fff1dc", "#5a4632", 1.5],
+    key: ["#ffe2b8", 3.0],
+    fill: ["#cfe0ff", 0.6],
+    formers: [
+      ["#dfeaff", 2.2],
+      ["#ffeccc", 1.0],
+      ["#ffe6c4", 3.0],
+      ["#ffdcb0", 2.4],
+    ],
+    tabletopTint: "#a6784e",
+  },
 };
 
 export default function SimulatorScene(props: SceneProps) {
@@ -2609,6 +2624,11 @@ export default function SimulatorScene(props: SceneProps) {
             />
           ) : props.room === "cafe" ? (
             <CafeRoom quality={props.quality} />
+          ) : props.room === "lake" ? (
+            <LakeCabin
+              quality={props.quality}
+              reducedMotion={props.reducedMotion}
+            />
           ) : (
             <Apartment quality={props.quality} />
           )}

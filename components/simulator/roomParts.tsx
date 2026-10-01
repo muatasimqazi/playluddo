@@ -3,7 +3,14 @@
 // Building blocks shared by every room around the table (Apartment.tsx,
 // MahoganyRoom.tsx): a lit box, and the soft occlusion decals that ground
 // furniture where the key light's shadow camera doesn't reach.
-import { useLayoutEffect, useRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
+import { useFrame } from "@react-three/fiber";
 import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import type { Point } from "@/lib/presentation/board";
@@ -284,5 +291,101 @@ export function BoxInstances({
       <boxGeometry />
       {children}
     </instancedMesh>
+  );
+}
+
+/**
+ * A log fire with flickering flames and a warm light, sized to sit in a
+ * firebox opening 3.4 wide and 3.5 high centred at x 0 against the back
+ * wall (back plate at z -13.4), as both the study and the cabin build it.
+ */
+export function Fire({ reducedMotion }: { reducedMotion?: boolean }) {
+  const light = useRef<THREE.PointLight>(null);
+  const flames = useRef<THREE.Group>(null);
+  const glow = useMemo(
+    () =>
+      canvasTexture(256, 256, (ctx) => {
+        const g = ctx.createRadialGradient(128, 170, 4, 128, 170, 128);
+        g.addColorStop(0, "rgba(255,190,110,1)");
+        g.addColorStop(0.4, "rgba(255,110,40,0.55)");
+        g.addColorStop(1, "rgba(255,80,20,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 256, 256);
+      }),
+    [],
+  );
+  useEffect(() => () => glow.dispose(), [glow]);
+  useFrame(({ clock }) => {
+    if (reducedMotion) return;
+    const t = clock.elapsedTime;
+    const flicker =
+      0.82 + 0.1 * Math.sin(t * 7.3) + 0.08 * Math.sin(t * 13.1 + 1.7);
+    if (light.current) light.current.intensity = 7 * flicker;
+    flames.current?.children.forEach((flame, i) => {
+      flame.scale.y = 0.85 + 0.2 * Math.sin(t * (6 + i * 1.3) + i);
+    });
+  });
+  const flame = (x: number, z: number, r: number, h: number, color: string) => (
+    <mesh key={`${x}-${z}-${color}`} position={[x, -2.1 + h / 2, z]}>
+      <coneGeometry args={[r, h, 12, 1, true]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={0.8}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+  return (
+    <group>
+      {/* Logs and embers. */}
+      {[
+        [0, -2.35, -12.9, 0.25],
+        [0, -2.35, -12.6, -0.3],
+        [0.1, -2.05, -12.8, 0.05],
+      ].map(([x, y, z, r], i) => (
+        <mesh
+          key={i}
+          position={[x, y, z]}
+          rotation={[0, r, Math.PI / 2]}
+          castShadow
+        >
+          <cylinderGeometry args={[0.17, 0.2, 2.1, 10]} />
+          <meshStandardMaterial
+            color="#3b2618"
+            roughness={1}
+            emissive="#ff4a10"
+            emissiveIntensity={0.12}
+          />
+        </mesh>
+      ))}
+      <group ref={flames}>
+        {flame(-0.45, -12.75, 0.28, 1.0, "#ff6a1a")}
+        {flame(0.05, -12.7, 0.36, 1.45, "#ff7a22")}
+        {flame(0.5, -12.8, 0.26, 0.9, "#ff6a1a")}
+        {flame(-0.15, -12.65, 0.18, 0.9, "#ffc060")}
+        {flame(0.3, -12.6, 0.16, 0.7, "#ffd27a")}
+      </group>
+      <mesh position={[0, -1.4, -13.24]}>
+        <planeGeometry args={[3.2, 3]} />
+        <meshBasicMaterial
+          map={glow}
+          transparent
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+      <pointLight
+        ref={light}
+        position={[0, -1.5, -12.2]}
+        color="#ff9a4a"
+        intensity={7}
+        distance={16}
+        decay={2}
+      />
+    </group>
   );
 }

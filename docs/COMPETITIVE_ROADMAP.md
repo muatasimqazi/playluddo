@@ -458,7 +458,7 @@ This fixes voice first. Ship it on its own, before any video work.
 - A 4-way video call over 10 minutes keeps the 3D scene at ≥ 30 fps on a recent phone, or falls back automatically (V3).
 
 ### V3 Video in the 3D table ✅ · L
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) · [`e2706e5`](https://github.com/muatasimqazi/playluddo/commit/e2706e5) built the 2D strip; V3's commit added:
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) · [`e2706e5`](https://github.com/muatasimqazi/playluddo/commit/e2706e5) built the 2D strip; [`aa4303f`](https://github.com/muatasimqazi/playluddo/commit/aa4303f) added:
 - **3D video:** on a larger screen, each remote camera is a lit card above its seat figure (`VideoCard` in `PlayerAvatar3D.tsx`). The card turns about the vertical axis to face you, so the players beside you are as readable as the one across. A card is used rather than the face because side seats show their faces edge-on. Tapping a card opens the enlarged view with Report and Block. Your own camera stays a mirrored preview in the HUD.
 - **Fallbacks:** phones use the 2D strip. A table that holds under 24 fps for three 2-second windows with cards up drops to the strip for the rest of the visit.
 - **Off-screen pausing:** cards off camera, and strip tiles scrolled out of view, stop drawing frames. The receiver still receives and decodes; truly stopping that would need the sender to pause (V6).

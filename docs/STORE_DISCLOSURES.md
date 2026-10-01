@@ -112,10 +112,12 @@ Sign-in uses one-time codes, so a reviewer can't type a password. Before submitt
 
 **Voice between two phones on separate cellular networks.** Use two phones on different carriers with Wi-Fi off on both. Sign in on each, open a private table on one and join it from the other, and both tap the microphone. Pass: both hear each other within a few seconds. In PostHog, the two `call_ice_outcome` events for that call should show `outcome = connected`. Expect `candidate_type = relay` on at least one side, since carrier NAT usually defeats direct connections.
 
-**The PostHog insight for the <2% target.** In PostHog, go to Product analytics → New insight → Trends:
-- Series A: `call_ice_outcome` where `outcome = failed`, total count.
-- Series B: `call_ice_outcome`, total count, with the property filter `outcome` is `connected` or `failed`. All events carry one of the two.
-- Formula: `A / B * 100`, shown as a number, last 7 days, broken down by `video_table`.
-- Save it as "Call connection failure rate" and add an alert when it goes above 2.
+**The PostHog insight for the <2% target.** Run:
 
-Add a second insight broken down by `turn_offered`. A failure rate that's high only where `turn_offered = false` means the TURN credentials failed and calls fell back to STUN only.
+```bash
+POSTHOG_PERSONAL_API_KEY=phx_... POSTHOG_PROJECT_ID=<id> node scripts/posthog-ice-insights.mjs
+```
+
+The key needs `insight:write` and `query:read`; for an EU project add `POSTHOG_HOST=https://eu.posthog.com`. The script creates "Call connection failure rate", which is failed ÷ (connected + failed) per day by `video_table`. It also creates a second insight broken down by `turn_offered`: a rate that's high only where `turn_offered = false` means the TURN credentials failed and calls fell back to STUN only. Rerunning updates both in place. To add the alert, open the first insight and choose Alerts → New alert → "has value", more than 2.
+
+After the two-phone test, `node scripts/posthog-ice-insights.mjs --check` (same environment variables) prints the last 7 days: connected, failed, the failure rate, how many connected through the relay, how many were offered no TURN, and the median time to connect.

@@ -94,6 +94,8 @@ import { MahoganyRoom } from "./MahoganyRoom";
 import { CafeRoom } from "./CafeRoom";
 import { LakeCabin } from "./LakeCabin";
 import { Rooftop } from "./Rooftop";
+import { canvasTexture, drawVeins } from "./roomParts";
+import { diceSkinFor, type DiceSkin } from "@/lib/presentation/diceSkins";
 import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -160,6 +162,12 @@ export interface SceneProps {
   onVideoSelect?: (playerId: string) => void;
   /** The frame rate stayed low with video cards up: the table should fall back to the 2D strip. */
   onVideoSlow?: () => void;
+  /**
+   * A seat label's avatar was tapped (F3.1). Set only at online tables; the
+   * caller renders the profile, since these labels sit in drei's own React
+   * root, outside the app's providers.
+   */
+  onOpenProfile?: (playerId: string) => void;
 }
 
 function CameraRig({
@@ -882,6 +890,11 @@ function PhysicalDie({
   const hex = sceneSpec({ gameType, players, frame }).arms === 6;
   const layout = seatLayout(compact, hex, players.length);
   const activeColor = activePlayer?.color;
+  // The die wears the rolling player's equipped skin (F3.5), so it changes
+  // as it passes. Skins stay neutral: where it rests (beside the active
+  // player's seat, see dieSeatPoint) already says whose turn it is, so it
+  // never takes on a player's colour.
+  const skin = diceSkinFor(activePlayer?.cosmetics?.dice);
   const baseRestingPoint = useMemo<Point>(() => {
     if (!activeColor) return [0, DIE_Y, 3.58];
     if (!compact || layout === "hex")
@@ -907,12 +920,6 @@ function PhysicalDie({
     () => new THREE.Vector3(...restingPoint),
     [restingPoint],
   );
-  // A plain white die: where it rests (beside the active player's seat,
-  // see dieSeatPoint) already says whose turn it is, so it no longer takes
-  // on the acting player's colour.
-  const dieColor = "#ffffff";
-  const dieAttenuationColor = "#ffffff";
-  const pipColor = "#111111";
   const elapsed = useRef(ROLL_MS / 1000);
   const target = useMemo(
     () =>
@@ -1051,50 +1058,7 @@ function PhysicalDie({
         }}
         onPointerOut={() => setHovered(false)}
       >
-        <RoundedBox
-          args={[0.46, 0.46, 0.46]}
-          radius={0.055}
-          smoothness={4}
-          castShadow
-        >
-          <meshPhysicalMaterial
-            color={dieColor}
-            roughness={compact ? 0.015 : 0.025}
-            metalness={0}
-            clearcoat={1}
-            clearcoatRoughness={0.01}
-            transmission={compact ? 0.05 : 0.12}
-            thickness={compact ? 0.3 : 0.82}
-            ior={1.49}
-            attenuationColor={dieAttenuationColor}
-            attenuationDistance={0.28}
-            specularIntensity={1}
-            specularColor="#ffffff"
-            envMapIntensity={compact ? 2.8 : 2.2}
-            transparent
-            opacity={1}
-            emissive={compact ? dieColor : canRoll ? dieColor : "#000000"}
-            emissiveIntensity={compact ? 0.14 : canRoll ? 0.025 : 0}
-          />
-        </RoundedBox>
-        {DIE_FACES.map((face) => (
-          <group
-            key={face.value}
-            position={face.position}
-            rotation={face.rotation}
-          >
-            {PIPS[face.value].map(([x, y], i) => (
-              <mesh key={i} position={[x * 0.105, y * 0.105, 0]}>
-                <circleGeometry args={[0.031, 16]} />
-                <meshPhysicalMaterial
-                  color={pipColor}
-                  roughness={0.22}
-                  clearcoat={0.65}
-                />
-              </mesh>
-            ))}
-          </group>
-        ))}
+        <DieBody skin={skin} compact={compact} canRoll={canRoll} />
         {canRoll && (
           <mesh visible={false}>
             <sphereGeometry args={[0.4, 12, 12]} />
@@ -1103,6 +1067,135 @@ function PhysicalDie({
         )}
       </group>
     </group>
+  );
+}
+
+/** Marble for the marble die: black Nero Marquina with white veins. */
+function makeDieMarble() {
+  const t = canvasTexture(256, 256, (ctx) => {
+    ctx.fillStyle = "#1c1b1a";
+    ctx.fillRect(0, 0, 256, 256);
+    drawVeins(
+      ctx,
+      [0, 0, 256, 256],
+      ["rgba(235,230,220,0.55)", "rgba(235,230,220,0.25)"],
+      191,
+    );
+  });
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  // RoundedBox UVs run in world units (about 0.46 across a face).
+  t.repeat.set(2, 2);
+  return t;
+}
+
+/**
+ * The die's body and pips in one skin. Classic is the glossy white die with
+ * black pips; glass is clear with white pips; wood is maple with burned
+ * pips; marble is black with gilded pips. Each keeps its pips in strong
+ * contrast with its face.
+ */
+function DieBody({
+  skin,
+  compact,
+  canRoll,
+}: {
+  skin: DiceSkin;
+  compact: boolean;
+  canRoll: boolean;
+}) {
+  const woodSource = useTexture("/textures/board-wood.webp");
+  const wood = useMemo(() => {
+    if (skin !== "wood") return null;
+    const t = woodSource.clone();
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(1.6, 1.6);
+    return t;
+  }, [skin, woodSource]);
+  const marble = useMemo(() => (skin === "marble" ? makeDieMarble() : null), [skin]);
+  useEffect(() => () => wood?.dispose(), [wood]);
+  useEffect(() => () => marble?.dispose(), [marble]);
+  const body =
+    skin === "glass" ? (
+      <meshPhysicalMaterial
+        color="#d6ecf3"
+        roughness={0.04}
+        metalness={0}
+        clearcoat={1}
+        clearcoatRoughness={0.02}
+        transmission={0.9}
+        thickness={0.46}
+        ior={1.5}
+        // Deep enough a sea-glass blue that the white pips stand out.
+        attenuationColor="#2f7f9e"
+        attenuationDistance={0.32}
+        specularIntensity={1}
+        envMapIntensity={2.4}
+      />
+    ) : skin === "wood" ? (
+      <meshPhysicalMaterial
+        color="#e2b277"
+        map={wood}
+        roughness={0.5}
+        clearcoat={0.35}
+        clearcoatRoughness={0.4}
+      />
+    ) : skin === "marble" ? (
+      <meshPhysicalMaterial
+        color="#ffffff"
+        map={marble}
+        roughness={0.18}
+        clearcoat={1}
+        clearcoatRoughness={0.05}
+        envMapIntensity={1.6}
+      />
+    ) : (
+      <meshPhysicalMaterial
+        color="#ffffff"
+        roughness={compact ? 0.015 : 0.025}
+        metalness={0}
+        clearcoat={1}
+        clearcoatRoughness={0.01}
+        transmission={compact ? 0.05 : 0.12}
+        thickness={compact ? 0.3 : 0.82}
+        ior={1.49}
+        attenuationColor="#ffffff"
+        attenuationDistance={0.28}
+        specularIntensity={1}
+        specularColor="#ffffff"
+        envMapIntensity={compact ? 2.8 : 2.2}
+        transparent
+        opacity={1}
+        emissive={compact ? "#ffffff" : canRoll ? "#ffffff" : "#000000"}
+        emissiveIntensity={compact ? 0.14 : canRoll ? 0.025 : 0}
+      />
+    );
+  const pip =
+    skin === "glass" ? (
+      <meshStandardMaterial color="#ffffff" roughness={0.35} />
+    ) : skin === "wood" ? (
+      <meshStandardMaterial color="#2a170c" roughness={0.9} />
+    ) : skin === "marble" ? (
+      <meshStandardMaterial color="#d6aa4c" metalness={1} roughness={0.28} />
+    ) : (
+      <meshPhysicalMaterial color="#111111" roughness={0.22} clearcoat={0.65} />
+    );
+  return (
+    <>
+      <RoundedBox args={[0.46, 0.46, 0.46]} radius={0.055} smoothness={4} castShadow>
+        {body}
+      </RoundedBox>
+      {DIE_FACES.map((face) => (
+        <group key={face.value} position={face.position} rotation={face.rotation}>
+          {PIPS[face.value].map(([x, y], i) => (
+            <mesh key={i} position={[x * 0.105, y * 0.105, 0]}>
+              <circleGeometry args={[0.031, 16]} />
+              {pip}
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </>
   );
 }
 
@@ -2101,6 +2194,7 @@ function Seats({
   gameType,
   hideLabels,
   colorBlind,
+  onOpenProfile,
 }: SceneProps) {
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
@@ -2193,7 +2287,18 @@ function Seats({
                   {reactions[player.id]}
                 </span>
               )}
-              <PlayerAvatar player={player} size={34} className="seat-avatar" />
+              {onOpenProfile && !player.isBot ? (
+                <button
+                  type="button"
+                  className="profile-open-trigger seat-profile-trigger"
+                  onClick={() => onOpenProfile(player.id)}
+                  aria-label={`View ${player.displayName}'s profile`}
+                >
+                  <PlayerAvatar player={player} size={34} className="seat-avatar" />
+                </button>
+              ) : (
+                <PlayerAvatar player={player} size={34} className="seat-avatar" />
+              )}
               {player.inVoice && (
                 <span
                   className={`seat-mic ${speakingPlayerIds?.has(player.id) ? "speaking" : ""}`}

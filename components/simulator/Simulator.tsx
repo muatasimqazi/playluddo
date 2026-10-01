@@ -4,6 +4,7 @@ import {
   Component,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -21,6 +22,7 @@ import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import type { Cast } from "@/lib/hooks/useCast";
 import { canCast, toggleCast, useCastLabel } from "@/components/cast/CastButton";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton, PlayerProfileDialog } from "@/components/profile/PlayerProfileButton";
 import { MatchDice } from "@/components/summary/MatchDice";
 import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
 import { FirstGameTips } from "./FirstGameTips";
@@ -46,7 +48,9 @@ import {
   SIMULATOR_PREF_KEY,
   type BoardStyle,
 } from "@/lib/presentation/simulatorPrefs";
-import { gamePreferences } from "@/lib/preferences";
+import { gamePreferences, isSignedIn } from "@/lib/preferences";
+import { createClient } from "@/lib/supabase/client";
+import { getMyCosmetics } from "@/lib/supabase/cosmetics";
 import { useGamePreference } from "@/lib/preferences-react";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { seatColors } from "@/lib/presentation/accessibility";
@@ -363,6 +367,11 @@ export default function Simulator({
   const cast = screen ? undefined : castProp;
   const castLabel = useCastLabel(cast);
   const snakes = state.gameType === "snakes_and_ladders";
+  // Seats only have profiles at an online table: practice and Table Together
+  // seats are local, and the shared TV screen is nobody's to tap.
+  const profiles = !practice && !localPlay && !screen;
+  const [profileSeat, setProfileSeat] = useState<string | null>(null);
+  const profilePlayer = profileSeat ? state.players.find((p) => p.id === profileSeat) : undefined;
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
   const [flipping, setFlipping] = useState(false);
   const flipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -370,6 +379,41 @@ export default function Simulator({
   );
   useEffect(() => () => clearTimeout(flipTimer.current), []);
   const me = state.players.find((p) => p.id === myPlayerId);
+  // Online, every seat's equipped cosmetics ride in the room state (F3.5).
+  // Offline seats carry none, so a signed-in player's own equipped die is
+  // fetched once and put on their seat for the scene: practice rolls look
+  // the same as their online ones.
+  const offlineSeat = me !== undefined && me.cosmetics === undefined;
+  const [myDice, setMyDice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!offlineSeat) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const client = createClient();
+        const { data } = await client.auth.getUser();
+        if (!isSignedIn(data.user)) return;
+        const equipped = (await getMyCosmetics(client)).find(
+          (item) => item.type === "dice" && item.equipped,
+        );
+        if (!cancelled && equipped) setMyDice(equipped.id);
+      } catch {
+        /* Offline or signed out: the classic die. */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [offlineSeat]);
+  const scenePlayers = useMemo(
+    () =>
+      offlineSeat && myDice
+        ? state.players.map((p) =>
+            p.id === myPlayerId ? { ...p, cosmetics: { dice: myDice } } : p,
+          )
+        : state.players,
+    [offlineSeat, myDice, state.players, myPlayerId],
+  );
   // The 5-6 player hexagon or the 4-arm cross (F5.2), from the seat colours.
   const boardSpec = boardSpecForPawns(state.players);
   // "Revenge!" is on offer once someone captures one of my pieces, until I
@@ -405,6 +449,7 @@ export default function Simulator({
     state.winnerIds.length === state.players.length
       ? state.winnerIds
       : progressRanking;
+  const winner = state.players.find((p) => p.id === state.winnerIds[0]);
   // The Party screen holds one steady view: an action camera would swing it
   // out and back on every roll and move, which reads as the TV lurching
   // around for the people watching it from across the room.
@@ -937,7 +982,7 @@ export default function Simulator({
           gameType={state.gameType}
           snakesBoard={snakes ? (state.rules?.snakesBoard ?? 0) : 0}
           frame={frame}
-          players={state.players}
+          players={scenePlayers}
           myPlayerId={localPlay ? null : myPlayerId}
           turnPlayerId={frame.turnPlayerId}
           legalPawnIds={screenPreview ? [screenPreview.pawnId] : legalPawnIds}
@@ -962,6 +1007,7 @@ export default function Simulator({
           boardStyle={effectiveBoardStyle}
           room={room}
           hideLabels={prefs.immersive}
+          onOpenProfile={profiles ? setProfileSeat : undefined}
           brightness={prefs.brightness}
           saturation={prefs.saturation}
           colorBlind={colorBlind}
@@ -972,6 +1018,13 @@ export default function Simulator({
           onVideoSlow={() => setVideoSlow(true)}
         />
       </SceneBoundary>
+      {profilePlayer && (
+        <PlayerProfileDialog
+          playerId={profilePlayer.id}
+          displayName={profilePlayer.displayName}
+          onClose={() => setProfileSeat(null)}
+        />
+      )}
       <div className="sim-vignette" />
       <div className="sr-only" role="log" aria-live="polite" aria-label="Game announcements">
         {announcements.map((line) => (
@@ -1976,7 +2029,14 @@ export default function Simulator({
               <div className="menu-players">
                 {state.players.map((player) => (
                   <div key={player.id}>
-                    <PlayerAvatar player={player} size={30} />
+                    <PlayerProfileButton
+                      playerId={player.id}
+                      displayName={player.displayName}
+                      isBot={player.isBot}
+                      disabled={!profiles}
+                    >
+                      <PlayerAvatar player={player} size={30} />
+                    </PlayerProfileButton>
                     <span>
                       {player.displayName}
                       {!localPlay && player.id === myPlayerId ? " (you)" : ""}
@@ -2086,7 +2146,15 @@ export default function Simulator({
                       return (
                         <div key={player.id} className="chat-person-block">
                           <div className="chat-person">
-                            <strong style={{ color: COLORS[player.color] }}>{player.displayName}</strong>
+                            <PlayerProfileButton
+                              playerId={player.id}
+                              displayName={player.displayName}
+                              isBot={player.isBot}
+                              disabled={!profiles}
+                              className="is-text"
+                            >
+                              <strong style={{ color: COLORS[player.color] }}>{player.displayName}</strong>
+                            </PlayerProfileButton>
                             {onBlockPlayer && (
                               <button
                                 type="button"
@@ -2317,12 +2385,15 @@ export default function Simulator({
         ) && (
           <div className="sim-victory">
             {state.status !== "abandoned" &&
-              state.players.find((p) => p.id === state.winnerIds[0]) && (
-                <PlayerAvatar
-                  player={state.players.find((p) => p.id === state.winnerIds[0])!}
-                  size={76}
-                  crowned
-                />
+              winner && (
+                <PlayerProfileButton
+                  playerId={winner.id}
+                  displayName={winner.displayName}
+                  isBot={winner.isBot}
+                  disabled={!profiles}
+                >
+                  <PlayerAvatar player={winner} size={76} crowned />
+                </PlayerProfileButton>
               )}
             <span className="eyebrow">
               {state.status === "abandoned" ? "UNTIL NEXT TIME" : "WELL PLAYED"}
@@ -2330,7 +2401,7 @@ export default function Simulator({
             <h1>
               {state.status === "abandoned"
                 ? "The table is quiet."
-                : `${state.players.find((p) => p.id === state.winnerIds[0])?.displayName ?? "Player"} wins.`}
+                : `${winner?.displayName ?? "Player"} wins.`}
             </h1>
             <p>
               {state.status === "abandoned"
@@ -2346,11 +2417,18 @@ export default function Simulator({
                   const stats = matchResults?.find((r) => r.playerId === p.id)?.stats;
                   return (
                     <div key={p.id}>
-                      <PlayerAvatar
-                        player={p}
-                        size={30}
-                        placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
-                      />
+                      <PlayerProfileButton
+                        playerId={p.id}
+                        displayName={p.displayName}
+                        isBot={p.isBot}
+                        disabled={!profiles}
+                      >
+                        <PlayerAvatar
+                          player={p}
+                          size={30}
+                          placement={index < 3 ? ((index + 1) as 1 | 2 | 3) : undefined}
+                        />
+                      </PlayerProfileButton>
                       <span className="victory-name">
                         {p.displayName}
                         {stats && <em>{statsLine(stats, snakes)}</em>}

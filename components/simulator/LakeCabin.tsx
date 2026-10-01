@@ -292,100 +292,6 @@ function makeBlanketRug() {
   });
 }
 
-/** The lake from the cabin: morning sky, ranges, a pine shore, still water. */
-function makeLake() {
-  const W = 2048,
-    H = 1024;
-  return canvasTexture(W, H, (ctx) => {
-    const random = seeded(79);
-    const horizon = H * 0.555;
-    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-    sky.addColorStop(0, "#6f98bf");
-    sky.addColorStop(0.65, "#b9cbd6");
-    sky.addColorStop(1, "#f1d4a8");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, horizon);
-    const sun = ctx.createRadialGradient(
-      W * 0.7,
-      horizon - 40,
-      4,
-      W * 0.7,
-      horizon - 40,
-      360,
-    );
-    sun.addColorStop(0, "rgba(255,240,205,0.9)");
-    sun.addColorStop(1, "rgba(255,230,190,0)");
-    ctx.fillStyle = sun;
-    ctx.fillRect(0, 0, W, horizon);
-    // Two ranges, the far one paler.
-    const ridge = (
-      base: number,
-      amplitude: number,
-      colour: string,
-      seed: number,
-    ) => {
-      const r = seeded(seed);
-      ctx.fillStyle = colour;
-      ctx.beginPath();
-      ctx.moveTo(0, horizon);
-      let y = base;
-      for (let x = 0; x <= W; x += 16) {
-        y += (r() - 0.5) * amplitude;
-        y = Math.min(horizon - 10, Math.max(base - 140, y));
-        ctx.lineTo(x, y);
-      }
-      ctx.lineTo(W, horizon);
-      ctx.fill();
-    };
-    ridge(horizon - 150, 26, "#9aaabb", 83);
-    ridge(horizon - 80, 22, "#73879a", 89);
-    // Pine shore along the waterline.
-    const pines = (ctx2: CanvasRenderingContext2D) => {
-      const r = seeded(97);
-      ctx2.fillStyle = "#24352a";
-      ctx2.fillRect(0, horizon - 12, W, 14);
-      for (let x = -10; x < W + 10; x += 7 + r() * 9) {
-        const h = 30 + r() * 70;
-        ctx2.beginPath();
-        ctx2.moveTo(x, horizon - 10 - h);
-        ctx2.lineTo(x + 9 + h * 0.12, horizon);
-        ctx2.lineTo(x - 9 - h * 0.12, horizon);
-        ctx2.fill();
-      }
-    };
-    pines(ctx);
-    // Water: the sky mirrored and deepened, the shore reflected, then ripples.
-    const water = ctx.createLinearGradient(0, horizon, 0, H);
-    water.addColorStop(0, "#c9c2b0");
-    water.addColorStop(0.15, "#6d8ca5");
-    water.addColorStop(1, "#24394a");
-    ctx.fillStyle = water;
-    ctx.fillRect(0, horizon, W, H - horizon);
-    ctx.save();
-    ctx.globalAlpha = 0.45;
-    ctx.translate(0, horizon * 2);
-    ctx.scale(1, -1);
-    ctx.filter = "blur(3px)";
-    pines(ctx);
-    ctx.restore();
-    ctx.filter = "none";
-    for (let i = 0; i < 260; i++) {
-      const y = horizon + 8 + Math.pow(random(), 1.6) * (H - horizon);
-      const near = (y - horizon) / (H - horizon);
-      ctx.fillStyle = `rgba(255,${235 + Math.round(random() * 20)},210,${0.08 + random() * 0.18})`;
-      const x = random() * W;
-      // Sun glitter gathers under the sun.
-      const under = Math.abs(x - W * 0.7) < 220 ? 2.2 : 1;
-      ctx.fillRect(
-        x,
-        y,
-        (20 + random() * 90) * (0.4 + near) * under,
-        1.5 + near * 2,
-      );
-    }
-  });
-}
-
 /** Lacing for the snowshoes: rawhide in a lattice, transparent between. */
 function makeLacing() {
   return canvasTexture(128, 256, (ctx) => {
@@ -1062,9 +968,15 @@ function LakeWindows({
   }, []);
   return (
     <group>
-      {/* Far shore and sky; outside the fog, which is for the room's own depth. */}
-      <mesh position={[-70, 48.4 - 40, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[160, 80]} />
+      {/* The lake: a photograph, far enough back that the mountains read at
+          their size, its waterline (54% down the frame) near eye height, and
+          wide enough to fill every window from any seat. Outside the fog,
+          which is for the room's own depth. */}
+      <mesh
+        position={[-70, 4 + 0.54 * 90 - 45, 0]}
+        rotation={[0, Math.PI / 2, 0]}
+      >
+        <planeGeometry args={[120, 90]} />
         <meshBasicMaterial map={lake} toneMapped={false} fog={false} />
       </mesh>
       {/* The deck and its log railing. */}
@@ -1246,12 +1158,14 @@ export function LakeCabin({
   reducedMotion?: boolean;
 }) {
   const anisotropy = quality === "low" ? 2 : 8;
-  const [woodSource, floorSource, topSource, fabricSource] = useTexture([
-    "/textures/board-wood.webp",
-    "/textures/floor.jpg",
-    "/textures/table-top.webp",
-    "/textures/couch-fabric.webp",
-  ]);
+  const [woodSource, floorSource, topSource, fabricSource, lakeSource] =
+    useTexture([
+      "/textures/board-wood.webp",
+      "/textures/floor.jpg",
+      "/textures/table-top.webp",
+      "/textures/couch-fabric.webp",
+      "/textures/lake.webp",
+    ]);
   const t = useMemo(() => {
     const prepare = (source: THREE.Texture, repeat?: [number, number]) => {
       const tex = source.clone();
@@ -1278,11 +1192,18 @@ export function LakeCabin({
       stoneMap: stone.map,
       stoneBump: stone.bump,
       rug: makeBlanketRug(),
-      lake: makeLake(),
+      lake: prepare(lakeSource),
       lacing: makeLacing(),
       ...makeOcclusionTextures(),
     };
-  }, [woodSource, floorSource, topSource, fabricSource, anisotropy]);
+  }, [
+    woodSource,
+    floorSource,
+    topSource,
+    fabricSource,
+    lakeSource,
+    anisotropy,
+  ]);
   useEffect(() => () => Object.values(t).forEach((tex) => tex.dispose()), [t]);
   const stone = useMemo(() => ({ map: t.stoneMap, bump: t.stoneBump }), [t]);
   const logs = useMemo(() => wallLogs(), []);

@@ -26,13 +26,7 @@ interface Entry {
  * plus friends currently at a joinable table (F3.6): join in one tap, or add a
  * recent player as a friend. Renders nothing for guests or when empty.
  */
-export function PlayAgain({
-  name,
-  onJoin,
-}: {
-  name: string;
-  onJoin: (roomCode: string) => void;
-}) {
+export function PlayAgain({ onJoin }: { onJoin: (roomCode: string) => void }) {
   const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -110,7 +104,7 @@ export function PlayAgain({
             />
             <span className="play-again-name">{e.displayName}</span>
             {e.roomCode ? (
-              <button type="button" disabled={!name.trim()} onClick={() => onJoin(e.roomCode!)}>
+              <button type="button" onClick={() => onJoin(e.roomCode!)}>
                 {t("actions.join")}
               </button>
             ) : e.isFriend ? (

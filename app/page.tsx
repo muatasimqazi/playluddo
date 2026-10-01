@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import {
   createRoom,
-  joinRoom,
   roomIdForCode,
   setPlayerColor,
   setRoomGame,
@@ -313,39 +312,50 @@ export default function Home() {
       );
     }
   }
-  // Skips the manual player-count/color form and code-sharing dance
-  // entirely: a team's members are already known, so starting or
-  // rejoining their table is one click from the home page.
-  async function goToRoom(
-    kind: "create" | "join",
-    action: (client: ReturnType<typeof createClient>) => Promise<{ roomId: string }>,
-  ) {
-    if (!name.trim()) {
-      setError(t("entrance.nameError"));
-      return;
-    }
-    setPending(kind);
+  // A team's members are already known, so starting their table is one
+  // click from the home page. This is the first screen, before the name
+  // field, so the player's name in that team stands in when none is typed.
+  async function startForTeam(team: Team) {
+    setPending("create");
     setError(null);
     try {
       const client = createClient();
       await ensureSession(client);
-      const room = await action(client);
-      if (kind === "create" && gameType !== "ludo")
-        await setRoomGame(client, room.roomId, gameType);
+      const { data } = await client.auth.getUser();
+      const displayName =
+        name.trim() || team.members.find((m) => m.userId === data.user?.id)?.displayName || "";
+      if (!displayName) {
+        setPending(null);
+        setError(t("entrance.nameError"));
+        return;
+      }
+      const room = await createRoom(client, displayName, team.id);
+      if (gameType !== "ludo") await setRoomGame(client, room.roomId, gameType);
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setPending(null);
-      if (age.handle(e, () => void goToRoom(kind, action))) return;
-      setError(
-        e instanceof Error ? e.message : t("common.connectError"),
-      );
+      if (age.handle(e, () => void startForTeam(team))) return;
+      setError(e instanceof Error ? e.message : t("common.connectError"));
     }
   }
-  function startForTeam(teamId: string) {
-    void goToRoom("create", (client) => createRoom(client, name.trim(), teamId));
+  // Joining a team's or a friend's table goes through its room link, like a
+  // shared invite: the room page takes a seated player straight back in
+  // (mid-game too), asks a new one for just a name, and explains a table
+  // that's full or already playing.
+  function openRoom(roomId: string) {
+    router.push(`/room?id=${roomId}`);
   }
-  function joinTeamRoom(roomCode: string) {
-    void goToRoom("join", (client) => joinRoom(client, roomCode, name.trim()));
+  async function openRoomByCode(roomCode: string) {
+    setPending("join");
+    setError(null);
+    try {
+      const client = createClient();
+      await ensureSession(client);
+      openRoom(await roomIdForCode(client, roomCode));
+    } catch (e) {
+      setPending(null);
+      setError(e instanceof Error ? e.message : t("common.connectError"));
+    }
   }
   return (
     <main className="sim-entrance">
@@ -392,7 +402,7 @@ export default function Home() {
         </div>
       </header>
       <section className={`entrance-content${screen === "setup" && !quickMatch ? " is-setup" : ""}`}>
-        {!quickMatch && screen === "mode" && <PlayAgain name={name} onJoin={joinTeamRoom} />}
+        {!quickMatch && screen === "mode" && <PlayAgain onJoin={(roomCode) => void openRoomByCode(roomCode)} />}
         {quickMatch ? (
           <QuickMatch
             gameType={gameType}
@@ -470,8 +480,8 @@ export default function Home() {
                       disabled={pending !== null}
                       onClick={() =>
                         team.activeRoom
-                          ? joinTeamRoom(team.activeRoom.code)
-                          : startForTeam(team.id)
+                          ? openRoom(team.activeRoom.roomId)
+                          : void startForTeam(team)
                       }
                     >
                       <span>

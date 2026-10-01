@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { gamePreferences } from "@/lib/preferences";
+import { boardStyleForCosmetic, roomForCosmetic } from "@/lib/presentation/cosmeticGates";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import {
   equipCosmetic,
@@ -56,6 +58,12 @@ export function CosmeticsLocker() {
     setError(null);
     try {
       await equipCosmetic(client, cosmetic.id);
+      // A board or room equipped here is also the table's choice, so the
+      // two never disagree (the table mirrors its picks back here too).
+      const board = boardStyleForCosmetic(cosmetic.id);
+      if (board) gamePreferences.set("boardStyle", board);
+      const room = roomForCosmetic(cosmetic.id);
+      if (room) gamePreferences.set("room", room);
       setItems((prev) =>
         prev
           ? prev.map((c) =>

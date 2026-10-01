@@ -45,12 +45,20 @@ import {
 import { BOARD_4, boardSpecForPawns, type BoardSpec } from "@/lib/board/boardSpec";
 import { PresentationTimeline } from "@/lib/presentation/timeline";
 import {
+  DEFAULT_BOARD_STYLE,
   SIMULATOR_PREF_KEY,
   type BoardStyle,
 } from "@/lib/presentation/simulatorPrefs";
+import {
+  boardCosmetic,
+  boardStyleForCosmetic,
+  ownedRoom,
+  roomCosmetic,
+} from "@/lib/presentation/cosmeticGates";
+import { useCosmeticOwnership } from "@/lib/hooks/useCosmeticOwnership";
 import { gamePreferences, isSignedIn } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/client";
-import { getMyCosmetics, type EquippedCosmetics } from "@/lib/supabase/cosmetics";
+import { equipCosmetic, getMyCosmetics, type EquippedCosmetics } from "@/lib/supabase/cosmetics";
 import { useGamePreference } from "@/lib/preferences-react";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { seatColors } from "@/lib/presentation/accessibility";
@@ -141,16 +149,14 @@ function plural(count: number, one: string, many = `${one}s`) {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-// Board cosmetics (F3.5) map to the board styles the scene already draws
-// (each style carries its own matching pieces). A player's equipped board
-// wins over their local board-style preference; other types (dice, room,
-// reaction packs) are earnable now and rendered in a follow-up.
-const BOARD_COSMETIC_STYLE: Record<string, BoardStyle> = {
-  board_signature: "signature",
-  board_classic: "classic",
-  board_geometric: "geometric",
-  board_aladdin: "aladdin",
-};
+/**
+ * Picking a board or room at the table also equips it (F3.5), so the
+ * profile's cosmetics locker shows the same choice. Best effort: the table
+ * already shows the pick, and a guest without a session just keeps it here.
+ */
+function mirrorEquip(cosmeticId: string) {
+  void equipCosmetic(createClient(), cosmeticId).catch(() => {});
+}
 
 /** One short line per player on the victory panel. */
 function statsLine(stats: MatchStats, snakes: boolean) {
@@ -486,15 +492,23 @@ export default function Simulator({
       ? { ...loadPreferences("blue", boardSpec), view: "table" as const, actionCamera: "off" as const, immersive: false }
       : loadPreferences(me?.color ?? "blue", boardSpec),
   );
-  // A signed-in player's equipped board cosmetic overrides the local pref.
-  const effectiveBoardStyle: BoardStyle =
-    (me?.cosmetics?.board && BOARD_COSMETIC_STYLE[me.cosmetics.board]) || prefs.boardStyle;
+  // Boards and rooms are earned (F3.5): the table draws the chosen one only
+  // if the account owns it, falling back to its equipped board, then the
+  // free default.
+  const ownership = useCosmeticOwnership();
+  const equippedBoard = me?.cosmetics?.board
+    ? boardStyleForCosmetic(me.cosmetics.board)
+    : undefined;
+  const effectiveBoardStyle: BoardStyle = ownership.owns(boardCosmetic(prefs.boardStyle))
+    ? prefs.boardStyle
+    : (equippedBoard ?? DEFAULT_BOARD_STYLE);
   const screenQuality = useAdaptiveQuality(screen);
   // Accessibility (F5.5): follow the player across devices like board style.
   const [colorBlind, setColorBlind] = useGamePreference("colorBlind");
   const [reduceMotion, setReduceMotion] = useGamePreference("reduceMotion");
   // The room around the table follows the player across devices too.
   const [room, setRoom] = useGamePreference("room");
+  const effectiveRoom = ownedRoom(room, ownership.owns);
   const reducedMotion = useReducedMotion();
   const palette = seatColors(colorBlind);
   // Video (Section 7, V3): remote cameras sit on cards above the seat figures
@@ -1033,7 +1047,7 @@ export default function Simulator({
           speakingPlayerIds={voice?.speakingPlayerIds}
           soundEnabled={prefs.sound}
           boardStyle={effectiveBoardStyle}
-          room={room}
+          room={effectiveRoom}
           hideLabels={prefs.immersive}
           onOpenProfile={profiles ? setProfileSeat : undefined}
           showLevels={profiles}
@@ -1612,7 +1626,7 @@ export default function Simulator({
           )}
           {panel === "board" && (
             <>
-              <p>The same game, four different tables.</p>
+              <p>The same game, four different tables. Play to earn more.</p>
               <div className="camera-options">
                 {(
                   [
@@ -1621,27 +1635,38 @@ export default function Simulator({
                     ["geometric", "Geometric", "Bold shapes, gold accents"],
                     ["aladdin", "Aladdin", "An Arabian-nights table"],
                   ] as const
-                ).map(([value, label, desc]) => (
-                  <button
-                    key={value}
-                    className={prefs.boardStyle === value ? "is-selected" : ""}
-                    onClick={() => {
-                      setPref("boardStyle", value);
-                      // Also record it as the saved board preference (this
-                      // device, and the account when signed in), so the choice
-                      // carries to the entrance and other devices.
-                      gamePreferences.set("boardStyle", value);
-                      setPanel(null);
-                    }}
-                  >
-                    <Icon name="grid" />
-                    <span>
-                      <strong>{label}</strong>
-                      <small>{desc}</small>
-                    </span>
-                    {prefs.boardStyle === value && <Icon name="check" size={14} />}
-                  </button>
-                ))}
+                ).map(([value, label, desc]) => {
+                  const id = boardCosmetic(value);
+                  const locked = ownership.ready && !ownership.owns(id);
+                  return (
+                    <button
+                      key={value}
+                      className={`${effectiveBoardStyle === value ? "is-selected" : ""} ${locked ? "is-locked" : ""}`}
+                      disabled={locked}
+                      aria-disabled={locked}
+                      onClick={() => {
+                        setPref("boardStyle", value);
+                        // Also record it as the saved board preference (this
+                        // device, and the account when signed in), so the choice
+                        // carries to the entrance and other devices.
+                        gamePreferences.set("boardStyle", value);
+                        mirrorEquip(id);
+                        setPanel(null);
+                      }}
+                    >
+                      <Icon name="grid" />
+                      <span>
+                        <strong>{label}</strong>
+                        <small>
+                          {locked
+                            ? `Locked · ${ownership.requirement(id) ?? "Earned by playing"}`
+                            : desc}
+                        </small>
+                      </span>
+                      {effectiveBoardStyle === value && <Icon name="check" size={14} />}
+                    </button>
+                  );
+                })}
               </div>
               <p className="panel-subsection">And the room you play it in.</p>
               <div className="camera-options">
@@ -1653,23 +1678,34 @@ export default function Simulator({
                     ["lake", "Lake cabin", "Log walls, a stone hearth, the water"],
                     ["rooftop", "Rooftop", "City lights at dusk, string lights overhead"],
                   ] as const
-                ).map(([value, label, desc]) => (
-                  <button
-                    key={value}
-                    className={room === value ? "is-selected" : ""}
-                    onClick={() => {
-                      setRoom(value);
-                      setPanel(null);
-                    }}
-                  >
-                    <Icon name="home" />
-                    <span>
-                      <strong>{label}</strong>
-                      <small>{desc}</small>
-                    </span>
-                    {room === value && <Icon name="check" size={14} />}
-                  </button>
-                ))}
+                ).map(([value, label, desc]) => {
+                  const id = roomCosmetic(value);
+                  const locked = ownership.ready && !ownership.owns(id);
+                  return (
+                    <button
+                      key={value}
+                      className={`${effectiveRoom === value ? "is-selected" : ""} ${locked ? "is-locked" : ""}`}
+                      disabled={locked}
+                      aria-disabled={locked}
+                      onClick={() => {
+                        setRoom(value);
+                        mirrorEquip(id);
+                        setPanel(null);
+                      }}
+                    >
+                      <Icon name="home" />
+                      <span>
+                        <strong>{label}</strong>
+                        <small>
+                          {locked
+                            ? `Locked · ${ownership.requirement(id) ?? "Earned by playing"}`
+                            : desc}
+                        </small>
+                      </span>
+                      {effectiveRoom === value && <Icon name="check" size={14} />}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}

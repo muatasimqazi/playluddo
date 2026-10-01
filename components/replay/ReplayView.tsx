@@ -13,6 +13,8 @@ import { buildReplay, type Replay, type ReplayStep } from "@/lib/presentation/re
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { mediaRecordingSupported, recordHighlight, shareClip } from "@/lib/presentation/clip";
 import { useGamePreference } from "@/lib/preferences-react";
+import { useCosmeticOwnership } from "@/lib/hooks/useCosmeticOwnership";
+import { ownedRoom } from "@/lib/presentation/cosmeticGates";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { Icon } from "@/components/simulator/Icon";
 import { TableLoading } from "@/components/simulator/TableLoading";
@@ -54,7 +56,9 @@ function frameFor(replay: Replay, index: number): PresentationFrame {
 export function ReplayView({ matchId }: { matchId: string }) {
   const tx = useT();
   const [colorBlind] = useGamePreference("colorBlind");
-  const [room] = useGamePreference("room");
+  const [savedRoom] = useGamePreference("room");
+  // Rooms are earned (F3.5): an unowned saved room replays in the Apartment.
+  const room = ownedRoom(savedRoom, useCosmeticOwnership().owns);
   const reducedMotion = useReducedMotion();
   const client = useMemo(() => createClient(), []);
   const [replay, setReplay] = useState<Replay | null>(null);

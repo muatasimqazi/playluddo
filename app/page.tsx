@@ -31,6 +31,8 @@ import hexAladdinBoardArt from "@/designs/board-hex-aladdin.svg";
 import snakesBoardArt from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakesBoardArt2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
 import { useGamePreference } from "@/lib/preferences-react";
+import { useCosmeticOwnership } from "@/lib/hooks/useCosmeticOwnership";
+import { boardCosmetic, ownedBoardStyle } from "@/lib/presentation/cosmeticGates";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { ProfileHeaderLink } from "@/components/profile/ProfileHeaderLink";
@@ -196,7 +198,11 @@ export default function Home() {
       : (avatarDefinition(playerAvatar) ?? AVATARS[0]).portrait;
   // Board design — a saved preference, synced when signed in; the entrance's
   // highlight then matches what the table will render (Classic by default).
-  const [boardStyle, setBoardStyle] = useGamePreference("boardStyle");
+  const [savedBoardStyle, setBoardStyle] = useGamePreference("boardStyle");
+  // Boards are earned (F3.5): only owned ones are offered, and a saved board
+  // the account doesn't own shows (and launches) as the free default.
+  const ownership = useCosmeticOwnership();
+  const boardStyle = ownedBoardStyle(savedBoardStyle, ownership.owns);
   // Which printed Snakes & Ladders board to play — a game rule (it moves the
   // snakes and ladders), so it rides along to the table rather than being a
   // look-only preference like the Ludo board design.
@@ -677,7 +683,9 @@ export default function Home() {
                 {(mode === "practice" || mode === "friends") && gameType === "ludo" && (
                   <Segmented
                     label={t("entrance.boardLabel")}
-                    options={BOARD_STYLES.map((style) => ({
+                    options={BOARD_STYLES.filter((style) =>
+                      ownership.owns(boardCosmetic(style.value)),
+                    ).map((style) => ({
                       value: style.value,
                       label: style.label,
                       ariaLabel: `${style.label} · ${style.desc}`,

@@ -82,6 +82,8 @@ export function RoomLobby({
   const occupiedCount = state?.players.length ?? 1;
   const isParty = state?.isParty ?? false;
   const meRemote = !!state?.players.find((p) => p.id === myPlayerId)?.partyRemote;
+  // Mirrors MatchArena: a party seat in the room with the TV is a controller.
+  const livingRoom = isParty && !meRemote;
   usePartyHeartbeat(client, roomId, isParty);
   // Cast the TV `/screen` view of this room to a Chromecast-compatible display;
   // the phone stays here as a controller. Hidden unless a device is available.
@@ -187,54 +189,77 @@ export function RoomLobby({
         </div>
       </header>
       <section className="entrance-content room-lobby">
-        <span className="eyebrow">YOUR PRIVATE TABLE</span>
-        <h1>
-          Good company.
-          <br />
-          <em>Great game.</em>
-        </h1>
-        <p>
-          Share your room code and bring everyone together. There’s a seat
-          waiting.
-        </p>
-        <div className="lobby-code">
-          <div>
-            <span className="eyebrow">INVITE YOUR FRIENDS</span>
-            <strong>{state.code}</strong>
-          </div>
-          <div className="lobby-invite-actions">
-            <button onClick={() => void shareInvite()} title="Share room invite">
-              <Icon name={inviteFeedback === "shared" ? "check" : "share"} />
-              {inviteFeedback === "shared" ? "Shared" : "Share"}
-            </button>
-            <button
-              onClick={() => void copyInvite(webUrl(`/room?id=${roomId}`), "link")}
-              title="Copy room link"
-            >
-              <Icon name={inviteFeedback === "link" ? "check" : "link"} />
-              {inviteFeedback === "link" ? "Copied" : "Link"}
-            </button>
-            <button onClick={() => void copyInvite(state.code, "code")} title="Copy room code">
-              <Icon name={inviteFeedback === "code" ? "check" : "copy"} />
-              {inviteFeedback === "code" ? "Copied" : "Code"}
-            </button>
-            {cast.supported && (cast.available || cast.connected) && (
-              <button
-                className={cast.connected ? "is-casting" : ""}
-                onClick={() => (cast.connected ? cast.stop() : void cast.start())}
-                disabled={cast.connecting}
-                title="Show the table on a Chromecast-connected TV"
-              >
-                <CastGlyph />
-                {cast.connected
-                  ? "Stop cast"
-                  : cast.connecting
-                    ? "Casting…"
-                    : "Cast to TV"}
+        {/* A living-room phone in Party Mode joined from the TV's QR code:
+            the TV already shows the code and the table, so this phone is a
+            controller waiting for the game, not a private table to invite to. */}
+        {livingRoom ? (
+          <>
+            <span className="eyebrow">{host ? "PARTY TABLE · YOU’RE THE VIP" : "PARTY TABLE"}</span>
+            <h1>
+              You’re in.
+              <br />
+              <em>Look at the TV.</em>
+            </h1>
+            <p>
+              {host
+                ? "Pick the game and the rules, then start it when everyone’s at the table."
+                : "Your phone is your controller. The game starts when the VIP is ready."}
+            </p>
+          </>
+        ) : (
+          <>
+            <span className="eyebrow">YOUR PRIVATE TABLE</span>
+            <h1>
+              Good company.
+              <br />
+              <em>Great game.</em>
+            </h1>
+            <p>
+              Share your room code and bring everyone together. There’s a seat
+              waiting.
+            </p>
+          </>
+        )}
+        {!livingRoom && (
+          <div className="lobby-code">
+            <div>
+              <span className="eyebrow">INVITE YOUR FRIENDS</span>
+              <strong>{state.code}</strong>
+            </div>
+            <div className="lobby-invite-actions">
+              <button onClick={() => void shareInvite()} title="Share room invite">
+                <Icon name={inviteFeedback === "shared" ? "check" : "share"} />
+                {inviteFeedback === "shared" ? "Shared" : "Share"}
               </button>
-            )}
+              <button
+                onClick={() => void copyInvite(webUrl(`/room?id=${roomId}`), "link")}
+                title="Copy room link"
+              >
+                <Icon name={inviteFeedback === "link" ? "check" : "link"} />
+                {inviteFeedback === "link" ? "Copied" : "Link"}
+              </button>
+              <button onClick={() => void copyInvite(state.code, "code")} title="Copy room code">
+                <Icon name={inviteFeedback === "code" ? "check" : "copy"} />
+                {inviteFeedback === "code" ? "Copied" : "Code"}
+              </button>
+              {cast.supported && (cast.available || cast.connected) && (
+                <button
+                  className={cast.connected ? "is-casting" : ""}
+                  onClick={() => (cast.connected ? cast.stop() : void cast.start())}
+                  disabled={cast.connecting}
+                  title="Show the table on a Chromecast-connected TV"
+                >
+                  <CastGlyph />
+                  {cast.connected
+                    ? "Stop cast"
+                    : cast.connecting
+                      ? "Casting…"
+                      : "Cast to TV"}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         <div className="lobby-game">
           <div>
             <span className="eyebrow">ON THE TABLE</span>

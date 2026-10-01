@@ -182,7 +182,9 @@ enable_signup = true
 # before this works against staging/production.
 enable_anonymous_sign_ins = true
 # Allow/disallow testing manual linking of accounts
-enable_manual_linking = false
+# On: a guest who signs in is linked to the new identity, keeping their user id
+# (F0.4, lib/supabase/linkAccount.ts). Mirror this on the hosted project.
+enable_manual_linking = true
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
 minimum_password_length = 6
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
@@ -247,6 +249,13 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
+
+# A guest adding their email gets the "change email" message (F0.4 linking).
+# The default has only a link; ours also carries the code the app asks for.
+# Mirror the subject and body in the hosted project's email templates.
+[auth.email.template.email_change]
+subject = "Your Luddo House sign-in code"
+content_path = "./supabase/templates/email_change.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

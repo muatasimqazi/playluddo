@@ -21,7 +21,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 
 | Feature | Status | Missing |
 |---|---|---|
-| F0.4 Age check | ◐ | Guest→account answer carry-over (identity linking); the legal review for signed-in under-13s |
+| F0.4 Age check | ◐ | Hosted auth settings (manual linking, `email_change` template); the legal review for signed-in under-13s |
 | V1 TURN relay | ◐ | The manual cellular-to-cellular check; a PostHog insight on `call_ice_outcome` |
 | V3 Video in the 3D table | ◐ | `VideoTexture` on seat figures, frame-rate fallback, off-screen pause, mobile-data warning (the 2D tile strip is built) |
 | V4 Video safety | ◐ | App Store privacy label and Play Data Safety; store review notes |
@@ -123,7 +123,7 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 - Guests get a `match_results` row with a null `user_id`, so the summary still works for them.
 
 ### F0.4 Age check before online play ◐ · M
-**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. The 30-day cleanup of inactive under-13 guests runs as `purge-inactive-under13-guests` (pg_cron), and the privacy policy and terms describe the age check. Missing: guest answers don't carry over to a signed-in account (`ProfilePanel.tsx` still uses `signInWithOAuth`/`signInWithOtp`, not identity linking). The legal review for signed-in under-13 accounts is still open.
+**Status (2026-09-30):** [`397a76f`](https://github.com/muatasimqazi/playluddo/commit/397a76f) · [`b5f939f`](https://github.com/muatasimqazi/playluddo/commit/b5f939f) — built behind the `online_age_check` flag, which is **off**. The 30-day cleanup of inactive under-13 guests runs as `purge-inactive-under13-guests` (pg_cron), and the privacy policy and terms describe the age check. Signing in as a guest now links the new sign-in to the guest (`lib/supabase/linkAccount.ts`, and the Game Center function server-side), so the answer carries over; an identity that already has an account signs in to it and nothing is copied (`tests/integration/account-link.test.ts`). Remaining: turn on manual linking and add the `email_change` code template on the hosted project; the legal review for signed-in under-13 accounts.
 
 **Also see (Section 15):** R3 · R7 · R8
 
@@ -131,7 +131,7 @@ This table feeds F1.1, F3.1, F3.2, F3.4 and F4.2. The existing `player_stats.win
 
 **When we ask:** once per account, before the player's **first online table**: private room, link join, quick match, Party Mode controller, Party audience, or watching a live table. The question appears in the same flow as the "Keep the table friendly" agreement (`components/lobby/TableRules.tsx`), which today is remembered per device only. Players who already accepted the rules are asked their age once on their next online table.
 
-**Guests are asked too.** Guests are anonymous Supabase users, so their answer is stored against that user id. **Today the answer does not carry over:** signing in replaces the guest with a different user, because `components/auth/ProfilePanel.tsx` calls `signInWithOAuth` / `signInWithOtp` rather than linking an identity to the guest. The new account is asked again. Carrying the answer over requires switching guest sign-up to identity linking (R3). Never copy an answer to an unrelated account.
+**Guests are asked too.** Guests are anonymous Supabase users, so their answer is stored against that user id. **The answer carries over (built 2026-09-30):** signing in as a guest links the new identity to the guest, keeping the user id, for every sign-in path (web OAuth, native Apple and Google, email and phone codes, Game Center). When the identity already has an account, the guest signs in to that account instead and is asked there if it has no answer. Never copy an answer to an unrelated account.
 
 **How we ask (a neutral age screen):**
 - "What's your date of birth?" with month and year pickers. The screen doesn't say what age is required or pre-fill a year, and it isn't a yes/no "Are you 13?" question, which invites people to click yes.

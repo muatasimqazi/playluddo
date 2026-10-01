@@ -5,6 +5,7 @@ import {
   type AppleProviderResponse,
   type GoogleLoginResponseOnline,
 } from "@capgo/capacitor-social-login";
+import { signInOrLinkWithIdToken } from "./supabase/linkAccount";
 
 /**
  * Native Sign in with Apple (iOS) and Google (iOS and Android) in the app
@@ -90,7 +91,9 @@ export async function signInWithAppleNative(client: SupabaseClient): Promise<Nat
     return { status: "failed", message: "Sign in with Apple didn't finish. Try again in a moment." };
   }
 
-  const { data, error } = await client.auth.signInWithIdToken({
+  // A guest is converted (same user id, so their age answer carries over);
+  // an Apple ID that already has an account signs in to it instead.
+  const { data, error } = await signInOrLinkWithIdToken(client, {
     provider: "apple",
     token: apple.idToken,
     nonce,
@@ -134,7 +137,7 @@ export async function signInWithGoogleNative(client: SupabaseClient): Promise<Na
     return { status: "failed", message: "Google sign-in didn't finish. Try again in a moment." };
   }
 
-  const { error } = await client.auth.signInWithIdToken({
+  const { error } = await signInOrLinkWithIdToken(client, {
     provider: "google",
     token: google.idToken,
     // Google's ID token carries an at_hash of the access token. Android's

@@ -6,6 +6,7 @@ import { NativeShell } from "@/components/NativeShell";
 import { I18nProvider } from "@/lib/i18n";
 import { PreferencesSync } from "@/components/preferences/PreferencesSync";
 import { AgeGateOnSignIn } from "@/components/auth/AgeGateOnSignIn";
+import { OAuthLinkFallback } from "@/components/auth/OAuthLinkFallback";
 import { PushRegistration } from "@/components/preferences/PushRegistration";
 import "./globals.css";
 
@@ -116,6 +117,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <I18nProvider>
           <PreferencesSync />
           <AgeGateOnSignIn />
+          <OAuthLinkFallback />
           <PushRegistration />
           {children}
           <NativeShell />

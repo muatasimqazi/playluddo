@@ -32,6 +32,7 @@ import {
   signInWithGoogleNative,
 } from "@/lib/nativeAuth";
 import { deleteAccount } from "@/lib/supabase/account";
+import { sendSignInCode, signInOrLinkWithOAuth, verifySignInCode } from "@/lib/supabase/linkAccount";
 import { useI18n, type Translator } from "@/lib/i18n";
 import { NotificationSettings } from "@/components/preferences/NotificationSettings";
 
@@ -194,6 +195,9 @@ export function ProfilePanel({
   const [destination, setDestination] = useState("");
   const [token, setToken] = useState("");
   const [sent, setSent] = useState(false);
+  // The code went to a guest's own new email/phone (converting the guest),
+  // rather than an ordinary sign-in code; verification differs.
+  const [linking, setLinking] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [avatarId, setAvatarId] = useState("");
   const [country, setCountry] = useState("");
@@ -283,10 +287,7 @@ export function ProfilePanel({
       if (result.status === "signed-in") setOpen(false);
       return;
     }
-    const { error } = await client.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: webUrl("/") },
-    });
+    const { error } = await signInOrLinkWithOAuth(client, "google", webUrl("/"));
     if (error) {
       setMessage(t("common.connectError"));
       setPending(null);
@@ -297,10 +298,7 @@ export function ProfilePanel({
     setPending("apple");
     setMessage(null);
     if (!native) {
-      const { error } = await client.auth.signInWithOAuth({
-        provider: "apple",
-        options: { redirectTo: webUrl("/") },
-      });
+      const { error } = await signInOrLinkWithOAuth(client, "apple", webUrl("/"));
       if (error) {
         setMessage(t("common.connectError"));
         setPending(null);
@@ -330,22 +328,13 @@ export function ProfilePanel({
     if (!value) return;
     setPending("send");
     setMessage(null);
-    const { error } = await client.auth.signInWithOtp(
-      method === "email"
-        ? {
-            email: value,
-            options: {
-              shouldCreateUser: true,
-              emailRedirectTo: webUrl("/"),
-            },
-          }
-        : { phone: value, options: { shouldCreateUser: true } },
-    );
+    const { error, linking: linked } = await sendSignInCode(client, method, value, webUrl("/"));
     setPending(null);
     if (error) {
       setMessage(t("account.authError"));
       return;
     }
+    setLinking(linked);
     setSent(true);
     setMessage(
       method === "email"
@@ -358,11 +347,7 @@ export function ProfilePanel({
     setPending("verify");
     setMessage(null);
     const value = destination.trim();
-    const { data, error } = await client.auth.verifyOtp(
-      method === "email"
-        ? { email: value, token: token.trim(), type: "email" }
-        : { phone: value, token: token.trim(), type: "sms" },
-    );
+    const { data, error } = await verifySignInCode(client, method, value, token.trim(), linking);
     setPending(null);
     if (error) {
       setMessage(t("account.codeError"));

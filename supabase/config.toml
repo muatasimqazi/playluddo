@@ -428,6 +428,11 @@ verify_jwt = false
 [functions.push-dispatch]
 verify_jwt = false
 
+# The 30-day rule for signed-in under-13 accounts (F0.4). Called only by the
+# purge-inactive-under13-accounts cron job, which presents UNDER13_PURGE_SECRET.
+[functions.purge-under13-accounts]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

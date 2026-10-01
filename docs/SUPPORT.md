@@ -76,8 +76,9 @@ The answer is **final** after a correction, as before. A player who keeps asking
 
 If a parent tells you a child under 13 is using an account:
 
-- **Guest (no email or phone):** set the child's real month and year with the function, so the account is held back from online play. Guest accounts with an under-13 answer are deleted automatically after 30 days without activity.
-- **Signed-in account:** don't delete or change anything yet. How we handle signed-in under-13 accounts is waiting on the launch-market legal review (F0.4, decision 13). Reply that you've received the request, and escalate it.
+Set the child's real month and year with the function, so the account is held back from online play. Any account with an under-13 answer, guest or signed in, is deleted automatically after 30 days without activity, with everything tied to it, including a profile photo. That's the rule the launch-market legal review settled on (F0.4, decision 13).
+
+If the parent wants it gone sooner, delete it now: Authentication → Users → the account → Delete user, after removing any photo in Storage → `avatar-photos/<user id>/`.
 
 ### What's kept
 

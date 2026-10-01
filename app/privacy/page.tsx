@@ -182,9 +182,9 @@ export default function PrivacyPage() {
         <li>Game records and table chat are kept to run the service and may be removed over time.</li>
         <li>Anonymous player IDs that are no longer used may be removed.</li>
         <li>
-          Your birth month and year are kept until you delete your account. For an under-13 answer from a
-          player without an account, the player ID and everything tied to it are deleted after 30 days
-          without play.
+          Your birth month and year are kept until you delete your account. For an under-13 answer, the
+          account or player ID and everything tied to it, including any profile photo, are deleted after
+          30 days without play.
         </li>
         <li>
           Device tokens are kept until you turn notifications off on that device, the device stops accepting

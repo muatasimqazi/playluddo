@@ -18,8 +18,8 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { revokeAppleAuthorization } from "./apple.ts";
+import { removeAvatarPhotos } from "../_shared/avatarPhotos.ts";
 
-const AVATAR_BUCKET = "avatar-photos";
 const APPLE_TEAM_ID = Deno.env.get("APPLE_TEAM_ID") ?? "JAK975JG8T";
 const APPLE_KEY_ID = Deno.env.get("APPLE_KEY_ID") ?? "UQC983N63K";
 // Native iOS Sign in with Apple issues codes for the app's bundle ID.
@@ -79,15 +79,11 @@ Deno.serve(async (request) => {
     }
   }
 
-  const photos = await admin.storage.from(AVATAR_BUCKET).list(user.id);
-  if (photos.data?.length) {
-    const { error } = await admin.storage
-      .from(AVATAR_BUCKET)
-      .remove(photos.data.map((file) => `${user.id}/${file.name}`));
-    if (error) {
-      console.error("delete-account: removing photos failed", error);
-      return json({ error: "Couldn't delete your account right now. Try again in a moment." }, 500);
-    }
+  try {
+    await removeAvatarPhotos(admin, user.id);
+  } catch (error) {
+    console.error("delete-account: removing photos failed", error);
+    return json({ error: "Couldn't delete your account right now. Try again in a moment." }, 500);
   }
 
   const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);

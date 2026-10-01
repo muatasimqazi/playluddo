@@ -379,9 +379,12 @@ export default function Simulator({
     state.winnerIds.length === state.players.length
       ? state.winnerIds
       : progressRanking;
+  // The Party screen holds one steady view: an action camera would swing it
+  // out and back on every roll and move, which reads as the TV lurching
+  // around for the people watching it from across the room.
   const [prefs, setPrefs] = useState(() =>
     screen
-      ? { ...loadPreferences("blue", boardSpec), view: "table" as const, actionCamera: "cinematic" as const, immersive: false }
+      ? { ...loadPreferences("blue", boardSpec), view: "table" as const, actionCamera: "off" as const, immersive: false }
       : loadPreferences(me?.color ?? "blue", boardSpec),
   );
   // A signed-in player's equipped board cosmetic overrides the local pref.

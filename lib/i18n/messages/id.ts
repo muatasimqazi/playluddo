@@ -798,6 +798,19 @@ export const id: Messages = {
     voteCountOther: "{count} suara",
     findingSeat: "Mencari tempatmu di antara penonton…",
   },
+  cast: {
+    castToTv: "Cast ke TV",
+    stopCasting: "Berhenti cast",
+    casting: "Sedang cast…",
+    castTitle: "Tampilkan meja di TV",
+    tvEyebrow: "DI TV",
+    tvWaiting1: "Meja sudah siap.",
+    tvWaitingEm: "Permainan segera dimulai.",
+    tvSeats: "{taken} dari {max} kursi terisi",
+    tvError1: "TV ini tidak bisa menampilkan",
+    tvErrorEm: "meja itu.",
+    tvErrorBody: "Cast lagi dari ponsel di meja.",
+  },
 };
 
 export default id;

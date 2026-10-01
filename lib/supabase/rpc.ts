@@ -256,6 +256,28 @@ export function getPartyScreen(client: SupabaseClient, roomId: string) {
   return call<GameRoomState>(client, "get_party_screen", { p_room_id: roomId });
 }
 
+/** Cast to TV: a seated player's token for showing their table on a TV. */
+export function createCastLink(client: SupabaseClient, roomId: string) {
+  return call<{ token: string }>(client, "create_cast_link", { p_room_id: roomId });
+}
+
+/**
+ * The TV's side of Cast to TV: trades the token for read-only access. A party
+ * room makes it one of the room's screens; an ordinary room gives it a private
+ * topic that carries game state only.
+ */
+export function claimCast(client: SupabaseClient, roomId: string, token: string) {
+  return call<{ roomId: string; isParty: boolean; castTopic?: string }>(client, "claim_cast", {
+    p_room_id: roomId,
+    p_token: token,
+  });
+}
+
+/** A cast TV's view of an ordinary room. ROOM_NOT_FOUND unless this session claimed it. */
+export function getCastState(client: SupabaseClient, roomId: string) {
+  return call<GameRoomState>(client, "get_cast_state", { p_room_id: roomId });
+}
+
 /** What the signed-in player may do (docs/COMPETITIVE_ROADMAP.md F0.4). Never carries birth data. */
 export interface AgeEligibility {
   /** False while the server's age check is switched off: never ask. */

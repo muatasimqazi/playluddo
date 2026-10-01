@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import {
+  claimCast,
   createPartyRoom,
   setPartyLocked,
   getPartyExtras,
@@ -34,6 +35,7 @@ import { TableLoading } from "@/components/simulator/TableLoading";
 import { Icon } from "@/components/simulator/Icon";
 import { useI18n } from "@/lib/i18n";
 import { QrCode } from "./QrCode";
+import { CastScreen } from "@/components/cast/CastScreen";
 import "@/components/simulator/simulator.css";
 
 const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
@@ -47,9 +49,60 @@ const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
  * follows the room live. It never takes a seat: phones do the playing.
  */
 export function PartyScreen() {
-  const roomId = useSearchParams().get("id");
+  const params = useSearchParams();
+  const roomId = params.get("id");
+  // Cast to TV: a phone at the table sent this TV here with a cast token.
+  const castToken = params.get("cast");
   useWakeLock();
+  if (roomId && castToken) return <CastReceiver key={roomId} roomId={roomId} token={castToken} />;
   return roomId ? <ConnectedScreen key={roomId} roomId={roomId} /> : <StartScreen />;
+}
+
+/**
+ * The TV end of Cast to TV (supabase/migrations/20260930150000_cast_to_tv.sql).
+ * It arrives in a browser of its own, as a stranger to the room, and trades
+ * the token for read-only access: a party room makes it one more Party screen;
+ * an ordinary room gets the cast view on its own private topic.
+ */
+function CastReceiver({ roomId, token }: { roomId: string; token: string }) {
+  const { t } = useI18n();
+  const [claim, setClaim] = useState<{ isParty: boolean; castTopic?: string } | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    const client = createClient();
+    let cancelled = false;
+    void ensureSession(client)
+      .then(() => claimCast(client, roomId, token))
+      .then((result) => {
+        if (!cancelled) setClaim(result);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [roomId, token]);
+  if (failed || (claim && !claim.isParty && !claim.castTopic))
+    return (
+      <main className="sim-entrance party-screen">
+        {/* eslint-disable-next-line @next/next/no-img-element -- local pre-optimized WebP background. */}
+        <img className="entrance-bg-image" src="/images/entrance-board.webp" alt="" />
+        <div className="entrance-shade" />
+        <section className="entrance-content party-start" role="alert">
+          <span className="eyebrow">{t("cast.tvEyebrow")}</span>
+          <h1>
+            {t("cast.tvError1")}
+            <br />
+            <em>{t("cast.tvErrorEm")}</em>
+          </h1>
+          <p className="party-hint">{t("cast.tvErrorBody")}</p>
+        </section>
+      </main>
+    );
+  if (!claim) return <TableLoading label={t("party.findingTable")} />;
+  if (claim.isParty) return <ConnectedScreen roomId={roomId} />;
+  return <CastScreen roomId={roomId} topic={claim.castTopic!} />;
 }
 
 function StartScreen() {

@@ -798,6 +798,19 @@ export const ptBR: Messages = {
     voteCountOther: "{count} votos",
     findingSeat: "Procurando seu lugar na plateia…",
   },
+  cast: {
+    castToTv: "Transmitir para a TV",
+    stopCasting: "Parar de transmitir",
+    casting: "Transmitindo…",
+    castTitle: "Mostre a mesa em uma TV",
+    tvEyebrow: "NA TV",
+    tvWaiting1: "A mesa está pronta.",
+    tvWaitingEm: "A partida já vai começar.",
+    tvSeats: "{taken} de {max} lugares ocupados",
+    tvError1: "Esta TV não pode mostrar",
+    tvErrorEm: "essa mesa.",
+    tvErrorBody: "Transmita de novo a partir de um celular na mesa.",
+  },
 };
 
 export default ptBR;

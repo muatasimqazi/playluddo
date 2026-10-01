@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRoomConnection } from "@/lib/hooks/useRoomConnection";
 import { useVoiceChat } from "@/lib/hooks/useVoiceChat";
+import { useCast } from "@/lib/hooks/useCast";
 import { useRoomStore } from "@/lib/store/room-store";
 import { RoomLobby } from "@/components/lobby/RoomLobby";
 import { MatchArena } from "@/components/arena/MatchArena";
@@ -127,6 +128,9 @@ function ConnectedRoom({
   // survives the lobby -> in-game -> summary transition, all one roomId.
   const voice = useVoiceChat(client, roomId);
   const seated = !loading && !error;
+  // Likewise the cast, so a TV that's showing keeps its "Stop casting".
+  // Only a seat can cast its table.
+  const cast = useCast(seated ? roomId : null);
   useEffect(() => {
     if (!seated) return;
     const { setBlockedPlayerIds } = useRoomStore.getState();
@@ -156,12 +160,12 @@ function ConnectedRoom({
 
   switch (roomState.status) {
     case "lobby":
-      return <RoomLobby client={client} roomId={roomId} voice={voice} />;
+      return <RoomLobby client={client} roomId={roomId} voice={voice} cast={cast} />;
     case "in_game":
-      return <MatchArena client={client} roomId={roomId} voice={voice} />;
+      return <MatchArena client={client} roomId={roomId} voice={voice} cast={cast} />;
     case "summary":
     case "abandoned":
-      return <MatchArena client={client} roomId={roomId} voice={voice} />;
+      return <MatchArena client={client} roomId={roomId} voice={voice} cast={cast} />;
     default:
       return null;
   }

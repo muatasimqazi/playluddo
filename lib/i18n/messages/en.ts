@@ -826,6 +826,20 @@ export const en = {
     voteCountOther: "{count} votes",
     findingSeat: "Finding your seat in the audience…",
   },
+  cast: {
+    // Cast to TV: the button, then the TV's own screens.
+    castToTv: "Cast to TV",
+    stopCasting: "Stop casting",
+    casting: "Casting…",
+    castTitle: "Show the table on a TV",
+    tvEyebrow: "ON THE TV",
+    tvWaiting1: "The table is set.",
+    tvWaitingEm: "The game starts soon.",
+    tvSeats: "{taken} of {max} seats taken",
+    tvError1: "This TV can’t show",
+    tvErrorEm: "that table.",
+    tvErrorBody: "Cast it again from a phone at the table.",
+  },
 };
 
 export default en;

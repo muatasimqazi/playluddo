@@ -35,7 +35,8 @@ export type IconName =
   | "bracket"
   | "screen"
   | "grid"
-  | "flag";
+  | "flag"
+  | "cast";
 const paths: Record<IconName, React.ReactNode> = {
   play: (
     <>
@@ -238,6 +239,13 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   flag: <path d="M5 21V4M5 4h12l-2.5 4.5L17 13H5" />,
+  // The standard Google Cast glyph: a screen with the three connection arcs.
+  cast: (
+    <>
+      <path d="M2 20h.01M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10" />
+      <path d="M6 5h15a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-5" />
+    </>
+  ),
 };
 export function Icon({
   name,

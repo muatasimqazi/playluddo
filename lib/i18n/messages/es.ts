@@ -799,6 +799,19 @@ export const es: Messages = {
     voteCountOther: "{count} votos",
     findingSeat: "Buscando tu sitio en el público…",
   },
+  cast: {
+    castToTv: "Enviar a la TV",
+    stopCasting: "Dejar de enviar",
+    casting: "Enviando…",
+    castTitle: "Muestra la mesa en una TV",
+    tvEyebrow: "EN LA TV",
+    tvWaiting1: "La mesa está lista.",
+    tvWaitingEm: "La partida empieza pronto.",
+    tvSeats: "{taken} de {max} asientos ocupados",
+    tvError1: "Esta TV no puede mostrar",
+    tvErrorEm: "esa mesa.",
+    tvErrorBody: "Vuelve a enviarla desde un teléfono de la mesa.",
+  },
 };
 
 export default es;

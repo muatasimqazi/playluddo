@@ -798,6 +798,19 @@ export const hi: Messages = {
     voteCountOther: "{count} वोट",
     findingSeat: "दर्शकों में आपकी जगह ढूँढी जा रही है…",
   },
+  cast: {
+    castToTv: "टीवी पर कास्ट करें",
+    stopCasting: "कास्ट करना बंद करें",
+    casting: "कास्ट हो रहा है…",
+    castTitle: "टेबल को टीवी पर दिखाएँ",
+    tvEyebrow: "टीवी पर",
+    tvWaiting1: "टेबल तैयार है।",
+    tvWaitingEm: "खेल जल्द शुरू होगा।",
+    tvSeats: "{max} में से {taken} सीटें भरी हैं",
+    tvError1: "यह टीवी नहीं दिखा सकता",
+    tvErrorEm: "वह टेबल।",
+    tvErrorBody: "टेबल पर बैठे किसी फ़ोन से फिर से कास्ट करें।",
+  },
 };
 
 export default hi;

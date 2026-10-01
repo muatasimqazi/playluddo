@@ -799,6 +799,19 @@ export const ar: Messages = {
     voteCountOther: "{count} أصوات",
     findingSeat: "جارٍ البحث عن مكانك في الجمهور…",
   },
+  cast: {
+    castToTv: "إرسال إلى التلفاز",
+    stopCasting: "إيقاف الإرسال",
+    casting: "جارٍ الإرسال…",
+    castTitle: "اعرض الطاولة على التلفاز",
+    tvEyebrow: "على التلفاز",
+    tvWaiting1: "الطاولة جاهزة.",
+    tvWaitingEm: "ستبدأ اللعبة قريبًا.",
+    tvSeats: "{taken} من {max} مقاعد مشغولة",
+    tvError1: "لا يمكن لهذا التلفاز عرض",
+    tvErrorEm: "تلك الطاولة.",
+    tvErrorBody: "أرسلها مرة أخرى من هاتف على الطاولة.",
+  },
 };
 
 export default ar;

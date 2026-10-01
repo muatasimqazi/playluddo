@@ -798,6 +798,19 @@ export const ur: Messages = {
     voteCountOther: "{count} ووٹ",
     findingSeat: "ناظرین میں آپ کی جگہ ڈھونڈی جا رہی ہے…",
   },
+  cast: {
+    castToTv: "ٹی وی پر کاسٹ کریں",
+    stopCasting: "کاسٹ کرنا بند کریں",
+    casting: "کاسٹ ہو رہا ہے…",
+    castTitle: "میز کو ٹی وی پر دکھائیں",
+    tvEyebrow: "ٹی وی پر",
+    tvWaiting1: "میز تیار ہے۔",
+    tvWaitingEm: "کھیل جلد شروع ہوگا۔",
+    tvSeats: "{max} میں سے {taken} نشستیں بھری ہیں",
+    tvError1: "یہ ٹی وی نہیں دکھا سکتا",
+    tvErrorEm: "وہ میز۔",
+    tvErrorBody: "میز پر موجود کسی فون سے دوبارہ کاسٹ کریں۔",
+  },
 };
 
 export default ur;

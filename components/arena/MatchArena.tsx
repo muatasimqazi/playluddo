@@ -28,6 +28,7 @@ import { rememberCommitment, type DiceProof } from "@/lib/presentation/diceProof
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import { PartyController } from "@/components/controller/PartyController";
+import type { Cast } from "@/lib/hooks/useCast";
 import { usePartyHeartbeat } from "@/lib/hooks/usePartyHeartbeat";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
 // loading fallback's own styling (the die animation) is available
@@ -43,10 +44,13 @@ export function MatchArena({
   client,
   roomId,
   voice,
+  cast,
 }: {
   client: SupabaseClient;
   roomId: string;
   voice?: VoiceChat;
+  /** Cast to TV, owned by the room page so it outlives lobby -> game. */
+  cast?: Cast;
 }) {
   const state = useRoomStore((s) => s.roomState);
   const events = useRoomStore((s) => s.events);
@@ -190,6 +194,7 @@ export function MatchArena({
           onPreview={(pawnId) => void partyPreviewMove(client, roomId, pawnId).catch(() => {})}
           round={roundPhase === "summary" ? round : null}
           onGuess={(guess) => guessPartyRound(client, roomId, guess)}
+          cast={cast}
         />
       </>
     );
@@ -218,6 +223,7 @@ export function MatchArena({
           state.isParty ? undefined : (enabled) => setWatching(client, roomId, enabled)
         }
         voice={!state.isParty || iAmRemote ? voice : undefined}
+        cast={cast}
         matchResults={ended ? results : null}
         diceProof={ended ? diceProof : null}
         blockedPlayerIds={blockedPlayerIds}

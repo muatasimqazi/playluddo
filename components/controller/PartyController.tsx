@@ -23,6 +23,8 @@ import { useCountdown } from "@/lib/hooks/useCountdown";
 import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
+import { CastButton } from "@/components/cast/CastButton";
+import type { Cast } from "@/lib/hooks/useCast";
 import { useI18n, type Translator } from "@/lib/i18n";
 import { useShakeToRoll } from "./useShakeToRoll";
 import { PartyRound } from "@/components/party/PartyRound";
@@ -51,6 +53,7 @@ export function PartyController({
   onPreview,
   round,
   onGuess,
+  cast,
 }: {
   state: GameRoomState;
   myPlayerId: string | null;
@@ -70,6 +73,8 @@ export function PartyController({
   /** The between-game round, once the screen has opened it (P8). */
   round?: PartyRoundData | null;
   onGuess?: (guess: number) => Promise<unknown>;
+  /** Put the table on a TV from this phone, when there's one to cast to. */
+  cast?: Cast;
 }) {
   const { t } = useI18n();
   useWakeLock();
@@ -159,6 +164,7 @@ export function PartyController({
             {t("party.shakeToRoll")}
           </button>
         )}
+        <CastButton cast={cast} className="party-pad-toggle" />
       </header>
 
       {offline && (

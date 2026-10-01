@@ -30,7 +30,8 @@ import { COLORS } from "@/lib/presentation/board";
 import { Icon } from "@/components/simulator/Icon";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { TurnReminderPrompt } from "@/components/lobby/TurnReminderPrompt";
-import { useCast } from "@/lib/hooks/useCast";
+import type { Cast } from "@/lib/hooks/useCast";
+import { CastButton, canCast } from "@/components/cast/CastButton";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import type { PlayerColor } from "@/lib/board/types";
@@ -41,36 +42,17 @@ import "@/components/simulator/simulator.css";
 
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue", "orange", "black"];
 
-/** Standard Google Cast glyph (screen with the three connection arcs). */
-function CastGlyph() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M2 20h.01M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M6 5h15a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-5"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function RoomLobby({
   client,
   roomId,
   voice,
+  cast,
 }: {
   client: SupabaseClient;
   roomId: string;
   voice?: VoiceChat;
+  /** Cast to TV, owned by the room page so it outlives lobby -> game. */
+  cast?: Cast;
 }) {
   const state = useRoomStore((s) => s.roomState);
   const myPlayerId = useRoomStore((s) => s.myPlayerId);
@@ -85,9 +67,6 @@ export function RoomLobby({
   // Mirrors MatchArena: a party seat in the room with the TV is a controller.
   const livingRoom = isParty && !meRemote;
   usePartyHeartbeat(client, roomId, isParty);
-  // Cast the TV `/screen` view of this room to a Chromecast-compatible display;
-  // the phone stays here as a controller. Hidden unless a device is available.
-  const cast = useCast(webUrl(`/screen?id=${roomId}`));
   if (!state) return null;
   const maxPlayers = state.maxPlayers ?? 4;
   const rules = resolveRoomRules(state.rules);
@@ -205,6 +184,12 @@ export function RoomLobby({
                 ? "Pick the game and the rules, then start it when everyone’s at the table."
                 : "Your phone is your controller. The game starts when the VIP is ready."}
             </p>
+            {/* No TV showing the table yet? Put it on one from here. */}
+            {canCast(cast) && (
+              <div className="lobby-invite-actions">
+                <CastButton cast={cast} />
+              </div>
+            )}
           </>
         ) : (
           <>
@@ -242,21 +227,7 @@ export function RoomLobby({
                 <Icon name={inviteFeedback === "code" ? "check" : "copy"} />
                 {inviteFeedback === "code" ? "Copied" : "Code"}
               </button>
-              {cast.supported && (cast.available || cast.connected) && (
-                <button
-                  className={cast.connected ? "is-casting" : ""}
-                  onClick={() => (cast.connected ? cast.stop() : void cast.start())}
-                  disabled={cast.connecting}
-                  title="Show the table on a Chromecast-connected TV"
-                >
-                  <CastGlyph />
-                  {cast.connected
-                    ? "Stop cast"
-                    : cast.connecting
-                      ? "Casting…"
-                      : "Cast to TV"}
-                </button>
-              )}
+              <CastButton cast={cast} />
             </div>
           </div>
         )}

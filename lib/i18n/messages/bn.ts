@@ -798,6 +798,19 @@ export const bn: Messages = {
     voteCountOther: "{count}টি ভোট",
     findingSeat: "দর্শকদের মধ্যে আপনার জায়গা খোঁজা হচ্ছে…",
   },
+  cast: {
+    castToTv: "টিভিতে কাস্ট করুন",
+    stopCasting: "কাস্ট করা বন্ধ করুন",
+    casting: "কাস্ট হচ্ছে…",
+    castTitle: "টেবিলটি টিভিতে দেখান",
+    tvEyebrow: "টিভিতে",
+    tvWaiting1: "টেবিল প্রস্তুত।",
+    tvWaitingEm: "খেলা শিগগিরই শুরু হবে।",
+    tvSeats: "{max}টির মধ্যে {taken}টি আসন পূর্ণ",
+    tvError1: "এই টিভি দেখাতে পারছে না",
+    tvErrorEm: "সেই টেবিল।",
+    tvErrorBody: "টেবিলের কোনো ফোন থেকে আবার কাস্ট করুন।",
+  },
 };
 
 export default bn;

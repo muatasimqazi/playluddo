@@ -18,6 +18,8 @@ import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
 import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
+import type { Cast } from "@/lib/hooks/useCast";
+import { canCast, toggleCast, useCastLabel } from "@/components/cast/CastButton";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { MatchDice } from "@/components/summary/MatchDice";
 import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/GameRules";
@@ -103,12 +105,14 @@ export interface SimulatorProps {
   diceProof?: DiceProof | null;
   /**
    * Party Mode's shared screen (docs/COMPETITIVE_ROADMAP.md P4): nobody sits
-   * here, so the whole table is in view with the action camera on, text is
+   * here, so the whole table is in one steady view, text is
    * sized for a sofa, controls are hidden and quality adapts to the device.
    */
   screen?: boolean;
   /** Screen only: the piece the player whose move it is has picked on their phone. */
   previewPawnId?: string | null;
+  /** Cast to TV: show this online table on a TV while playing here. */
+  cast?: Cast;
 }
 
 function plural(count: number, one: string, many = `${one}s`) {
@@ -335,7 +339,11 @@ export default function Simulator({
   diceProof,
   screen = false,
   previewPawnId = null,
+  cast: castProp,
 }: SimulatorProps) {
+  // The shared screen is the TV itself; it never casts.
+  const cast = screen ? undefined : castProp;
+  const castLabel = useCastLabel(cast);
   const snakes = state.gameType === "snakes_and_ladders";
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
   const [flipping, setFlipping] = useState(false);
@@ -876,7 +884,7 @@ export default function Simulator({
                   ? localPlay
                     ? "TABLE TOGETHER"
                     : "VS COMPUTER"
-                  : screen
+                  : state.isParty
                     ? "PARTY TABLE"
                     : "PRIVATE TABLE"}
           </span>
@@ -1058,6 +1066,15 @@ export default function Simulator({
               />
             )}
           </>
+        )}
+        {canCast(cast) && (
+          <Tool
+            icon="cast"
+            label={castLabel}
+            active={cast.connected}
+            disabled={cast.connecting}
+            onClick={() => toggleCast(cast)}
+          />
         )}
         <Tool
           icon="settings"
@@ -1481,6 +1498,19 @@ export default function Simulator({
                 <button className="panel-secondary" onClick={voice.leave}>
                   <Icon name="phone-off" />
                   Leave voice chat
+                </button>
+              )}
+              {canCast(cast) && (
+                <button
+                  className="panel-secondary"
+                  disabled={cast.connecting}
+                  onClick={() => {
+                    toggleCast(cast);
+                    setPanel(null);
+                  }}
+                >
+                  <Icon name="cast" />
+                  {castLabel}
                 </button>
               )}
               <button

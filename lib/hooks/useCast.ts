@@ -1,10 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { createCastLink } from "@/lib/supabase/rpc";
+import { webUrl } from "@/lib/native";
 
 // Google Cast via the W3C Presentation API. The phone presents a URL (the TV
 // `/screen` view of a room) to a Cast-compatible display; the phone stays in
-// the room as a controller. Note: this finds Chromecast-built-in displays or a
+// the room and keeps playing. The TV opens that page in a browser of its own,
+// as a stranger to the room, so the URL carries a cast token from this seat
+// (supabase/migrations/20260930150000_cast_to_tv.sql) that the TV trades for
+// read-only access. The token is fetched once a cast device is available, so
+// start() can still run inside the tap that asked for it. Note: this finds Chromecast-built-in displays or a
 // Chromecast dongle — a bare LG webOS TV is not a Cast receiver, so nothing
 // will appear for it. The button is shown only when a device is actually
 // available, so it stays hidden where casting can't work.
@@ -25,14 +32,18 @@ export interface Cast {
   stop: () => void;
 }
 
-export function useCast(url: string | null): Cast {
+/** Cast a room's table to a TV; null (offline play) turns it off. */
+export function useCast(roomId: string | null): Cast {
   const [status, setStatus] = useState<CastStatus>("unsupported");
   const [available, setAvailable] = useState(false);
-  const requestRef = useRef<any>(null);
+  const tokenRef = useRef<string | null>(null);
   const connectionRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!url || typeof window === "undefined") return;
+    if (!roomId || typeof window === "undefined") return;
+    // Availability depends on the display, not the query string, so the
+    // tokenless URL is enough to watch for one.
+    const url = webUrl(`/screen?id=${roomId}`);
     const w = window as any;
     if (typeof w.PresentationRequest !== "function") {
       setStatus("unsupported");
@@ -47,7 +58,6 @@ export function useCast(url: string | null): Cast {
       setStatus("unsupported");
       return;
     }
-    requestRef.current = request;
     setStatus("idle");
     if (typeof request.getAvailability === "function") {
       request
@@ -70,13 +80,33 @@ export function useCast(url: string | null): Cast {
       cancelled = true;
       if (availabilityObj) availabilityObj.onchange = null;
     };
-  }, [url]);
+  }, [roomId]);
+
+  // Ready the token as soon as there's somewhere to cast to.
+  useEffect(() => {
+    tokenRef.current = null;
+    if (!roomId || !available) return;
+    let cancelled = false;
+    void createCastLink(createClient(), roomId)
+      .then(({ token }) => {
+        if (!cancelled) tokenRef.current = token;
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [roomId, available]);
 
   const start = useCallback(async () => {
-    const request = requestRef.current;
-    if (!request) return;
+    const w = window as any;
+    if (!roomId || typeof w.PresentationRequest !== "function") return;
     try {
       setStatus("connecting");
+      const token = tokenRef.current ?? (await createCastLink(createClient(), roomId)).token;
+      tokenRef.current = token;
+      const request = new w.PresentationRequest([
+        webUrl(`/screen?id=${roomId}&cast=${encodeURIComponent(token)}`),
+      ]);
       const connection = await request.start();
       connectionRef.current = connection;
       setStatus("connected");
@@ -84,10 +114,10 @@ export function useCast(url: string | null): Cast {
       connection.onclose = done;
       connection.onterminate = done;
     } catch {
-      // The user dismissed the picker or chose no device.
+      // The user dismissed the picker, chose no device, or has no seat here.
       setStatus("idle");
     }
-  }, []);
+  }, [roomId]);
 
   const stop = useCallback(() => {
     try {

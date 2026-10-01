@@ -5,7 +5,7 @@
 -- Run with `supabase test db` (requires `supabase start`).
 
 begin;
-select plan(22);
+select plan(23);
 
 create temporary table mx_state (key text primary key, value jsonb);
 grant select, insert on mx_state to authenticated;
@@ -89,6 +89,15 @@ select lives_ok(
   format('select public.send_webrtc_signal(%L, %L, %L)', pg_temp.room(), pg_temp.seat('cy'), '{"type":"offer"}'),
   'two players from elsewhere can set up a call'
 );
+-- The offer carries network addresses, so it goes to the recipient's own
+-- topic, never the room topic the living-room screen listens on (R4).
+reset role;
+select is(
+  (select topic from realtime.messages where event = 'webrtc_signal' order by inserted_at desc, id desc limit 1),
+  'player:' || pg_temp.seat('cy'),
+  'the signal goes only to the recipient''s own topic'
+);
+set local role authenticated;
 select throws_ok(
   format('select public.send_webrtc_signal(%L, %L, %L)', pg_temp.room(), pg_temp.seat('ana'), '{"type":"offer"}'),
   'P0001', 'PARTY_ROOM',

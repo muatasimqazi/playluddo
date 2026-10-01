@@ -27,7 +27,7 @@ select is(
 );
 select is(
   private.ludo_rule_presets()->'classic', private.ludo_resolve_rules(null) - 'matchMinutes'
-    - 'snakesAnyRollToStart' - 'snakesBounceBack' - 'teamUp',
+    - 'snakesAnyRollToStart' - 'snakesBounceBack' - 'snakesBoard' - 'teamUp',
   'Classic is simply the defaults'
 );
 select is((private.ludo_rule_presets()->'quick'->>'pawnsToWin')::int, 2, 'Quick is a shorter game');

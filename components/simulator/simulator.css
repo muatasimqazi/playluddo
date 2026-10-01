@@ -2747,6 +2747,37 @@ body.sim-die-blocked .sim-canvas {
 .profile-identity strong {
   font-size: 13px;
 }
+.profile-identity.is-link {
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.profile-identity.is-link:hover,
+.profile-identity.is-link:focus-visible {
+  border-color: #d8bd7f80;
+  background: #1d2c22;
+}
+.profile-identity.is-link:focus-visible {
+  outline: 2px solid #d8bd7f;
+  outline-offset: 2px;
+}
+.profile-identity.is-link > div {
+  flex: 1;
+  min-width: 0;
+}
+.profile-identity-cta {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: #d8bd7f;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+[dir="rtl"] .profile-identity-cta svg {
+  transform: scaleX(-1);
+}
 .profile-identity small {
   max-width: 270px;
   margin-top: 4px;

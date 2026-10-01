@@ -2074,6 +2074,14 @@ export default function Simulator({
                   </div>
                 ))}
               </div>
+              {/* A modal over the table rather than the /profile page, so
+                  checking your stats never walks you out of a live match. */}
+              {profiles && me && (
+                <button className="panel-secondary" onClick={() => setProfileSeat(me.id)}>
+                  <Icon name="user" />
+                  Your profile
+                </button>
+              )}
               {onFlip && (
                 <button
                   className="panel-secondary"

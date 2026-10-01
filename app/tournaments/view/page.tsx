@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BracketView } from "@/components/tournament/BracketView";
 import { Icon } from "@/components/simulator/Icon";
+import { ProfileHeaderLink } from "@/components/profile/ProfileHeaderLink";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { useI18n } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
@@ -47,10 +48,13 @@ export default function TournamentPage() {
             LUDDO<small>HOUSE</small>
           </span>
         </Link>
-        <Link href="/tournaments" className="profile-trigger leaderboard-back">
-          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>{t("tournaments.allTournaments")}</small>
-        </Link>
+        <div className="entrance-header-actions">
+          <ProfileHeaderLink />
+          <Link href="/tournaments" className="profile-trigger leaderboard-back">
+            <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
+            <small>{t("tournaments.allTournaments")}</small>
+          </Link>
+        </div>
       </header>
       <Suspense fallback={<TableLoading label={t("tournaments.loadingTournament")} />}>
         <Tournament />

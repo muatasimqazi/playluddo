@@ -33,6 +33,7 @@ import snakesBoardArt2 from "@/designs/snake-and-ladder/snakes-and-ladders-board
 import { useGamePreference } from "@/lib/preferences-react";
 import { Icon } from "@/components/simulator/Icon";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
+import { ProfileHeaderLink } from "@/components/profile/ProfileHeaderLink";
 import { QuickMatch } from "@/components/lobby/QuickMatch";
 import { PlayAgain } from "@/components/lobby/PlayAgain";
 import { EntranceSheet, Segmented } from "@/components/lobby/EntrancePickers";
@@ -394,6 +395,7 @@ export default function Home() {
             <Icon name="bracket" />
             <small>{t("common.tournaments")}</small>
           </Link>
+          <ProfileHeaderLink />
           <ProfilePanel
             onNameChange={setName}
             onTeamsChange={setTeams}

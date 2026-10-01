@@ -14,6 +14,7 @@ import {
   type TournamentSummary,
 } from "@/lib/supabase/tournaments";
 import { Icon } from "@/components/simulator/Icon";
+import { ProfileHeaderLink } from "@/components/profile/ProfileHeaderLink";
 import { useI18n, type LocaleCode } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
 
@@ -109,10 +110,13 @@ export default function TournamentsPage() {
             LUDDO<small>HOUSE</small>
           </span>
         </Link>
-        <Link href="/" className="profile-trigger leaderboard-back">
-          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>{tx("actions.backHome")}</small>
-        </Link>
+        <div className="entrance-header-actions">
+          <ProfileHeaderLink />
+          <Link href="/" className="profile-trigger leaderboard-back">
+            <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
+            <small>{tx("actions.backHome")}</small>
+          </Link>
+        </div>
       </header>
 
       <section className="leaderboard-content">

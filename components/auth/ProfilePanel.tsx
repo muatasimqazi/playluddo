@@ -591,7 +591,12 @@ export function ProfilePanel({
             <h2 id="profile-heading">{authenticated ? t("account.yourProfile") : t("account.welcomeBack")}</h2>
             {authenticated ? (
               <>
-                <div className="profile-identity">
+                {/* The way to the full profile page: the whole identity card. */}
+                <Link
+                  className="profile-identity is-link"
+                  href="/profile"
+                  onClick={() => setOpen(false)}
+                >
                   {avatarDefinition(avatarId) || photoAvatar(avatarId) ? (
                     <AnimatedAvatar id={avatarId} />
                   ) : user.user_metadata?.avatar_url ? (
@@ -604,14 +609,10 @@ export function ProfilePanel({
                     <strong>{profileName(user, t)}</strong>
                     <small>{identity}</small>
                   </div>
-                </div>
-                <Link
-                  className="profile-secondary"
-                  href="/profile"
-                  onClick={() => setOpen(false)}
-                >
-                  <Icon name="users" />
-                  {t("account.yourProfileStats")}
+                  <span className="profile-identity-cta">
+                    {t("account.viewProfile")}
+                    <Icon name="arrow" size={14} />
+                  </span>
                 </Link>
                 <Link
                   className="profile-secondary"

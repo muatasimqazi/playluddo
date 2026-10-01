@@ -15,6 +15,7 @@ import { getMyTeams, type Team } from "@/lib/supabase/teams";
 import { LeaderboardPanel } from "@/components/leaderboard/LeaderboardPanel";
 import { TeamSeasonPanel } from "@/components/leaderboard/TeamSeasonPanel";
 import { Icon } from "@/components/simulator/Icon";
+import { ProfileHeaderLink } from "@/components/profile/ProfileHeaderLink";
 import {
   gameCenterAvailable,
   showGameCenterAchievements,
@@ -110,10 +111,13 @@ export default function LeaderboardPage() {
             LUDDO<small>HOUSE</small>
           </span>
         </Link>
-        <Link href="/" className="profile-trigger leaderboard-back">
-          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>{t("actions.backHome")}</small>
-        </Link>
+        <div className="entrance-header-actions">
+          <ProfileHeaderLink />
+          <Link href="/" className="profile-trigger leaderboard-back">
+            <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
+            <small>{t("actions.backHome")}</small>
+          </Link>
+        </div>
       </header>
 
       <section className="leaderboard-content">

@@ -4628,6 +4628,17 @@ body.sim-die-blocked .sim-canvas {
   overflow: visible;
   padding: 0;
 }
+/* The page scrolls, so a footer pinned to its bottom edge lands on top of
+   the start button and whatever follows it (further still on iOS, where
+   the safe-area margin lifts it). Keep it in the flow, after the controls. */
+.room-lobby-page .entrance-footer {
+  position: static;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-top: 40px;
+  margin-right: 44px;
+}
 @media (max-width: 700px) {
   .sim-entrance.room-lobby-page {
     justify-content: flex-start;
@@ -4636,6 +4647,10 @@ body.sim-die-blocked .sim-canvas {
   .room-lobby-page .entrance-content.room-lobby {
     width: auto;
     max-width: 390px;
+  }
+  .room-lobby-page .entrance-footer {
+    margin-top: 32px;
+    margin-right: 0;
   }
 }
 

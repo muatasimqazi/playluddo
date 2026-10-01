@@ -639,6 +639,14 @@ export const en = {
     lobbyPromptAction: "Turn on",
     lobbyPromptDismiss: "Not now",
   },
+  accessibility: {
+    heading: "Accessibility",
+    colorBlind: "Color-blind mode",
+    colorBlindHint: "Easier-to-tell colors, and symbols on pieces and bases",
+    reduceMotion: "Reduce motion",
+    reduceMotionHint: "No camera glides, hopping pieces or rolling dice",
+    reduceMotionSystem: "On in your device settings",
+  },
   party: {
     boardAria: "The board. Your pieces are numbered; the ones you can move glow.",
     // PartyWhere

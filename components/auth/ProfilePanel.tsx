@@ -35,6 +35,7 @@ import { deleteAccount } from "@/lib/supabase/account";
 import { sendSignInCode, signInOrLinkWithOAuth, verifySignInCode } from "@/lib/supabase/linkAccount";
 import { useI18n, type Translator } from "@/lib/i18n";
 import { NotificationSettings } from "@/components/preferences/NotificationSettings";
+import { AccessibilitySettings } from "@/components/preferences/AccessibilitySettings";
 
 type LoginMethod = "email" | "phone";
 
@@ -826,6 +827,7 @@ export function ProfilePanel({
                   </div>
                 </section>
                 <NotificationSettings signedIn />
+                <AccessibilitySettings />
                 <button
                   className="profile-secondary"
                   type="button"
@@ -973,6 +975,7 @@ export function ProfilePanel({
                 </button>
                 <small className="profile-guest-note">{t("account.guestNote")}</small>
                 <NotificationSettings signedIn={false} />
+                <AccessibilitySettings />
               </>
             )}
             {message && <p className="profile-message" role="status">{message}</p>}

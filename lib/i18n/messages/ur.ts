@@ -611,6 +611,14 @@ export const ur: Messages = {
     lobbyPromptAction: "آن کریں",
     lobbyPromptDismiss: "ابھی نہیں",
   },
+  accessibility: {
+    heading: "رسائی",
+    colorBlind: "رنگ کوری موڈ",
+    colorBlindHint: "آسانی سے پہچانے جانے والے رنگ، اور گوٹیوں اور گھروں پر نشان",
+    reduceMotion: "حرکت کم کریں",
+    reduceMotionHint: "کیمرے کی حرکت، گوٹیوں کی چھلانگ اور پانسے کا لڑھکنا بند",
+    reduceMotionSystem: "آپ کے آلے کی ترتیبات میں آن ہے",
+  },
   party: {
     boardAria: "بورڈ۔ آپ کی گوٹیوں پر نمبر ہیں؛ جنہیں آپ چل سکتے ہیں وہ چمکتی ہیں۔",
     // PartyWhere

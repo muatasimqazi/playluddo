@@ -14,9 +14,10 @@
  *
  * Locale is a preference too, but its live value is owned by the i18n context
  * (lib/i18n) so language switches apply instantly; only its persistence and
- * cross-device sync route through here. The other three ("game" preferences)
- * live in the small reactive store below so the entrance reflects an account's
- * saved choices the moment sign-in reconciles them.
+ * cross-device sync route through here. The others ("game" preferences, and
+ * the accessibility settings of F5.5) live in the small reactive store below
+ * so every screen reflects an account's saved choices the moment sign-in
+ * reconciles them.
  */
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "./supabase/client";
@@ -38,10 +39,21 @@ export interface UserPreferences {
   baseColor: PlayerColor;
   boardStyle: BoardStyle;
   botLevel: BotLevel;
+  /** F5.5: the colour-blind palette, plus symbols on pawns and bases. */
+  colorBlind: boolean;
+  /** F5.5: still the table even when the device doesn't ask for reduced motion. */
+  reduceMotion: boolean;
 }
 
-/** The three "game" preferences the reactive store owns (locale is the i18n context's). */
-export type GamePreferenceKey = "baseColor" | "boardStyle" | "botLevel";
+/** The preferences the reactive store owns (locale is the i18n context's). */
+export type GamePreferenceKey = Exclude<keyof UserPreferences, "locale">;
+export const GAME_PREFERENCE_KEYS: GamePreferenceKey[] = [
+  "baseColor",
+  "boardStyle",
+  "botLevel",
+  "colorBlind",
+  "reduceMotion",
+];
 
 // Orange and black are hex-board seats (F5.2); a favourite of either is
 // clamped to a real seat when the table is smaller (see app/page.tsx).
@@ -49,6 +61,7 @@ const PLAYER_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue", "orange"
 export const DEFAULT_BASE_COLOR: PlayerColor = "red";
 export const DEFAULT_BOT_LEVEL: BotLevel = "normal";
 const BASE_COLOR_KEY = "luddo-base-color";
+const ACCESSIBILITY_KEY = "luddo-accessibility";
 
 /** The `user_metadata` field each preference is stored under, kept distinct
  * from the profile's own keys (display_name, avatar_id, country, …). */
@@ -57,6 +70,8 @@ const METADATA_FIELD: Record<keyof UserPreferences, string> = {
   baseColor: "pref_base_color",
   boardStyle: "pref_board_style",
   botLevel: "pref_bot_level",
+  colorBlind: "pref_color_blind",
+  reduceMotion: "pref_reduce_motion",
 };
 
 function isPlayerColor(value: unknown): value is PlayerColor {
@@ -92,6 +107,20 @@ function writeBaseColor(color: PlayerColor) {
     localStorage.setItem(BASE_COLOR_KEY, color);
   } catch {}
 }
+type AccessibilityKey = "colorBlind" | "reduceMotion";
+function readAccessibility(key: AccessibilityKey): boolean {
+  try {
+    return JSON.parse(localStorage.getItem(ACCESSIBILITY_KEY) ?? "null")?.[key] === true;
+  } catch {
+    return false;
+  }
+}
+function writeAccessibility(key: AccessibilityKey, value: boolean) {
+  try {
+    const existing = JSON.parse(localStorage.getItem(ACCESSIBILITY_KEY) ?? "null");
+    localStorage.setItem(ACCESSIBILITY_KEY, JSON.stringify({ ...existing, [key]: value }));
+  } catch {}
+}
 /** Read one game preference from the device — the very same localStorage keys
  * the game already reads, so board style and bot level stay in one place. */
 function readLocalGamePreference<K extends GamePreferenceKey>(key: K): UserPreferences[K] {
@@ -102,6 +131,9 @@ function readLocalGamePreference<K extends GamePreferenceKey>(key: K): UserPrefe
       return preferredBoardStyle() as UserPreferences[K];
     case "botLevel":
       return preferredBotLevel() as UserPreferences[K];
+    case "colorBlind":
+    case "reduceMotion":
+      return readAccessibility(key) as UserPreferences[K];
     default:
       throw new Error(`Unknown preference: ${key as string}`);
   }
@@ -116,6 +148,9 @@ function writeLocalGamePreference<K extends GamePreferenceKey>(key: K, value: Us
       return setPreferredBoardStyle(value as BoardStyle);
     case "botLevel":
       return setPreferredBotLevel(value as BotLevel);
+    case "colorBlind":
+    case "reduceMotion":
+      return writeAccessibility(key, value as boolean);
   }
 }
 
@@ -124,6 +159,8 @@ function defaultGamePreference<K extends GamePreferenceKey>(key: K): UserPrefere
     baseColor: DEFAULT_BASE_COLOR,
     boardStyle: DEFAULT_BOARD_STYLE,
     botLevel: DEFAULT_BOT_LEVEL,
+    colorBlind: false,
+    reduceMotion: false,
   };
   return defaults[key] as UserPreferences[K];
 }
@@ -144,12 +181,16 @@ export function preferencesFromMetadata(
   if (isBoardStyle(boardStyle)) out.boardStyle = boardStyle;
   const botLevel = metadata[METADATA_FIELD.botLevel];
   if (isBotLevel(botLevel)) out.botLevel = botLevel;
+  const colorBlind = metadata[METADATA_FIELD.colorBlind];
+  if (typeof colorBlind === "boolean") out.colorBlind = colorBlind;
+  const reduceMotion = metadata[METADATA_FIELD.reduceMotion];
+  if (typeof reduceMotion === "boolean") out.reduceMotion = reduceMotion;
   return out;
 }
 
 /** Turn a set of preferences into the metadata patch `auth.updateUser` expects. */
-function metadataPatch(prefs: Partial<UserPreferences>): Record<string, string> {
-  const patch: Record<string, string> = {};
+function metadataPatch(prefs: Partial<UserPreferences>): Record<string, string | boolean> {
+  const patch: Record<string, string | boolean> = {};
   for (const key of Object.keys(prefs) as (keyof UserPreferences)[]) {
     const value = prefs[key];
     if (value !== undefined) patch[METADATA_FIELD[key]] = value;
@@ -171,7 +212,7 @@ export async function persistPreferencesToAccount(prefs: Partial<UserPreferences
   }
 }
 
-// --- Reactive store for the three game preferences ------------------------
+// --- Reactive store for the game preferences --------------------------------
 
 type Listener = () => void;
 
@@ -190,6 +231,8 @@ class GamePreferenceStore {
         baseColor: readLocalGamePreference("baseColor"),
         boardStyle: readLocalGamePreference("boardStyle"),
         botLevel: readLocalGamePreference("botLevel"),
+        colorBlind: readLocalGamePreference("colorBlind"),
+        reduceMotion: readLocalGamePreference("reduceMotion"),
       };
     return this.cache;
   }

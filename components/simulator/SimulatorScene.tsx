@@ -41,7 +41,6 @@ import {
   BOARD_SIZE,
   BOARD_Y,
   CELL,
-  COLORS,
   HOP_MS,
   gridPoint,
   ROLL_MS,
@@ -81,7 +80,15 @@ import hexAladdinArtwork from "@/designs/board-hex-aladdin.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
-import { makeBoardTexture, makeNameTexture, makeTongueTexture } from "./textures";
+import {
+  makeBoardTexture,
+  makeNameTexture,
+  makeTongueTexture,
+  SeatRecolorLoader,
+} from "./textures";
+import { SeatSymbolMark } from "./SeatSymbolMark";
+import { SeatSymbol } from "@/components/shared/SeatSymbol";
+import { SEAT_SYMBOLS, seatColors } from "@/lib/presentation/accessibility";
 import { Apartment } from "./Apartment";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
@@ -128,6 +135,18 @@ export interface SceneProps {
   screen?: boolean;
   /** Matches the page's own `dynamic()` loading label so the text doesn't change mid-load. */
   loadingLabel?: string;
+  /**
+   * "Colour-blind mode" (F5.5): the alternative seat palette, the board
+   * artwork recoloured to match, and symbols on pawns and bases.
+   */
+  colorBlind?: boolean;
+  /**
+   * F5.5: no camera glides, pawn hops, tumbling die, board spins or idle
+   * sway. The device setting or the player's own choice (useReducedMotion).
+   */
+  reducedMotion?: boolean;
+  /** The piece a keyboard user has focused in the piece list, shown lifted like a hover. */
+  focusedPawnId?: string | null;
 }
 
 function CameraRig({
@@ -138,6 +157,7 @@ function CameraRig({
   frame,
   preview,
   screen,
+  reducedMotion,
 }: SceneProps) {
   const controls = useRef<CameraControlsImpl>(null);
   // The very first setLookAt below should snap into place, not glide —
@@ -149,9 +169,11 @@ function CameraRig({
   const aspect = size.width / size.height;
   const mobile = aspect < 0.9;
   const coarse = useCoarsePointer();
+  // Reduced motion keeps the camera where it is through rolls and moves.
   const cinematic =
-    actionCamera === "cinematic" && frame.busy && mode === "play";
-  const subtle = actionCamera === "subtle" && frame.busy && mode === "play";
+    !reducedMotion && actionCamera === "cinematic" && frame.busy && mode === "play";
+  const subtle =
+    !reducedMotion && actionCamera === "subtle" && frame.busy && mode === "play";
   useEffect(() => {
     if (camera instanceof THREE.PerspectiveCamera) {
       // eslint-disable-next-line react-hooks/immutability -- R3F owns a mutable Three camera, not immutable React state.
@@ -182,10 +204,11 @@ function CameraRig({
     if (cinematic && !mobile) eye = [eye[0] + 1.1, eye[1] + 0.2, eye[2] - 0.45];
     else if (subtle && !mobile)
       eye = [eye[0] + 0.12, eye[1] + 0.1, eye[2] - 0.1];
-    const animate = !firstFraming.current;
+    // Under reduced motion a new view cuts straight there instead of gliding.
+    const animate = !firstFraming.current && !reducedMotion;
     firstFraming.current = false;
     void c.setLookAt(...eye, ...framing.target, animate);
-  }, [view, mode, resetKey, mobile, aspect, cinematic, subtle, preview]);
+  }, [view, mode, resetKey, mobile, aspect, cinematic, subtle, preview, reducedMotion]);
   const { ACTION } = CameraControlsImpl;
   return (
     <CameraControls
@@ -287,6 +310,9 @@ function Piece({
   soundEnabled = true,
   boardStyle = "signature",
   spec = BOARD_4,
+  colorBlind = false,
+  reducedMotion = false,
+  focused = false,
 }: {
   pawn: Pawn;
   allPawns: Pawn[];
@@ -299,6 +325,11 @@ function Piece({
   boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
   /** Which Luddo board: the 4-arm cross or the 6-arm hexagon (F5.2). */
   spec?: BoardSpec;
+  colorBlind?: boolean;
+  /** Land on the new square at once: no hops, no trail (F5.5). */
+  reducedMotion?: boolean;
+  /** Picked out from the keyboard piece list: lifted like a hover. */
+  focused?: boolean;
 }) {
   const ref = useRef<THREE.Group>(null);
   const ring = useRef<THREE.Mesh>(null);
@@ -315,6 +346,8 @@ function Piece({
     elapsed: number;
     delay: number;
   } | null>(null);
+  // Reduced motion: the next frame puts the piece straight on its square.
+  const snap = useRef(false);
   const [hovered, setHovered] = useState(false);
   const classicPawn = boardStyle === "classic" && gameType === "ludo";
   const aladdinPawn = boardStyle === "aladdin" && gameType === "ludo";
@@ -376,6 +409,17 @@ function Piece({
           : null;
       const movingSteps =
         start === null ? 1 : Math.max(1, (moved?.pathIndex ?? start) - start);
+      if (reducedMotion) {
+        motion.current = null;
+        snap.current = true;
+        trailOpacity.current = 0;
+        // One sound for the whole move, instead of one per hop.
+        if (soundEnabled && move?.pawnId === pawn.id)
+          playSoundEffect(move.finishesPawn ? "pawnHome" : "pawnHop", move.finishesPawn ? 0.7 : 0.46);
+        previous.current = pawn;
+        previousMove.current = move;
+        return;
+      }
       const waypoints = moveWaypoints(from, pawn, gameType, move, spec);
       // A capture sends the piece back to its nest; land it on this board's
       // own nest circle rather than the shared slot position.
@@ -398,6 +442,9 @@ function Piece({
     }
     previous.current = pawn;
     previousMove.current = move;
+    // soundEnabled and reducedMotion are read at the moment a move starts;
+    // toggling either shouldn't restart the effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pawn, allPawns, move, gameType, spec]);
   useFrame(({ clock }, delta) => {
     if (!ref.current) return;
@@ -457,8 +504,10 @@ function Piece({
       // Not this pawn's turn to hop, but its stack offset can still shift
       // when another pawn joins/leaves the same cell — ease into that
       // instead of snapping, so a stationary piece never visibly teleports.
+      // Reduced motion does snap: a move lands in one step.
       const p = point(pawn);
-      const damp = 1 - Math.exp(-delta * 10);
+      const damp = snap.current || reducedMotion ? 1 : 1 - Math.exp(-delta * 10);
+      snap.current = false;
       ref.current.position.set(
         THREE.MathUtils.lerp(ref.current.position.x, p[0] + offset[0], damp),
         THREE.MathUtils.lerp(ref.current.position.y, p[1] + offset[1], damp),
@@ -496,10 +545,12 @@ function Piece({
         material.opacity = trailOpacity.current * age * 0.52;
       });
     }
-    ref.current.scale.setScalar((hovered && legal ? 1.12 : 1) * scale);
+    ref.current.scale.setScalar(((hovered || focused) && legal ? 1.12 : 1) * scale);
     if (ring.current) {
       ring.current.visible = legal;
-      ring.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 4) * 0.1);
+      ring.current.scale.setScalar(
+        reducedMotion ? 1 : 1 + Math.sin(clock.elapsedTime * 4) * 0.1,
+      );
     }
   });
   const clickable = legal && mode === "play";
@@ -514,7 +565,7 @@ function Piece({
           >
             <circleGeometry args={[0.17, 20]} />
             <meshBasicMaterial
-              color={COLORS[pawn.color]}
+              color={seatColors(colorBlind)[pawn.color]}
               transparent
               opacity={0}
               depthWrite={false}
@@ -552,11 +603,11 @@ function Piece({
         }}
       >
         {classicPawn ? (
-          <ClassicPawn color={pawn.color} />
+          <ClassicPawn color={pawn.color} colorBlind={colorBlind} />
         ) : aladdinPawn ? (
-          <AladdinPawn color={pawn.color} />
+          <AladdinPawn color={pawn.color} colorBlind={colorBlind} />
         ) : (
-          <GlassPawn color={pawn.color} />
+          <GlassPawn color={pawn.color} colorBlind={colorBlind} />
         )}
         <mesh
           ref={ring}
@@ -574,7 +625,12 @@ function Piece({
             side={THREE.DoubleSide}
           />
         </mesh>
-        <PieceMoveFlash active={legal} color={pawn.color} radius={highlightRadius} />
+        <PieceMoveFlash
+          active={legal}
+          color={seatColors(colorBlind)[pawn.color]}
+          radius={highlightRadius}
+          reducedMotion={reducedMotion}
+        />
         {clickable && (
           <mesh position={[0, 0.12, 0]} visible={false}>
             <cylinderGeometry
@@ -727,6 +783,7 @@ function PhysicalDie({
   turnPlayerId,
   orientation,
   gameType,
+  reducedMotion = false,
 }: Pick<
   SceneProps,
   | "frame"
@@ -737,6 +794,7 @@ function PhysicalDie({
   | "turnPlayerId"
   | "orientation"
   | "gameType"
+  | "reducedMotion"
 >) {
   const mesh = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -800,15 +858,9 @@ function PhysicalDie({
   const lastRoll = useRef(frame.rollId);
   // Passing the die: when the turn changes, it slides (with a small hop) from
   // where it sat to the next player's spot instead of teleporting, so the
-  // eye follows it to whoever is up. Skipped under prefers-reduced-motion.
+  // eye follows it to whoever is up. Skipped under reduced motion.
   const passFrom = useRef<THREE.Vector3 | null>(null);
   const passElapsed = useRef(0);
-  const reducedMotion = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    [],
-  );
   useEffect(() => {
     if (!mesh.current || reducedMotion) return;
     if (mesh.current.position.distanceTo(restingVector) < 0.01) return;
@@ -831,7 +883,8 @@ function PhysicalDie({
     if (!mesh.current) return;
     if (frame.rollId !== lastRoll.current) {
       lastRoll.current = frame.rollId;
-      elapsed.current = 0;
+      // Reduced motion skips the tumble: the die just shows its new face.
+      elapsed.current = reducedMotion ? ROLL_MS / 1000 : 0;
     }
     elapsed.current += Math.min(delta, 0.1);
     const hoverScale =
@@ -840,7 +893,8 @@ function PhysicalDie({
       const showCue = coarse && canRoll && mode === "play";
       cue.current.visible = showCue;
       if (showCue) {
-        const beat = (performance.now() / 1150) % 1;
+        // A steady ring rather than a pulse under reduced motion.
+        const beat = reducedMotion ? 0.35 : (performance.now() / 1150) % 1;
         cue.current.position.set(restingPoint[0], 0.2, restingPoint[2]);
         cue.current.scale.setScalar(dieScale * (0.9 + beat * 0.55));
         (cue.current.material as THREE.MeshBasicMaterial).opacity =
@@ -1027,8 +1081,21 @@ const HEX_ARTWORK: Record<HexBoardStyle, { src: string }> = {
  * is exactly the artwork's viewBox; starting at 30deg lines its corners up
  * with the printed hexagon's.
  */
-function HexBoardTop({ style, vectorSize }: { style: HexBoardStyle; vectorSize: number }) {
-  const image = useLoader(THREE.ImageLoader, HEX_ARTWORK[style].src);
+function HexBoardTop({
+  style,
+  vectorSize,
+  colorBlind = false,
+}: {
+  style: HexBoardStyle;
+  vectorSize: number;
+  colorBlind?: boolean;
+}) {
+  // Every hex board is vector art, so colour-blind mode recolours its source.
+  const src = HEX_ARTWORK[style].src;
+  const image = useLoader(
+    colorBlind ? SeatRecolorLoader : THREE.ImageLoader,
+    colorBlind ? `${src}#seats=hex-${style}` : src,
+  );
   const texture = useMemo(() => makeBoardTexture(image, "full", 1, vectorSize), [image, vectorSize]);
   useEffect(() => () => texture.dispose(), [texture]);
   return (
@@ -1059,12 +1126,18 @@ function BoardObject(props: SceneProps) {
   // Only the chosen Snakes & Ladders board is fetched (F2.6), so the default
   // game never pays for the second board's artwork.
   const snakeSrc = (props.snakesBoard === 1 ? snakeArtwork2 : snakeArtwork).src as string;
+  // Colour-blind mode (F5.5) loads the vector boards with their seat
+  // colours rewritten (SeatRecolorLoader); the raster signature board is
+  // recoloured in makeBoardTexture instead.
+  const colorBlind = !!props.colorBlind;
+  const seats = (src: string, artworkKey: string) =>
+    colorBlind ? `${src}#seats=${artworkKey}` : src;
   const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, snakeSource] =
-    useLoader(THREE.ImageLoader, [
+    useLoader(colorBlind ? SeatRecolorLoader : THREE.ImageLoader, [
       boardArtwork.src,
-      classicBoardArtwork.src as string,
-      geometricBoardArtwork.src as string,
-      aladdinBoardArtwork.src as string,
+      seats(classicBoardArtwork.src as string, "classic"),
+      seats(geometricBoardArtwork.src as string, "geometric"),
+      seats(aladdinBoardArtwork.src as string, "aladdin"),
       snakeSrc,
     ]);
   // Vector boards are rasterized once into a texture. On a desktop screen
@@ -1090,9 +1163,10 @@ function BoardObject(props: SceneProps) {
         classic ? "full" : geometric ? "full" : aladdin ? "full" : "ludo",
         props.view === "overhead" ? 1.24 : 1,
         vectorSize,
+        colorBlind,
       );
     },
-    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view, vectorSize],
+    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
   );
   const snakeTexture = useMemo(
     () => makeBoardTexture(snakeSource, "full", 1, vectorSize),
@@ -1148,13 +1222,15 @@ function BoardObject(props: SceneProps) {
   }, [props.mode]);
   useFrame((_, delta) => {
     if (!group.current) return;
+    // Reduced motion turns the board in one step, and flips it between
+    // Luddo and Snakes & Ladders without the lift and spin.
     if (!dragging.current)
       angle.current +=
         shortestAngle(angle.current, props.orientation) *
-        (1 - Math.exp(-delta * 9));
+        (props.reducedMotion ? 1 : 1 - Math.exp(-delta * 9));
     group.current.rotation.y = angle.current;
     const f = flip.current;
-    f.elapsed = Math.min(1.5, f.elapsed + delta);
+    f.elapsed = props.reducedMotion ? 1.5 : Math.min(1.5, f.elapsed + delta);
     const t = f.elapsed / 1.5;
     if (board.current) {
       board.current.rotation.x = THREE.MathUtils.lerp(
@@ -1236,7 +1312,11 @@ function BoardObject(props: SceneProps) {
           </RoundedBox>
         )}
         {hex ? (
-          <HexBoardTop style={props.boardStyle ?? "signature"} vectorSize={vectorSize} />
+          <HexBoardTop
+            style={props.boardStyle ?? "signature"}
+            vectorSize={vectorSize}
+            colorBlind={colorBlind}
+          />
         ) : (
           <mesh position={[0, 0.09, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
@@ -1314,12 +1394,22 @@ function BoardObject(props: SceneProps) {
               <BaseHighlight
                 key={color}
                 color={color}
+                tint={seatColors(colorBlind)[color]}
                 hex={hex}
                 active={activeColor === color}
                 anyActive={!!activeColor}
+                reducedMotion={props.reducedMotion}
               />
             ));
           })()}
+        {/* Colour-blind mode marks each base with its seat's symbol, in the
+            middle of the base, clear of the nest slots. */}
+        {props.gameType !== "snakes_and_ladders" &&
+          colorBlind &&
+          !props.preview &&
+          spec.colors.map((color) => (
+            <BaseSymbol key={color} color={color} hex={hex} />
+          ))}
         {!props.preview && (
           <TurnBoardFlash
             hex={hex}
@@ -1330,6 +1420,8 @@ function BoardObject(props: SceneProps) {
                   player.id === (props.frame.actorId ?? props.turnPlayerId),
               )?.color
             }
+            palette={seatColors(colorBlind)}
+            reducedMotion={props.reducedMotion}
           />
         )}
         {props.gameType !== "snakes_and_ladders" &&
@@ -1356,12 +1448,15 @@ function BoardObject(props: SceneProps) {
             onMove={props.onMove}
             soundEnabled={props.soundEnabled}
             boardStyle={props.boardStyle}
+            colorBlind={colorBlind}
+            reducedMotion={props.reducedMotion}
+            focused={props.focusedPawnId === pawn.id}
           />
         ))}
       </group>
       {props.gameType === "snakes_and_ladders" && (
         <group ref={snakeHeads}>
-          <SnakeHeads snakesBoard={props.snakesBoard} />
+          <SnakeHeads snakesBoard={props.snakesBoard} still={props.reducedMotion} />
         </group>
       )}
     </group>
@@ -1464,24 +1559,23 @@ const BASE_HIGHLIGHT_FRAGMENT = /* glsl */ `
 `;
 function BaseHighlight({
   color,
+  tint,
   active,
   anyActive,
   hex = false,
+  reducedMotion = false,
 }: {
   color: PlayerColor;
+  /** The seat's colour in the palette in use. */
+  tint: string;
   active: boolean;
   /** Someone is up — only then do the other bases dim. */
   anyActive: boolean;
   hex?: boolean;
+  reducedMotion?: boolean;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const material = useRef<THREE.ShaderMaterial>(null);
-  const reducedMotion = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    [],
-  );
   let x: number, z: number, half: number;
   if (hex) {
     [x, z] = hexBaseCenter(color);
@@ -1498,7 +1592,7 @@ function BaseHighlight({
   const extent = (half + 0.2) * 2;
   const uniforms = useMemo(
     () => ({
-      uColor: { value: new THREE.Color(COLORS[color]) },
+      uColor: { value: new THREE.Color(tint) },
       uActive: { value: 0 },
       uDim: { value: 0 },
       uTime: { value: 0 },
@@ -1506,7 +1600,7 @@ function BaseHighlight({
       uExtent: { value: extent },
       uRound: { value: hex ? 1 : 0 },
     }),
-    [color, half, extent, hex],
+    [tint, half, extent, hex],
   );
   useFrame(({ clock }, delta) => {
     if (!mesh.current || !material.current) return;
@@ -1561,24 +1655,23 @@ const PIECE_FLASH_FRAGMENT = /* glsl */ `
 `;
 function TurnBoardFlash({
   color,
+  palette,
   hex = false,
   snakes = false,
+  reducedMotion = false,
 }: {
   /** The active player's colour; no flash while nobody is up. */
   color?: PlayerColor;
+  /** Seat colours in the palette in use. */
+  palette: Record<PlayerColor, string>;
   hex?: boolean;
   /** Snakes & Ladders has no bases: the sweep runs from square 1's corner. */
   snakes?: boolean;
+  reducedMotion?: boolean;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const material = useRef<THREE.ShaderMaterial>(null);
   const intensity = useRef(0);
-  const reducedMotion = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    [],
-  );
   const half = hex ? HEX_ART_RADIUS * Math.cos(Math.PI / 6) : BOARD_SIZE / 2;
   const extent = half * 2 + 0.1;
   // The sweep's direction: from the active base through the centre.
@@ -1611,8 +1704,8 @@ function TurnBoardFlash({
     [half, extent, hex],
   );
   const targetColor = useMemo(
-    () => new THREE.Color(color ? COLORS[color] : "#ffffff"),
-    [color],
+    () => new THREE.Color(color ? palette[color] : "#ffffff"),
+    [color, palette],
   );
   useFrame(({ clock }, delta) => {
     if (!mesh.current || !material.current) return;
@@ -1660,24 +1753,21 @@ function PieceMoveFlash({
   active,
   color,
   radius,
+  reducedMotion = false,
 }: {
   active: boolean;
-  color: PlayerColor;
+  /** The piece's colour in the palette in use. */
+  color: string;
   radius: number;
+  reducedMotion?: boolean;
 }) {
   const mesh = useRef<THREE.Mesh>(null);
   const material = useRef<THREE.ShaderMaterial>(null);
   const intensity = useRef(0);
-  const reducedMotion = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    [],
-  );
   const extent = (radius + 0.02) * 2;
   const uniforms = useMemo(
     () => ({
-      uColor: { value: new THREE.Color(COLORS[color]) },
+      uColor: { value: new THREE.Color(color) },
       uIntensity: { value: 0 },
       uTime: { value: 0 },
       uRadius: { value: radius },
@@ -1758,7 +1848,8 @@ function BaseName({
   name: string;
   hex?: boolean;
 }) {
-  const texture = useMemo(() => makeNameTexture(name), [name]);
+  // Every name plate carries its seat's symbol, palette or not (F5.5).
+  const texture = useMemo(() => makeNameTexture(name, SEAT_SYMBOLS[color]), [name, color]);
   useEffect(() => () => texture.dispose(), [texture]);
   if (hex) {
     const angle = hexBaseAngle(color);
@@ -1808,6 +1899,32 @@ function BaseName({
 }
 
 /**
+ * Colour-blind mode's mark on a base (F5.5): the seat's symbol, flat in the
+ * middle of the base where no nest slot sits; on a hex base that gap is
+ * small (the 2x2 nest slots stop ~0.17 from its centre).
+ */
+function BaseSymbol({ color, hex }: { color: PlayerColor; hex: boolean }) {
+  let x: number, z: number;
+  if (hex) [x, z] = hexBaseCenter(color);
+  else {
+    const area = BASE_AREA[color];
+    [x, , z] = gridPoint(
+      (area.rowStart + area.rowEnd) / 2,
+      (area.colStart + area.colEnd) / 2,
+    );
+  }
+  return (
+    <group
+      position={[x, BOARD_Y + 0.007, z]}
+      // Upright from the seat it belongs to, like the name plate.
+      rotation={[-Math.PI / 2, 0, hex ? Math.PI / 2 - hexBaseAngle(color) : BASE_NAME_SPIN[color]]}
+    >
+      <SeatSymbolMark symbol={SEAT_SYMBOLS[color]} radius={hex ? 0.12 : 0.3} />
+    </group>
+  );
+}
+
+/**
  * The snakes are baked into the static board texture — there's no live
  * body to re-animate — so "the snake is alive" comes from a small overlay
  * at each head: a gentle side-to-side weave plus a tongue that flicks out
@@ -1816,7 +1933,14 @@ function BaseName({
  * head/tail squares regardless of board layout changes.
  */
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
-function SnakeHeads({ snakesBoard }: { snakesBoard?: number }) {
+function SnakeHeads({
+  snakesBoard,
+  still = false,
+}: {
+  snakesBoard?: number;
+  /** Reduced motion: no weaving heads or flicking tongues. */
+  still?: boolean;
+}) {
   const tongueTexture = useMemo(() => makeTongueTexture(), []);
   useEffect(() => () => tongueTexture.dispose(), [tongueTexture]);
   const tongueGeometry = useMemo(() => {
@@ -1856,6 +1980,10 @@ function SnakeHeads({ snakesBoard }: { snakesBoard?: number }) {
     snakes.forEach((snake, i) => {
       const mesh = tongues.current[i];
       if (!mesh) return;
+      if (still) {
+        mesh.scale.y = 0;
+        return;
+      }
       const wobble = Math.sin(t * 0.8 + snake.phase) * 0.3;
       mesh.quaternion
         .copy(snake.baseQuaternion)
@@ -1906,11 +2034,13 @@ function Seats({
   preview,
   gameType,
   hideLabels,
+  colorBlind,
 }: SceneProps) {
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
   );
   if (preview || hideLabels) return null;
+  const palette = seatColors(!!colorBlind);
   // Board-local anchors follow the same rotation as the artwork and pawns
   // (SEAT_POINTS / MOBILE_CORNER_SEAT_POINTS, shared with the die so it
   // always rests beside the active player's label).
@@ -1989,7 +2119,7 @@ function Seats({
             <div
               className={`sim-seat ${active ? "is-active" : ""}`}
               style={
-                { "--seat-color": COLORS[player.color] } as React.CSSProperties
+                { "--seat-color": palette[player.color] } as React.CSSProperties
               }
             >
               {reactions?.[player.id] && (
@@ -2007,6 +2137,7 @@ function Seats({
               )}
               <span className="seat-copy">
                 <strong>
+                  <SeatSymbol color={player.color} seatColor={palette[player.color]} />
                   {player.id === myPlayerId ? "You" : player.displayName}
                 </strong>
                 <small>
@@ -2344,6 +2475,8 @@ export default function SimulatorScene(props: SceneProps) {
               preview={props.preview}
               orientation={props.orientation}
               hex={sceneSpec(props).arms === 6}
+              colorBlind={props.colorBlind}
+              reducedMotion={props.reducedMotion}
             />
           </Suspense>
           {/* Inside Surroundings so it hides with the room: its baked

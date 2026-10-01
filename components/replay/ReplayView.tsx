@@ -12,6 +12,8 @@ import { getMatchTranscript } from "@/lib/supabase/replay";
 import { buildReplay, type Replay, type ReplayStep } from "@/lib/presentation/replay";
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { mediaRecordingSupported, recordHighlight, shareClip } from "@/lib/presentation/clip";
+import { useGamePreference } from "@/lib/preferences-react";
+import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { Icon } from "@/components/simulator/Icon";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import "@/components/simulator/simulator.css";
@@ -51,6 +53,8 @@ function frameFor(replay: Replay, index: number): PresentationFrame {
 
 export function ReplayView({ matchId }: { matchId: string }) {
   const tx = useT();
+  const [colorBlind] = useGamePreference("colorBlind");
+  const reducedMotion = useReducedMotion();
   const client = useMemo(() => createClient(), []);
   const [replay, setReplay] = useState<Replay | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +161,8 @@ export function ReplayView({ matchId }: { matchId: string }) {
         onMove={() => {}}
         soundEnabled={false}
         boardStyle="signature"
+        colorBlind={colorBlind}
+        reducedMotion={reducedMotion}
       />
 
       <header className="replay-top">

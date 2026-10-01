@@ -611,6 +611,14 @@ export const ptBR: Messages = {
     lobbyPromptAction: "Ativar",
     lobbyPromptDismiss: "Agora não",
   },
+  accessibility: {
+    heading: "Acessibilidade",
+    colorBlind: "Modo daltônico",
+    colorBlindHint: "Cores mais fáceis de distinguir e símbolos nas peças e bases",
+    reduceMotion: "Reduzir movimento",
+    reduceMotionHint: "Sem câmera deslizando, peças pulando ou dados rolando",
+    reduceMotionSystem: "Ativado nas configurações do seu dispositivo",
+  },
   party: {
     boardAria: "O tabuleiro. Suas peças são numeradas; as que você pode mover brilham.",
     // PartyWhere

@@ -28,7 +28,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 | V5 Party-screen video and voice | ☐ | All of it |
 | V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
 | F5.1 Localization | ◐ | Localized store listings; the 360px screenshot pass |
-| F5.5 Accessibility | ◐ | Pawn and seat symbols, colour-blind palette, screen-reader announcements, keyboard control, full reduced motion, VoiceOver/TalkBack audit |
+| F5.5 Accessibility | ◐ | The VoiceOver/TalkBack audit (manual); localizing the in-game announcements with the rest of the table HUD |
 | F5.6 Store listings | ☐ | All of it |
 
 **Everything else is built:** F0.1–F0.3, F1.1–F1.7, P1–P8, V0, V2, F2.1–F2.6, F3.1–F3.7, F4.1–F4.5, F5.2.
@@ -792,7 +792,14 @@ Now **Party Mode**, Section 6 (P1–P8).
 Now a committed feature: **Video chat**, Section 7 (V0–V6).
 
 ### F5.5 Accessibility ◐ · M
-**Status (2026-09-30):** [`1dc0117`](https://github.com/muatasimqazi/playluddo/commit/1dc0117) — done so far: a 12px minimum text size, some reduced-motion handling in the 3D scene, and a few `aria-live` regions. Missing: symbols on pawns and seats; a colour-blind palette option; screen-reader announcements for rolls, captures and the end of the game; complete keyboard control; reduced motion for camera moves and pawn hops; the VoiceOver/TalkBack audit.
+**Status (2026-09-30):** [`1dc0117`](https://github.com/muatasimqazi/playluddo/commit/1dc0117) — 12px minimum text size. Then:
+- **Symbols:** every seat has a symbol (`lib/presentation/accessibility.ts`). It shows on seat labels, base name plates, the turn bar, the keyboard piece list and the Party screen's move preview, whatever the palette.
+- **Colour-blind mode:** a synced preference (`colorBlind`, with the board-style pattern). It switches pawns, glows, seat figures and the Party phone board to a palette whose closest pair stays ΔE₀₀ ≥ 20 under simulated protanopia, deuteranopia and tritanopia, counting the board's cream as a colour (`tests/presentation/accessibility.test.ts`; today's palette bottoms out at ~6). All eight board artworks are recoloured to match: the vector boards in their SVG source, the raster signature board in its ink pass. Pawns and bases also get their symbol.
+- **Screen-reader announcements:** rolls, captures, base exits, pieces home, finishes, timeouts, Snakes & Ladders ladders and snakes, turns and the result, in a polite log (`lib/presentation/announcements.ts`). The turn bar's ticking clock is no longer a live region.
+- **Keyboard control:** Space rolls. Focus then moves to the roll button or the first movable piece. Arrow keys step through pieces, each labelled with where it is and what the move does. Panels take and return focus.
+- **Reduced motion:** the device setting or a synced `reduceMotion` preference. No camera glides or action camera, pawns land without hopping, the die shows its face without tumbling, the board turns and flips in one step, the seat figures and snake tongues hold still, and CSS animations stop (`html.reduce-motion`). Both switches are in the table's Preferences panel and the profile panel's new Accessibility section, in all eight languages.
+
+Missing: the VoiceOver and TalkBack audit on real devices. The announcements and the rest of the table HUD are still English-only (F5.1 never moved `Simulator.tsx` into the catalogs).
 
 Deliver PRD 7.2 in full:
 - **Symbols on pawns and seats:** player identity must never depend on colour alone.

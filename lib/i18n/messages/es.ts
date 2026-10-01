@@ -612,6 +612,14 @@ export const es: Messages = {
     lobbyPromptAction: "Activar",
     lobbyPromptDismiss: "Ahora no",
   },
+  accessibility: {
+    heading: "Accesibilidad",
+    colorBlind: "Modo daltónico",
+    colorBlindHint: "Colores más fáciles de distinguir y símbolos en fichas y bases",
+    reduceMotion: "Reducir movimiento",
+    reduceMotionHint: "Sin desplazamientos de cámara, fichas que saltan ni dados que ruedan",
+    reduceMotionSystem: "Activado en los ajustes de tu dispositivo",
+  },
   party: {
     boardAria: "El tablero. Tus fichas están numeradas; brillan las que puedes mover.",
     // PartyWhere

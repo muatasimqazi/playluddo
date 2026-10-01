@@ -611,6 +611,14 @@ export const bn: Messages = {
     lobbyPromptAction: "চালু করুন",
     lobbyPromptDismiss: "এখন নয়",
   },
+  accessibility: {
+    heading: "অ্যাক্সেসিবিলিটি",
+    colorBlind: "বর্ণান্ধ মোড",
+    colorBlindHint: "সহজে আলাদা করা যায় এমন রং, আর ঘুঁটি ও ঘরে চিহ্ন",
+    reduceMotion: "গতি কমান",
+    reduceMotionHint: "ক্যামেরার সরে যাওয়া, ঘুঁটির লাফ বা ছক্কার গড়ানো নেই",
+    reduceMotionSystem: "আপনার ডিভাইসের সেটিংসে চালু আছে",
+  },
   party: {
     boardAria: "বোর্ড। আপনার গুটিগুলোতে নম্বর আছে; যেগুলো চালতে পারবেন সেগুলো জ্বলজ্বল করে।",
     // PartyWhere

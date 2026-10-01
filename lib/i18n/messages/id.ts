@@ -611,6 +611,14 @@ export const id: Messages = {
     lobbyPromptAction: "Aktifkan",
     lobbyPromptDismiss: "Nanti saja",
   },
+  accessibility: {
+    heading: "Aksesibilitas",
+    colorBlind: "Mode buta warna",
+    colorBlindHint: "Warna yang lebih mudah dibedakan, dan simbol pada bidak serta markas",
+    reduceMotion: "Kurangi gerakan",
+    reduceMotionHint: "Tanpa kamera meluncur, bidak melompat, atau dadu bergulir",
+    reduceMotionSystem: "Aktif di pengaturan perangkat Anda",
+  },
   party: {
     boardAria: "Papan. Bidakmu bernomor; yang bisa digerakkan menyala.",
     // PartyWhere

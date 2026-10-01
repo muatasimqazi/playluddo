@@ -1,7 +1,10 @@
 "use client";
 
 import * as THREE from "three";
+import { Billboard } from "@react-three/drei";
 import type { PlayerColor } from "@/lib/board/types";
+import { COLOR_BLIND_COLORS, SEAT_SYMBOLS } from "@/lib/presentation/accessibility";
+import { SeatSymbolMark } from "./SeatSymbolMark";
 
 export const CLASSIC_PAWN_HEIGHT = 0.4;
 
@@ -14,8 +17,15 @@ const PAWN_COLORS: Record<PlayerColor, string> = {
   black: "#3b3b46",
 };
 
-export function ClassicPawn({ color }: { color: PlayerColor }) {
-  const pawnColor = PAWN_COLORS[color];
+export function ClassicPawn({
+  color,
+  colorBlind = false,
+}: {
+  color: PlayerColor;
+  /** The colour-blind palette, with the seat's symbol on the head. */
+  colorBlind?: boolean;
+}) {
+  const pawnColor = (colorBlind ? COLOR_BLIND_COLORS : PAWN_COLORS)[color];
   const dark = new THREE.Color(pawnColor).offsetHSL(0, 0, -0.12);
   return (
     <group>
@@ -35,6 +45,15 @@ export function ClassicPawn({ color }: { color: PlayerColor }) {
         <sphereGeometry args={[0.105, 32, 20]} />
         <meshPhysicalMaterial color={pawnColor} roughness={0.18} clearcoat={0.9} clearcoatRoughness={0.08} />
       </mesh>
+      {colorBlind && (
+        // The round head has no flat face, so the medallion turns to face
+        // the camera, just in front of the head.
+        <Billboard position={[0, 0.3, 0]}>
+          <group position={[0, 0, 0.108]}>
+            <SeatSymbolMark symbol={SEAT_SYMBOLS[color]} radius={0.07} />
+          </group>
+        </Billboard>
+      )}
     </group>
   );
 }

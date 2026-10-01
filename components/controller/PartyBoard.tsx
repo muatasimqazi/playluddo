@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import type { GameRoomState, LegalMove, Pawn, PlayerColor } from "@/lib/board/types";
 import { applyMove } from "@/lib/board/rules";
 import { applySnakeMove } from "@/lib/board/snakes";
 import { boardSpecForPawns } from "@/lib/board/boardSpec";
-import { COLORS, homeRotation, moveWaypoints, pawnPoint } from "@/lib/presentation/board";
+import { homeRotation, moveWaypoints, pawnPoint } from "@/lib/presentation/board";
+import { SEAT_SYMBOLS, seatColors, symbolSvgPoints } from "@/lib/presentation/accessibility";
+import { recoloredArtworkUrl } from "@/lib/presentation/recoloredArtwork";
+import { useGamePreference } from "@/lib/preferences-react";
 import { HEX_ART_RADIUS } from "@/lib/presentation/hexBoard";
 import { useI18n } from "@/lib/i18n";
 import classicBoardArt from "@/designs/board-classic.svg";
@@ -25,7 +28,8 @@ const TRAY_EXTENT = 3.8;
  * on your own phone. On your move the pieces you can play glow; tapping one
  * draws its route square by square to where it lands and rings any piece it
  * would capture. Plain Classic artwork, whatever the TV shows: flat colours
- * read best at this size.
+ * read best at this size. Colour-blind mode (F5.5) recolours it and marks
+ * everyone else's pieces with their seat's symbol (yours carry numbers).
  */
 export function PartyBoard({
   state,
@@ -50,6 +54,24 @@ export function PartyBoard({
     ? ((state.rules?.snakesBoard === 1 ? snakesBoardArt2 : snakesBoardArt).src as string)
     : ((hex ? hexClassicBoardArt : classicBoardArt).src as string);
   const artExtent = hex ? HEX_ART_RADIUS : 3;
+  const [colorBlind] = useGamePreference("colorBlind");
+  const palette = seatColors(colorBlind);
+  const recolorKey = colorBlind && !snakes ? (hex ? "hex-classic" : "classic") : null;
+  const [recolored, setRecolored] = useState<{ key: string; url: string } | null>(null);
+  useEffect(() => {
+    if (!recolorKey) return;
+    let live = true;
+    recoloredArtworkUrl(art, recolorKey).then(
+      (url) => live && setRecolored({ key: `${recolorKey}:${art}`, url }),
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [art, recolorKey]);
+  // The plain artwork shows until the recoloured one is ready (or if it fails).
+  const shownArt =
+    recolorKey && recolored?.key === `${recolorKey}:${art}` ? recolored.url : art;
   // Finished pieces line up beside the board; only then does it need the room.
   const EXTENT = state.pawns.some((p) => p.state === "finished") ? TRAY_EXTENT : Math.max(BOARD_EXTENT, artExtent + 0.15);
   // Snakes & Ladders stays upright: its squares are numbered.
@@ -110,11 +132,11 @@ export function PartyBoard({
       viewBox={`${-EXTENT} ${-EXTENT} ${EXTENT * 2} ${EXTENT * 2}`}
       role="group"
       aria-label={t("party.boardAria")}
-      style={{ "--seat": COLORS[color] } as React.CSSProperties}
+      style={{ "--seat": palette[color] } as React.CSSProperties}
     >
       <g transform={`rotate(${turn})`}>
         <image
-          href={art}
+          href={shownArt}
           x={-artExtent}
           y={-artExtent}
           width={artExtent * 2}
@@ -160,7 +182,15 @@ export function PartyBoard({
               {canMove && <circle className="party-board-glow" r={0.3} />}
               {/* A finger-sized target around a small piece. */}
               {canMove && <circle className="party-board-hit" r={0.45} />}
-              <circle className="party-board-disc" r={mine ? 0.2 : 0.15} fill={COLORS[pawn.color]} />
+              <circle className="party-board-disc" r={mine ? 0.2 : 0.15} fill={palette[pawn.color]} />
+              {colorBlind && !mine && (
+                <polygon
+                  className="party-board-symbol"
+                  points={symbolSvgPoints(SEAT_SYMBOLS[pawn.color])}
+                  transform={`rotate(${-turn}) scale(0.095)`}
+                  fill={pawn.color === "yellow" ? "#1d1d22" : "#ffffff"}
+                />
+              )}
               {mine && label && (
                 <text className="party-board-number" transform={`rotate(${-turn})`} dy="0.07">
                   {label}

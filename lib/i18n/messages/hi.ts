@@ -611,6 +611,14 @@ export const hi: Messages = {
     lobbyPromptAction: "चालू करें",
     lobbyPromptDismiss: "अभी नहीं",
   },
+  accessibility: {
+    heading: "सुलभता",
+    colorBlind: "रंग-अंधता मोड",
+    colorBlindHint: "पहचानने में आसान रंग, और गोटियों व घरों पर चिह्न",
+    reduceMotion: "गति कम करें",
+    reduceMotionHint: "कैमरे का खिसकना, गोटियों का उछलना और पासे का लुढ़कना बंद",
+    reduceMotionSystem: "आपके डिवाइस की सेटिंग में चालू है",
+  },
   party: {
     boardAria: "बोर्ड। आपकी गोटियों पर नंबर हैं; जिन्हें आप चल सकते हैं वे चमकती हैं।",
     // PartyWhere

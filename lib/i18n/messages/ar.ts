@@ -612,6 +612,14 @@ export const ar: Messages = {
     lobbyPromptAction: "تفعيل",
     lobbyPromptDismiss: "ليس الآن",
   },
+  accessibility: {
+    heading: "إمكانية الوصول",
+    colorBlind: "وضع عمى الألوان",
+    colorBlindHint: "ألوان أسهل في التمييز، ورموز على القطع والقواعد",
+    reduceMotion: "تقليل الحركة",
+    reduceMotionHint: "بدون انزلاق الكاميرا أو قفز القطع أو تدحرج النرد",
+    reduceMotionSystem: "مفعّل في إعدادات جهازك",
+  },
   party: {
     boardAria: "اللوحة. قطعك مرقّمة، والقطع التي يمكنك تحريكها تتوهّج.",
     // PartyWhere

@@ -47,6 +47,16 @@ import {
   type BoardStyle,
 } from "@/lib/presentation/simulatorPrefs";
 import { gamePreferences } from "@/lib/preferences";
+import { useGamePreference } from "@/lib/preferences-react";
+import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
+import { seatColors } from "@/lib/presentation/accessibility";
+import {
+  announceEnd,
+  announceEvent,
+  announceTurn,
+  describePieceChoice,
+} from "@/lib/presentation/announcements";
+import { SeatSymbol } from "@/components/shared/SeatSymbol";
 import { Icon, type IconName } from "./Icon";
 import { VideoTiles } from "./VideoTiles";
 import { TableLoading } from "./TableLoading";
@@ -399,6 +409,11 @@ export default function Simulator({
   const effectiveBoardStyle: BoardStyle =
     (me?.cosmetics?.board && BOARD_COSMETIC_STYLE[me.cosmetics.board]) || prefs.boardStyle;
   const screenQuality = useAdaptiveQuality(screen);
+  // Accessibility (F5.5): follow the player across devices like board style.
+  const [colorBlind, setColorBlind] = useGamePreference("colorBlind");
+  const [reduceMotion, setReduceMotion] = useGamePreference("reduceMotion");
+  const reducedMotion = useReducedMotion();
+  const palette = seatColors(colorBlind);
   const [mode, setMode] = useState<InteractionMode>("play");
   const [leaving, setLeaving] = useState(false);
   const [panel, setPanel] = useState<
@@ -426,6 +441,39 @@ export default function Simulator({
   const [fullscreen, setFullscreen] = useState(false);
   const root = useRef<HTMLElement>(null);
   const backgroundMusic = useRef<HTMLAudioElement>(null);
+  // Keyboard play (F5.5): whether the last input was a key, so focus is only
+  // moved for keyboard users and never jumps around under a finger or mouse.
+  const keyboardUser = useRef(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (["Tab", "Enter", " ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key))
+        keyboardUser.current = true;
+    };
+    const onPointer = () => {
+      keyboardUser.current = false;
+    };
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("pointerdown", onPointer, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("pointerdown", onPointer, true);
+    };
+  }, []);
+  const rollButton = useRef<HTMLButtonElement>(null);
+  const pieceChoices = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const panelOpener = useRef<HTMLElement | null>(null);
+  // The piece focused in the keyboard piece list, lifted on the board.
+  const [focusedPawnId, setFocusedPawnId] = useState<string | null>(null);
+  // Screen-reader announcements (F5.5): the last few lines of a polite log.
+  const [announcements, setAnnouncements] = useState<{ id: number; text: string }[]>([]);
+  const announcementId = useRef(0);
+  const announce = useCallback((text: string | null) => {
+    if (!text) return;
+    announcementId.current += 1;
+    const id = announcementId.current;
+    setAnnouncements((list) => [...list.slice(-4), { id, text }]);
+  }, []);
   const seconds = useCountdown(state.turnDeadlineAt);
   // Rush mode (F2.3): the match clock, if this match has one.
   const matchLeft = useCountdown(state.status === "in_game" && !paused ? (state.matchEndsAt ?? null) : null);
@@ -496,6 +544,38 @@ export default function Simulator({
     const timer = setTimeout(() => void onMoveRef.current(forcedMove), 550);
     return () => clearTimeout(timer);
   }, [forcedMove]);
+  // A panel takes focus when it opens from the keyboard, and gives it back to
+  // whatever opened it when it closes.
+  useEffect(() => {
+    if (panel) {
+      if (!panelOpener.current && document.activeElement instanceof HTMLElement)
+        panelOpener.current = document.activeElement;
+      if (keyboardUser.current) panelRef.current?.focus();
+    } else if (panelOpener.current) {
+      if (keyboardUser.current && panelOpener.current.isConnected) panelOpener.current.focus();
+      panelOpener.current = null;
+    }
+  }, [panel]);
+  // Keyboard play: when it's time to choose, focus moves to the first piece;
+  // when it's time to roll, to the roll button — unless the player is busy
+  // somewhere else (chat, a panel).
+  const focusIsFree = () => {
+    const active = document.activeElement;
+    return (
+      !active ||
+      active === document.body ||
+      !!active.closest(".sim-action-area")
+    );
+  };
+  const choiceKey = forcedMove ? "" : legalPawnIds.join();
+  useEffect(() => {
+    if (!choiceKey || !keyboardUser.current || !focusIsFree()) return;
+    pieceChoices.current?.querySelector("button")?.focus();
+  }, [choiceKey]);
+  useEffect(() => {
+    if (!canRoll || !keyboardUser.current || !focusIsFree()) return;
+    rollButton.current?.focus();
+  }, [canRoll]);
   // Game Center (iOS app; no-op elsewhere): once a match has fully finished
   // online, mirror the account's server-confirmed results (online-wins total
   // and unlocked achievements) to Game Center. Per decision 17 (F3.4), offline
@@ -511,6 +591,33 @@ export default function Simulator({
   useEffect(() => {
     timeline.receive(events, state);
   }, [timeline, events, state]);
+  // New events are read out as they arrive; the history already on the
+  // table when it opens is not. An offline take-back rewinds the log.
+  const announcedSequence = useRef(state.eventSequence);
+  useEffect(() => {
+    if (state.eventSequence < announcedSequence.current)
+      announcedSequence.current = state.eventSequence;
+    const fresh = events
+      .filter((event) => event.sequence > announcedSequence.current)
+      .sort((a, b) => a.sequence - b.sequence);
+    for (const event of fresh) announce(announceEvent(event, state, localPlay ? null : myPlayerId));
+    if (fresh.length) announcedSequence.current = fresh[fresh.length - 1].sequence;
+  }, [events, state, myPlayerId, localPlay, announce]);
+  // The turn as the board shows it, so it's said after the roll and move
+  // that passed it on, not before.
+  const announcedTurn = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.status !== "in_game" || frame.turnPlayerId === announcedTurn.current) return;
+    announcedTurn.current = frame.turnPlayerId;
+    announce(announceTurn(state, frame.turnPlayerId, localPlay ? null : myPlayerId));
+  }, [frame.turnPlayerId, state, myPlayerId, localPlay, announce]);
+  const announcedStatus = useRef(state.status);
+  useEffect(() => {
+    const ended = state.status === "summary" || state.status === "abandoned";
+    if (ended && announcedStatus.current === "in_game")
+      announce(announceEnd(state, localPlay ? null : myPlayerId));
+    announcedStatus.current = state.status;
+  }, [state, myPlayerId, localPlay, announce]);
   const previousConnection = useRef(connection);
   useEffect(() => {
     if (
@@ -819,9 +926,17 @@ export default function Simulator({
           hideLabels={prefs.immersive}
           brightness={prefs.brightness}
           saturation={prefs.saturation}
+          colorBlind={colorBlind}
+          reducedMotion={reducedMotion}
+          focusedPawnId={focusedPawnId}
         />
       </SceneBoundary>
       <div className="sim-vignette" />
+      <div className="sr-only" role="log" aria-live="polite" aria-label="Game announcements">
+        {announcements.map((line) => (
+          <p key={line.id}>{line.text}</p>
+        ))}
+      </div>
       {voice && !screen && (
         <VideoTiles
           call={voice}
@@ -868,13 +983,18 @@ export default function Simulator({
             LUDDO<small>{gameName}</small>
           </span>
         </div>
-        <div className="sim-turn" role="status">
-          <span
-            className="live-dot"
-            style={{
-              background: activePlayer ? COLORS[activePlayer.color] : undefined,
-            }}
-          />
+        {/* Not a live region: the clock inside it ticks every second. Turns
+            and rolls are read out by the announcer below instead. */}
+        <div className="sim-turn">
+          {activePlayer ? (
+            <SeatSymbol
+              color={activePlayer.color}
+              seatColor={palette[activePlayer.color]}
+              className="live-symbol"
+            />
+          ) : (
+            <span className="live-dot" />
+          )}
           <strong>{title}</strong>
           <span className="turn-separator" />
           <span>
@@ -975,8 +1095,11 @@ export default function Simulator({
         </div>
       </header>
       {screenPreview && activePlayer && (
-        <p className="sim-screen-preview" role="status" style={{ "--seat-color": COLORS[activePlayer.color] } as React.CSSProperties}>
-          <strong>{activePlayer.displayName}</strong>
+        <p className="sim-screen-preview" role="status" style={{ "--seat-color": palette[activePlayer.color] } as React.CSSProperties}>
+          <strong>
+            <SeatSymbol color={activePlayer.color} seatColor={palette[activePlayer.color]} />
+            {activePlayer.displayName}
+          </strong>
           <span>
             {snakes ? "" : `Piece ${(state.pawns.find((p) => p.id === screenPreview.pawnId)?.index ?? 0) + 1} · `}
             {screenPreview.text}
@@ -1128,7 +1251,7 @@ export default function Simulator({
           </small>
         </div>
         <div className="sim-action-area">
-          <p aria-live="polite">{instruction}</p>
+          <p>{instruction}</p>
           <div className="sim-action-row">
             <button
               className="sim-replay"
@@ -1160,6 +1283,7 @@ export default function Simulator({
               </button>
             ) : (
               <button
+                ref={rollButton}
                 className="sim-primary sim-primary-roll"
                 disabled={!canRoll}
                 onClick={() => void onRoll()}
@@ -1172,14 +1296,42 @@ export default function Simulator({
           </div>
           {legalPawnIds.length > 0 && (
             <div
+              ref={pieceChoices}
               className="sim-piece-choices"
-              aria-label="Choose a legal piece"
+              role="group"
+              aria-label="Choose a piece to move"
+              onKeyDown={(e) => {
+                // Arrow keys step through the pieces, wrapping round.
+                const step =
+                  e.key === "ArrowRight" || e.key === "ArrowDown"
+                    ? 1
+                    : e.key === "ArrowLeft" || e.key === "ArrowUp"
+                      ? -1
+                      : 0;
+                if (!step) return;
+                e.preventDefault();
+                const buttons = Array.from(e.currentTarget.querySelectorAll("button"));
+                const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+                buttons[(index + step + buttons.length) % buttons.length]?.focus();
+              }}
             >
-              {legalPawnIds.map((id) => (
-                <button key={id} onClick={() => void onMove(id)}>
-                  Piece {(state.pawns.find((p) => p.id === id)?.index ?? 0) + 1}
-                </button>
-              ))}
+              {state.legalMoves
+                .filter((move) => legalPawnIds.includes(move.pawnId))
+                .map((move) => {
+                  const pawn = state.pawns.find((p) => p.id === move.pawnId);
+                  return (
+                    <button
+                      key={move.pawnId}
+                      aria-label={describePieceChoice(state, move)}
+                      onClick={() => void onMove(move.pawnId)}
+                      onFocus={() => setFocusedPawnId(move.pawnId)}
+                      onBlur={() => setFocusedPawnId(null)}
+                    >
+                      {pawn && <SeatSymbol color={pawn.color} seatColor={palette[pawn.color]} />}
+                      Piece {(pawn?.index ?? 0) + 1}
+                    </button>
+                  );
+                })}
             </div>
           )}
         </div>
@@ -1243,6 +1395,7 @@ export default function Simulator({
               <div className="sim-dialog-actions">
                 <button
                   className="sim-primary"
+                  autoFocus
                   onClick={() => setLeaving(false)}
                 >
                   <Icon name="play" />
@@ -1258,11 +1411,16 @@ export default function Simulator({
           document.body,
         )}
       {panel && (
-        <section className="sim-panel" aria-label={`${panel} panel`}>
+        <section
+          ref={panelRef}
+          className="sim-panel"
+          aria-labelledby="sim-panel-title"
+          tabIndex={-1}
+        >
           <div className="panel-heading">
             <div>
               <span className="eyebrow">AT YOUR TABLE</span>
-              <h2>
+              <h2 id="sim-panel-title">
                 {panel === "camera"
                   ? "Find your perspective"
                   : panel === "board"
@@ -1612,6 +1770,32 @@ export default function Simulator({
                   type="checkbox"
                   checked={prefs.sound}
                   onChange={(e) => setPref("sound", e.target.checked)}
+                />
+              </label>
+              <label className="setting-row">
+                <span>
+                  Color-blind mode
+                  <small>Easier-to-tell colors, and symbols on pieces and bases</small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={colorBlind}
+                  onChange={(e) => setColorBlind(e.target.checked)}
+                />
+              </label>
+              <label className="setting-row">
+                <span>
+                  Reduce motion
+                  <small>
+                    {reducedMotion && !reduceMotion
+                      ? "On in your device settings"
+                      : "No camera glides, hopping pieces or rolling dice"}
+                  </small>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={reduceMotion}
+                  onChange={(e) => setReduceMotion(e.target.checked)}
                 />
               </label>
               {practice && playerCount && onPlayerCountChange && (

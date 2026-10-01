@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import type { Player, PlayerColor } from "@/lib/board/types";
-import { COLORS } from "@/lib/presentation/board";
+import { seatColors } from "@/lib/presentation/accessibility";
 import { hexBaseAngle, hexSeatPoint } from "@/lib/presentation/hexBoard";
 import { avatarForSeat } from "@/lib/avatars/catalog";
 
@@ -55,22 +55,27 @@ function ProceduralAvatar({
   active,
   speaking,
   hex,
+  colorBlind,
+  reducedMotion,
 }: {
   player: Player;
   active: boolean;
   speaking: boolean;
   hex: boolean;
+  colorBlind: boolean;
+  reducedMotion: boolean;
 }) {
   const root = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
   const seat = hex ? hexAvatarSeat(player.color) : BASE_SEATS[player.color];
-  const playerColor = COLORS[player.color];
+  const playerColor = seatColors(colorBlind)[player.color];
   const portrait = avatarForSeat(player.avatarId, player.seatIndex).portrait;
   const playerColorDark = new THREE.Color(playerColor).offsetHSL(0, 0, -0.14);
 
   useFrame(({ clock }, delta) => {
     if (!root.current || !head.current) return;
-    const time = clock.elapsedTime + player.seatIndex * 0.8;
+    // Under reduced motion the figures sit still: no idle bob or glance.
+    const time = reducedMotion ? 0 : clock.elapsedTime + player.seatIndex * 0.8;
     root.current.position.y = seat.position[1] + Math.sin(time * 1.7) * 0.018;
     head.current.rotation.y = THREE.MathUtils.damp(
       head.current.rotation.y,
@@ -129,6 +134,8 @@ export function PlayerAvatars3D({
   preview,
   orientation = 0,
   hex = false,
+  colorBlind = false,
+  reducedMotion = false,
 }: {
   players: Player[];
   turnPlayerId: string | null;
@@ -137,10 +144,16 @@ export function PlayerAvatars3D({
   orientation?: number;
   /** Seat the figures around the 5-6 player hexagon (F5.2). */
   hex?: boolean;
+  colorBlind?: boolean;
+  reducedMotion?: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   useFrame((_, delta) => {
     if (!group.current) return;
+    if (reducedMotion) {
+      group.current.rotation.y = orientation;
+      return;
+    }
     group.current.rotation.y +=
       Math.atan2(
         Math.sin(orientation - group.current.rotation.y),
@@ -158,6 +171,8 @@ export function PlayerAvatars3D({
           active={player.id === turnPlayerId}
           speaking={speakingPlayerIds?.has(player.id) ?? false}
           hex={hex}
+          colorBlind={colorBlind}
+          reducedMotion={reducedMotion}
         />
       ))}
     </group>

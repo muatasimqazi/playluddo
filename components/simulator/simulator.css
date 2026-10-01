@@ -985,6 +985,43 @@ body.sim-die-blocked .sim-canvas {
   font-size: 12px;
   color: #bcc2b3;
 }
+/* A seat's symbol on a chip of its colour (F5.5; components/shared/SeatSymbol):
+   in seat labels, the turn bar, the piece list and the Party screen. */
+.seat-symbol {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--seat-color);
+  box-shadow: 0 0 0 1px #ffffff40;
+  vertical-align: -2px;
+  margin-inline-end: 5px;
+  flex-shrink: 0;
+}
+.seat-symbol svg {
+  width: 8px;
+  height: 8px;
+  fill: #ffffff;
+}
+.seat-symbol.is-light svg {
+  fill: #1d1d22;
+}
+.sim-turn .live-symbol {
+  margin-inline-end: 0;
+}
+.sim-piece-choices button {
+  display: inline-flex;
+  align-items: center;
+}
+.simulator.is-screen .seat-symbol {
+  width: 18px;
+  height: 18px;
+}
+.simulator.is-screen .seat-symbol svg {
+  width: 10px;
+  height: 10px;
+}
 .seat-dot {
   width: 4px;
   height: 4px;

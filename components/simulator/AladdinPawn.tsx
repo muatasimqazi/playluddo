@@ -1,7 +1,10 @@
 "use client";
 
 import * as THREE from "three";
+import { Billboard } from "@react-three/drei";
 import type { PlayerColor } from "@/lib/board/types";
+import { COLOR_BLIND_COLORS, SEAT_SYMBOLS } from "@/lib/presentation/accessibility";
+import { SeatSymbolMark } from "./SeatSymbolMark";
 
 export const ALADDIN_PAWN_HEIGHT = 0.42;
 
@@ -18,8 +21,15 @@ const PAWN_COLORS: Record<PlayerColor, string> = {
 };
 
 /** A minaret-domed piece echoing the board's navy-and-gold Arabian motif. */
-export function AladdinPawn({ color }: { color: PlayerColor }) {
-  const pawnColor = PAWN_COLORS[color];
+export function AladdinPawn({
+  color,
+  colorBlind = false,
+}: {
+  color: PlayerColor;
+  /** The colour-blind palette, with the seat's symbol on the body. */
+  colorBlind?: boolean;
+}) {
+  const pawnColor = (colorBlind ? COLOR_BLIND_COLORS : PAWN_COLORS)[color];
   const dark = new THREE.Color(pawnColor).offsetHSL(0, 0, -0.14);
   return (
     <group>
@@ -62,6 +72,14 @@ export function AladdinPawn({ color }: { color: PlayerColor }) {
         <octahedronGeometry args={[0.02, 0]} />
         <meshPhysicalMaterial color={GOLD_DARK} roughness={0.1} metalness={0.3} clearcoat={1} />
       </mesh>
+      {colorBlind && (
+        // A medallion on the upper body, turned to face the camera.
+        <Billboard position={[0, 0.2, 0]}>
+          <group position={[0, 0, 0.1]}>
+            <SeatSymbolMark symbol={SEAT_SYMBOLS[color]} radius={0.065} />
+          </group>
+        </Billboard>
+      )}
     </group>
   );
 }

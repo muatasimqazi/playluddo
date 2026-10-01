@@ -9,13 +9,15 @@
  * from this device's copy, so a guest's choices survive making an account.
  *
  * Renders nothing — it's mounted once, near the root, inside <I18nProvider>
- * because it drives the live locale through the i18n context.
+ * because it drives the live locale through the i18n context. Being mounted
+ * once at the root, it also mirrors "Reduce motion" onto <html> (F5.5).
  */
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { isSupportedLocale, LOCALE_STORAGE_KEY, type LocaleCode } from "@/lib/i18n/locales";
 import {
+  GAME_PREFERENCE_KEYS,
   gamePreferences,
   isSignedIn,
   persistPreferencesToAccount,
@@ -23,9 +25,8 @@ import {
   type GamePreferenceKey,
   type UserPreferences,
 } from "@/lib/preferences";
+import { useReducedMotionClass } from "@/lib/hooks/useReducedMotion";
 import type { User } from "@supabase/supabase-js";
-
-const GAME_KEYS: GamePreferenceKey[] = ["baseColor", "boardStyle", "botLevel"];
 
 function explicitLocalLocale(): LocaleCode | undefined {
   try {
@@ -40,6 +41,7 @@ export function PreferencesSync() {
   // setLocale is a stable useCallback([]) from the i18n context, so the auth
   // listener below can close over it once without going stale.
   const { setLocale } = useI18n();
+  useReducedMotionClass();
 
   useEffect(() => {
     const client = createClient();
@@ -60,7 +62,7 @@ export function PreferencesSync() {
         if (local) seed.locale = local;
       }
 
-      // The three game preferences: adopt the account's copy, or seed it. A
+      // The game preferences: adopt the account's copy, or seed it. A
       // generic helper keeps each key's value type intact (a plain loop widens
       // the key to a union and loses it).
       const reconcileGameKey = <K extends GamePreferenceKey>(key: K) => {
@@ -68,7 +70,7 @@ export function PreferencesSync() {
         if (accountValue !== undefined) gamePreferences.applyFromAccount(key, accountValue);
         else seed[key] = gamePreferences.get(key);
       };
-      for (const key of GAME_KEYS) reconcileGameKey(key);
+      for (const key of GAME_PREFERENCE_KEYS) reconcileGameKey(key);
 
       void persistPreferencesToAccount(seed);
     };

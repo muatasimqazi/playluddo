@@ -2,6 +2,8 @@
 
 import * as THREE from "three";
 import type { PlayerColor } from "@/lib/board/types";
+import { COLOR_BLIND_COLORS, SEAT_SYMBOLS } from "@/lib/presentation/accessibility";
+import { SeatSymbolMark } from "./SeatSymbolMark";
 
 export const GLASS_PAWN_HEIGHT = 0.115;
 
@@ -40,38 +42,62 @@ const GLASS: Record<PlayerColor, { tint: THREE.Color; absorption: string }> = {
   black: { tint: new THREE.Color("#3b3b46").multiplyScalar(0.72), absorption: "#3b3b46" },
 };
 
-export function GlassPawn({ color }: { color: PlayerColor }) {
-  const glass = GLASS[color];
+// "Colour-blind mode" (F5.5): the same glass in the alternative palette.
+const COLOR_BLIND_GLASS = Object.fromEntries(
+  Object.entries(COLOR_BLIND_COLORS).map(([color, ink]) => [
+    color,
+    { tint: new THREE.Color(ink).multiplyScalar(0.72), absorption: ink },
+  ]),
+) as Record<PlayerColor, { tint: THREE.Color; absorption: string }>;
+
+export function GlassPawn({
+  color,
+  colorBlind = false,
+}: {
+  color: PlayerColor;
+  /** The colour-blind palette, with the seat's symbol on top. */
+  colorBlind?: boolean;
+}) {
+  const glass = (colorBlind ? COLOR_BLIND_GLASS : GLASS)[color];
   return (
-    <group scale={[FOOTPRINT_SCALE, 1, FOOTPRINT_SCALE]}>
-      {/* A faint colored contact shadow keeps the transparent disc grounded. */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
-        <circleGeometry args={[0.176, 48]} />
-        <meshBasicMaterial
-          color={glass.absorption}
-          transparent
-          opacity={0.16}
-          depthWrite={false}
-        />
-      </mesh>
-      <mesh receiveShadow>
-        <latheGeometry args={[PROFILE, 64]} />
-        <meshPhysicalMaterial
-          color={glass.tint}
-          toneMapped={false}
-          metalness={0}
-          roughness={0.12}
-          transmission={0.28}
-          thickness={GLASS_PAWN_HEIGHT}
-          ior={1.49}
-          attenuationColor={glass.absorption}
-          attenuationDistance={0.08}
-          clearcoat={1}
-          clearcoatRoughness={0.055}
-          envMapIntensity={1.1}
-          opacity={1}
-        />
-      </mesh>
+    <group>
+      <group scale={[FOOTPRINT_SCALE, 1, FOOTPRINT_SCALE]}>
+        {/* A faint colored contact shadow keeps the transparent disc grounded. */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
+          <circleGeometry args={[0.176, 48]} />
+          <meshBasicMaterial
+            color={glass.absorption}
+            transparent
+            opacity={0.16}
+            depthWrite={false}
+          />
+        </mesh>
+        <mesh receiveShadow>
+          <latheGeometry args={[PROFILE, 64]} />
+          <meshPhysicalMaterial
+            color={glass.tint}
+            toneMapped={false}
+            metalness={0}
+            roughness={0.12}
+            transmission={0.28}
+            thickness={GLASS_PAWN_HEIGHT}
+            ior={1.49}
+            attenuationColor={glass.absorption}
+            attenuationDistance={0.08}
+            clearcoat={1}
+            clearcoatRoughness={0.055}
+            envMapIntensity={1.1}
+            opacity={1}
+          />
+        </mesh>
+      </group>
+      {colorBlind && (
+        // Flat on the disc's top, like a printed token. Outside the footprint
+        // scale so the symbol keeps its proportions.
+        <group position={[0, GLASS_PAWN_HEIGHT + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <SeatSymbolMark symbol={SEAT_SYMBOLS[color]} radius={0.1} />
+        </group>
+      )}
     </group>
   );
 }

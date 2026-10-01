@@ -14,6 +14,8 @@ function Box({
   metal = 0,
   roughness = 0.72,
   rotation,
+  fabric = false,
+  clearcoat = 0,
 }: {
   position: Point;
   size: Point;
@@ -23,8 +25,30 @@ function Box({
   metal?: number;
   roughness?: number;
   rotation?: Point;
+  /** Woven upholstery: a soft sheen at grazing angles instead of a plastic highlight. */
+  fabric?: boolean;
+  /** Sealed stone and lacquer: a thin glossy coat over a rougher base. */
+  clearcoat?: number;
 }) {
-  const material = (
+  const material = fabric ? (
+    <meshPhysicalMaterial
+      color={color}
+      map={map}
+      roughness={0.95}
+      sheen={0.6}
+      sheenRoughness={0.6}
+      sheenColor="#b8b2a6"
+    />
+  ) : clearcoat ? (
+    <meshPhysicalMaterial
+      color={color}
+      map={map}
+      roughness={roughness}
+      metalness={metal}
+      clearcoat={clearcoat}
+      clearcoatRoughness={0.12}
+    />
+  ) : (
     <meshStandardMaterial
       color={color}
       map={map}
@@ -48,6 +72,141 @@ function Box({
     <mesh position={position} rotation={rotation} castShadow receiveShadow>
       <boxGeometry args={size} />
       {material}
+    </mesh>
+  );
+}
+
+/**
+ * Soft occlusion maps for the places light can't reach: under furniture and
+ * where walls meet the floor and ceiling. The key light's shadow camera only
+ * covers the table, so without these the sofa, kitchen and pots float. They're
+ * alpha masks (alphaMap reads green: white = full shade on opaque black),
+ * drawn once and reused by every decal.
+ */
+function makeOcclusionTextures() {
+  const draw = (
+    paint: (ctx: CanvasRenderingContext2D) => void,
+    w = 256,
+    h = 256,
+  ) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Could not prepare the room shading.");
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, w, h);
+    paint(ctx);
+    return new THREE.CanvasTexture(canvas);
+  };
+  // A footprint blurred well past its edges: stretched per piece of furniture.
+  const blob = draw((ctx) => {
+    ctx.filter = "blur(16px)";
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.roundRect(38, 38, 180, 180, 30);
+    ctx.fill();
+  });
+  // Darkest against the wall (the top of the image), gone a short way out.
+  const edge = draw(
+    (ctx) => {
+      const g = ctx.createLinearGradient(0, 0, 0, 64);
+      g.addColorStop(0, "#fff");
+      g.addColorStop(0.35, "#5a5a5a");
+      g.addColorStop(1, "#000");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 4, 64);
+    },
+    4,
+    64,
+  );
+  return { blob, edge };
+}
+
+/**
+ * Painted plaster: a few percent of fine mottling and a gentle falloff toward
+ * the floor, the way a real wall reads under ceiling light. Multiplied into
+ * each wall's paint colour, so the tones above stay the source of truth.
+ */
+function makePlasterTexture() {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not prepare the wall texture.");
+  const g = ctx.createLinearGradient(0, 0, 0, size);
+  g.addColorStop(0, "#ffffff");
+  g.addColorStop(0.5, "#f1f1f1");
+  g.addColorStop(1, "#d4d4d4");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  const pixels = ctx.getImageData(0, 0, size, size);
+  // Seeded so the wall never shimmers between mounts.
+  let seed = 7;
+  const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < pixels.data.length; i += 4) {
+    const n = (random() - 0.5) * 7;
+    pixels.data[i] += n;
+    pixels.data[i + 1] += n;
+    pixels.data[i + 2] += n;
+  }
+  ctx.putImageData(pixels, 0, 0);
+  const t = new THREE.CanvasTexture(canvas);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// Floor-standing footprints: x, y, z (rug height where a piece is on or over
+// the rug), width, depth, strength.
+const RUG = -2.53;
+const FLOOR = -2.6;
+const FLOOR_SHADES: [number, number, number, number, number, number][] = [
+  [0, RUG, -6.3, 9.4, 2.7, 0.75], // sofa
+  [-3.05, RUG, -4.3, 3, 2.5, 0.6], // chaise
+  [0, RUG, 6.25, 2.6, 2.4, 0.7], // armchairs
+  [-6.25, RUG, 0, 2.4, 2.6, 0.7],
+  [6.25, RUG, 0, 2.4, 2.6, 0.7],
+  [0, RUG, 0, 8, 7.2, 0.35], // under the coffee table
+  [6, RUG, -3, 1.3, 1.3, 0.6], // floor lamp
+  [6, FLOOR, -11.3, 9.1, 2, 0.6], // kitchen run
+  [6, RUG, -6.7, 6.4, 2.1, 0.7], // island
+  [4, RUG, -4.8, 1.1, 0.9, 0.5], // stools
+  [6, RUG, -4.8, 1.1, 0.9, 0.5],
+  [8, FLOOR, -4.8, 1.1, 0.9, 0.5],
+  [-9, FLOOR, -7, 1.4, 1.4, 0.65], // plants
+  [9, FLOOR, 5, 1.15, 1.15, 0.65],
+];
+
+function Occlusion({
+  map,
+  position,
+  size,
+  opacity = 0.5,
+  rotation = [-Math.PI / 2, 0, 0],
+  light = false,
+}: {
+  map: THREE.Texture;
+  position: Point;
+  size: [number, number];
+  opacity?: number;
+  rotation?: Point;
+  /** Adds warm daylight instead of taking light away. */
+  light?: boolean;
+}) {
+  return (
+    <mesh position={position} rotation={rotation} renderOrder={1}>
+      <planeGeometry args={size} />
+      <meshBasicMaterial
+        color={light ? "#fff1d6" : "#1d1810"}
+        blending={light ? THREE.AdditiveBlending : THREE.NormalBlending}
+        alphaMap={map}
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        polygonOffset
+        polygonOffsetFactor={-2}
+        toneMapped={false}
+      />
     </mesh>
   );
 }
@@ -124,6 +283,7 @@ function Sofa({
         color="#ffffff"
         round={0.2}
         map={fabric}
+        fabric
       />
       {[-3, 0, 3].map((x) => (
         <group key={x}>
@@ -133,6 +293,7 @@ function Sofa({
             color="#ffffff"
             round={0.18}
             map={fabric}
+            fabric
           />
           <Box
             position={[x, 1.85, -0.68]}
@@ -140,6 +301,7 @@ function Sofa({
             color="#ffffff"
             round={0.17}
             map={fabric}
+            fabric
             rotation={[-0.12, 0, 0]}
           />
         </group>
@@ -152,6 +314,7 @@ function Sofa({
           color="#ffffff"
           round={0.15}
           map={fabric}
+          fabric
         />
       ))}
       <Box
@@ -160,6 +323,7 @@ function Sofa({
         color="#ffffff"
         round={0.16}
         map={fabric}
+        fabric
       />
       {[
         [-3.1, 2, -0.05],
@@ -173,6 +337,7 @@ function Sofa({
           color="#ffffff"
           round={0.2}
           map={pillow}
+          fabric
         />
       ))}
     </group>
@@ -194,15 +359,30 @@ function IslandDecor() {
       <group position={[-1.05, 0, 0.05]}>
         <mesh position={[0, 0.34, 0]} castShadow>
           <cylinderGeometry args={[0.18, 0.25, 0.68, 24]} />
-          <meshStandardMaterial color="#f4f1e9" roughness={0.42} />
+          <meshPhysicalMaterial
+            color="#f4f1e9"
+            roughness={0.42}
+            clearcoat={0.9}
+            clearcoatRoughness={0.08}
+          />
         </mesh>
         <mesh position={[0.03, 0.73, 0]} rotation={[0, 0, -0.18]} castShadow>
           <cylinderGeometry args={[0.12, 0.16, 0.26, 24]} />
-          <meshStandardMaterial color="#f4f1e9" roughness={0.42} />
+          <meshPhysicalMaterial
+            color="#f4f1e9"
+            roughness={0.42}
+            clearcoat={0.9}
+            clearcoatRoughness={0.08}
+          />
         </mesh>
         <mesh position={[-0.19, 0.54, 0]} rotation={[0, Math.PI / 2, 0]}>
           <torusGeometry args={[0.18, 0.035, 10, 24, Math.PI * 1.55]} />
-          <meshStandardMaterial color="#f4f1e9" roughness={0.42} />
+          <meshPhysicalMaterial
+            color="#f4f1e9"
+            roughness={0.42}
+            clearcoat={0.9}
+            clearcoatRoughness={0.08}
+          />
         </mesh>
       </group>
 
@@ -237,7 +417,12 @@ function IslandDecor() {
       <group position={[0.75, 0, 0]}>
         <mesh position={[0, 0.43, 0]} castShadow>
           <cylinderGeometry args={[0.34, 0.3, 0.86, 28]} />
-          <meshStandardMaterial color="#f2f0e9" roughness={0.5} />
+          <meshPhysicalMaterial
+            color="#f2f0e9"
+            roughness={0.5}
+            clearcoat={0.8}
+            clearcoatRoughness={0.1}
+          />
         </mesh>
         <mesh position={[0, 0.87, 0]}>
           <cylinderGeometry args={[0.31, 0.31, 0.025, 24]} />
@@ -246,7 +431,11 @@ function IslandDecor() {
         {stems.map(([x, tilt, z], stemIndex) => {
           const height = 1.2 + (stemIndex % 3) * 0.18;
           return (
-            <group key={stemIndex} position={[x, 0.85, z]} rotation={[0, 0, tilt]}>
+            <group
+              key={stemIndex}
+              position={[x, 0.85, z]}
+              rotation={[0, 0, tilt]}
+            >
               <mesh position={[0, height / 2, 0]} castShadow>
                 <cylinderGeometry args={[0.014, 0.02, height, 6]} />
                 <meshStandardMaterial color="#526d34" roughness={0.9} />
@@ -298,7 +487,8 @@ function Kitchen({
         position={[0, 3.03, 0.08]}
         size={[9.1, 0.15, 2]}
         color="#ddd9c8"
-        roughness={0.25}
+        roughness={0.35}
+        clearcoat={0.7}
       />
       <Box
         position={[0, 5.8, 0.08]}
@@ -333,7 +523,8 @@ function Kitchen({
         position={[0, 2.99, 4.7]}
         size={[6.7, 0.2, 2.35]}
         color="#dad7c9"
-        roughness={0.2}
+        roughness={0.35}
+        clearcoat={0.7}
       />
       <IslandDecor />
       {[-2, 0, 2].map((x) => (
@@ -518,8 +709,13 @@ export function Apartment({ quality }: { quality: Quality }) {
     t.anisotropy = quality === "low" ? 2 : 8;
     return t;
   }, [originalCurtains, quality]);
+  const occlusion = useMemo(() => makeOcclusionTextures(), []);
+  const plaster = useMemo(() => makePlasterTexture(), []);
   useEffect(
     () => () => {
+      occlusion.blob.dispose();
+      occlusion.edge.dispose();
+      plaster.dispose();
       wood.dispose();
       floor.dispose();
       couchFabric.dispose();
@@ -550,6 +746,8 @@ export function Apartment({ quality }: { quality: Quality }) {
       paintingTwo,
       stool,
       curtains,
+      occlusion,
+      plaster,
     ],
   );
   return (
@@ -569,9 +767,108 @@ export function Apartment({ quality }: { quality: Quality }) {
         round={0.025}
       />
       {/* Wall tone colour-matched to designs/public/location's flat wall paint. */}
-      <Box position={[0, 6, -13.7]} size={[27, 17.2, 0.3]} color="#d8d3c8" />
-      <Box position={[13.5, 6, 0]} size={[0.3, 17.2, 28]} color="#ddd9cf" />
-      <Box position={[0, 6, 13.7]} size={[27, 17.2, 0.3]} color="#d0cbc0" />
+      <Box
+        position={[0, 6, -13.7]}
+        size={[27, 17.2, 0.3]}
+        color="#d8d3c8"
+        map={plaster}
+        roughness={0.9}
+      />
+      <Box
+        position={[13.5, 6, 0]}
+        size={[0.3, 17.2, 28]}
+        color="#ddd9cf"
+        map={plaster}
+        roughness={0.9}
+      />
+      <Box
+        position={[0, 6, 13.7]}
+        size={[27, 17.2, 0.3]}
+        color="#d0cbc0"
+        map={plaster}
+        roughness={0.9}
+      />
+      {/* Painted skirting boards where the solid walls meet the floor. */}
+      <Box
+        position={[0, -2.42, -13.52]}
+        size={[27, 0.38, 0.06]}
+        color="#ebe7dd"
+        roughness={0.45}
+      />
+      <Box
+        position={[13.32, -2.42, 0]}
+        size={[0.06, 0.38, 28]}
+        color="#efebe2"
+        roughness={0.45}
+      />
+      <Box
+        position={[0, -2.42, 13.52]}
+        size={[27, 0.38, 0.06]}
+        color="#e6e1d6"
+        roughness={0.45}
+      />
+      {/* Light falls off into every corner of the room. */}
+      <Occlusion
+        map={occlusion.edge}
+        position={[0, -2.6, -12.9]}
+        size={[27, 1.2]}
+        opacity={0.45}
+      />
+      <Occlusion
+        map={occlusion.edge}
+        position={[12.7, -2.6, 0]}
+        size={[28, 1.2]}
+        rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
+        opacity={0.45}
+      />
+      <Occlusion
+        map={occlusion.edge}
+        position={[0, -2.6, 12.9]}
+        size={[27, 1.2]}
+        rotation={[-Math.PI / 2, 0, Math.PI]}
+        opacity={0.45}
+      />
+      <Occlusion
+        map={occlusion.edge}
+        position={[0, 13.85, -13.54]}
+        size={[27, 1.4]}
+        rotation={[0, 0, 0]}
+        opacity={0.22}
+      />
+      <Occlusion
+        map={occlusion.edge}
+        position={[13.34, 13.85, 0]}
+        size={[28, 1.4]}
+        rotation={[0, -Math.PI / 2, 0]}
+        opacity={0.22}
+      />
+      <Occlusion
+        map={occlusion.edge}
+        position={[0, 13.85, 13.54]}
+        size={[27, 1.4]}
+        rotation={[0, Math.PI, 0]}
+        opacity={0.22}
+      />
+      {/* Daylight pooling on the boards inside the window wall. */}
+      <Occlusion
+        map={occlusion.edge}
+        position={[-10.4, -2.6, 0]}
+        size={[28, 5.6]}
+        rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+        opacity={0.2}
+        light
+      />
+      {/* Contact shade under everything that stands on the floor or rug. */}
+      {FLOOR_SHADES.map(([x, y, z, w, d, opacity], i) => (
+        <Occlusion
+          key={i}
+          map={occlusion.blob}
+          position={[x, y, z]}
+          // The mask's solid core is ~70% of its plane; the rest is falloff.
+          size={[w / 0.7, d / 0.7]}
+          opacity={opacity}
+        />
+      ))}
       {/* Large abstract artwork on the wall opposite the bookshelf. */}
       <Box
         position={[0, 6.4, 13.25]}
@@ -589,10 +886,7 @@ export function Apartment({ quality }: { quality: Quality }) {
         />
       </mesh>
       {/* Frameless paired artwork on the solid wall opposite the windows. */}
-      <mesh
-        position={[13.31, 6.5, -1.4]}
-        rotation={[0, -Math.PI / 2, 0]}
-      >
+      <mesh position={[13.31, 6.5, -1.4]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[7.5, 5.2]} />
         <meshBasicMaterial
           map={paintings}
@@ -717,11 +1011,7 @@ export function Apartment({ quality }: { quality: Quality }) {
         />
         <mesh position={[0, 0.7, 0.17]} receiveShadow>
           <planeGeometry args={[8.4, 6.61]} />
-          <meshStandardMaterial
-            map={books}
-            color="#ffffff"
-            roughness={0.76}
-          />
+          <meshStandardMaterial map={books} color="#ffffff" roughness={0.76} />
         </mesh>
       </group>
       <Plant position={[-9, -2.6, -7]} scale={1.6} cactus={cactus} />
@@ -737,7 +1027,18 @@ export function Apartment({ quality }: { quality: Quality }) {
         </mesh>
         <mesh position={[0, 4.8, 0]}>
           <cylinderGeometry args={[0.55, 0.85, 1.1, 32, 1, true]} />
-          <meshStandardMaterial color="#e1d2af" side={THREE.DoubleSide} />
+          {/* Linen lit from inside: the bulb glows through the shade. */}
+          <meshStandardMaterial
+            color="#e1d2af"
+            emissive="#ffd9a3"
+            emissiveIntensity={0.55}
+            roughness={0.95}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+        <mesh position={[0, 4.55, 0]}>
+          <sphereGeometry args={[0.16, 16, 12]} />
+          <meshBasicMaterial color="#fff4e2" />
         </mesh>
         <pointLight
           position={[0, 4.3, 0]}
@@ -760,6 +1061,7 @@ export function Apartment({ quality }: { quality: Quality }) {
             color="#ffffff"
             round={0.22}
             map={couchFabric}
+            fabric
           />
           <Box
             position={[0, 1.75, 1]}
@@ -767,6 +1069,7 @@ export function Apartment({ quality }: { quality: Quality }) {
             color="#ffffff"
             round={0.16}
             map={couchFabric}
+            fabric
           />
         </group>
       ))}

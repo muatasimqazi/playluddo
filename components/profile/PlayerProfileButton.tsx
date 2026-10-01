@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
-import { getAccountProfile, getPlayerProfile, type PlayerProfile } from "@/lib/supabase/profile";
+import { getAccountProfile, getMyProfile, getPlayerProfile, type PlayerProfile } from "@/lib/supabase/profile";
 import { addFriendFromSeat } from "@/lib/supabase/friends";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import { useI18n } from "@/lib/i18n";
@@ -77,11 +77,15 @@ export function PlayerProfileDialog({
 }: {
   displayName: string;
   onClose: () => void;
-} & ProfileTarget) {
+  // `self`: the signed-in player's own profile, seat or no seat (the table
+  // menu's "My profile", in practice too).
+} & (ProfileTarget | { self: true; playerId?: never; userId?: never })) {
   const { t } = useI18n();
   const client = useMemo(() => createClient(), []);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // `self` with no account yet: signed out (practice runs sessionless) or a guest.
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const [friendState, setFriendState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
 
   async function addFriend() {
@@ -102,9 +106,20 @@ export function PlayerProfileDialog({
       setError(null);
       setFriendState("idle");
       try {
+        if (!playerId && !userId) {
+          const {
+            data: { session },
+          } = await client.auth.getSession();
+          if (!session || session.user.is_anonymous) {
+            if (!cancelled) setNeedsSignIn(true);
+            return;
+          }
+        }
         const data = playerId
           ? await getPlayerProfile(client, playerId)
-          : await getAccountProfile(client, userId!);
+          : userId
+            ? await getAccountProfile(client, userId)
+            : await getMyProfile(client);
         if (!cancelled) setProfile(data);
       } catch (err) {
         if (!cancelled)
@@ -137,7 +152,9 @@ export function PlayerProfileDialog({
           ×
         </button>
         <span className="eyebrow">{t("profile.playerProfile").toUpperCase()}</span>
-        {error ? (
+        {needsSignIn ? (
+          <p className="profile-message">{t("profile.noProfileBody")}</p>
+        ) : error ? (
           <p className="profile-message" role="alert">
             {error}
           </p>

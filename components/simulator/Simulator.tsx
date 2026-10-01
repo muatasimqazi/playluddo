@@ -377,6 +377,7 @@ export default function Simulator({
   // seats are local, and the shared TV screen is nobody's to tap.
   const profiles = !practice && !localPlay && !screen;
   const [profileSeat, setProfileSeat] = useState<string | null>(null);
+  const [myProfileOpen, setMyProfileOpen] = useState(false);
   const profilePlayer = profileSeat ? state.players.find((p) => p.id === profileSeat) : undefined;
   const gameName = snakes ? "Snakes & Ladders" : BRAND.gameName;
   const [flipping, setFlipping] = useState(false);
@@ -1066,6 +1067,13 @@ export default function Simulator({
           playerId={profilePlayer.id}
           displayName={profilePlayer.displayName}
           onClose={() => setProfileSeat(null)}
+        />
+      )}
+      {myProfileOpen && (
+        <PlayerProfileDialog
+          self
+          displayName={me?.displayName ?? "You"}
+          onClose={() => setMyProfileOpen(false)}
         />
       )}
       <div className="sim-vignette" />
@@ -2091,6 +2099,21 @@ export default function Simulator({
                   </small>
                 </div>
               </div>
+              {/* A modal over the table rather than the /profile page, so
+                  checking your stats never walks you out of a game. Not on a
+                  shared device or the TV, which aren't any one person's. */}
+              {!screen && !localPlay && (
+                <button
+                  className="panel-secondary"
+                  onClick={() => {
+                    setMyProfileOpen(true);
+                    setPanel(null);
+                  }}
+                >
+                  <Icon name="user" />
+                  My profile
+                </button>
+              )}
               <div className="menu-players">
                 {state.players.map((player) => (
                   <div key={player.id}>
@@ -2110,14 +2133,6 @@ export default function Simulator({
                   </div>
                 ))}
               </div>
-              {/* A modal over the table rather than the /profile page, so
-                  checking your stats never walks you out of a live match. */}
-              {profiles && me && (
-                <button className="panel-secondary" onClick={() => setProfileSeat(me.id)}>
-                  <Icon name="user" />
-                  Your profile
-                </button>
-              )}
               {onFlip && (
                 <button
                   className="panel-secondary"

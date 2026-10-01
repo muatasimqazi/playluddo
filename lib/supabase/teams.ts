@@ -13,6 +13,9 @@ export interface TeamActiveRoom {
   code: string;
   status: "lobby" | "in_game";
   seatsTaken: number;
+  maxPlayers: number;
+  /** The caller already holds a seat here (so can always go back in). */
+  isSeated: boolean;
 }
 
 export interface Team {

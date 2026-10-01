@@ -81,9 +81,11 @@ export const hi: Messages = {
     yourTeam: "आपकी टीम",
     memberOne: "{count} सदस्य",
     memberOther: "{count} सदस्य",
-    tableOpen: " · मेज़ खुली है · {seated}/4 बैठे",
+    tableOpen: " · मेज़ खुली है · {seated}/{max} बैठे",
     joinNow: "अभी शामिल हों",
     startTable: "मेज़ शुरू करें",
+    gameInProgress: " · खेल चल रहा है",
+    newTable: "नई मेज़",
 
     offlineComputerLevel: "ऑफ़लाइन कंप्यूटर स्तर",
     botEasy: "आसान",

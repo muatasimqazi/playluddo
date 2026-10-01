@@ -461,38 +461,50 @@ export default function Home() {
             </fieldset>
             {teams.length > 0 && (
               <div className="entrance-team-card">
-                {teams.map((team) => (
-                  <div key={team.id} className="entrance-team-row">
-                    <div>
-                      <span className="eyebrow">{t("entrance.yourTeam").toUpperCase()}</span>
-                      <strong>{team.name}</strong>
-                      <small>
-                        {team.members.length === 1
-                          ? t("entrance.memberOne", { count: team.members.length })
-                          : t("entrance.memberOther", { count: team.members.length })}
-                        {team.activeRoom &&
-                          t("entrance.tableOpen", { seated: team.activeRoom.seatsTaken })}
-                      </small>
+                {teams.map((team) => {
+                  const room = team.activeRoom;
+                  // "Join now" only where it works: back to your own seat, or a
+                  // lobby with a seat free. A game you're not in (or a full
+                  // lobby) shouldn't stop the team starting another.
+                  const canJoin =
+                    !!room && (room.isSeated || (room.status === "lobby" && room.seatsTaken < room.maxPlayers));
+                  return (
+                    <div key={team.id} className="entrance-team-row">
+                      <div>
+                        <span className="eyebrow">{t("entrance.yourTeam").toUpperCase()}</span>
+                        <strong>{team.name}</strong>
+                        <small>
+                          {team.members.length === 1
+                            ? t("entrance.memberOne", { count: team.members.length })
+                            : t("entrance.memberOther", { count: team.members.length })}
+                          {room &&
+                            (room.status === "lobby"
+                              ? t("entrance.tableOpen", { seated: room.seatsTaken, max: room.maxPlayers })
+                              : t("entrance.gameInProgress"))}
+                        </small>
+                        {canJoin && (
+                          <button
+                            type="button"
+                            className="entrance-team-new"
+                            disabled={pending !== null}
+                            onClick={() => void startForTeam(team)}
+                          >
+                            {t("entrance.newTable")}
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="sim-primary"
+                        disabled={pending !== null}
+                        onClick={() => (canJoin ? openRoom(room.roomId) : void startForTeam(team))}
+                      >
+                        <span>{canJoin ? t("entrance.joinNow") : t("entrance.startTable")}</span>
+                        <Icon name="arrow" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      className="sim-primary"
-                      disabled={pending !== null}
-                      onClick={() =>
-                        team.activeRoom
-                          ? openRoom(team.activeRoom.roomId)
-                          : void startForTeam(team)
-                      }
-                    >
-                      <span>
-                        {team.activeRoom
-                          ? t("entrance.joinNow")
-                          : t("entrance.startTable")}
-                      </span>
-                      <Icon name="arrow" />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             {error && (

@@ -81,9 +81,11 @@ export const ptBR: Messages = {
     yourTeam: "Seu time",
     memberOne: "{count} membro",
     memberOther: "{count} membros",
-    tableOpen: " · Mesa aberta · {seated}/4 sentados",
+    tableOpen: " · Mesa aberta · {seated}/{max} sentados",
     joinNow: "Entrar agora",
     startTable: "Abrir uma mesa",
+    gameInProgress: " · Partida em andamento",
+    newTable: "Nova mesa",
 
     offlineComputerLevel: "Nível do computador off-line",
     botEasy: "Fácil",

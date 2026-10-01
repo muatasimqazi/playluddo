@@ -101,9 +101,11 @@ export const en = {
     memberOne: "{count} member",
     memberOther: "{count} members",
     /** Appended after the member count when the team has a table open. */
-    tableOpen: " · Table open · {seated}/4 seated",
+    tableOpen: " · Table open · {seated}/{max} seated",
     joinNow: "Join now",
     startTable: "Start a table",
+    gameInProgress: " · Game in progress",
+    newTable: "New table",
 
     offlineComputerLevel: "Offline computer level",
     botEasy: "Easy",

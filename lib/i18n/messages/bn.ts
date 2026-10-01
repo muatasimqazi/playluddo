@@ -81,9 +81,11 @@ export const bn: Messages = {
     yourTeam: "আপনার দল",
     memberOne: "{count} জন সদস্য",
     memberOther: "{count} জন সদস্য",
-    tableOpen: " · টেবিল খোলা · {seated}/৪ জন বসেছে",
+    tableOpen: " · টেবিল খোলা · {seated}/{max} জন বসেছে",
     joinNow: "এখনই যোগ দিন",
     startTable: "একটি টেবিল শুরু করুন",
+    gameInProgress: " · খেলা চলছে",
+    newTable: "নতুন টেবিল",
 
     offlineComputerLevel: "অফলাইন কম্পিউটারের স্তর",
     botEasy: "সহজ",

@@ -82,9 +82,11 @@ export const es: Messages = {
     yourTeam: "Tu equipo",
     memberOne: "{count} miembro",
     memberOther: "{count} miembros",
-    tableOpen: " · Mesa abierta · {seated}/4 sentados",
+    tableOpen: " · Mesa abierta · {seated}/{max} sentados",
     joinNow: "Unirse ahora",
     startTable: "Abrir una mesa",
+    gameInProgress: " · Partida en curso",
+    newTable: "Mesa nueva",
 
     offlineComputerLevel: "Nivel de la computadora sin conexión",
     botEasy: "Fácil",

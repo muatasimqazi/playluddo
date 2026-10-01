@@ -82,9 +82,11 @@ export const ar: Messages = {
     yourTeam: "فريقك",
     memberOne: "عضو واحد",
     memberOther: "{count} أعضاء",
-    tableOpen: " · الطاولة مفتوحة · {seated}/4 جالسون",
+    tableOpen: " · الطاولة مفتوحة · {seated}/{max} جالسون",
     joinNow: "انضم الآن",
     startTable: "افتح طاولة",
+    gameInProgress: " · لعبة جارية",
+    newTable: "طاولة جديدة",
 
     offlineComputerLevel: "مستوى الكمبيوتر دون اتصال",
     botEasy: "سهل",

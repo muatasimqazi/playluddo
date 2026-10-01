@@ -81,9 +81,11 @@ export const id: Messages = {
     yourTeam: "Timmu",
     memberOne: "{count} anggota",
     memberOther: "{count} anggota",
-    tableOpen: " · Meja terbuka · {seated}/4 duduk",
+    tableOpen: " · Meja terbuka · {seated}/{max} duduk",
     joinNow: "Gabung sekarang",
     startTable: "Buka meja",
+    gameInProgress: " · Permainan berlangsung",
+    newTable: "Meja baru",
 
     offlineComputerLevel: "Tingkat komputer luring",
     botEasy: "Mudah",

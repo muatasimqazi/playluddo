@@ -81,9 +81,11 @@ export const ur: Messages = {
     yourTeam: "آپ کی ٹیم",
     memberOne: "{count} رکن",
     memberOther: "{count} ارکان",
-    tableOpen: " · میز کھلی ہے · {seated}/4 بیٹھے",
+    tableOpen: " · میز کھلی ہے · {seated}/{max} بیٹھے",
     joinNow: "ابھی شامل ہوں",
     startTable: "ایک میز شروع کریں",
+    gameInProgress: " · کھیل جاری ہے",
+    newTable: "نئی میز",
 
     offlineComputerLevel: "آف لائن کمپیوٹر کی سطح",
     botEasy: "آسان",

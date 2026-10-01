@@ -2864,6 +2864,19 @@ body.sim-die-blocked .sim-canvas {
   justify-content: space-between;
   gap: 14px;
 }
+/* A secondary "New table" under the team line, for when the open one isn't
+   the game you want. */
+.entrance-team-new {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #d8bd7f;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 .entrance-team-row .eyebrow {
   margin-bottom: 4px;
   color: #d8bd7f;

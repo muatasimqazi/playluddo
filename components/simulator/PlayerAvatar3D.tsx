@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useTexture } from "@react-three/drei";
+import { Billboard, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import type { Player, PlayerColor } from "@/lib/board/types";
 import { seatColors } from "@/lib/presentation/accessibility";
@@ -50,6 +50,125 @@ function AvatarFace({ portrait }: { portrait: string }) {
   );
 }
 
+// The video card above a seat figure (V3): 4:3, like the camera's own frame.
+const CARD_WIDTH = 0.96;
+const CARD_HEIGHT = 0.72;
+const CARD_BORDER = 0.035;
+// How often an off-screen check runs, in seconds.
+const VISIBILITY_CHECK = 0.5;
+
+/**
+ * A remote player's camera on a card above their seat figure (Section 7, V3).
+ * It turns about the vertical axis to face the viewer, so the players beside
+ * you are as easy to see as the one across. It takes the room's light, with
+ * enough of its own glow to stay readable. Off camera it stops drawing frames
+ * until it comes back into view, and tapping it opens the enlarged view with
+ * Report and Block.
+ */
+function VideoCard({
+  stream,
+  color,
+  name,
+  onSelect,
+}: {
+  stream: MediaStream;
+  color: string;
+  name: string;
+  onSelect?: () => void;
+}) {
+  const [video] = useState(() => {
+    const element = document.createElement("video");
+    element.muted = true;
+    element.playsInline = true;
+    element.autoplay = true;
+    return element;
+  });
+  const texture = useMemo(() => {
+    const map = new THREE.VideoTexture(video);
+    map.colorSpace = THREE.SRGBColorSpace;
+    return map;
+  }, [video]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability -- a detached <video> element feeding the texture, not React state.
+    video.srcObject = stream;
+    void video.play().catch(() => {});
+    // Crop the camera's frame to the card (a phone held upright sends 3:4).
+    const crop = () => {
+      const { videoWidth: w, videoHeight: h } = video;
+      if (!w || !h) return;
+      const card = CARD_WIDTH / CARD_HEIGHT;
+      const frame = w / h;
+      if (frame > card) {
+        texture.repeat.set(card / frame, 1);
+        texture.offset.set((1 - card / frame) / 2, 0);
+      } else {
+        texture.repeat.set(1, frame / card);
+        texture.offset.set(0, (1 - frame / card) / 2);
+      }
+    };
+    video.addEventListener("loadedmetadata", crop);
+    video.addEventListener("resize", crop);
+    return () => {
+      video.removeEventListener("loadedmetadata", crop);
+      video.removeEventListener("resize", crop);
+      video.pause();
+      video.srcObject = null;
+    };
+  }, [video, stream, texture]);
+
+  // Off-screen pausing: a card outside the camera's view stops drawing frames.
+  const card = useRef<THREE.Mesh>(null);
+  const frustum = useMemo(() => new THREE.Frustum(), []);
+  const viewProjection = useMemo(() => new THREE.Matrix4(), []);
+  const sinceCheck = useRef(0);
+  const inView = useRef(true);
+  useFrame(({ camera }, delta) => {
+    sinceCheck.current += delta;
+    if (!card.current || sinceCheck.current < VISIBILITY_CHECK) return;
+    sinceCheck.current = 0;
+    viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(viewProjection);
+    const visible = frustum.intersectsObject(card.current);
+    if (visible === inView.current) return;
+    inView.current = visible;
+    if (visible) void video.play().catch(() => {});
+    else video.pause();
+  });
+
+  return (
+    // A little in front of the figure, toward the table, so a side seat's card
+    // stays on screen from your seat.
+    <Billboard position={[0, 2.12, 0.7]} lockX lockZ>
+      <mesh position={[0, 0, -0.002]}>
+        <planeGeometry args={[CARD_WIDTH + CARD_BORDER * 2, CARD_HEIGHT + CARD_BORDER * 2]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh
+        ref={card}
+        name={`${name}'s video`}
+        onClick={(event) => {
+          if (!onSelect) return;
+          event.stopPropagation();
+          onSelect();
+        }}
+        onPointerOver={() => onSelect && document.body.classList.add("sim-piece-hover")}
+        onPointerOut={() => document.body.classList.remove("sim-piece-hover")}
+      >
+        <planeGeometry args={[CARD_WIDTH, CARD_HEIGHT]} />
+        <meshStandardMaterial
+          map={texture}
+          emissiveMap={texture}
+          emissive="#ffffff"
+          emissiveIntensity={0.55}
+          roughness={0.6}
+          toneMapped={false}
+        />
+      </mesh>
+    </Billboard>
+  );
+}
+
 function ProceduralAvatar({
   player,
   active,
@@ -57,6 +176,8 @@ function ProceduralAvatar({
   hex,
   colorBlind,
   reducedMotion,
+  videoStream,
+  onVideoSelect,
 }: {
   player: Player;
   active: boolean;
@@ -64,6 +185,8 @@ function ProceduralAvatar({
   hex: boolean;
   colorBlind: boolean;
   reducedMotion: boolean;
+  videoStream?: MediaStream;
+  onVideoSelect?: (playerId: string) => void;
 }) {
   const root = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
@@ -114,6 +237,14 @@ function ProceduralAvatar({
         </mesh>
         <AvatarFace portrait={portrait} />
       </group>
+      {videoStream && (
+        <VideoCard
+          stream={videoStream}
+          color={playerColor}
+          name={player.displayName}
+          onSelect={onVideoSelect && (() => onVideoSelect(player.id))}
+        />
+      )}
       {active && (
         <mesh position={[0, 1.72, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <torusGeometry args={[0.32, 0.025, 8, 32]} />
@@ -136,6 +267,8 @@ export function PlayerAvatars3D({
   hex = false,
   colorBlind = false,
   reducedMotion = false,
+  videoStreams,
+  onVideoSelect,
 }: {
   players: Player[];
   turnPlayerId: string | null;
@@ -146,6 +279,10 @@ export function PlayerAvatars3D({
   hex?: boolean;
   colorBlind?: boolean;
   reducedMotion?: boolean;
+  /** Remote cameras shown on cards above their figures (V3), by player id. */
+  videoStreams?: Map<string, MediaStream>;
+  /** A video card was tapped: open that player's enlarged video. */
+  onVideoSelect?: (playerId: string) => void;
 }) {
   const group = useRef<THREE.Group>(null);
   useFrame((_, delta) => {
@@ -173,6 +310,8 @@ export function PlayerAvatars3D({
           hex={hex}
           colorBlind={colorBlind}
           reducedMotion={reducedMotion}
+          videoStream={videoStreams?.get(player.id)}
+          onVideoSelect={onVideoSelect}
         />
       ))}
     </group>

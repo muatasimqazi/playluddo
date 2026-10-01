@@ -48,12 +48,41 @@ const SPEAKING_THRESHOLD = 12;
 const SPEAKING_POLL_MS = 150;
 
 // Small video keeps the mesh cheap on phones (V2): 320×240, 15 fps, ~300 kbps.
-const VIDEO_CONSTRAINTS: MediaTrackConstraints = {
-  width: { ideal: 320 },
-  height: { ideal: 240 },
-  frameRate: { ideal: 15, max: 15 },
-};
-const VIDEO_MAX_BITRATE = 300_000;
+// On mobile data it starts smaller still (V3): 240×180, 12 fps, ~150 kbps.
+const VIDEO_QUALITY = {
+  standard: { width: 320, height: 240, frameRate: 15, maxBitrate: 300_000 },
+  cellular: { width: 240, height: 180, frameRate: 12, maxBitrate: 150_000 },
+} as const;
+type VideoQuality = (typeof VIDEO_QUALITY)[keyof typeof VIDEO_QUALITY];
+
+function videoConstraints(quality: VideoQuality): MediaTrackConstraints {
+  return {
+    width: { ideal: quality.width },
+    height: { ideal: quality.height },
+    frameRate: { ideal: quality.frameRate, max: quality.frameRate },
+  };
+}
+
+/**
+ * Whether this device says it's on mobile data (V3). Only the Network
+ * Information API can tell, and only some browsers have it (Chrome on
+ * Android, the Android app's WebView); elsewhere this is false.
+ */
+export function onCellular(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const connection = (navigator as Navigator & { connection?: { type?: string } }).connection;
+  return connection?.type === "cellular";
+}
+
+// The mobile-data warning is shown once per device.
+const CELLULAR_OK_KEY = "luddo-video-cellular-ok";
+function cellularAcknowledged() {
+  try {
+    return localStorage.getItem(CELLULAR_OK_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 interface Analysed {
   ctx: AudioContext;
@@ -91,6 +120,13 @@ export interface TableCall {
   remoteVideo: Map<string, MediaStream>;
   /** Quick "hide everyone's video" toggle (audio only, for low data). */
   hideRemoteVideo: boolean;
+  /**
+   * The one-time mobile-data warning is up (V3): turning the camera on waits
+   * until the player accepts it or backs out.
+   */
+  cellularWarning: boolean;
+  acceptCellularWarning: () => void;
+  dismissCellularWarning: () => void;
   /** One-tap entry: join the call if needed, then turn the camera on (or off). */
   startVideo: () => void;
   toggleCamera: () => void;
@@ -114,6 +150,7 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
   const [cameraStarting, setCameraStarting] = useState(false);
   const [flipSupported, setFlipSupported] = useState(false);
   const [hideRemoteVideo, setHideRemoteVideo] = useState(false);
+  const [cellularWarning, setCellularWarning] = useState(false);
   const [localVideoStream, setLocalVideoStream] = useState<MediaStream | null>(null);
   const [remoteVideo, setRemoteVideo] = useState<Map<string, MediaStream>>(
     () => new Map(),
@@ -135,6 +172,9 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
   // "Start video" path): once join completes, the camera turns on by itself.
   const pendingCameraRef = useRef(false);
   const facingMode = useRef<"user" | "environment">("user");
+  // Chosen each time the camera opens, so a phone that moves onto Wi-Fi gets
+  // the standard size next time.
+  const quality = useRef<VideoQuality>(VIDEO_QUALITY.standard);
   // The table permits video, captured in a ref so peer setup (which runs
   // outside React render) sees the current value without re-subscribing.
   const videoAllowedRef = useRef(false);
@@ -199,6 +239,31 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
     [client, roomId],
   );
 
+  // Point a peer's video sender at the camera, unless that peer is blocked.
+  const attachVideoSender = useCallback((peer: Peer, id: string, sender: RTCRtpSender) => {
+    peer.videoSender = sender;
+    const cameraTrack = cameraStream.current?.getVideoTracks()[0] ?? null;
+    if (cameraOnRef.current && cameraTrack && !blockedRef.current.has(id)) {
+      void sender.replaceTrack(cameraTrack);
+      void applyVideoEncoding(sender, quality.current);
+    }
+  }, []);
+
+  // The answering side of a video table sends on the transceiver the offer
+  // created, turned two-way.
+  const adoptOfferedVideo = useCallback(
+    (peer: Peer, id: string) => {
+      if (!videoAllowedRef.current || peer.videoSender) return;
+      const transceiver = peer.connection
+        .getTransceivers()
+        .find((t) => t.receiver.track.kind === "video" && t.currentDirection !== "stopped");
+      if (!transceiver) return;
+      transceiver.direction = "sendrecv";
+      attachVideoSender(peer, id, transceiver.sender);
+    },
+    [attachVideoSender],
+  );
+
   const ensurePeer = useCallback(
     (id: string, isOfferer: boolean): Peer => {
       const existing = peers.current.get(id);
@@ -233,16 +298,15 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
 
       // A video transceiver exists only on a video-capable table, so audio-only
       // tables carry no video section (and never trip the server's V0 SDP gate).
-      if (videoAllowedRef.current) {
+      // Only the offerer adds one: an answerer's own addTransceiver is never
+      // matched to the offer's video section, so its camera would go out on a
+      // sender nobody negotiated. The answerer adopts the offer's instead
+      // (adoptOfferedVideo, after setRemoteDescription).
+      if (videoAllowedRef.current && isOfferer) {
         const transceiver = connection.addTransceiver("video", {
           direction: "sendrecv",
         });
-        peer.videoSender = transceiver.sender;
-        const cameraTrack = cameraStream.current?.getVideoTracks()[0] ?? null;
-        if (cameraOnRef.current && cameraTrack && !blocked) {
-          void peer.videoSender.replaceTrack(cameraTrack);
-          void applyVideoEncoding(peer.videoSender);
-        }
+        attachVideoSender(peer, id, transceiver.sender);
       }
 
       connection.onicecandidate = (e) => {
@@ -302,7 +366,7 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
 
       return peer;
     },
-    [attachAnalyser, cleanupPeer, removeRemoteVideo, sendSignal],
+    [attachAnalyser, attachVideoSender, cleanupPeer, removeRemoteVideo, sendSignal],
   );
 
   const stopCamera = useCallback(() => {
@@ -381,8 +445,9 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
     const media =
       typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
     if (!media?.getUserMedia) throw new DOMException("no camera", "NotFoundError");
+    quality.current = onCellular() ? VIDEO_QUALITY.cellular : VIDEO_QUALITY.standard;
     const stream = await media.getUserMedia({
-      video: { ...VIDEO_CONSTRAINTS, facingMode: facingMode.current },
+      video: { ...videoConstraints(quality.current), facingMode: facingMode.current },
     });
     cameraStream.current = stream;
     const track = stream.getVideoTracks()[0] ?? null;
@@ -390,7 +455,7 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
     for (const [id, peer] of peers.current) {
       if (blockedRef.current.has(id) || !peer.videoSender) continue;
       await peer.videoSender.replaceTrack(track);
-      await applyVideoEncoding(peer.videoSender);
+      await applyVideoEncoding(peer.videoSender, quality.current);
     }
     // A second camera means flip is worth offering (phones, mostly).
     void media
@@ -413,6 +478,11 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
       return;
     }
     if (!videoAllowedRef.current) return;
+    // On mobile data, ask once before the camera starts using it.
+    if (onCellular() && !cellularAcknowledged()) {
+      setCellularWarning(true);
+      return;
+    }
     setError(null);
     setCameraStarting(true);
     void openCamera()
@@ -470,6 +540,17 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
     }
   }, [joined, toggleCamera]);
 
+  const acceptCellularWarning = useCallback(() => {
+    try {
+      localStorage.setItem(CELLULAR_OK_KEY, "1");
+    } catch {
+      /* Without storage the warning just comes back next time. */
+    }
+    setCellularWarning(false);
+    toggleCamera();
+  }, [toggleCamera]);
+  const dismissCellularWarning = useCallback(() => setCellularWarning(false), []);
+
   const toggleHideRemoteVideo = useCallback(
     () => setHideRemoteVideo((v) => !v),
     [],
@@ -519,6 +600,7 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
         void peer.connection
           .setRemoteDescription({ type: "offer", sdp: payload.sdp })
           .then(() => {
+            adoptOfferedVideo(peer, from);
             const pending = peer.pendingCandidates.splice(0);
             return Promise.all(
               pending.map((c) => peer.connection.addIceCandidate(c)),
@@ -556,7 +638,7 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
       }
       consumeVoiceSignal(id);
     }
-  }, [voiceSignals, joined, myPlayerId, ensurePeer, sendSignal, consumeVoiceSignal]);
+  }, [voiceSignals, joined, myPlayerId, ensurePeer, adoptOfferedVideo, sendSignal, consumeVoiceSignal]);
 
   // Speaking indicator: poll each active analyser's volume.
   useEffect(() => {
@@ -622,6 +704,9 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
     localVideoStream,
     remoteVideo,
     hideRemoteVideo,
+    cellularWarning,
+    acceptCellularWarning,
+    dismissCellularWarning,
     startVideo,
     toggleCamera,
     flipCamera,
@@ -629,13 +714,13 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
   };
 }
 
-async function applyVideoEncoding(sender: RTCRtpSender) {
+async function applyVideoEncoding(sender: RTCRtpSender, quality: VideoQuality) {
   try {
     const params = sender.getParameters();
     if (!params.encodings || params.encodings.length === 0)
       params.encodings = [{}];
-    params.encodings[0].maxBitrate = VIDEO_MAX_BITRATE;
-    params.encodings[0].maxFramerate = 15;
+    params.encodings[0].maxBitrate = quality.maxBitrate;
+    params.encodings[0].maxFramerate = quality.frameRate;
     await sender.setParameters(params);
   } catch {
     /* Bitrate capping is best-effort; the call still works without it. */

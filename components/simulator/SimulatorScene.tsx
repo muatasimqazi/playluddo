@@ -147,6 +147,12 @@ export interface SceneProps {
   reducedMotion?: boolean;
   /** The piece a keyboard user has focused in the piece list, shown lifted like a hover. */
   focusedPawnId?: string | null;
+  /** Remote cameras on cards above the seat figures (Section 7, V3), by player id. */
+  videoStreams?: Map<string, MediaStream>;
+  /** A video card was tapped. */
+  onVideoSelect?: (playerId: string) => void;
+  /** The frame rate stayed low with video cards up: the table should fall back to the 2D strip. */
+  onVideoSlow?: () => void;
 }
 
 function CameraRig({
@@ -2301,6 +2307,36 @@ function FocusedTabletop({
   );
 }
 
+// Video cards fall back to the 2D strip (V3) after three windows in a row
+// under this frame rate. A window with a long stall (a backgrounded tab)
+// doesn't count either way.
+const VIDEO_MIN_FPS = 24;
+const VIDEO_FPS_WINDOW = 2;
+const VIDEO_SLOW_WINDOWS = 3;
+
+/** Watches the frame rate while video cards are up, and says once when it's too low. */
+function VideoFrameRateWatch({ onSlow }: { onSlow: () => void }) {
+  const sample = useRef({ frames: 0, elapsed: 0, stalled: false });
+  const slowWindows = useRef(0);
+  const reported = useRef(false);
+  useFrame((_, delta) => {
+    if (reported.current) return;
+    const w = sample.current;
+    if (delta > 0.5) w.stalled = true;
+    w.frames += 1;
+    w.elapsed += delta;
+    if (w.elapsed < VIDEO_FPS_WINDOW) return;
+    const fps = w.frames / w.elapsed;
+    if (!w.stalled) slowWindows.current = fps < VIDEO_MIN_FPS ? slowWindows.current + 1 : 0;
+    sample.current = { frames: 0, elapsed: 0, stalled: false };
+    if (slowWindows.current >= VIDEO_SLOW_WINDOWS) {
+      reported.current = true;
+      onSlow();
+    }
+  });
+  return null;
+}
+
 /** Mounted inside the scene's main Suspense, so it only commits once everything in it has loaded. */
 function SceneReady({ onReady }: { onReady: () => void }) {
   useEffect(onReady, [onReady]);
@@ -2477,6 +2513,8 @@ export default function SimulatorScene(props: SceneProps) {
               hex={sceneSpec(props).arms === 6}
               colorBlind={props.colorBlind}
               reducedMotion={props.reducedMotion}
+              videoStreams={props.videoStreams}
+              onVideoSelect={props.onVideoSelect}
             />
           </Suspense>
           {/* Inside Surroundings so it hides with the room: its baked
@@ -2502,6 +2540,9 @@ export default function SimulatorScene(props: SceneProps) {
           <SceneReady onReady={markReady} />
         </Suspense>
         <CameraRig {...props} />
+        {props.videoStreams && props.videoStreams.size > 0 && props.onVideoSlow && (
+          <VideoFrameRateWatch onSlow={props.onVideoSlow} />
+        )}
         {/* drei counts every adjustment toward `flipflops` — inclines
             included — and then stops sampling and fires onFallback. This
             used to hard-set 1x there, so a machine holding a steady 60fps

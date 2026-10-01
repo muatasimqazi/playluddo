@@ -125,6 +125,14 @@ export interface SimulatorProps {
   cast?: Cast;
 }
 
+// The scene's own "compact" test (SimulatorScene: width <= 900 or height <= 650).
+const COMPACT_QUERY = "(max-width: 900px), (max-height: 650px)";
+function subscribeCompact(onChange: () => void) {
+  const media = window.matchMedia(COMPACT_QUERY);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
 function plural(count: number, one: string, many = `${one}s`) {
   return `${count} ${count === 1 ? one : many}`;
 }
@@ -414,6 +422,16 @@ export default function Simulator({
   const [reduceMotion, setReduceMotion] = useGamePreference("reduceMotion");
   const reducedMotion = useReducedMotion();
   const palette = seatColors(colorBlind);
+  // Video (Section 7, V3): remote cameras sit on cards above the seat figures
+  // on a larger screen, and in the 2D strip on a phone or once the frame rate
+  // has dropped with them up (for the rest of this visit).
+  const compactScreen = useSyncExternalStore(
+    subscribeCompact,
+    () => window.matchMedia(COMPACT_QUERY).matches,
+    () => false,
+  );
+  const [videoSlow, setVideoSlow] = useState(false);
+  const [enlargedVideoId, setEnlargedVideoId] = useState<string | null>(null);
   const [mode, setMode] = useState<InteractionMode>("play");
   const [leaving, setLeaving] = useState(false);
   const [panel, setPanel] = useState<
@@ -808,6 +826,23 @@ export default function Simulator({
     .forEach((m) => {
       reactions[m.playerId] = m.text;
     });
+  const videoInScene = !!voice?.joined && !screen && !compactScreen && !videoSlow;
+  const sceneVideo = (() => {
+    if (!videoInScene || !voice || voice.hideRemoteVideo) return undefined;
+    const streams = new Map<string, MediaStream>();
+    for (const player of state.players) {
+      const stream = voice.remoteVideo.get(player.id);
+      if (
+        stream &&
+        player.cameraOn &&
+        !player.isBot &&
+        player.id !== myPlayerId &&
+        !blockedPlayerIds.includes(player.id)
+      )
+        streams.set(player.id, stream);
+    }
+    return streams;
+  })();
   const title = frame.replaying
     ? "ACTION REPLAY"
     : state.status === "summary" || state.status === "abandoned"
@@ -929,6 +964,9 @@ export default function Simulator({
           colorBlind={colorBlind}
           reducedMotion={reducedMotion}
           focusedPawnId={focusedPawnId}
+          videoStreams={sceneVideo}
+          onVideoSelect={setEnlargedVideoId}
+          onVideoSlow={() => setVideoSlow(true)}
         />
       </SceneBoundary>
       <div className="sim-vignette" />
@@ -943,6 +981,9 @@ export default function Simulator({
           players={state.players}
           myPlayerId={myPlayerId}
           blockedPlayerIds={blockedPlayerIds}
+          remoteInScene={videoInScene}
+          enlargedId={enlargedVideoId}
+          onEnlarge={setEnlargedVideoId}
           onBlockPlayer={onBlockPlayer}
           onReportPlayer={
             onReportPlayer

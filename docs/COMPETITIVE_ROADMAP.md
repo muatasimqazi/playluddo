@@ -15,23 +15,22 @@ Sizes: **S** ≈ 1–2 days · **M** ≈ 3–5 days · **L** ≈ 1–2 weeks · 
 
 Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merged. Each acceptance criterion has **not** been re-verified item by item; ◐ and ☐ entries list what is known to be missing.
 
-**Built but switched off.** Three server feature flags are still off, so none of these features is live yet: `online_age_check` (F0.4), `push_notifications` (F1.7) and `video_chat` (V0–V4). Video must stay off until V4 is complete.
+**Switched on in production (checked 2026-09-30).** All three server feature flags are on: `online_age_check` (F0.4), `push_notifications` (F1.7, delivering) and `video_chat` (V0–V4). The roadmap said video should stay off until V4's store disclosures ship. They are drafted in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md) but not yet entered in App Store Connect or Play Console.
 
 **What's missing**
 
 | Feature | Status | Missing |
 |---|---|---|
 | F0.4 Age check | ◐ | Hosted auth settings (manual linking, `email_change` template); the legal review for signed-in under-13s |
-| V1 TURN relay | ◐ | The manual cellular-to-cellular check; a PostHog insight on `call_ice_outcome` |
-| V3 Video in the 3D table | ◐ | `VideoTexture` on seat figures, frame-rate fallback, off-screen pause, mobile-data warning (the 2D tile strip is built) |
-| V4 Video safety | ◐ | App Store privacy label and Play Data Safety; store review notes |
+| V1 TURN relay | ◐ | The manual cellular-to-cellular check and the PostHog insight (steps in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md)) |
+| V4 Video safety | ◐ | Entering the drafted privacy label, Data Safety, age-rating answers and review notes in the store consoles; demo accounts for reviewers |
 | V5 Party-screen video and voice | ☐ | All of it |
 | V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
 | F5.1 Localization | ◐ | Localized store listings; the 360px screenshot pass |
 | F5.5 Accessibility | ◐ | The VoiceOver/TalkBack audit (manual); localizing the in-game announcements with the rest of the table HUD |
 | F5.6 Store listings | ☐ | All of it |
 
-**Everything else is built:** F0.1–F0.3, F1.1–F1.7, P1–P8, V0, V2, F2.1–F2.6, F3.1–F3.7, F4.1–F4.5, F5.2.
+**Everything else is built:** F0.1–F0.3, F1.1–F1.7, P1–P8, V0, V2, V3, F2.1–F2.6, F3.1–F3.7, F4.1–F4.5, F5.2.
 
 Section 15 (R1–R11) holds proposals, not features, so it isn't tracked here. R11's PRD and handoff reconciliation is still open.
 
@@ -434,7 +433,7 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - The privacy policy explains that we ask for birth month and year, why, and how long we keep it.
 
 ### V1 Reliable connections: a TURN relay ◐ · S–M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Remaining: the manual check that voice connects between two phones on separate cellular networks, and a PostHog insight for the <2% target once `video_chat` is on.
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Remaining: the manual check that voice connects between two phones on separate cellular networks, and a PostHog insight for the <2% target. Both are written up step by step in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md).
 
 **Also see (Section 15):** R5 · R6
 
@@ -458,8 +457,15 @@ This fixes voice first. Ship it on its own, before any video work.
 - Turning the camera on or off updates for everyone within 1 second.
 - A 4-way video call over 10 minutes keeps the 3D scene at ≥ 30 fps on a recent phone, or falls back automatically (V3).
 
-### V3 Video in the 3D table ◐ · L
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) · [`e2706e5`](https://github.com/muatasimqazi/playluddo/commit/e2706e5) — only the 2D fallback is built (`components/simulator/VideoTiles.tsx`: mirrored self-preview, flip camera, hide everyone's video, block, enlarge). Missing: remote cameras as `VideoTexture`s on the 3D seat figures; automatic fallback on low frame rate; pausing off-screen video; the one-time mobile-data warning and lower default quality on cellular.
+### V3 Video in the 3D table ✅ · L
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) · [`e2706e5`](https://github.com/muatasimqazi/playluddo/commit/e2706e5) built the 2D strip; V3's commit added:
+- **3D video:** on a larger screen, each remote camera is a lit card above its seat figure (`VideoCard` in `PlayerAvatar3D.tsx`). The card turns about the vertical axis to face you, so the players beside you are as readable as the one across. A card is used rather than the face because side seats show their faces edge-on. Tapping a card opens the enlarged view with Report and Block. Your own camera stays a mirrored preview in the HUD.
+- **Fallbacks:** phones use the 2D strip. A table that holds under 24 fps for three 2-second windows with cards up drops to the strip for the rest of the visit.
+- **Off-screen pausing:** cards off camera, and strip tiles scrolled out of view, stop drawing frames. The receiver still receives and decodes; truly stopping that would need the sender to pause (V6).
+- **Mobile data:** a one-time warning appears before the camera starts, where the browser reports mobile data (Chrome on Android, the Android app). The camera then sends 240×180 at 12 fps and ~150 kbps.
+- **A V2 bug fixed along the way:** the answering side of each call added its own video transceiver, which WebRTC never pairs with the offer. So its camera went out unnegotiated and only one direction of video worked. It now adopts the offer's transceiver.
+
+Verified with two headless Chromes (fake cameras) at a local private table: video both ways, card tap to the enlarged view, hide-all, the phone strip, the CPU-throttled fallback, and the cellular warning and quality.
 
 **Also see (Section 15):** R5 · R6 · R8
 
@@ -475,7 +481,7 @@ This fixes voice first. Ship it on its own, before any video work.
 - **Reduced motion:** no animated camera framing around video tiles.
 
 ### V4 Safety ◐ · M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), one tap hides all incoming video, and every remote video tile (and its enlarged view) carries **Report** and **Block**. Report opens the table's `player_reports` form, which notes that video is never recorded. The privacy policy and terms cover camera, video, the TURN relay and the 18+ rule. Missing: the App Store privacy label and Play Data Safety updates, and store review notes. Video must stay off until these ship.
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — blocking is enforced at the sender (`replaceTrack(null)` in `useTableCall`), one tap hides all incoming video, and every remote video tile (and its enlarged view) carries **Report** and **Block**. Report opens the table's `player_reports` form, which notes that video is never recorded. The privacy policy and terms cover camera, video, the TURN relay and the 18+ rule. Missing: the App Store privacy label and Play Data Safety updates, and store review notes. The App Store, Play Store and review-note text is drafted in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md) ([`a680577`](https://github.com/muatasimqazi/playluddo/commit/a680577)). It still has to be entered in the consoles. Video should stay off until it is.
 
 **Also see (Section 15):** R5 · R7 · R8
 

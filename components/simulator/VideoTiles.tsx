@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { Player } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { Icon } from "./Icon";
 
 /**
- * The 2D fallback for video chat (Section 7, V3): a strip of camera tiles above
- * the controls, shown on small screens or wherever the 3D VideoTexture isn't in
- * play. Local preview is mirrored; each remote tile carries report, block and
- * enlarge (V4: safety controls sit on the video itself).
+ * Video chat's controls, your own mirrored preview, and the 2D fallback for
+ * everyone else's camera (Section 7, V3): a strip of tiles above the controls
+ * on small screens, or when the table drops out of 3D video because the frame
+ * rate fell. On a larger screen the remote cameras sit on the 3D seat figures
+ * instead (`remoteInScene`), and tapping one opens the same enlarged view.
+ * Each remote tile and the enlarged view carry report and block (V4: safety
+ * controls sit on the video itself).
  * Blocked seats and "hide everyone's video" drop tiles here, and the hook also
  * stops sending/receiving their media, so this is presentation only.
  */
@@ -20,6 +23,9 @@ export function VideoTiles({
   blockedPlayerIds,
   onBlockPlayer,
   onReportPlayer,
+  remoteInScene = false,
+  enlargedId,
+  onEnlarge,
 }: {
   call: VoiceChat;
   players: Player[];
@@ -28,9 +34,15 @@ export function VideoTiles({
   onBlockPlayer?: (playerId: string, blocked: boolean) => Promise<unknown>;
   /** Open the table's report form for this player. */
   onReportPlayer?: (playerId: string) => void;
+  /** Remote cameras are on the 3D seat figures, so the strip leaves them out. */
+  remoteInScene?: boolean;
+  /** Whose video is shown large; null for none. Owned by the table so a tap on a seat figure can open it. */
+  enlargedId: string | null;
+  onEnlarge: (playerId: string | null) => void;
 }) {
-  const [enlargedId, setEnlargedId] = useState<string | null>(null);
+  const setEnlargedId = onEnlarge;
 
+  if (call.cellularWarning) return <CellularNotice call={call} />;
   if (!call.joined) return null;
 
   const blocked = new Set(blockedPlayerIds);
@@ -71,7 +83,8 @@ export function VideoTiles({
       : undefined,
   });
 
-  const hasTiles = (call.cameraOn && call.localVideoStream) || remotes.length > 0;
+  const hasTiles =
+    (call.cameraOn && call.localVideoStream) || (!remoteInScene && remotes.length > 0);
 
   return (
     <div className="video-chat">
@@ -131,7 +144,7 @@ export function VideoTiles({
               onEnlarge={() => setEnlargedId(myPlayerId)}
             />
           )}
-          {remotes.map((p) => (
+          {!remoteInScene && remotes.map((p) => (
             <VideoTile
               key={p.id}
               stream={call.remoteVideo.get(p.id) ?? null}
@@ -196,7 +209,16 @@ function VideoTile({
     const el = ref.current;
     if (!el) return;
     el.srcObject = stream;
-    if (stream) void el.play().catch(() => {});
+    if (!stream) return;
+    void el.play().catch(() => {});
+    // A tile scrolled out of the strip stops drawing frames until it's back.
+    if (typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) void el.play().catch(() => {});
+      else el.pause();
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [stream]);
 
   return (
@@ -236,6 +258,42 @@ function VideoTile({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The one-time mobile-data warning (V3), shown before the camera starts on a
+ * phone the browser reports is on mobile data.
+ */
+function CellularNotice({ call }: { call: VoiceChat }) {
+  return (
+    <div className="sim-dialog-backdrop" role="presentation" onMouseDown={call.dismissCellularWarning}>
+      <section
+        className="sim-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="cellular-title"
+        aria-describedby="cellular-body"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <span className="eyebrow">VIDEO</span>
+        <h2 id="cellular-title">You&rsquo;re on mobile data</h2>
+        <p id="cellular-body">
+          Video uses about 3 MB a minute for each other person on camera. We&rsquo;ll send yours
+          at a lower quality to save data, and you can hide everyone&rsquo;s video any time to keep
+          just voice.
+        </p>
+        <div className="sim-dialog-actions">
+          <button className="sim-primary" autoFocus onClick={call.acceptCellularWarning}>
+            <Icon name="camera" />
+            Turn on camera
+          </button>
+          <button className="panel-secondary" onClick={call.dismissCellularWarning}>
+            Not now
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

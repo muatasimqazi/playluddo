@@ -610,6 +610,7 @@ export const ur: Messages = {
     lobbyPromptDismiss: "ابھی نہیں",
   },
   party: {
+    boardAria: "بورڈ۔ آپ کی گوٹیوں پر نمبر ہیں؛ جنہیں آپ چل سکتے ہیں وہ چمکتی ہیں۔",
     // PartyWhere
     whereTitle1: "آپ کہاں سے",
     whereTitleEm: "کھیل رہے ہیں؟",

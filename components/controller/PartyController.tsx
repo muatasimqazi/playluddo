@@ -3,7 +3,7 @@
 import { PartySafety } from "@/components/party/PartySafety";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { GameRoomState, Pawn } from "@/lib/board/types";
+import type { GameRoomState, PlayerColor } from "@/lib/board/types";
 import { COLORS } from "@/lib/presentation/board";
 import {
   controllerPhase,
@@ -11,10 +11,7 @@ import {
   forcedMovePawnId,
   partyWaitEndsAt,
   clock,
-  pieceSteps,
-  pieceWhere,
   placementOf,
-  routeLength,
   type MovePreview,
 } from "@/lib/presentation/controller";
 import { REACTION_EMOJI_ROWS, REACTION_PHRASES, REVENGE } from "@/lib/realtime/reactions";
@@ -24,6 +21,7 @@ import { useWakeLock } from "@/lib/hooks/useWakeLock";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { Icon } from "@/components/simulator/Icon";
 import { CastButton } from "@/components/cast/CastButton";
+import { PartyBoard } from "./PartyBoard";
 import type { Cast } from "@/lib/hooks/useCast";
 import { useI18n, type Translator } from "@/lib/i18n";
 import { useShakeToRoll } from "./useShakeToRoll";
@@ -139,7 +137,6 @@ export function PartyController({
     );
 
   const turnPlayer = state.players.find((p) => p.id === state.turnPlayerId);
-  const mine = state.pawns.filter((p) => p.color === me.color).sort((a, b) => a.index - b.index);
   const previews = new Map(
     phase === "move" ? state.legalMoves.map((m) => [m.pawnId, describeMove(state, m)] as const) : [],
   );
@@ -240,7 +237,7 @@ export function PartyController({
       {phase !== "ended" && (
         <Pieces
           state={state}
-          pieces={mine}
+          color={me.color}
           previews={previews}
           choosing={phase === "move" && !forced && canAct}
           onMove={onMove}
@@ -339,16 +336,21 @@ function Status({
   }
 }
 
+/**
+ * Your pieces, on the board itself (PartyBoard): on your move the ones you
+ * can play glow; tap one (on the board, or its numbered chip) to see its
+ * route and what it does, and to show it on the TV, then confirm.
+ */
 function Pieces({
   state,
-  pieces,
+  color,
   previews,
   choosing,
   onMove,
   onPreview,
 }: {
   state: GameRoomState;
-  pieces: Pawn[];
+  color: PlayerColor;
   previews: Map<string, MovePreview>;
   choosing: boolean;
   onMove: (pawnId: string) => void;
@@ -363,71 +365,61 @@ function Pieces({
     setLastKey(choiceKey);
     setSelected(null);
   }
-  const total = routeLength(state);
+  const legal = choosing ? [...previews.keys()] : [];
   const chosen = selected ? previews.get(selected) : undefined;
+  const select = (pawnId: string) => {
+    if (!choosing || !previews.has(pawnId)) return;
+    hapticTap(10);
+    setSelected(pawnId);
+    if (selected !== pawnId) onPreview?.(pawnId);
+  };
+  const pieceNumber = (pawnId: string) => (state.pawns.find((p) => p.id === pawnId)?.index ?? 0) + 1;
+  const snakes = state.gameType === "snakes_and_ladders";
   return (
     <section className="party-pad-pieces" aria-label={t("party.yourPiecesAria")}>
-      <ul>
-        {pieces.map((pawn) => {
-          const preview = previews.get(pawn.id);
-          const legal = choosing && !!preview;
-          const at = pieceSteps(state, pawn);
-          const body = (
-            <>
-              <span className="party-pad-piece-name">
-                {state.gameType === "snakes_and_ladders" ? t("party.yourPiece") : t("party.pieceN", { n: pawn.index + 1 })}
-              </span>
-              <span className="party-pad-route" aria-hidden>
-                <span className="party-pad-route-fill" style={{ width: `${(at / total) * 100}%` }} />
-                {preview && (
-                  <span
-                    className="party-pad-route-to"
-                    style={{ left: `${(Math.min(preview.toSteps, total) / total) * 100}%` }}
-                  />
-                )}
-              </span>
-              <small>{legal ? preview.text : pieceWhere(state, pawn)}</small>
-            </>
-          );
-          return (
-            <li key={pawn.id}>
-              {legal ? (
-                <button
-                  type="button"
-                  className={`party-pad-piece is-legal${selected === pawn.id ? " is-selected" : ""}`}
-                  aria-pressed={selected === pawn.id}
-                  onClick={() => {
-                    hapticTap(10);
-                    setSelected(pawn.id);
-                    if (selected !== pawn.id) onPreview?.(pawn.id);
-                  }}
-                >
-                  {body}
-                </button>
-              ) : (
-                <div className={`party-pad-piece${pawn.state === "finished" ? " is-home" : ""}`}>{body}</div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <PartyBoard state={state} color={color} legalPawnIds={legal} selected={selected} onSelect={select} />
       {choosing && (
-        <button
-          type="button"
-          className="party-pad-primary party-pad-confirm"
-          disabled={!chosen}
-          onClick={() => {
-            if (!chosen) return;
-            hapticTap(16);
-            onMove(chosen.pawnId);
-          }}
-        >
-          {chosen
-            ? state.gameType === "snakes_and_ladders"
-              ? t("party.moveGeneric")
-              : t("party.movePiece", { n: (state.pawns.find((p) => p.id === chosen.pawnId)?.index ?? 0) + 1 })
-            : t("party.tapGlowing")}
-        </button>
+        <>
+          {!snakes && legal.length > 1 && (
+            <div className="party-pad-chips" role="group" aria-label={t("party.yourPiecesAria")}>
+              {legal
+                .slice()
+                .sort((a, b) => pieceNumber(a) - pieceNumber(b))
+                .map((pawnId) => (
+                  <button
+                    key={pawnId}
+                    type="button"
+                    className={selected === pawnId ? "is-selected" : ""}
+                    aria-pressed={selected === pawnId}
+                    aria-label={t("party.pieceN", { n: pieceNumber(pawnId) })}
+                    onClick={() => select(pawnId)}
+                  >
+                    {pieceNumber(pawnId)}
+                  </button>
+                ))}
+            </div>
+          )}
+          {/* What the picked move does; until then the button says what to do. */}
+          <p className="party-pad-move-text" aria-live="polite">
+            {chosen?.text ?? ""}
+          </p>
+          <button
+            type="button"
+            className="party-pad-primary party-pad-confirm"
+            disabled={!chosen}
+            onClick={() => {
+              if (!chosen) return;
+              hapticTap(16);
+              onMove(chosen.pawnId);
+            }}
+          >
+            {chosen
+              ? snakes
+                ? t("party.moveGeneric")
+                : t("party.movePiece", { n: pieceNumber(chosen.pawnId) })
+              : t("party.tapGlowing")}
+          </button>
+        </>
       )}
     </section>
   );

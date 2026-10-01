@@ -5603,68 +5603,131 @@ body.sim-die-blocked .sim-canvas {
   border: 1px solid var(--sim-line);
   color: var(--sim-ink);
 }
-.party-pad-pieces ul {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.party-pad-piece {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 6px 12px;
-  align-items: center;
+/* The board on a Party phone (PartyBoard): your pieces numbered, the ones
+   you can move glowing, and the picked move's route drawn to where it lands. */
+.party-board {
+  display: block;
   width: 100%;
-  min-height: 56px;
-  padding: 10px 14px;
-  border: 1px solid var(--sim-line);
+  max-width: min(100%, 62vh);
+  margin: 0 auto;
   border-radius: 14px;
-  text-align: left;
+  background: #0f1511;
+  touch-action: manipulation;
+  user-select: none;
 }
-.party-pad-piece small {
-  grid-column: 1 / -1;
-  color: var(--sim-muted);
-  font-size: 14px;
+.party-board-piece:not(.is-mine) {
+  opacity: 0.85;
 }
-.party-pad-piece.is-home {
-  opacity: 0.6;
+.party-board-disc {
+  stroke: #fffdf5;
+  stroke-width: 0.04;
 }
-.party-pad-piece.is-legal {
-  border-color: var(--seat);
-  box-shadow: 0 0 0 1px var(--seat), 0 0 18px -4px var(--seat);
+.party-board-piece.is-mine .party-board-disc {
+  stroke: #141a14;
+  stroke-width: 0.05;
 }
-.party-pad-piece.is-legal small {
-  color: var(--sim-ink);
+.party-board-number {
+  fill: #fffdf5;
+  font: 700 0.24px system-ui, sans-serif;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #141a14;
+  stroke-width: 0.05;
+  pointer-events: none;
 }
-.party-pad-piece.is-selected {
-  background: color-mix(in srgb, var(--seat) 22%, transparent);
-  box-shadow: 0 0 0 3px var(--seat);
+.party-board-hit {
+  fill: transparent;
 }
-.party-pad-piece-name {
-  font-weight: 700;
+.party-board-piece.is-legal {
+  cursor: pointer;
+  outline: none;
 }
-.party-pad-route {
-  position: relative;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(233, 231, 211, 0.12);
+.party-board-glow {
+  fill: none;
+  stroke: #fffdf5;
+  stroke-width: 0.06;
+  animation: party-board-glow 1s ease-in-out infinite alternate;
 }
-.party-pad-route-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: inherit;
-  background: var(--seat);
+.party-board-piece.is-selected .party-board-glow {
+  stroke: var(--seat);
+  stroke-width: 0.09;
+  animation: none;
 }
-.party-pad-route-to {
-  position: absolute;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  border: 3px solid #f0ecdf;
+.party-board-piece.is-legal:focus-visible .party-board-glow {
+  stroke: var(--seat);
+}
+@keyframes party-board-glow {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.party-board-route {
+  fill: none;
+  stroke: var(--seat);
+  stroke-width: 0.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.02 0.18;
+}
+.party-board-landing {
+  fill: color-mix(in srgb, var(--seat) 35%, transparent);
+  stroke: var(--seat);
+  stroke-width: 0.07;
+}
+.party-board-capture {
+  fill: none;
+  stroke: #ff5a4f;
+  stroke-width: 0.08;
+}
+@media (prefers-reduced-motion: reduce) {
+  .party-board-glow {
+    animation: none;
+  }
+}
+/* On your move the board is the point: the status shrinks to one line. */
+.party-pad[data-phase="move"] .party-pad-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.party-pad[data-phase="move"] .party-pad-die {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  font-size: 26px;
+}
+.party-pad[data-phase="move"] .party-pad-status h1 {
+  font-size: 20px;
+}
+.party-pad-chips {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.party-pad-chips button {
+  min-width: 48px;
+  min-height: 48px;
+  border: 2px solid var(--seat);
   border-radius: 50%;
-  background: #151d17;
-  transform: translate(-50%, -50%);
+  font-size: 20px;
+  font-weight: 800;
+}
+.party-pad-chips button.is-selected {
+  background: var(--seat);
+  color: #141a14;
+}
+.party-pad-move-text {
+  margin: 10px 0 0;
+  min-height: 1.4em;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
 }
 .party-pad-confirm {
   width: 100%;

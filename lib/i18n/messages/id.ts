@@ -610,6 +610,7 @@ export const id: Messages = {
     lobbyPromptDismiss: "Nanti saja",
   },
   party: {
+    boardAria: "Papan. Bidakmu bernomor; yang bisa digerakkan menyala.",
     // PartyWhere
     whereTitle1: "Kamu main",
     whereTitleEm: "dari mana?",

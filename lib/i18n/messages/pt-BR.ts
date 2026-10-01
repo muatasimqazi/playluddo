@@ -610,6 +610,7 @@ export const ptBR: Messages = {
     lobbyPromptDismiss: "Agora não",
   },
   party: {
+    boardAria: "O tabuleiro. Suas peças são numeradas; as que você pode mover brilham.",
     // PartyWhere
     whereTitle1: "De onde você",
     whereTitleEm: "vai jogar?",

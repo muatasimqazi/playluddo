@@ -638,6 +638,7 @@ export const en = {
     lobbyPromptDismiss: "Not now",
   },
   party: {
+    boardAria: "The board. Your pieces are numbered; the ones you can move glow.",
     // PartyWhere
     whereTitle1: "Where are you",
     whereTitleEm: "playing from?",

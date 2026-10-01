@@ -611,6 +611,7 @@ export const ar: Messages = {
     lobbyPromptDismiss: "ليس الآن",
   },
   party: {
+    boardAria: "اللوحة. قطعك مرقّمة، والقطع التي يمكنك تحريكها تتوهّج.",
     // PartyWhere
     whereTitle1: "من أين",
     whereTitleEm: "تلعب؟",

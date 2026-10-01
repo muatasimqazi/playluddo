@@ -610,6 +610,7 @@ export const hi: Messages = {
     lobbyPromptDismiss: "अभी नहीं",
   },
   party: {
+    boardAria: "बोर्ड। आपकी गोटियों पर नंबर हैं; जिन्हें आप चल सकते हैं वे चमकती हैं।",
     // PartyWhere
     whereTitle1: "आप कहाँ से",
     whereTitleEm: "खेल रहे हैं?",

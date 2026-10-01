@@ -610,6 +610,7 @@ export const bn: Messages = {
     lobbyPromptDismiss: "এখন নয়",
   },
   party: {
+    boardAria: "বোর্ড। আপনার গুটিগুলোতে নম্বর আছে; যেগুলো চালতে পারবেন সেগুলো জ্বলজ্বল করে।",
     // PartyWhere
     whereTitle1: "আপনি কোথা থেকে",
     whereTitleEm: "খেলছেন?",

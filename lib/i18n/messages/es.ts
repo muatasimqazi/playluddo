@@ -611,6 +611,7 @@ export const es: Messages = {
     lobbyPromptDismiss: "Ahora no",
   },
   party: {
+    boardAria: "El tablero. Tus fichas están numeradas; brillan las que puedes mover.",
     // PartyWhere
     whereTitle1: "¿Desde dónde",
     whereTitleEm: "vas a jugar?",

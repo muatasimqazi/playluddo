@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import {
   addRecentPlayerFriend,
   getFriends,
@@ -97,11 +98,16 @@ export function PlayAgain({ onJoin }: { onJoin: (roomCode: string) => void }) {
       <ul>
         {entries.map((e) => (
           <li key={e.userId}>
-            <PlayerAvatar
-              player={{ avatarId: e.avatarId ?? undefined, color: "blue", displayName: e.displayName, seatIndex: 0 }}
-              size={34}
-              level={e.level}
-            />
+            <PlayerProfileButton
+              userId={e.userId}
+              displayName={e.displayName}
+            >
+              <PlayerAvatar
+                player={{ avatarId: e.avatarId ?? undefined, color: "blue", displayName: e.displayName, seatIndex: 0 }}
+                size={34}
+                level={e.level}
+              />
+            </PlayerProfileButton>
             <span className="play-again-name">{e.displayName}</span>
             {e.roomCode ? (
               <button type="button" onClick={() => onJoin(e.roomCode!)}>

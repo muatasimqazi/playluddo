@@ -11,6 +11,7 @@ import {
   type TournamentTable,
 } from "@/lib/supabase/tournaments";
 import { Icon } from "@/components/simulator/Icon";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { COLORS } from "@/lib/presentation/board";
 import { useI18n, type Translator } from "@/lib/i18n";
 
@@ -135,7 +136,13 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
           <Icon name="trophy" size={20} />
           <div>
             <span className="eyebrow">{tx("tournaments.champion").toUpperCase()}</span>
-            <strong>{champion.displayName}</strong>
+            <PlayerProfileButton
+              userId={champion.userId}
+              displayName={champion.displayName}
+              className="is-text"
+            >
+              <strong>{champion.displayName}</strong>
+            </PlayerProfileButton>
           </div>
         </div>
       )}
@@ -184,7 +191,9 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
           {t.entrants.map((e) => (
             <span key={e.userId} className={e.checkedIn ? "is-ready" : ""}>
               {e.checkedIn && <Icon name="check" size={12} />}
-              {e.displayName}
+              <PlayerProfileButton userId={e.userId} displayName={e.displayName} className="is-text">
+                {e.displayName}
+              </PlayerProfileButton>
             </span>
           ))}
         </div>
@@ -214,7 +223,14 @@ function TableCard({ table }: { table: TournamentTable }) {
         {table.seats.map((seat, i) => (
           <li key={i} className={seat.placement && seat.placement <= 2 ? "is-advancing" : ""}>
             <span className="bracket-dot" style={{ background: COLORS[seat.color] }} />
-            <span className="bracket-seat-name">{seat.displayName}</span>
+            <PlayerProfileButton
+              playerId={seat.playerId}
+              displayName={seat.displayName}
+              isBot={seat.isBot}
+              className="is-text bracket-seat-name"
+            >
+              {seat.displayName}
+            </PlayerProfileButton>
             {seat.placement ? <small>{placeLabel(tx, seat.placement)}</small> : null}
           </li>
         ))}

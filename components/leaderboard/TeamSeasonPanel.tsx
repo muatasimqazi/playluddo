@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { Icon } from "@/components/simulator/Icon";
 import { BRAND } from "@/lib/brand";
 import { getTeamSeason, type TeamSeason } from "@/lib/supabase/seasons";
@@ -223,20 +224,25 @@ export function TeamSeasonPanel({
                 className={entry.userId === myUserId ? "is-me" : undefined}
               >
                 <span className="season-rank">{entry.rank}</span>
-                <PlayerAvatar
-                  player={{
-                    displayName: entry.displayName,
-                    avatarId: entry.avatarId ?? undefined,
-                    color: "blue",
-                    seatIndex: entry.rank,
-                  }}
-                  size={30}
-                  placement={
-                    !season.isCurrent && entry.rank <= 3
-                      ? (entry.rank as 1 | 2 | 3)
-                      : undefined
-                  }
-                />
+                <PlayerProfileButton
+                  userId={entry.userId}
+                  displayName={entry.displayName}
+                >
+                  <PlayerAvatar
+                    player={{
+                      displayName: entry.displayName,
+                      avatarId: entry.avatarId ?? undefined,
+                      color: "blue",
+                      seatIndex: entry.rank,
+                    }}
+                    size={30}
+                    placement={
+                      !season.isCurrent && entry.rank <= 3
+                        ? (entry.rank as 1 | 2 | 3)
+                        : undefined
+                    }
+                  />
+                </PlayerProfileButton>
                 <span className="season-name">
                   {entry.displayName}
                   {entry.userId === myUserId && (

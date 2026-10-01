@@ -28,6 +28,8 @@ export interface TournamentEntrant {
 }
 
 export interface TournamentSeat {
+  /** The seat (players.id), for opening its profile. */
+  playerId: string;
   displayName: string;
   color: PlayerColor;
   isBot: boolean;

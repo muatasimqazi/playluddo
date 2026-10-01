@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { useI18n, type Translator } from "@/lib/i18n";
 import {
   getFriends,
@@ -208,10 +209,15 @@ function FriendIdentity({ friend }: { friend: Friend }) {
   const { t } = useI18n();
   return (
     <span className="friends-identity">
-      <PlayerAvatar
-        player={{ avatarId: friend.avatarId ?? undefined, color: "blue", displayName: friend.displayName, seatIndex: 0 }}
-        size={32}
-      />
+      <PlayerProfileButton
+        userId={friend.userId}
+        displayName={friend.displayName}
+      >
+        <PlayerAvatar
+          player={{ avatarId: friend.avatarId ?? undefined, color: "blue", displayName: friend.displayName, seatIndex: 0 }}
+          size={32}
+        />
+      </PlayerProfileButton>
       <span>
         <strong>{friend.displayName}</strong>
         <small>{t("profile.friendLevel", { level: friend.level })}</small>

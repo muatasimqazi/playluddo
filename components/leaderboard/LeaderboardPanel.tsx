@@ -1,6 +1,7 @@
 "use client";
 
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import type { LeaderboardEntry } from "@/lib/supabase/leaderboard";
 import { useI18n } from "@/lib/i18n";
 
@@ -38,16 +39,21 @@ export function LeaderboardPanel({
               key={entry.userId}
               className={`is-place-${place} ${entry.userId === myUserId ? "is-me" : ""}`}
             >
-              <PlayerAvatar
-                player={{
-                  displayName: entry.displayName,
-                  avatarId: entry.avatarId ?? undefined,
-                  color: "blue",
-                  seatIndex: entry.rank,
-                }}
-                size={place === 1 ? 64 : 50}
-                placement={place <= 3 ? place : undefined}
-              />
+              <PlayerProfileButton
+                userId={entry.userId}
+                displayName={entry.displayName}
+              >
+                <PlayerAvatar
+                  player={{
+                    displayName: entry.displayName,
+                    avatarId: entry.avatarId ?? undefined,
+                    color: "blue",
+                    seatIndex: entry.rank,
+                  }}
+                  size={place === 1 ? 64 : 50}
+                  placement={place <= 3 ? place : undefined}
+                />
+              </PlayerProfileButton>
               <strong>{entry.displayName}</strong>
               <span>
                 {t(entry.wins === 1 ? "leaderboard.winOne" : "leaderboard.winOther", { count: entry.wins })}
@@ -65,15 +71,20 @@ export function LeaderboardPanel({
           {rest.map((entry) => (
             <li key={entry.userId} className={entry.userId === myUserId ? "is-me" : undefined}>
               <span className="leaderboard-rank">{entry.rank}</span>
-              <PlayerAvatar
-                player={{
-                  displayName: entry.displayName,
-                  avatarId: entry.avatarId ?? undefined,
-                  color: "blue",
-                  seatIndex: entry.rank,
-                }}
-                size={30}
-              />
+              <PlayerProfileButton
+                userId={entry.userId}
+                displayName={entry.displayName}
+              >
+                <PlayerAvatar
+                  player={{
+                    displayName: entry.displayName,
+                    avatarId: entry.avatarId ?? undefined,
+                    color: "blue",
+                    seatIndex: entry.rank,
+                  }}
+                  size={30}
+                />
+              </PlayerProfileButton>
               <strong>{entry.displayName}</strong>
               {entry.userId === myUserId && (
                 <small className="leaderboard-you">{t("leaderboard.you").toUpperCase()}</small>

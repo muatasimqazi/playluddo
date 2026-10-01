@@ -89,3 +89,16 @@ export function getMyProfile(client: SupabaseClient) {
 export function getPlayerProfile(client: SupabaseClient, playerId: string) {
   return profileCall(client, playerId);
 }
+
+/**
+ * The profile of an account the client already knows by id — the leaderboard,
+ * friends, recently-played and tournament rows. Same visibility rules as a seat.
+ */
+export async function getAccountProfile(
+  client: SupabaseClient,
+  userId: string,
+): Promise<PlayerProfile> {
+  const { data, error } = await client.rpc("get_account_profile", { p_user_id: userId });
+  if (error) throw new Error(error.message);
+  return data as PlayerProfile;
+}

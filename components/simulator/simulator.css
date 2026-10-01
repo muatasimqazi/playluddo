@@ -6343,6 +6343,27 @@ body.sim-die-blocked .sim-canvas {
   border-radius: 999px;
   line-height: 0;
 }
+/* The 3D table's seat labels ignore the pointer so the board stays tappable
+   through them; the avatar alone takes taps. */
+.seat-profile-trigger {
+  pointer-events: auto;
+}
+/* A name rather than an avatar (bracket seats, the table's player lists). */
+.profile-open-trigger.is-text {
+  /* A block container, so a truncating name (bracket-seat-name) still ellipsizes. */
+  display: inline-block;
+  max-width: 100%;
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
+  text-align: inherit;
+  border-radius: 4px;
+  min-width: 0;
+}
+.profile-open-trigger.is-text:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .profile-open-trigger:focus-visible {
   outline: 2px solid #d8bd7f;
   outline-offset: 2px;

@@ -19,7 +19,7 @@ export default function PrivacyPage() {
       accent="your data."
       intro={
         <>
-          Effective September 30, 2026. This policy explains what {BRAND.name} (&ldquo;we&rdquo;) collects
+          Effective October 1, 2026. This policy explains what {BRAND.name} (&ldquo;we&rdquo;) collects
           when you play on luddohouse.com or in the {BRAND.name} app, why, and the choices you have.
         </>
       }
@@ -107,9 +107,14 @@ export default function PrivacyPage() {
       <h3>Usage analytics</h3>
       <p>
         We use PostHog to understand how the game is used — for example which screens are visited and which
-        buttons are tapped — so we can improve it. These analytics aren&rsquo;t linked to your name, email
-        or phone number. On our website (not the app) we also use Google Analytics to measure visits. Both
-        use cookies or similar browser storage.
+        buttons are tapped — so we can improve it. PostHog also makes session recordings: replays of how a
+        visit moved through the screens, with taps and scrolls. Every word on screen and everything typed is
+        hidden in them, so they never show names, chat or codes, and the 3D table and video aren&rsquo;t
+        recorded. PostHog uses your IP address to estimate your approximate location (country and city). These
+        analytics aren&rsquo;t linked to your name, email or phone number. Recordings and analytics are deleted
+        automatically after PostHog&rsquo;s retention period. On a device where someone has told us
+        they&rsquo;re under 13, we turn analytics off. On our website (not the app) we also use Google
+        Analytics to measure visits. Both use cookies or similar browser storage.
       </p>
 
       <h2>How we use it</h2>
@@ -142,7 +147,7 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>PostHog</strong> and, on the website only, <strong>Google Analytics</strong> — usage
-          analytics.
+          analytics and session recordings (PostHog), with approximate location from your IP address.
         </li>
         <li>
           <strong>Google</strong> — only if you choose &ldquo;Continue with Google&rdquo;.

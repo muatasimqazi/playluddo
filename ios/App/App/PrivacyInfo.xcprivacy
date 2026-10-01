@@ -6,8 +6,11 @@
   - Name, email / phone (sign-in), user ID, optional avatar photo, table chat
     and game results (leaderboard): stored in Supabase, linked to the player,
     used only to run the app.
-  - Product interaction: anonymous PostHog page views (no identify call), not
-    linked to the player. Google Analytics is left out of the app build.
+  - Product interaction: anonymous PostHog events and session recordings with
+    every word and input masked (no identify call), not linked to the player.
+    Google Analytics is left out of the app build.
+  - Coarse location: PostHog derives country and city from the IP address;
+    analytics, not linked.
   - Other data: birth month and year (the age check before online play) and
     the optional country on a profile; linked, app functionality only.
   - Device ID: the push token a device registers for turn and rematch
@@ -144,6 +147,18 @@
 			<key>NSPrivacyCollectedDataTypePurposes</key>
 			<array>
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeCoarseLocation</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
 			</array>
 		</dict>
 	</array>

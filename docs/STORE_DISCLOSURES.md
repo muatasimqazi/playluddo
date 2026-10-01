@@ -23,14 +23,14 @@ update private.feature_flags set enabled = false where name = 'video_chat';
 | Game results, XP, achievements | Supabase | Yes | App functionality | Leaderboards, profile, replays |
 | Push token | Supabase | Yes | App functionality | Turn, rematch, friend and team alerts |
 | Page views and interactions | PostHog | No | Analytics | Anonymous ID, no `identify` call, no person profiles |
+| Session recordings | PostHog | No | Analytics | Layout, taps and scrolls; every word on screen and every input masked; no canvas or video |
+| Approximate location | PostHog, from the IP address | No | Analytics | Country and city |
 | Call connection outcome | PostHog | No | Analytics | `call_ice_outcome`: transport facts only, never IPs, SDP or player IDs |
 | Voice and video | Not stored | n/a | n/a | Direct between devices, or through Twilio's TURN relay in real time; never recorded |
 
-Not collected: precise or coarse location, contacts, browsing history, advertising ID, health, financial or payment data, crash logs. No tracking, so no App Tracking Transparency prompt.
+Not collected: precise location, contacts, browsing history, advertising ID, health, financial or payment data, crash logs. No tracking, so no App Tracking Transparency prompt.
 
-**Two questions to settle before submitting:**
-- **PostHog session replay:** if it's enabled in the PostHog project settings, the analytics row also covers screen content. Keep it off for the app, or add it to both labels.
-- **PostHog IP capture:** PostHog stores the request IP for coarse geolocation unless "Discard client IP data" is on in project settings. Turn that on; otherwise both stores expect "Coarse location: Analytics, not linked".
+**Decided (2026-10-01): keep session replay and IP-based location, and disclose them.** Recordings mask all text and inputs; the app sets this in `instrumentation-client.ts`. **The PostHog project must match:** Settings → Session replay → Privacy → mask all text and all inputs. A project-level masking setting overrides the app's. PostHog stops on any device where someone answered under 13 (`lib/analytics/children.ts`).
 
 ## App Store Connect → App Privacy
 
@@ -46,7 +46,8 @@ Answer **Yes, we collect data**. Then, for each type:
 | User Content → Photos or Videos | Yes | No | App Functionality (avatar photo only) |
 | User Content → Gameplay Content | Yes | No | App Functionality |
 | User Content → Other User Content | Yes | No | App Functionality (chat, reports) |
-| Usage Data → Product Interaction | No | No | Analytics |
+| Usage Data → Product Interaction | No | No | Analytics (events and masked session recordings) |
+| Location → Coarse Location | No | No | Analytics (derived from IP address by PostHog) |
 | Other Data → Other Data Types | Yes | No | App Functionality (birth month and year, country) |
 
 Audio Data stays **unchecked**. Apple counts data as collected only when it's kept longer than needed to serve the request in real time, and voice and video only pass through (directly, or via the relay) without being stored.
@@ -68,7 +69,8 @@ Audio Data stays **unchecked**. Apple counts data as collected only when it's ke
 | Personal info → Other info | Yes | No | No (birth month and year before online play; country is optional) | App functionality |
 | Photos and videos → Photos | Yes | No | Yes | App functionality (avatar) |
 | Messages → Other in-app messages | Yes | No | Yes | App functionality (table chat) |
-| App activity → App interactions | Yes | No | No | Analytics |
+| App activity → App interactions | Yes | No | No | Analytics (events and masked session recordings) |
+| Location → Approximate location | Yes | No | No | Analytics (from the IP address) |
 | App activity → Other user-generated content | Yes | No | Yes | App functionality (reports) |
 | App activity → Other actions | Yes | No | No | App functionality (game results) |
 | Device or other IDs | Yes | No | Yes | App functionality (push token) |
@@ -78,7 +80,7 @@ Audio and video aren't listed. Calls are passed on in real time and never stored
 ### Target audience and content
 
 - **Target age groups:** 13–15, 16–17, 18 and over. Leave the under-13 groups unticked: online play is 13+ (F0.4).
-- **Appeals to children?** Answer honestly; a board game often does. If Play decides it does, the app falls under the Families policy, which bans the analytics SDK in children's sessions. Either keep PostHog out of under-13 sessions, which the age answer already identifies, or don't target or appeal to under-13s. Decide before submitting.
+- **Appeals to children?** **No (decided 2026-10-01):** the app isn't designed for children, and online play is 13+. Say so in the target-audience answers, and keep the store listing's art and copy aimed at teens and adults. Analytics is already off on any device where someone answered under 13.
 - **Ads:** none. **In-app purchases:** none.
 
 ## Age ratings

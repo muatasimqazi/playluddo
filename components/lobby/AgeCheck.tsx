@@ -12,6 +12,7 @@ import { Icon } from "@/components/simulator/Icon";
 import { createClient } from "@/lib/supabase/client";
 import { declareAge, getAgeEligibility, RpcError } from "@/lib/supabase/rpc";
 import { blockDeviceUntil, deviceAgeBlocked } from "@/lib/community";
+import { stopAnalyticsForChild } from "@/lib/analytics/children";
 import "@/components/simulator/simulator.css";
 
 /**
@@ -201,6 +202,8 @@ export function useAgeCheck() {
   const handle = useCallback((error: unknown, retry: () => void) => {
     if (!(error instanceof RpcError)) return false;
     if (error.code === "AGE_RESTRICTED") {
+      // An under-13 account signed in on this device: no analytics from here on.
+      stopAnalyticsForChild();
       setGate({ kind: "restricted" });
       return true;
     }

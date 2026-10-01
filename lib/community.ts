@@ -4,6 +4,8 @@
  * objectionable content). Remembered per device; bump the version when the
  * rules change so everyone sees them again.
  */
+import { stopAnalyticsForChild } from "./analytics/children";
+
 const RULES_KEY = "luddo-table-rules-v1";
 
 export function tableRulesAccepted() {
@@ -46,6 +48,7 @@ export function deviceAgeBlocked() {
 }
 
 export function blockDeviceUntil(eligibleFrom: string) {
+  stopAnalyticsForChild();
   try {
     localStorage.setItem(UNDER_13_KEY, eligibleFrom);
   } catch {

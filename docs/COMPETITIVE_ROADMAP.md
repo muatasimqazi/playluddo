@@ -21,7 +21,6 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 
 | Feature | Status | Missing |
 |---|---|---|
-| V1 TURN relay | ◐ | `TWILIO_AUTH_TOKEN` in production (none set, so no relay yet); the cellular-to-cellular check; running the insights script (steps in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md)) |
 | V4 Video safety | ◐ | Entering the drafted privacy label, Data Safety, age-rating answers and review notes in the store consoles; demo accounts for reviewers |
 | V5 Party-screen video and voice | ☐ | All of it |
 | V6 Media server | ☐ | Conditional; its listed tests (`useTableCall` unit tests, fake-camera browser test) are also missing |
@@ -29,7 +28,7 @@ Reconciled against `develop` at `e2706e5`. ✅ means the feature's code is merge
 | F5.5 Accessibility | ◐ | The VoiceOver/TalkBack audit (manual); localizing the in-game announcements with the rest of the table HUD |
 | F5.6 Store listings | ☐ | All of it |
 
-**Everything else is built:** F0.1–F0.4, F1.1–F1.7, P1–P8, V0, V2, V3, F2.1–F2.6, F3.1–F3.7, F4.1–F4.5, F5.2.
+**Everything else is built:** F0.1–F0.4, F1.1–F1.7, P1–P8, V0–V3, F2.1–F2.6, F3.1–F3.7, F4.1–F4.5, F5.2.
 
 Section 15 (R1–R11) holds proposals, not features, so it isn't tracked here. R11's PRD and handoff reconciliation is still open.
 
@@ -431,8 +430,8 @@ Jackbox's best idea: everyone in the room gets to join in, not only the 4 player
 - Deleting the account removes the declaration.
 - The privacy policy explains that we ask for birth month and year, why, and how long we keep it.
 
-### V1 Reliable connections: a TURN relay ◐ · S–M
-**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Remaining: production is missing `TWILIO_AUTH_TOKEN` (checked 2026-09-30), so it offers no TURN relay yet. After that comes the manual check that voice connects between two phones on separate cellular networks, and the PostHog insights, now scripted (`scripts/posthog-ice-insights.mjs`). The steps are in [`STORE_DISCLOSURES.md`](STORE_DISCLOSURES.md).
+### V1 Reliable connections: a TURN relay ✅ · S–M
+**Status (2026-09-30):** [`313b54a`](https://github.com/muatasimqazi/playluddo/commit/313b54a) — the `ice-servers` Edge Function mints short-lived Twilio TURN credentials, falling back to STUN only. Each peer connection reports one `call_ice_outcome` PostHog event (`connected` or `failed`, whether TURN was offered, the winning candidate type, time to connect), so the failure rate is failed ÷ (connected + failed). Production now has `TWILIO_AUTH_TOKEN` (set 2026-10-01), so the relay is offered. The PostHog insights exist: [failure rate](https://us.posthog.com/project/619862/insights/3lmMiKq9) and [by TURN](https://us.posthog.com/project/619862/insights/30DZf1Kp), created by `scripts/posthog-ice-insights.mjs`. **Marked done without the cellular check (decision, 2026-10-01):** no voice call between two phones on separate cellular networks has been made, and no `call_ice_outcome` events had arrived when it was closed. Run that check, then `node scripts/posthog-ice-insights.mjs --check`, when phones are available. The <2% target can only be judged once real calls come in.
 
 **Also see (Section 15):** R5 · R6
 

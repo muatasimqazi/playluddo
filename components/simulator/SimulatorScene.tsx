@@ -170,6 +170,11 @@ export interface SceneProps {
    * root, outside the app's providers.
    */
   onOpenProfile?: (playerId: string) => void;
+  /**
+   * Show each person's account level on their seat label (F3.2). Online
+   * tables only: practice and Table Together seats carry a placeholder level.
+   */
+  showLevels?: boolean;
 }
 
 function CameraRig({
@@ -2209,6 +2214,7 @@ function Seats({
   hideLabels,
   colorBlind,
   onOpenProfile,
+  showLevels,
 }: SceneProps) {
   const compact = useThree(
     ({ size }) => size.width <= 900 || size.height <= 650,
@@ -2243,6 +2249,14 @@ function Seats({
     <>
       {players.map((player) => {
         const active = player.id === (frame.actorId ?? turnPlayerId);
+        const avatar = (
+          <PlayerAvatar
+            player={player}
+            size={34}
+            className="seat-avatar"
+            level={showLevels && !player.isBot ? player.level : undefined}
+          />
+        );
         const position = hex
           ? hexSeat(player.color)
           : cornerSeats
@@ -2308,10 +2322,10 @@ function Seats({
                   onClick={() => onOpenProfile(player.id)}
                   aria-label={`View ${player.displayName}'s profile`}
                 >
-                  <PlayerAvatar player={player} size={34} className="seat-avatar" />
+                  {avatar}
                 </button>
               ) : (
-                <PlayerAvatar player={player} size={34} className="seat-avatar" />
+                avatar
               )}
               {player.inVoice && (
                 <span

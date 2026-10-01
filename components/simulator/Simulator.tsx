@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { GameRoomState, MatchStats, MatchResult } from "@/lib/board/types";
-import { DEFAULT_ROOM_RULES, rankPlayers } from "@/lib/board/rules";
+import { DEFAULT_ROOM_RULES, rankPlayers, resolveRoomRules, teamColors } from "@/lib/board/rules";
 import type { MatchEventRow } from "@/lib/realtime/room-channel";
 import type { TableMessage } from "@/lib/realtime/table-messages";
 import { REPORT_REASONS, type ReportReason } from "@/lib/supabase/moderation";
@@ -452,6 +452,32 @@ export default function Simulator({
       ? state.winnerIds
       : progressRanking;
   const winner = state.players.find((p) => p.id === state.winnerIds[0]);
+  // Team Up (F2.5) results: each pair's eight pieces counted together, the
+  // pair holding first place on top (or, if the table emptied, the pair
+  // furthest along).
+  const teams =
+    !snakes && resolveRoomRules(state.rules).teamUp
+      ? (["red", "green"] as const)
+          .map((lead) => {
+            const colors = teamColors(lead, true);
+            const pieces = state.pawns.filter((p) => colors.has(p.color));
+            return {
+              lead,
+              members: state.players.filter((p) => colors.has(p.color)),
+              finished: pieces.filter((p) => p.state === "finished").length,
+              progress: pieces.reduce((sum, p) => sum + (p.pathIndex ?? 0), 0),
+              won: !!winner && colors.has(winner.color),
+            };
+          })
+          .sort(
+            (a, b) =>
+              Number(b.won) - Number(a.won) ||
+              b.finished - a.finished ||
+              b.progress - a.progress,
+          )
+      : null;
+  const teamName = (team: { members: { displayName: string }[] }) =>
+    team.members.map((m) => m.displayName).join(" & ");
   // The Party screen holds one steady view: an action camera would swing it
   // out and back on every roll and move, which reads as the TV lurching
   // around for the people watching it from across the room.
@@ -1010,6 +1036,7 @@ export default function Simulator({
           room={room}
           hideLabels={prefs.immersive}
           onOpenProfile={profiles ? setProfileSeat : undefined}
+          showLevels={profiles}
           brightness={prefs.brightness}
           saturation={prefs.saturation}
           colorBlind={colorBlind}
@@ -2386,34 +2413,65 @@ export default function Simulator({
             state.pawns.find((s) => s.id === p.id)?.pathIndex === p.pathIndex,
         ) && (
           <div className="sim-victory">
-            {state.status !== "abandoned" &&
-              winner && (
-                <PlayerProfileButton
-                  playerId={winner.id}
-                  displayName={winner.displayName}
-                  isBot={winner.isBot}
-                  disabled={!profiles}
-                >
-                  <PlayerAvatar player={winner} size={76} crowned />
-                </PlayerProfileButton>
-              )}
+            {state.status !== "abandoned" && winner && (
+              <div className="victory-avatars">
+                {(teams ? teams[0].members : [winner]).map((p) => (
+                  <PlayerProfileButton
+                    key={p.id}
+                    playerId={p.id}
+                    displayName={p.displayName}
+                    isBot={p.isBot}
+                    disabled={!profiles}
+                  >
+                    <PlayerAvatar player={p} size={76} crowned />
+                  </PlayerProfileButton>
+                ))}
+              </div>
+            )}
             <span className="eyebrow">
               {state.status === "abandoned" ? "UNTIL NEXT TIME" : "WELL PLAYED"}
             </span>
             <h1>
               {state.status === "abandoned"
                 ? "The table is quiet."
-                : `${winner?.displayName ?? "Player"} wins.`}
+                : teams
+                  ? `${teamName(teams[0])} win.`
+                  : `${winner?.displayName ?? "Player"} wins.`}
             </h1>
             <p>
               {state.status === "abandoned"
                 ? "The match ended when everyone left."
-                : snakes
+                : teams
+                  ? "Eight pieces home. One lovely partnership."
+                  : snakes
                   ? "One hundred squares. One lovely game."
                   : "Four pieces home. One lovely game."}
             </p>
             <div className="menu-players">
-              {[...state.players]
+              {teams?.map((team, index) => (
+                <div key={team.lead}>
+                  <span className="victory-team-avatars">
+                    {team.members.map((p) => (
+                      <PlayerProfileButton
+                        key={p.id}
+                        playerId={p.id}
+                        displayName={p.displayName}
+                        isBot={p.isBot}
+                        disabled={!profiles}
+                      >
+                        <PlayerAvatar player={p} size={30} placement={index === 0 ? 1 : undefined} />
+                      </PlayerProfileButton>
+                    ))}
+                  </span>
+                  <span className="victory-name">
+                    {teamName(team)}
+                    {!localPlay && team.members.some((p) => p.id === myPlayerId) && " (you)"}
+                    <em>{team.lead === "red" ? "Red & Yellow" : "Green & Blue"}</em>
+                  </span>
+                  <small>{team.finished}/8 home</small>
+                </div>
+              ))}
+              {!teams && [...state.players]
                 .sort((a, b) => ranking.indexOf(a.id) - ranking.indexOf(b.id))
                 .map((p, index) => {
                   const stats = matchResults?.find((r) => r.playerId === p.id)?.stats;

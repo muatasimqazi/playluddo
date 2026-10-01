@@ -1687,6 +1687,19 @@ body.sim-die-blocked .sim-canvas {
 .victory-name {
   text-align: left;
 }
+/* Team Up (F2.5): both partners side by side, crowned together on top. */
+.victory-avatars {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+.victory-team-avatars {
+  display: flex;
+  flex: none;
+}
+.victory-team-avatars > * + * {
+  margin-left: -6px;
+}
 .victory-name em {
   display: block;
   margin-top: 3px;

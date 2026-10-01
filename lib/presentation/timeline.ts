@@ -10,6 +10,13 @@ export interface PresentationFrame {
   dice: number;
   rollId: number;
   actorId: string | null;
+  /**
+   * Whose turn the board is showing. It follows the room's turn only once
+   * every event before it has played: a snapshot that passes the turn on
+   * often lands before the roll or move that passed it, and following it
+   * straight away sent the die to the next player and back again.
+   */
+  turnPlayerId: string | null;
   busy: boolean;
   replaying: boolean;
   phase: "idle" | "roll" | "move";
@@ -52,6 +59,7 @@ export class PresentationTimeline {
       dice: state.activeDiceValue ?? 1,
       rollId: 0,
       actorId: null,
+      turnPlayerId: state.turnPlayerId,
       busy: false,
       replaying: false,
       phase: "idle",
@@ -121,6 +129,7 @@ export class PresentationTimeline {
       pawns: state.pawns,
       dice: state.activeDiceValue ?? this.frame.dice,
       actorId: null,
+      turnPlayerId: state.turnPlayerId,
       busy: false,
       replaying: false,
       phase: "idle",
@@ -152,7 +161,18 @@ export class PresentationTimeline {
         });
         this.advance();
       } else
-        this.publish({ busy: false, phase: "idle", move: null, actorId: null });
+        this.publish({
+          busy: false,
+          phase: "idle",
+          move: null,
+          actorId: null,
+          // Hold the turn where it was while the events that moved it on
+          // are still on their way.
+          turnPlayerId:
+            this.latest.eventSequence > this.seen
+              ? (this.frame.actorId ?? this.frame.turnPlayerId)
+              : this.latest.turnPlayerId,
+        });
       return;
     }
     let duration = 0;

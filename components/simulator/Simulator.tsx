@@ -442,8 +442,10 @@ export default function Simulator({
   // Party Mode (P5): the phone the table is waiting for, and how long it has.
   const waitingFor = state.players.find((p) => p.id === state.pausedForPlayerId);
   const waitLeft = useCountdown(partyWaitEndsAt(state));
+  // The board's turn, not the room's: it waits for the events that passed
+  // the turn on, so the turn bar moves with the die (see the timeline).
   const activePlayer = state.players.find(
-    (p) => p.id === (frame.actorId ?? state.turnPlayerId),
+    (p) => p.id === (frame.actorId ?? frame.turnPlayerId),
   );
   const isMyTurn = state.turnPlayerId === myPlayerId;
   const needsReclaim =
@@ -793,7 +795,7 @@ export default function Simulator({
           frame={frame}
           players={state.players}
           myPlayerId={localPlay ? null : myPlayerId}
-          turnPlayerId={state.turnPlayerId}
+          turnPlayerId={frame.turnPlayerId}
           legalPawnIds={screenPreview ? [screenPreview.pawnId] : legalPawnIds}
           canRoll={canRoll}
           view={prefs.view}

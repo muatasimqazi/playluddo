@@ -235,6 +235,28 @@ describe("event playback and replay isolation", () => {
     expect(timeline.getSnapshot().revision).toBe(1);
     timeline.dispose();
   });
+  it("keeps the turn with the last player until their events have played", () => {
+    vi.useFakeTimers();
+    const initial = createPractice(),
+      timeline = new PresentationTimeline(initial.state);
+    const first = initial.state.turnPlayerId;
+    // A roll with no move passes the turn on.
+    const next = practiceReducer(initial, { type: "roll", value: 3 });
+    expect(next.state.turnPlayerId).not.toBe(first);
+    // The snapshot lands before its events: the die mustn't run ahead to the
+    // next player, only to come back for the roll and leave again.
+    timeline.receive([], next.state);
+    expect(timeline.getSnapshot().turnPlayerId).toBe(first);
+    timeline.receive(next.events, next.state);
+    expect(timeline.getSnapshot().actorId).toBe(first);
+    vi.runAllTimers();
+    expect(timeline.getSnapshot()).toMatchObject({
+      busy: false,
+      actorId: null,
+      turnPlayerId: next.state.turnPlayerId,
+    });
+    timeline.dispose();
+  });
   it("recovers if event reads fail but authoritative snapshots arrive", () => {
     vi.useFakeTimers();
     const initial = createPractice(),

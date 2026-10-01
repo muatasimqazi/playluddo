@@ -38,6 +38,7 @@ function frameFor(replay: Replay, index: number): PresentationFrame {
     dice: step.dice ?? 1,
     rollId,
     actorId: step.actorId,
+    turnPlayerId: step.actorId,
     busy: false,
     replaying: true,
     phase: "idle",

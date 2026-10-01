@@ -159,6 +159,9 @@ function makePlasterTexture() {
 // Floor-standing footprints: x, y, z (rug height where a piece is on or over
 // the rug), width, depth, strength.
 const RUG = -2.53;
+// The kitchen sits right of the sectional: its island's left end (x - 3.35)
+// has to clear the sofa's arm (x 4.7), and its back run (x + 4.5) the wall.
+const KITCHEN_X = 8.4;
 const FLOOR = -2.6;
 const FLOOR_SHADES: [number, number, number, number, number, number][] = [
   [0, RUG, -6.3, 9.4, 2.7, 0.75], // sofa
@@ -168,11 +171,11 @@ const FLOOR_SHADES: [number, number, number, number, number, number][] = [
   [6.25, RUG, 0, 2.4, 2.6, 0.7],
   [0, RUG, 0, 8, 7.2, 0.35], // under the coffee table
   [6, RUG, -3, 1.3, 1.3, 0.6], // floor lamp
-  [6, FLOOR, -11.3, 9.1, 2, 0.6], // kitchen run
-  [6, RUG, -6.7, 6.4, 2.1, 0.7], // island
-  [4, RUG, -4.8, 1.1, 0.9, 0.5], // stools
-  [6, RUG, -4.8, 1.1, 0.9, 0.5],
-  [8, FLOOR, -4.8, 1.1, 0.9, 0.5],
+  [KITCHEN_X, FLOOR, -11.3, 9.1, 2, 0.6], // kitchen run
+  [KITCHEN_X, FLOOR, -6.7, 6.4, 2.1, 0.7], // island
+  [KITCHEN_X - 2, RUG, -4.8, 1.1, 0.9, 0.5], // stools
+  [KITCHEN_X, FLOOR, -4.8, 1.1, 0.9, 0.5],
+  [KITCHEN_X + 2, FLOOR, -4.8, 1.1, 0.9, 0.5],
   [-9, FLOOR, -7, 1.4, 1.4, 0.65], // plants
   [9, FLOOR, 5, 1.15, 1.15, 0.65],
 ];
@@ -475,7 +478,7 @@ function Kitchen({
   stool: THREE.Texture;
 }) {
   return (
-    <group position={[6, -2.6, -11.4]}>
+    <group position={[KITCHEN_X, -2.6, -11.4]}>
       <Box
         position={[0, 1.5, 0]}
         size={[9, 3, 1.8]}

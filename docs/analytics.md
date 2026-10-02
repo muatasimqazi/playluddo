@@ -387,6 +387,27 @@ Still to do: a full game in a private room on production, watched in DebugView (
 
 For later releases: if new code that depends on a container change deploys before the container is published, the new events go unmeasured until it is.
 
+## Dashboards
+
+Built 2 October 2026. The catalog's events start that day on the website; the apps' PostHog events start with their next store builds.
+
+**PostHog** (project 619862; website and apps, live). Every chart filters out test accounts: the Internal / Test users cohort, the home IP, and dev hosts (`localhost:<port>`, `127.*`, `192.168.*`, `10.*`, `*.devtunnels.ms`, `*.vercel.app`). The apps report as `$host` `localhost`, so a platform breakdown splits Website, iOS app and Android app.
+
+| Dashboard | What's on it |
+| --- | --- |
+| [Luddo · Overview](https://us.posthog.com/project/619862/dashboard/2164288) | Players and games finished (7 days), players and visitors per day by platform, games by play context, finished vs left early, finish rate, visitor to player, sign-ups by method |
+| [Luddo · Growth & invites](https://us.posthog.com/project/619862/dashboard/2164290) | Funnels (online and offline player, invite loop for host and friend, quick match, guest to account), invites shared vs accepted, shares by type, joins by entry point, players by first referrer, age check, friend requests, weekly retention |
+| [Luddo · Gameplay](https://us.posthog.com/project/619862/dashboard/2164291) | Game type and mode, people per online table, bot difficulty, median length by context, finish rate by context, why games end early, rematches, chat and calls, reactions, tournaments and teams, watching and casting |
+| [Luddo · Party Mode](https://us.posthog.com/project/619862/dashboard/2164292) | TV funnel, party games per day, people/remote phones/audience per game, phones by role, pause outcomes, median party game, game type |
+| [Luddo · Reliability](https://us.posthog.com/project/619862/dashboard/2164293) | `app_error` by area and code (the false 3D reports before 14:20 PT on 2 October are filtered out), reconnects by phase, time offline, seat takeovers, takeover share of finished games, quick match searches and waits, solo matches, dice checks |
+
+**Google Analytics** (website only; reports process with a few hours' lag, and the owner's home IP is excluded).
+
+- Reports → **Luddo House** → Luddo: the **Luddo House – Website** dashboard (players, games by play context, visitors per day, where visitors come from, every event, app errors by code, visitor-to-player funnel), then Traffic acquisition and Events. Its event filters use "contains" (GA only offers values it has already processed), so the games chart and the players card include Party TV events.
+- Explore → **Luddo – Funnels** (private to its owner): Visitor to player, Invite loop, Quick match, Party Mode. Steps have no parameter filters yet; GA lists an event's parameters only after it has processed them.
+
+The table below is the full plan; the PostHog dashboards carry the parameter filters GA can't take yet.
+
 ## Funnels and reports
 
 Explore → Funnel exploration, "indirectly followed" steps unless noted.

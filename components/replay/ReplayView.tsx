@@ -15,7 +15,7 @@ import { mediaRecordingSupported, recordHighlight, shareClip } from "@/lib/prese
 import { track } from "@/lib/analytics";
 import { useGamePreference } from "@/lib/preferences-react";
 import { useCosmeticOwnership } from "@/lib/hooks/useCosmeticOwnership";
-import { ownedRoom } from "@/lib/presentation/cosmeticGates";
+import { ownedBoardStyle, ownedRoom } from "@/lib/presentation/cosmeticGates";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { Icon } from "@/components/simulator/Icon";
 import { TableLoading } from "@/components/simulator/TableLoading";
@@ -57,9 +57,13 @@ function frameFor(replay: Replay, index: number): PresentationFrame {
 export function ReplayView({ matchId }: { matchId: string }) {
   const tx = useT();
   const [colorBlind] = useGamePreference("colorBlind");
+  const [savedBoardStyle] = useGamePreference("boardStyle");
   const [savedRoom] = useGamePreference("room");
-  // Rooms are earned (F3.5): an unowned saved room replays in the Apartment.
-  const room = ownedRoom(savedRoom, useCosmeticOwnership().owns);
+  // The same board and room the player sees at the table. Both are earned
+  // (F3.5): an unowned saved choice replays on the free default.
+  const ownership = useCosmeticOwnership();
+  const boardStyle = ownedBoardStyle(savedBoardStyle, ownership.owns);
+  const room = ownedRoom(savedRoom, ownership.owns);
   const reducedMotion = useReducedMotion();
   const client = useMemo(() => createClient(), []);
   const [replay, setReplay] = useState<Replay | null>(null);
@@ -167,7 +171,7 @@ export function ReplayView({ matchId }: { matchId: string }) {
         onRoll={() => {}}
         onMove={() => {}}
         soundEnabled={false}
-        boardStyle="signature"
+        boardStyle={boardStyle}
         room={room}
         colorBlind={colorBlind}
         reducedMotion={reducedMotion}

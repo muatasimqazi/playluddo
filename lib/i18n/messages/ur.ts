@@ -83,6 +83,8 @@ export const ur: Messages = {
     boardBazaarDesc: "کلیم پر پیتل کی لالٹینیں",
     boardRug: "قالین",
     boardRugDesc: "ہاتھ سے بُنا بلوچی قالین",
+    boardMosaic: "موزیک",
+    boardMosaicDesc: "آٹھ کونوں والے ستاروں کی چمکدار ٹائلیں",
 
     yourTeam: "آپ کی ٹیم",
     memberOne: "{count} رکن",

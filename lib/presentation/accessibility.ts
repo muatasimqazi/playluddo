@@ -210,6 +210,13 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     yellow: ["#C68B2C"],
     blue: ["#24395F"],
   },
+  // The Mosaic's seat glazes and their tile patterns' deep grounds.
+  mosaic: {
+    red: ["#C2533A", "#6E2414"],
+    green: ["#1A978D", "#0A4F4A"],
+    yellow: ["#E0A637", "#8E5D10"],
+    blue: ["#2F5BBE", "#142A63"],
+  },
   "hex-classic": {
     red: ["#e2262e"],
     green: ["#31a65b"],
@@ -257,6 +264,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     blue: ["#24395F"],
     orange: ["#B35A1F"],
     black: ["#3A302C"],
+  },
+  "hex-mosaic": {
+    red: ["#C2533A", "#6E2414"],
+    green: ["#1A978D", "#0A4F4A"],
+    yellow: ["#E0A637", "#8E5D10"],
+    blue: ["#2F5BBE", "#142A63"],
+    orange: ["#D8691C", "#7A3508"],
+    black: ["#4A5266", "#1E2330"],
   },
 };
 

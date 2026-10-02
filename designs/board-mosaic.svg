@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500" role="img" aria-label="Ludo board in glazed eight-point star tilework">
+<defs>
+<polygon id="ia-star8" points="50,0 35.36,14.64 35.36,35.36 14.64,35.36 0,50 -14.64,35.36 -35.36,35.36 -35.36,14.64 -50,0 -35.36,-14.64 -35.36,-35.36 -14.64,-35.36 0,-50 14.64,-35.36 35.36,-35.36 35.36,-14.64"></polygon>
+
+<!-- star-and-cross tessellation: touching 8-point stars, crosses between -->
+<g id="ia-tessstars">
+<use href="#ia-star8" transform="scale(0.7071)"></use>
+<use href="#ia-star8" transform="translate(100 0) scale(0.7071)"></use>
+<use href="#ia-star8" transform="translate(0 100) scale(0.7071)"></use>
+<use href="#ia-star8" transform="translate(100 100) scale(0.7071)"></use>
+<use href="#ia-star8" transform="translate(50 50) scale(0.7071)"></use>
+</g>
+<path id="ia-tessdots" d="M50,-9 L59,0 L50,9 L41,0Z M0,41 L9,50 L0,59 L-9,50Z M100,41 L109,50 L100,59 L91,50Z M50,91 L59,100 L50,109 L41,100Z"></path>
+
+<pattern id="ia-tBorder" x="-100" y="-100" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.6)">
+<rect width="100" height="100" fill="#0F1C3A"></rect>
+<use href="#ia-tessstars" fill="#F3EBDA" stroke="#C9A04A" stroke-width="4"></use>
+<use href="#ia-tessdots" fill="#1E8C93"></use>
+</pattern>
+<pattern id="ia-tB" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.75)">
+<rect width="100" height="100" fill="#142A63"></rect>
+<use href="#ia-tessstars" fill="#2F5BBE" stroke="#F3EBDA" stroke-width="3"></use>
+<use href="#ia-tessdots" fill="#E7C46A"></use>
+</pattern>
+<pattern id="ia-tR" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.75)">
+<rect width="100" height="100" fill="#6E2414"></rect>
+<use href="#ia-tessstars" fill="#C2533A" stroke="#F3EBDA" stroke-width="3"></use>
+<use href="#ia-tessdots" fill="#E7C46A"></use>
+</pattern>
+<pattern id="ia-tY" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.75)">
+<rect width="100" height="100" fill="#8E5D10"></rect>
+<use href="#ia-tessstars" fill="#E0A637" stroke="#F3EBDA" stroke-width="3"></use>
+<use href="#ia-tessdots" fill="#0F1C3A"></use>
+</pattern>
+<pattern id="ia-tG" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.75)">
+<rect width="100" height="100" fill="#0A4F4A"></rect>
+<use href="#ia-tessstars" fill="#1A978D" stroke="#F3EBDA" stroke-width="3"></use>
+<use href="#ia-tessdots" fill="#E7C46A"></use>
+</pattern>
+
+<!-- glazed track tiles -->
+<pattern id="ia-cell" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="#F3EBDA"></rect>
+<use href="#ia-star8" transform="translate(50 50) scale(0.62)" fill="none" stroke="#B9C7DD" stroke-width="3"></use>
+<path d="M0,0 L14,0 L0,14Z M100,0 L86,0 L100,14Z M0,100 L14,100 L0,86Z M100,100 L86,100 L100,86Z" fill="#B9C7DD"></path>
+</pattern>
+<pattern id="ia-lanestar" width="100" height="100" patternUnits="userSpaceOnUse">
+<use href="#ia-star8" transform="translate(50 50) scale(0.6)" fill="#F3EBDA"></use>
+<circle cx="50" cy="50" r="9" fill="#C9A04A"></circle>
+</pattern>
+<pattern id="ia-grout" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="none" stroke="#0F1C3A" stroke-width="5"></rect>
+</pattern>
+
+<!-- rosettes -->
+<g id="ia-rosette">
+<use href="#ia-star8"></use>
+<use href="#ia-star8" transform="rotate(22.5)"></use>
+</g>
+
+<!-- home niche: pointed (two-centred) arch, colour-neutral parts -->
+<g id="ia-niche">
+<path d="M88,572 V240 A184.4,184.4 0 0 1 300,57.7 A184.4,184.4 0 0 1 512,240 V572Z" fill="#C9A04A"></path>
+<path d="M100,572 V240 A172.4,172.4 0 0 1 300,69.8 A172.4,172.4 0 0 1 500,240 V572Z" fill="#0F1C3A"></path>
+<path d="M110,572 V240 A162.4,162.4 0 0 1 300,80 A162.4,162.4 0 0 1 490,240 V572Z" fill="#F3EBDA"></path>
+<path d="M122,572 V246 M478,572 V246" stroke="#C9A04A" stroke-width="4"></path>
+<circle cx="122" cy="240" r="7" fill="#C9A04A"></circle>
+<circle cx="478" cy="240" r="7" fill="#C9A04A"></circle>
+<path d="M140,250 H460" stroke="#B9C7DD" stroke-width="2" stroke-dasharray="4 8"></path>
+</g>
+<g id="ia-spot">
+<circle r="60" fill="#C9A04A"></circle>
+<circle r="53" fill="#0F1C3A"></circle>
+<use href="#ia-star8" transform="scale(0.8)" fill="#F3EBDA"></use>
+</g>
+<g id="ia-frame">
+<path d="M0,0 H600 V600 H0Z M28,28 V572 H572 V28Z" fill="#0F1C3A" fill-rule="evenodd"></path>
+<rect x="10" y="10" width="580" height="580" fill="none" stroke="#C9A04A" stroke-width="3"></rect>
+<rect x="28" y="28" width="544" height="544" fill="none" stroke="#C9A04A" stroke-width="3"></rect>
+</g>
+
+<path id="ia-arrow" d="M-20,-20 L0,0 L-20,20 M2,-20 L22,0 L2,20" fill="none" stroke="#F3EBDA" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+<g id="ia-safe">
+<use href="#ia-rosette" transform="scale(0.68)" fill="#C9A04A"></use>
+<use href="#ia-star8" transform="scale(0.4)" fill="#1E8C93"></use>
+<circle r="8" fill="#F3EBDA"></circle>
+</g>
+</defs>
+
+<!-- tessellated outer border -->
+<rect x="-60" y="-60" width="1620" height="1620" fill="url(#ia-tBorder)"></rect>
+<rect x="-56" y="-56" width="1612" height="1612" fill="none" stroke="#C9A04A" stroke-width="5"></rect>
+
+<!-- home yards, as the game seats them: red, green, blue, yellow -->
+<g>
+<rect width="600" height="600" fill="url(#ia-tR)"></rect>
+<use href="#ia-frame"></use>
+<use href="#ia-niche"></use>
+<use href="#ia-rosette" transform="translate(300 168) scale(0.5)" fill="#C2533A"></use>
+<circle cx="300" cy="168" r="8" fill="#C9A04A"></circle>
+<g fill="#C2533A"><use href="#ia-spot" x="210" y="330"></use><use href="#ia-spot" x="390" y="330"></use><use href="#ia-spot" x="210" y="480"></use><use href="#ia-spot" x="390" y="480"></use></g>
+<g fill="#C2533A"><circle cx="210" cy="330" r="16"></circle><circle cx="390" cy="330" r="16"></circle><circle cx="210" cy="480" r="16"></circle><circle cx="390" cy="480" r="16"></circle></g>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="url(#ia-tG)"></rect>
+<use href="#ia-frame"></use>
+<use href="#ia-niche"></use>
+<use href="#ia-rosette" transform="translate(300 168) scale(0.5)" fill="#1A978D"></use>
+<circle cx="300" cy="168" r="8" fill="#C9A04A"></circle>
+<use href="#ia-spot" x="210" y="330"></use><use href="#ia-spot" x="390" y="330"></use><use href="#ia-spot" x="210" y="480"></use><use href="#ia-spot" x="390" y="480"></use>
+<g fill="#1A978D"><circle cx="210" cy="330" r="16"></circle><circle cx="390" cy="330" r="16"></circle><circle cx="210" cy="480" r="16"></circle><circle cx="390" cy="480" r="16"></circle></g>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="url(#ia-tB)"></rect>
+<use href="#ia-frame"></use>
+<use href="#ia-niche"></use>
+<use href="#ia-rosette" transform="translate(300 168) scale(0.5)" fill="#2F5BBE"></use>
+<circle cx="300" cy="168" r="8" fill="#C9A04A"></circle>
+<use href="#ia-spot" x="210" y="330"></use><use href="#ia-spot" x="390" y="330"></use><use href="#ia-spot" x="210" y="480"></use><use href="#ia-spot" x="390" y="480"></use>
+<g fill="#2F5BBE"><circle cx="210" cy="330" r="16"></circle><circle cx="390" cy="330" r="16"></circle><circle cx="210" cy="480" r="16"></circle><circle cx="390" cy="480" r="16"></circle></g>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="url(#ia-tY)"></rect>
+<use href="#ia-frame"></use>
+<use href="#ia-niche"></use>
+<use href="#ia-rosette" transform="translate(300 168) scale(0.5)" fill="#E0A637"></use>
+<circle cx="300" cy="168" r="8" fill="#0F1C3A"></circle>
+<use href="#ia-spot" x="210" y="330"></use><use href="#ia-spot" x="390" y="330"></use><use href="#ia-spot" x="210" y="480"></use><use href="#ia-spot" x="390" y="480"></use>
+<g fill="#E0A637"><circle cx="210" cy="330" r="16"></circle><circle cx="390" cy="330" r="16"></circle><circle cx="210" cy="480" r="16"></circle><circle cx="390" cy="480" r="16"></circle></g>
+</g>
+
+<!-- track arms: glazed tiles -->
+<g fill="url(#ia-cell)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- home lanes -->
+<rect x="700" y="100" width="100" height="500" fill="#1A978D"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#E0A637"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#2F5BBE"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#C2533A"></rect>
+<g fill="url(#ia-lanestar)">
+<rect x="700" y="100" width="100" height="500"></rect>
+<rect x="900" y="700" width="500" height="100"></rect>
+<rect x="700" y="900" width="100" height="500"></rect>
+<rect x="100" y="700" width="500" height="100"></rect>
+</g>
+
+<!-- start squares -->
+<rect x="100" y="600" width="100" height="100" fill="#C2533A"></rect>
+<rect x="800" y="100" width="100" height="100" fill="#1A978D"></rect>
+<rect x="1300" y="800" width="100" height="100" fill="#E0A637"></rect>
+<rect x="600" y="1300" width="100" height="100" fill="#2F5BBE"></rect>
+<use href="#ia-arrow" transform="translate(148 650)"></use>
+<use href="#ia-arrow" transform="translate(850 148) rotate(90)"></use>
+<use href="#ia-arrow" transform="translate(1352 850) rotate(180)"></use>
+<use href="#ia-arrow" transform="translate(650 1352) rotate(270)"></use>
+
+<!-- safe squares -->
+<g fill="#0F1C3A">
+<rect x="200" y="800" width="100" height="100"></rect>
+<rect x="600" y="200" width="100" height="100"></rect>
+<rect x="1200" y="600" width="100" height="100"></rect>
+<rect x="800" y="1200" width="100" height="100"></rect>
+</g>
+<use href="#ia-safe" x="250" y="850"></use>
+<use href="#ia-safe" x="650" y="250"></use>
+<use href="#ia-safe" x="1250" y="650"></use>
+<use href="#ia-safe" x="850" y="1250"></use>
+
+<!-- grout -->
+<g fill="url(#ia-grout)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- center: home triangles under a dome rosette -->
+<polygon points="600,600 900,600 750,750" fill="#1A978D"></polygon>
+<polygon points="900,600 900,900 750,750" fill="#E0A637"></polygon>
+<polygon points="900,900 600,900 750,750" fill="#2F5BBE"></polygon>
+<polygon points="600,900 600,600 750,750" fill="#C2533A"></polygon>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#F3EBDA" stroke-width="4"></path>
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="#0F1C3A" stroke-width="6"></path>
+<rect x="0" y="0" width="1500" height="1500" fill="none" stroke="#C9A04A" stroke-width="6"></rect>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="#C9A04A" stroke-width="6"></rect>
+<g transform="translate(750 750)">
+<circle r="120" fill="#C9A04A"></circle>
+<circle r="110" fill="#0F1C3A"></circle>
+<path d="M-108,0 L108,0 M-99.78,-41.33 L99.78,41.33 M-76.37,-76.37 L76.37,76.37 M-41.33,-99.78 L41.33,99.78 M0,-108 L0,108 M41.33,-99.78 L-41.33,99.78 M76.37,-76.37 L-76.37,76.37 M99.78,-41.33 L-99.78,41.33" stroke="#C9A04A" stroke-opacity="0.45" stroke-width="2"></path>
+<use href="#ia-rosette" transform="scale(1.6)" fill="#C9A04A"></use>
+<use href="#ia-rosette" transform="scale(1.32)" fill="#0F1C3A"></use>
+<use href="#ia-star8" transform="scale(1.1)" fill="#F3EBDA"></use>
+<use href="#ia-star8" transform="rotate(22.5) scale(0.72)" fill="#1E8C93"></use>
+<circle r="16" fill="#C9A04A"></circle>
+<circle r="7" fill="#F3EBDA"></circle>
+</g>
+</svg>

@@ -102,6 +102,8 @@ export const en = {
     boardBazaarDesc: "Brass lanterns on a kilim",
     boardRug: "Rug",
     boardRugDesc: "A hand-knotted Balochi rug",
+    boardMosaic: "Mosaic",
+    boardMosaicDesc: "Glazed eight-point star tiles",
 
     yourTeam: "Your team",
     memberOne: "{count} member",

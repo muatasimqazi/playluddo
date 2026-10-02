@@ -28,6 +28,7 @@ import {
  *   aladdin   -> designs/board-hex-aladdin.svg    (board-aladdin.svg)
  *   bazaar    -> designs/board-hex-bazaar.svg     (board-bazaar.svg)
  *   rug       -> designs/board-hex-rug.svg        (board-rug.svg)
+ *   mosaic    -> designs/board-hex-mosaic.svg     (board-mosaic.svg)
  *
  * Written by `npm run board:hex`, then free to restyle by hand. Every style
  * draws the same anchors — the track cells, home columns, bases and nest
@@ -41,7 +42,7 @@ import {
  * onto the hexagonal top face.
  */
 
-export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug";
+export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic";
 export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "classic",
   "signature",
@@ -49,6 +50,7 @@ export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "aladdin",
   "bazaar",
   "rug",
+  "mosaic",
 ];
 /** File name in designs/ for each style. */
 export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
@@ -58,6 +60,7 @@ export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
   aladdin: "board-hex-aladdin.svg",
   bazaar: "board-hex-bazaar.svg",
   rug: "board-hex-rug.svg",
+  mosaic: "board-hex-mosaic.svg",
 };
 
 // ---------------------------------------------------------------------------
@@ -625,7 +628,90 @@ const rug: Theme = {
   tip: (arm) => chevron(arm, RUG_IVORY),
 };
 
-const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug };
+// ---------------------------------------------------------------------------
+// Mosaic: glazed tiles on navy, gold lines, eight-point stars and rosettes
+// (board-mosaic.svg)
+// ---------------------------------------------------------------------------
+
+const MOSAIC_GLAZE: Record<PlayerColor, readonly string[]> = {
+  red: ["#C2533A", "#6E2414"],
+  green: ["#1A978D", "#0A4F4A"],
+  yellow: ["#E0A637", "#8E5D10"],
+  blue: ["#2F5BBE", "#142A63"],
+  orange: ["#D8691C", "#7A3508"],
+  black: ["#4A5266", "#1E2330"],
+};
+const MOSAIC_NAVY = "#0F1C3A";
+const MOSAIC_GOLD = "#C9A04A";
+const MOSAIC_CREAM = "#F3EBDA";
+const MOSAIC_LINE = "#B9C7DD";
+const MOSAIC_TEAL = "#1E8C93";
+const mosaicGlaze = (color: PlayerColor) => `url(#mo-${color})`;
+
+/** Two eight-point stars, one turned a sixteenth: the board's rosette. */
+function rosette(radius: number, attrs: string): string {
+  return star(8, radius, 0.765, attrs) + star(8, radius, 0.765, attrs, Math.PI / 8);
+}
+
+const mosaic: Theme = {
+  defs: BOARD_6.colors.map((color) => gradient(`mo-${color}`, MOSAIC_GLAZE[color], true)).join(""),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${MOSAIC_NAVY}" stroke="${MOSAIC_GOLD}" stroke-width="0.04"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.07)}" fill="none" stroke="${MOSAIC_GOLD}" stroke-width="0.01"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${mosaicGlaze(color)}" stroke="${MOSAIC_GOLD}" stroke-width="0.018"`) +
+      around(
+        center,
+        angle,
+        // A navy band of small cream stars round the yard's edge.
+        `<circle r="${n(R * 0.88)}" fill="none" stroke="${MOSAIC_NAVY}" stroke-width="${n(R * 0.13)}"/>` +
+          Array.from({ length: 12 }, (_, i) =>
+            around(hexPolar((i * Math.PI) / 6, R * 0.88), 0, star(8, R * 0.05, 0.6, `fill="${MOSAIC_CREAM}"`)),
+          ).join(""),
+      )
+    );
+  },
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="${MOSAIC_GOLD}"`) +
+    around(point, 0, `<circle r="${n(C * 0.52)}" fill="${MOSAIC_NAVY}"/>` + star(8, C * 0.38, 0.765, `fill="${MOSAIC_CREAM}"`)),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${mosaicGlaze(color)}" stroke="${MOSAIC_CREAM}" stroke-width="0.012"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    return (
+      `<circle r="${n(r)}" fill="${MOSAIC_GOLD}"/>` +
+      `<circle r="${n(r * 0.9)}" fill="${MOSAIC_NAVY}"/>` +
+      rosette(r * 0.78, `fill="${MOSAIC_GOLD}"`) +
+      star(8, r * 0.52, 0.765, `fill="${MOSAIC_CREAM}"`) +
+      star(8, r * 0.32, 0.765, `fill="${MOSAIC_TEAL}"`, Math.PI / 8) +
+      `<circle r="${n(r * 0.1)}" fill="${MOSAIC_GOLD}"/>`
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${MOSAIC_GLAZE[color][0]}" stroke="${MOSAIC_NAVY}" stroke-width="0.012"`) +
+    around(point, 0, star(8, C * 0.3, 0.765, `fill="${MOSAIC_CREAM}"`) + `<circle r="${n(C * 0.09)}" fill="${MOSAIC_GOLD}"/>`),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? MOSAIC_GLAZE[owner][0] : kind === "star" ? MOSAIC_NAVY : MOSAIC_CREAM}" stroke="${MOSAIC_NAVY}" stroke-width="0.012"`,
+    ) +
+    (kind === "star"
+      ? around(point, 0, rosette(C * 0.36, `fill="${MOSAIC_GOLD}"`) + star(8, C * 0.2, 0.765, `fill="${MOSAIC_TEAL}"`))
+      : kind === "plain"
+        ? around(point, 0, star(8, C * 0.3, 0.765, `fill="none" stroke="${MOSAIC_LINE}" stroke-width="0.008"`))
+        : ""),
+  tip: (arm) => chevron(arm, MOSAIC_CREAM),
+};
+
+const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic };
 
 // ---------------------------------------------------------------------------
 // The document

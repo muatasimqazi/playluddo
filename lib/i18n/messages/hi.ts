@@ -83,6 +83,8 @@ export const hi: Messages = {
     boardBazaarDesc: "किलिम पर पीतल की लालटेनें",
     boardRug: "कालीन",
     boardRugDesc: "हाथ से बुना बलूची कालीन",
+    boardMosaic: "मोज़ेक",
+    boardMosaicDesc: "आठ-कोने वाले सितारों की चमकदार टाइलें",
 
     yourTeam: "आपकी टीम",
     memberOne: "{count} सदस्य",

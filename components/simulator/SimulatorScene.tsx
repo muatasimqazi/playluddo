@@ -1167,22 +1167,17 @@ function DieBody({
         envMapIntensity={0.45}
       />
     ) : (
+      // Solid glossy white: no light through it, so nothing behind the die
+      // shows through on any screen.
       <meshPhysicalMaterial
         color="#ffffff"
         roughness={compact ? 0.015 : 0.025}
         metalness={0}
         clearcoat={1}
         clearcoatRoughness={0.01}
-        transmission={compact ? 0.05 : 0.12}
-        thickness={compact ? 0.3 : 0.82}
-        ior={1.49}
-        attenuationColor="#ffffff"
-        attenuationDistance={0.28}
         specularIntensity={1}
         specularColor="#ffffff"
         envMapIntensity={compact ? 2.8 : 2.2}
-        transparent
-        opacity={1}
         emissive={compact ? "#ffffff" : canRoll ? "#ffffff" : "#000000"}
         emissiveIntensity={compact ? 0.14 : canRoll ? 0.025 : 0}
       />

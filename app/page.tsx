@@ -161,10 +161,10 @@ export default function Home() {
     { value: "geometric", label: t("entrance.boardGeometric"), desc: t("entrance.boardGeometricDesc") },
     { value: "aladdin", label: t("entrance.boardAladdin"), desc: t("entrance.boardAladdinDesc") },
   ];
-  // "Vs Computer" is the highlighted default — the fastest way into a game,
-  // and the one that needs no one else online. Once a mode has been picked,
-  // its tile stays highlighted so coming back shows where the player was.
-  const [mode, setMode] = useState<PlayMode>("practice");
+  // "Quick match" is the highlighted default — the quickest way into a game
+  // against real people. Once a mode has been picked, its tile stays
+  // highlighted so coming back shows where the player was.
+  const [mode, setMode] = useState<PlayMode>("quick");
   const [quickMatch, setQuickMatch] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");

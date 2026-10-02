@@ -4,7 +4,7 @@
 -- Run with `supabase test db` (requires `supabase start`).
 
 begin;
-select plan(13);
+select plan(15);
 
 create function private.ludo_test_pawn(p_id text, p_color text, p_index int, p_state text, p_path_index int)
 returns jsonb language sql immutable as $$
@@ -33,48 +33,62 @@ begin
 end;
 $$;
 
--- bonus-roll triggers (PRD 4.2 + F1.5): six, capture, or a pawn getting home
--- when the room's rule is on (the default). Never stacked.
+-- bonus-roll triggers (PRD 4.2 + F1.5): a capture, or a pawn getting home
+-- when the room's rule is on (the default). A six's extra roll comes before
+-- it moves, so the move itself earns nothing for it. Never stacked.
 select ok(
-  private.ludo_earns_bonus_roll(6, jsonb_build_object(
+  not private.ludo_earns_bonus_roll(jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '[]'::jsonb, 'finishesPawn', false
   ), '{}'::jsonb),
-  'grants a bonus roll on a six'
+  'grants no bonus roll for a plain move'
 );
 
 select ok(
-  private.ludo_earns_bonus_roll(3, jsonb_build_object(
+  private.ludo_earns_bonus_roll(jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '["y"]'::jsonb, 'finishesPawn', false
   ), '{}'::jsonb),
   'grants a bonus roll on a capture'
 );
 
 select ok(
-  private.ludo_earns_bonus_roll(6, jsonb_build_object(
-    'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '["y"]'::jsonb, 'finishesPawn', false
+  private.ludo_earns_bonus_roll(jsonb_build_object(
+    'pawnId', 'x', 'fromTileId', 'track:1', 'toTileId', 'track:2', 'capturesPawnIds', '["y"]'::jsonb, 'finishesPawn', true
   ), '{}'::jsonb),
-  'still a single bonus roll when both six and capture apply (no stacking)'
+  'still a single bonus roll when both a capture and getting home apply (no stacking)'
 );
 
 select ok(
-  private.ludo_earns_bonus_roll(3, jsonb_build_object(
+  private.ludo_earns_bonus_roll(jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'home:red:4', 'toTileId', 'home:red:5', 'capturesPawnIds', '[]'::jsonb, 'finishesPawn', true
   ), '{}'::jsonb),
   'grants a bonus roll for getting a pawn home under the default rules'
 );
 
 select ok(
-  not private.ludo_earns_bonus_roll(3, jsonb_build_object(
+  not private.ludo_earns_bonus_roll(jsonb_build_object(
     'pawnId', 'x', 'fromTileId', 'home:red:4', 'toTileId', 'home:red:5', 'capturesPawnIds', '[]'::jsonb, 'finishesPawn', true
   ), '{"bonusRollOnFinish": false}'::jsonb),
   'does not grant a bonus roll for getting a pawn home when the host turned the rule off'
+);
+
+-- sixes rolled first, then moved by in order (PRD 4.2)
+select is(
+  private.ludo_next_playable_die(private.ludo_test_board(), 'red', array[6, 6, 3]) - 'legalMoves',
+  '{"dieValue": 6, "rest": [6, 3]}'::jsonb,
+  'moves by the first die, leaving the rest in the order rolled'
+);
+
+select is(
+  private.ludo_next_playable_die(private.ludo_test_board(), 'red', array[4, 2]),
+  null,
+  'no die is playable with every pawn in its nest and no six'
 );
 
 -- consecutive sixes (PRD 4.2)
 select is(private.ludo_evaluate_six_roll(2, 4), '{"consecutiveSixesAfter": 0, "cancelMove": false}'::jsonb, 'resets the streak on a non-six');
 select is(private.ludo_evaluate_six_roll(0, 6), '{"consecutiveSixesAfter": 1, "cancelMove": false}'::jsonb, 'first six does not cancel');
 select is(private.ludo_evaluate_six_roll(1, 6), '{"consecutiveSixesAfter": 2, "cancelMove": false}'::jsonb, 'second six does not cancel');
-select is(private.ludo_evaluate_six_roll(2, 6), '{"consecutiveSixesAfter": 3, "cancelMove": true}'::jsonb, 'cancels the move on the third consecutive six');
+select is(private.ludo_evaluate_six_roll(2, 6), '{"consecutiveSixesAfter": 3, "cancelMove": true}'::jsonb, 'cancels all three on the third consecutive six');
 
 -- apply_move
 select is(

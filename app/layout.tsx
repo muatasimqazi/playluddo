@@ -78,6 +78,8 @@ export const viewport: Viewport = {
 
 const isAppBuild = !!process.env.CAPACITOR_BUILD;
 
+const GTM_ID = "GTM-N7X49V9F";
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
@@ -111,6 +113,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: FLEX_GAP_DETECT }} />
       </head>
       <body className="min-h-full flex flex-col">
+        {/* Google Tag Manager (noscript) — web only, like the GTM script below. */}
+        {!isAppBuild && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
         {/* F5.1: client-side locale detection + <html lang/dir> sync. The
             server always renders the default (English) HTML above; the
             provider adopts the player's locale right after mount. */}
@@ -124,10 +137,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </I18nProvider>
       </body>
       {/* Web only: the app build (CAPACITOR_BUILD) leaves out Google
-          Analytics' marketing tracking, keeping the App Store privacy label
-          to the product analytics declared in ios/App/App/PrivacyInfo.xcprivacy. */}
+          Analytics' and Tag Manager's marketing tracking, keeping the App Store
+          privacy label to the product analytics declared in
+          ios/App/App/PrivacyInfo.xcprivacy. */}
       {!isAppBuild && (
         <>
+          <Script id="google-tag-manager" strategy="afterInteractive">
+            {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','${GTM_ID}');`}
+          </Script>
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-75GZQ69MCG"
             strategy="afterInteractive"

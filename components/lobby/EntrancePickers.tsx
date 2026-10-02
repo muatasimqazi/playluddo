@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 
-// A one-row segmented control (radio group) for the entrance setup screen.
-// Every option stays visible and one tap away — no dropdowns, no sideways
-// scrolling — which is what lets the whole table setup fit one phone screen.
+// A segmented control (radio group) for the entrance setup screen, one row
+// unless `maxColumns` asks for even rows. Every option stays visible and one
+// tap away — no dropdowns, no sideways scrolling — which is what lets the
+// whole table setup fit one phone screen.
 // Arrow keys move the selection like a native radio group (roving tabindex).
 export function Segmented<T extends string | number>({
   label,
@@ -13,6 +14,7 @@ export function Segmented<T extends string | number>({
   options,
   value,
   onChange,
+  maxColumns,
 }: {
   label: string;
   /** Keep the label for screen readers only (e.g. a self-explanatory toggle). */
@@ -21,9 +23,16 @@ export function Segmented<T extends string | number>({
   options: readonly { value: T; label: ReactNode; ariaLabel?: string }[];
   value: T;
   onChange: (value: T) => void;
+  /**
+   * The most options in a row; more wrap onto even rows (7 at 4 is 4 + 3),
+   * for labels too long to share a phone-width row.
+   */
+  maxColumns?: number;
 }) {
   const labelId = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const rows = Math.ceil(options.length / (maxColumns ?? options.length));
+  const columns = Math.ceil(options.length / rows);
   const selectedIndex = Math.max(
     0,
     options.findIndex((o) => o.value === value),
@@ -58,7 +67,7 @@ export function Segmented<T extends string | number>({
         role="radiogroup"
         aria-labelledby={labelId}
         onKeyDown={onKeyDown}
-        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
       >
         {options.map((option, i) => (
           <button

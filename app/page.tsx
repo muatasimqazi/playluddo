@@ -731,6 +731,7 @@ export default function Home() {
                 {(mode === "practice" || mode === "friends") && gameType === "ludo" && (
                   <Segmented
                     label={t("entrance.boardLabel")}
+                    maxColumns={4}
                     options={BOARD_STYLES.filter((style) =>
                       ownership.owns(boardCosmetic(style.value)),
                     ).map((style) => ({

@@ -567,6 +567,7 @@ export const ar: Messages = {
     teamCreated: "تم إنشاء فريق خاص. شارك دعوته مع أصدقائك.",
     couldNotCreateTeam: "تعذّر إنشاء الفريق.",
     joinedTeam: "انضممت إلى الفريق.",
+    signInToJoinTeam: "سجّل الدخول للانضمام إلى الفريق الذي دُعيت إليه.",
     couldNotJoinTeam: "تعذّر الانضمام إلى الفريق.",
     teamDeleted: "تم حذف الفريق.",
     leftTeam: "غادرت الفريق.",

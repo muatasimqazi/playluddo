@@ -22,7 +22,7 @@ import {
   type Team,
 } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
-import { isNativeApp, webUrl } from "@/lib/native";
+import { isNativeApp, webUrl, webUrlHere } from "@/lib/native";
 import { gameCenterAvailable, signInWithGameCenter } from "@/lib/gameCenter";
 import {
   appleAuthorizationCode,
@@ -245,6 +245,22 @@ export function ProfilePanel({
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  // Arriving on a team invite (`/?team=CODE`), join it as soon as there's an
+  // account to join with: straight away when already signed in, or once the
+  // sign-in brings the player back here. Joining twice is harmless (the
+  // server only refreshes the member's name and avatar).
+  const joinedInvite = useRef(false);
+  useEffect(() => {
+    if (!user || user.is_anonymous || joinedInvite.current) return;
+    const invited = new URLSearchParams(window.location.search).get("team");
+    if (!invited) return;
+    joinedInvite.current = true;
+    void acceptTeamInvite(invited);
+    // Once per page load, keyed on the account appearing; acceptTeamInvite
+    // reads the name and avatar from the same render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   useEffect(() => {
     // Fires on sign-in too, not just `open` — the home page surfaces a
     // team's active table (onTeamsChange below) without requiring the
@@ -291,7 +307,7 @@ export function ProfilePanel({
       if (result.status === "signed-in") setOpen(false);
       return;
     }
-    const { error } = await signInOrLinkWithOAuth(client, "google", webUrl("/"));
+    const { error } = await signInOrLinkWithOAuth(client, "google", webUrlHere());
     if (error) {
       setMessage(t("common.connectError"));
       setPending(null);
@@ -302,7 +318,7 @@ export function ProfilePanel({
     setPending("apple");
     setMessage(null);
     if (!native) {
-      const { error } = await signInOrLinkWithOAuth(client, "apple", webUrl("/"));
+      const { error } = await signInOrLinkWithOAuth(client, "apple", webUrlHere());
       if (error) {
         setMessage(t("common.connectError"));
         setPending(null);
@@ -332,7 +348,7 @@ export function ProfilePanel({
     if (!value) return;
     setPending("send");
     setMessage(null);
-    const { error, linking: linked } = await sendSignInCode(client, method, value, webUrl("/"));
+    const { error, linking: linked } = await sendSignInCode(client, method, value, webUrlHere());
     setPending(null);
     if (error) {
       setMessage(t("account.authError"));
@@ -499,8 +515,8 @@ export function ProfilePanel({
     }
   }
 
-  async function acceptTeamInvite() {
-    const value = inviteCode.trim();
+  async function acceptTeamInvite(code = inviteCode) {
+    const value = code.trim();
     if (!value) return;
     setPending("join-team");
     setMessage(null);
@@ -880,7 +896,7 @@ export function ProfilePanel({
               </>
             ) : (
               <>
-                <p>{t("account.guestPrompt")}</p>
+                <p>{inviteCode ? t("account.signInToJoinTeam") : t("account.guestPrompt")}</p>
                 {/* In the apps Apple and Google use their native sheets (Google
                     blocks its web sign-in inside embedded web views). Apple
                     comes first — App Store guideline 4.8 wants it offered

@@ -160,7 +160,20 @@ site_url = "https://playluddo.com"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://playluddo.com", "http://localhost:3000", "http://127.0.0.1:3000"]
+# Sign-in comes back to the page it started on (a team invite, a table), so
+# every page of each site is allowed (`/**`), not just its home page. The
+# iOS/Android apps link to luddohouse.com (BRAND.url). Mirror this in the
+# hosted project: Authentication → URL Configuration → Redirect URLs.
+additional_redirect_urls = [
+  "https://playluddo.com",
+  "https://playluddo.com/**",
+  "https://luddohouse.com",
+  "https://luddohouse.com/**",
+  "http://localhost:3000",
+  "http://localhost:3000/**",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3000/**",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.

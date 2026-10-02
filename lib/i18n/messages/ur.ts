@@ -566,6 +566,7 @@ export const ur: Messages = {
     teamCreated: "نجی ٹیم بن گئی۔ اس کی دعوت اپنے دوستوں کے ساتھ شیئر کریں۔",
     couldNotCreateTeam: "ٹیم نہ بن سکی۔",
     joinedTeam: "آپ ٹیم میں شامل ہو گئے۔",
+    signInToJoinTeam: "جس ٹیم میں آپ کو مدعو کیا گیا ہے اس میں شامل ہونے کے لیے سائن ان کریں۔",
     couldNotJoinTeam: "ٹیم میں شامل نہ ہو سکے۔",
     teamDeleted: "ٹیم حذف ہو گئی۔",
     leftTeam: "آپ نے ٹیم چھوڑ دی۔",

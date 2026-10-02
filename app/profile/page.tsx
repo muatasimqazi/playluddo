@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
@@ -13,6 +14,9 @@ import { MatchHistory } from "@/components/profile/MatchHistory";
 import { Icon } from "@/components/simulator/Icon";
 import { useI18n } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
+
+/** These pages show no name from the profile panel; it only signs players in here. */
+const ignoreName = () => {};
 
 export default function ProfilePage() {
   const { t } = useI18n();
@@ -28,6 +32,11 @@ export default function ProfilePage() {
     void ensureSession(client).then(() =>
       client.auth.getUser().then(({ data }) => setUser(data.user)),
     );
+    // Signing in from the header's profile panel updates the page in place.
+    const { data } = client.auth.onAuthStateChange((_event, session) => {
+      if (session) setUser(session.user);
+    });
+    return () => data.subscription.unsubscribe();
   }, [client]);
 
   useEffect(() => {
@@ -76,10 +85,14 @@ export default function ProfilePage() {
             LUDDO<small>HOUSE</small>
           </span>
         </Link>
-        <Link href="/" className="profile-trigger leaderboard-back">
-          <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
-          <small>{t("actions.backHome")}</small>
-        </Link>
+        <div className="entrance-header-actions">
+          {/* Signed out: sign in right here, and come back to this page. */}
+          {user && !authenticated && <ProfilePanel onNameChange={ignoreName} />}
+          <Link href="/" className="profile-trigger leaderboard-back">
+            <Icon name="arrow" style={{ transform: "rotate(180deg)" }} />
+            <small>{t("actions.backHome")}</small>
+          </Link>
+        </div>
       </header>
 
       <section className="leaderboard-content">

@@ -566,6 +566,7 @@ export const ptBR: Messages = {
     teamCreated: "Equipe privada criada. Compartilhe o convite com seus amigos.",
     couldNotCreateTeam: "Não foi possível criar a equipe.",
     joinedTeam: "Você entrou na equipe.",
+    signInToJoinTeam: "Entre para fazer parte da equipe para a qual você foi convidado.",
     couldNotJoinTeam: "Não foi possível entrar na equipe.",
     teamDeleted: "Equipe excluída.",
     leftTeam: "Você saiu da equipe.",

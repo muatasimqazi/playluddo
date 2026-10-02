@@ -566,6 +566,7 @@ export const bn: Messages = {
     teamCreated: "ব্যক্তিগত দল তৈরি হয়েছে। এর আমন্ত্রণ আপনার বন্ধুদের সঙ্গে শেয়ার করুন।",
     couldNotCreateTeam: "দল তৈরি করা যায়নি।",
     joinedTeam: "আপনি দলে যোগ দিয়েছেন।",
+    signInToJoinTeam: "যে দলে আপনাকে আমন্ত্রণ জানানো হয়েছে, তাতে যোগ দিতে সাইন ইন করুন।",
     couldNotJoinTeam: "দলে যোগ দেওয়া যায়নি।",
     teamDeleted: "দল মুছে ফেলা হয়েছে।",
     leftTeam: "আপনি দল ছেড়েছেন।",

@@ -566,6 +566,7 @@ export const hi: Messages = {
     teamCreated: "निजी टीम बनाई गई। इसका निमंत्रण अपने दोस्तों के साथ साझा करें।",
     couldNotCreateTeam: "टीम नहीं बन सकी।",
     joinedTeam: "आप टीम में शामिल हो गए।",
+    signInToJoinTeam: "जिस टीम में आपको बुलाया गया है, उसमें शामिल होने के लिए साइन इन करें।",
     couldNotJoinTeam: "टीम में शामिल नहीं हो सके।",
     teamDeleted: "टीम हटाई गई।",
     leftTeam: "आपने टीम छोड़ दी।",

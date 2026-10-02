@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { resumeFailedOAuthLink } from "@/lib/supabase/linkAccount";
-import { webUrl } from "@/lib/native";
+import { webUrlHere } from "@/lib/native";
 
 /**
  * Web only, mounted once in app/layout.tsx. A guest's Google or Apple sign-in
@@ -13,7 +13,7 @@ import { webUrl } from "@/lib/native";
  */
 export function OAuthLinkFallback() {
   useEffect(() => {
-    void resumeFailedOAuthLink(createClient(), webUrl("/")).catch(() => {});
+    void resumeFailedOAuthLink(createClient(), webUrlHere()).catch(() => {});
   }, []);
   return null;
 }

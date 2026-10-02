@@ -566,6 +566,7 @@ export const id: Messages = {
     teamCreated: "Tim pribadi dibuat. Bagikan undangannya ke temanmu.",
     couldNotCreateTeam: "Tidak dapat membuat tim.",
     joinedTeam: "Kamu bergabung dengan tim.",
+    signInToJoinTeam: "Masuk untuk bergabung dengan tim yang mengundangmu.",
     couldNotJoinTeam: "Tidak dapat bergabung dengan tim.",
     teamDeleted: "Tim dihapus.",
     leftTeam: "Kamu keluar dari tim.",

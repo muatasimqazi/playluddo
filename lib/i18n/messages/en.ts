@@ -594,6 +594,7 @@ export const en = {
     teamCreated: "Private team created. Share its invite with your friends.",
     couldNotCreateTeam: "Could not create the team.",
     joinedTeam: "You joined the team.",
+    signInToJoinTeam: "Sign in to join the team you were invited to.",
     couldNotJoinTeam: "Could not join the team.",
     teamDeleted: "Team deleted.",
     leftTeam: "You left the team.",

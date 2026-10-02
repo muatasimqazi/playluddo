@@ -567,6 +567,7 @@ export const es: Messages = {
     teamCreated: "Equipo privado creado. Comparte su invitación con tus amigos.",
     couldNotCreateTeam: "No se pudo crear el equipo.",
     joinedTeam: "Te uniste al equipo.",
+    signInToJoinTeam: "Inicia sesión para unirte al equipo al que te invitaron.",
     couldNotJoinTeam: "No se pudo unir al equipo.",
     teamDeleted: "Equipo eliminado.",
     leftTeam: "Saliste del equipo.",

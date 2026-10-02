@@ -52,6 +52,27 @@ export function homeRotation(color: PlayerColor, spec: BoardSpec = BOARD_4): num
   return spec.arms === 6 ? hexHomeRotation(color) : HOME_ROTATION[color];
 }
 
+// The four seats around the square table, clockwise from the far left.
+const SQUARE_SEATS: readonly PlayerColor[] = ["red", "green", "yellow", "blue"];
+
+/**
+ * Which colour's seat a player sits in around the table. Luddo seats follow
+ * the bases, and the board turns to bring yours near (homeRotation). The
+ * Snakes & Ladders print stays upright, so the seats turn instead: you take
+ * the near-left seat, blue's, and everyone keeps their place around you.
+ */
+export function seatColor(
+  color: PlayerColor,
+  gameType: GameType | undefined,
+  myColor: PlayerColor | undefined,
+): PlayerColor {
+  if (gameType !== "snakes_and_ladders" || !myColor) return color;
+  const seat = SQUARE_SEATS.indexOf(color);
+  const mine = SQUARE_SEATS.indexOf(myColor);
+  if (seat < 0 || mine < 0) return color;
+  return SQUARE_SEATS[(seat - mine + 3) % 4];
+}
+
 /** One snap of the board when turning it: a quarter on the cross, a sixth on the hex. */
 export function rotationStep(spec: BoardSpec = BOARD_4): number {
   return (Math.PI * 2) / spec.arms;

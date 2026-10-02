@@ -171,6 +171,7 @@ function VideoCard({
 
 function ProceduralAvatar({
   player,
+  seatColor,
   active,
   speaking,
   hex,
@@ -180,6 +181,8 @@ function ProceduralAvatar({
   onVideoSelect,
 }: {
   player: Player;
+  /** The colour whose seat this player takes (a turned Snakes & Ladders table). */
+  seatColor: PlayerColor;
   active: boolean;
   speaking: boolean;
   hex: boolean;
@@ -190,7 +193,7 @@ function ProceduralAvatar({
 }) {
   const root = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
-  const seat = hex ? hexAvatarSeat(player.color) : BASE_SEATS[player.color];
+  const seat = hex ? hexAvatarSeat(seatColor) : BASE_SEATS[seatColor];
   const playerColor = seatColors(colorBlind)[player.color];
   const portrait = avatarForSeat(player.avatarId, player.seatIndex).portrait;
   const playerColorDark = new THREE.Color(playerColor).offsetHSL(0, 0, -0.14);
@@ -264,6 +267,7 @@ export function PlayerAvatars3D({
   speakingPlayerIds,
   preview,
   orientation = 0,
+  seatOf,
   hex = false,
   colorBlind = false,
   reducedMotion = false,
@@ -275,6 +279,8 @@ export function PlayerAvatars3D({
   speakingPlayerIds?: Set<string>;
   preview?: boolean;
   orientation?: number;
+  /** Whose seat each colour sits in, when that isn't its own (seatColor). */
+  seatOf?: (color: PlayerColor) => PlayerColor;
   /** Seat the figures around the 5-6 player hexagon (F5.2). */
   hex?: boolean;
   colorBlind?: boolean;
@@ -305,6 +311,7 @@ export function PlayerAvatars3D({
         <ProceduralAvatar
           key={player.id}
           player={player}
+          seatColor={seatOf?.(player.color) ?? player.color}
           active={player.id === turnPlayerId}
           speaking={speakingPlayerIds?.has(player.id) ?? false}
           hex={hex}

@@ -49,6 +49,7 @@ import {
   pawnPoint,
   pieceScale,
   rotationStep,
+  seatColor,
   shortestAngle,
   snakeSquarePoint,
   type ActionCamera,
@@ -872,6 +873,7 @@ function PhysicalDie({
   turnPlayerId,
   orientation,
   gameType,
+  myPlayerId,
   reducedMotion = false,
 }: Pick<
   SceneProps,
@@ -883,6 +885,7 @@ function PhysicalDie({
   | "turnPlayerId"
   | "orientation"
   | "gameType"
+  | "myPlayerId"
   | "reducedMotion"
 >) {
   const mesh = useRef<THREE.Group>(null);
@@ -904,7 +907,10 @@ function PhysicalDie({
   // phone your own turn brings it to your near corner, in thumb reach.
   const hex = sceneSpec({ gameType, players, frame }).arms === 6;
   const layout = seatLayout(compact, hex, players.length);
-  const activeColor = activePlayer?.color;
+  // Where the active player sits, which on a Snakes & Ladders table turns
+  // with you (seatColor), not the colour they play.
+  const myColor = players.find((player) => player.id === myPlayerId)?.color;
+  const activeColor = activePlayer && seatColor(activePlayer.color, gameType, myColor);
   // The die wears the rolling player's equipped skin (F3.5), so it changes
   // as it passes. Skins stay neutral: where it rests (beside the active
   // player's seat, see dieSeatPoint) already says whose turn it is, so it
@@ -2257,10 +2263,12 @@ function Seats({
   const cornerSeats =
     seatLayout(compact, hex, players.length) === "corners";
   const desktopFourPlayerSide = !hex && players.length === 4 && !cornerSeats;
+  const myColor = players.find((player) => player.id === myPlayerId)?.color;
   return (
     <>
       {players.map((player) => {
         const active = player.id === (frame.actorId ?? turnPlayerId);
+        const seat = seatColor(player.color, gameType, myColor);
         const avatar = (
           <PlayerAvatar
             player={player}
@@ -2270,12 +2278,12 @@ function Seats({
           />
         );
         const position = hex
-          ? hexSeat(player.color)
+          ? hexSeat(seat)
           : cornerSeats
-            ? mobileCornerPositions[player.color]
+            ? mobileCornerPositions[seat]
             : players.length === 4
-              ? desktopSidePositions[player.color]
-            : positions[player.color];
+              ? desktopSidePositions[seat]
+            : positions[seat];
         return (
           <Html
             key={player.id}
@@ -2288,7 +2296,7 @@ function Seats({
               const portrait = size.width / size.height < 0.9;
               const inset = portrait ? 66 : 108;
               const sidePush = desktopFourPlayerSide
-                ? (player.color === "red" || player.color === "blue" ? -1 : 1) *
+                ? (seat === "red" || seat === "blue" ? -1 : 1) *
                   170
                 : 0;
               const projectedY = ((1 - point.y) * size.height) / 2;
@@ -2835,6 +2843,13 @@ export default function SimulatorScene(props: SceneProps) {
               speakingPlayerIds={props.speakingPlayerIds}
               preview={props.preview}
               orientation={props.orientation}
+              seatOf={(color) =>
+                seatColor(
+                  color,
+                  props.gameType,
+                  props.players.find((player) => player.id === props.myPlayerId)?.color,
+                )
+              }
               hex={sceneSpec(props).arms === 6}
               colorBlind={props.colorBlind}
               reducedMotion={props.reducedMotion}

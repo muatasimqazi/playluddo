@@ -20,7 +20,8 @@ The game is spelled **Luddo**, never "Ludo", including in event values, docs, GT
 
 ## Google Tag Manager
 
-There is no GTM container in the code today. Check whether one already exists for Luddo House before you create one. If you create one, make it a **Web** container for `luddohouse.com` named "Luddo House". Read the container ID from an environment variable such as `NEXT_PUBLIC_GTM_ID`, and don't hardcode it.
+- **Container ID:** `GTM-N7X49V9F`, already loaded on the website from `app/layout.tsx` (the `GTM_ID` constant). The ID is public by nature, so keep it as a constant rather than moving it to an environment variable.
+- Open this container in Chrome and record what it contains today (tags, triggers, variables, published versions) before changing anything. Don't create a second container.
 
 ## Browser access
 
@@ -71,10 +72,15 @@ Avoid generating large volumes of meaningless events.
 
 # What already exists (verify each point; don't trust it blindly)
 
-- **GA4 via `gtag.js`:** `app/layout.tsx` loads `G-75GZQ69MCG` directly, **web only**. The Capacitor app build (`CAPACITOR_BUILD`) deliberately leaves Google Analytics out to keep the App Store privacy label limited to what `ios/App/App/PrivacyInfo.xcprivacy` declares. **Keep GA/GTM out of the app build.**
+- **GTM and `gtag.js` both load:** `app/layout.tsx` loads two things on the web, and **both are web only**:
+  - the GTM container `GTM-N7X49V9F` (the standard snippet through `next/script` `afterInteractive`, plus the `<noscript>` iframe at the top of `<body>`)
+  - the original direct `gtag.js` snippet for `G-75GZQ69MCG`
+
+  Both write to the same `window.dataLayer`. If the container also fires a Google tag for `G-75GZQ69MCG`, every page view is counted twice. Remove the direct snippet once GTM's Google tag is set up and published (see Phase 5).
+- **Keep GA/GTM out of the app build.** The Capacitor app build (`CAPACITOR_BUILD`) deliberately leaves both out, to keep the App Store privacy label limited to what `ios/App/App/PrivacyInfo.xcprivacy` declares.
 - **PostHog** is the product analytics tool, and it also runs in the app. It is initialised in `instrumentation-client.ts` with session replay that masks all text and inputs, and with manual `$pageview` capture on App Router navigations. The only custom event today is `call_ice_outcome` in `lib/analytics/ice.ts`. Don't remove or weaken PostHog.
 - **Under-13 handling:** `lib/analytics/children.ts` (`stopAnalyticsForChild`) and `deviceAgeBlocked()` in `lib/community.ts` turn PostHog off on any device or account that answered under 13. **Google Analytics is not covered by this today.** GA/GTM must send nothing for these users either. Treat this as a requirement, not an option.
-- **Consent:** there is no cookie/consent banner. GA currently loads unconditionally on the web.
+- **Consent:** there is no cookie/consent banner. GA and GTM currently load unconditionally on the web.
 - **Privacy policy:** `app/privacy/page.tsx` says Google Analytics is used on the website "to measure visits". Gameplay events in GA go beyond that. Draft the wording change and flag it for review; don't change the policy's meaning on your own.
 - **IDs in URLs:** routes use query parameters (`/room?id=…`, `/tournaments?id=…`, replays, watch links) because the app is a static export. A room URL **is the invitation**: anyone with it can try to join. Default `page_view` collection would send these to GA.
 
@@ -237,12 +243,14 @@ Build one typed analytics module in `lib/analytics/`, next to the existing files
 
 **PostHog decision:** PostHog has almost no custom events today. Decide whether this module should send the same domain events to PostHog as well. That would give one catalog and two destinations, and it would also cover app users, who never reach GA. Present your recommendation in the review step. Don't change PostHog behaviour before it's approved.
 
-**Loading GTM:** replace the direct `gtag.js` snippet in `app/layout.tsx` with GTM, still web only. Use whatever the installed Next.js recommends for third-party scripts (check its docs). Don't run both at once, or every page view is counted twice. Plan the rollout order so there is no gap and no double counting:
+**Loading GTM:** GTM already loads in `app/layout.tsx`, so build on it rather than rewriting it. What's left:
 
-1. configure the container
-2. preview it
-3. publish it, with approval
-4. deploy the code
+- **Remove the direct `gtag.js` snippet.** Once GA4 is delivered through the container, delete the `G-75GZQ69MCG` `<Script>` tags so GA is loaded only once. Plan the order so there is no gap and no double counting:
+  1. configure the Google tag in the container
+  2. preview it
+  3. publish it, with approval
+  4. deploy the code change that removes the direct snippet
+- **Gate GTM for children and consent.** The GTM snippet is a static script that runs for everyone today. Make sure it doesn't load, or sends nothing, on under-13 devices (Phase 7). Consent Mode defaults must be pushed *before* the GTM snippet runs (Phase 11). If that means changing how the snippet loads, check what the installed Next.js recommends for third-party scripts.
 
 Remember that `/screen` runs on TV browsers as old as Chromium 79 (LG webOS). Analytics code must not break that page.
 
@@ -300,8 +308,8 @@ Fire lifecycle events where the state transition happens, and de-duplicate per `
 
 Using your browser access and the guardrails above:
 
-1. Create or confirm the GTM web container and record its ID.
-2. Add the Google tag for the Luddo House GA4 stream.
+1. Open container `GTM-N7X49V9F` and record its current state, including any tags already firing on luddohouse.com.
+2. Add (or confirm) the Google tag for the Luddo House GA4 stream `G-75GZQ69MCG`. Then remove the direct `gtag.js` snippet from the code, in the order given in Phase 5.
 3. Use a **scalable generic setup** rather than one tag per event: Data Layer Variables, a Custom Event trigger that matches the event catalog, and a GA4 Event tag that uses the pushed event name with mapped parameters.
 4. Configure Consent Mode v2 defaults (see Phase 11).
 5. Make sure GA4 page views come from one source only, with redacted URLs, and that App Router client-side navigations are counted exactly once.
@@ -317,7 +325,7 @@ Record in the docs exactly what you configured: container ID, variables, trigger
 
 # Phase 11 — Consent
 
-There is no consent banner today, and GA runs unconditionally on the web. Review the current behaviour and present the options, for example Consent Mode v2 with region-specific defaults for the EEA/UK, with or without a consent banner. Recommend one. **Don't build a banner without approval.** If one is approved, all of its text must go through the app's i18n system with complete catalogs for all 8 languages.
+There is no consent banner today, and GA and GTM run unconditionally on the web. Review the current behaviour and present the options, for example Consent Mode v2 with region-specific defaults for the EEA/UK, with or without a consent banner. Recommend one. **Don't build a banner without approval.** If one is approved, all of its text must go through the app's i18n system with complete catalogs for all 8 languages.
 
 Never get around browser privacy controls or a user's choice.
 
@@ -402,7 +410,7 @@ Run `npm test` and `npm run lint`, and add unit tests for the analytics module: 
 3. Document the real journey.
 4. Propose the taxonomy, the PostHog decision, the identity approach, the consent approach and the URL redaction rules.
 5. **Stop and present these for review before changing any code or any Google configuration.**
-6. Implement the analytics module, GTM loading and the under-13/consent/URL safeguards.
+6. Implement the analytics module and the under-13/consent/URL safeguards around the existing GTM snippet.
 7. Instrument lifecycle, multiplayer, social and reliability events.
 8. Configure GTM and GA4 in Chrome, within the guardrails.
 9. Write `docs/analytics.md` and draft the privacy policy wording change.

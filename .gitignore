@@ -44,3 +44,6 @@ next-env.d.ts
 
 # design source files: keep the editable .af, never the live-editing lock
 *~lock~
+
+# graphify knowledge graph output
+graphify-out/

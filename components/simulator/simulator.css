@@ -4985,6 +4985,30 @@ body.sim-die-blocked .sim-canvas {
     min-height: 52px;
   }
 }
+/* Tablets in portrait and narrow desktop windows. The full header (tagline
+   and five labelled pills) needs about 940px in English and 1,100px in its
+   longest language, so above the phone layout (700px) it pushed Sign in off
+   the edge: the tagline goes first, then Leaderboard, Tournaments and
+   Profile become icon circles as on phones. Sign in and the language keep
+   their labels. */
+@media (min-width: 701px) and (max-width: 1180px) {
+  .entrance-header-actions > span {
+    display: none;
+  }
+}
+@media (min-width: 701px) and (max-width: 960px) {
+  .entrance-header-actions {
+    gap: 10px;
+  }
+  .entrance-header-actions .leaderboard-trigger {
+    width: 36px;
+    padding: 0;
+    gap: 0;
+  }
+  .entrance-header-actions .leaderboard-trigger small {
+    display: none;
+  }
+}
 /* Phones (up to the 440px Pro Max): the language pill shrinks to its globe
    (the picker still opens on tap, and its sheet names the current language)
    so the header's last button — the profile — isn't pushed off the edge. */

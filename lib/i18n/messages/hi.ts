@@ -79,6 +79,8 @@ export const hi: Messages = {
     boardGeometricDesc: "बोल्ड आकृतियाँ, सुनहरे रंग",
     boardAladdin: "अलादीन",
     boardAladdinDesc: "अरेबियन नाइट्स वाली मेज़",
+    boardBazaar: "बाज़ार",
+    boardBazaarDesc: "किलिम पर पीतल की लालटेनें",
 
     yourTeam: "आपकी टीम",
     memberOne: "{count} सदस्य",

@@ -98,6 +98,8 @@ export const en = {
     boardGeometricDesc: "Bold shapes, gold accents",
     boardAladdin: "Aladdin",
     boardAladdinDesc: "An Arabian-nights table",
+    boardBazaar: "Bazaar",
+    boardBazaarDesc: "Brass lanterns on a kilim",
 
     yourTeam: "Your team",
     memberOne: "{count} member",

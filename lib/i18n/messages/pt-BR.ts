@@ -79,6 +79,8 @@ export const ptBR: Messages = {
     boardGeometricDesc: "Formas marcantes, detalhes dourados",
     boardAladdin: "Aladdin",
     boardAladdinDesc: "Uma mesa das mil e uma noites",
+    boardBazaar: "Bazar",
+    boardBazaarDesc: "Lanternas de latão sobre um kilim",
 
     yourTeam: "Seu time",
     memberOne: "{count} membro",

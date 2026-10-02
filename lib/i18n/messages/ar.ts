@@ -80,6 +80,8 @@ export const ar: Messages = {
     boardGeometricDesc: "أشكال جريئة ولمسات ذهبية",
     boardAladdin: "علاء الدين",
     boardAladdinDesc: "طاولة من ليالي ألف ليلة وليلة",
+    boardBazaar: "البازار",
+    boardBazaarDesc: "فوانيس نحاسية على سجادة كليم",
 
     yourTeam: "فريقك",
     memberOne: "عضو واحد",

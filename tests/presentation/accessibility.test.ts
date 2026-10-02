@@ -186,10 +186,12 @@ describe("board recolouring", () => {
     classic: "board-classic.svg",
     geometric: "board-geometric.svg",
     aladdin: "board-aladdin.svg",
+    bazaar: "board-bazaar.svg",
     "hex-classic": "board-hex-classic.svg",
     "hex-signature": "board-hex-signature.svg",
     "hex-geometric": "board-hex-geometric.svg",
     "hex-aladdin": "board-hex-aladdin.svg",
+    "hex-bazaar": "board-hex-bazaar.svg",
   };
 
   it("lists only shades the artwork really uses, and changes every one of them", () => {

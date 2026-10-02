@@ -14,7 +14,7 @@ const freeOnly = (id: string) => FREE_COSMETICS.has(id);
 
 describe("cosmetic gates", () => {
   it("maps every board and room to a catalog cosmetic and back", () => {
-    for (const style of ["signature", "classic", "geometric", "aladdin"] as const) {
+    for (const style of ["signature", "classic", "geometric", "aladdin", "bazaar"] as const) {
       expect(boardStyleForCosmetic(boardCosmetic(style))).toBe(style);
     }
     for (const room of ROOM_STYLES) {
@@ -25,14 +25,14 @@ describe("cosmetic gates", () => {
   });
 
   it("keeps every board free, and the Apartment", () => {
-    for (const style of ["signature", "classic", "geometric", "aladdin"] as const)
+    for (const style of ["signature", "classic", "geometric", "aladdin", "bazaar"] as const)
       expect(ownedBoardStyle(style, freeOnly)).toBe(style);
     expect(ownedRoom("apartment", freeOnly)).toBe("apartment");
   });
 
   it("draws an unowned choice as the free default", () => {
-    // No board is locked today; a later one that is falls back to Classic.
-    expect(ownedBoardStyle("geometric", () => false)).toBe("classic");
+    // No board is locked today; one that is later falls back to Classic.
+    expect(ownedBoardStyle("bazaar", () => false)).toBe("classic");
     for (const room of ["mahogany", "cafe", "lake", "rooftop"] as const) {
       expect(ownedRoom(room, freeOnly)).toBe("apartment");
     }

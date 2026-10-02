@@ -26,6 +26,7 @@ import {
  *   signature -> designs/board-hex-signature.svg  (board-design.webp)
  *   geometric -> designs/board-hex-geometric.svg  (board-geometric.svg)
  *   aladdin   -> designs/board-hex-aladdin.svg    (board-aladdin.svg)
+ *   bazaar    -> designs/board-hex-bazaar.svg     (board-bazaar.svg)
  *
  * Written by `npm run board:hex`, then free to restyle by hand. Every style
  * draws the same anchors — the track cells, home columns, bases and nest
@@ -39,12 +40,13 @@ import {
  * onto the hexagonal top face.
  */
 
-export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin";
+export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar";
 export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "classic",
   "signature",
   "geometric",
   "aladdin",
+  "bazaar",
 ];
 /** File name in designs/ for each style. */
 export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
@@ -52,6 +54,7 @@ export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
   signature: "board-hex-signature.svg",
   geometric: "board-hex-geometric.svg",
   aladdin: "board-hex-aladdin.svg",
+  bazaar: "board-hex-bazaar.svg",
 };
 
 // ---------------------------------------------------------------------------
@@ -416,7 +419,113 @@ const aladdin: Theme = {
   tip: (arm) => chevron(arm, "rgb(233,194,92)"),
 };
 
-const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin };
+// ---------------------------------------------------------------------------
+// Bazaar: jewel tones on espresso, brass trim, parchment home columns, brass
+// trays and star medallions (board-bazaar.svg)
+// ---------------------------------------------------------------------------
+
+const BAZAAR_RAMP: Record<PlayerColor, readonly string[]> = {
+  red: ["#D24A3E", "#651413"],
+  green: ["#349A6B", "#103F2B"],
+  yellow: ["#F0BC45", "#94600E"],
+  blue: ["#4B78C4", "#16285A"],
+  orange: ["#E0823A", "#7A3A0E"],
+  black: ["#6A6272", "#24202A"],
+};
+// The jewel diamonds down each home column.
+const BAZAAR_MOTIF: Record<PlayerColor, string> = {
+  red: "#7A1A18",
+  green: "#155238",
+  yellow: "#A86B0F",
+  blue: "#1E3570",
+  orange: "#8A4210",
+  black: "#3A3440",
+};
+const ESPRESSO = "#1E120B";
+const BRASS_LINE = "#D9A845";
+const PARCHMENT = "#F1E2C0";
+const bazaarJewel = (color: PlayerColor) => `url(#bz-${color})`;
+
+/** A brass disc on espresso: the board's medallion, holding `body`. */
+function bazaarMedallion(radius: number, body: string): string {
+  return (
+    `<circle r="${n(radius)}" fill="url(#brass)"/>` +
+    `<circle r="${n(radius * 0.83)}" fill="${ESPRESSO}"/>` +
+    body
+  );
+}
+
+const bazaar: Theme = {
+  defs:
+    gradient("brass", ["#F8E29A", "#D9A845", "#8A5E1C"]) +
+    BOARD_6.colors.map((color) => gradient(`bz-${color}`, BAZAAR_RAMP[color], true)).join(""),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${ESPRESSO}" stroke="url(#brass)" stroke-width="0.05"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.075)}" fill="none" stroke="${BRASS_LINE}" stroke-width="0.01"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${bazaarJewel(color)}" stroke="url(#brass)" stroke-width="0.02"`) +
+      around(
+        center,
+        angle,
+        // A kilim border, then the yard's own eight-point star.
+        `<circle r="${n(R * 0.9)}" fill="none" stroke="${PARCHMENT}" stroke-opacity="0.7" stroke-width="${n(R * 0.05)}" stroke-dasharray="${n(R * 0.06)} ${n(R * 0.06)}"/>` +
+          `<circle r="${n(R * 0.83)}" fill="none" stroke="${BRASS_LINE}" stroke-width="0.006"/>` +
+          star(8, R * 0.62, 0.7, `fill="${BAZAAR_RAMP[color][1]}"`),
+      )
+    );
+  },
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="url(#brass)"`) +
+    around(
+      point,
+      0,
+      `<circle r="${n(C * 0.5)}" fill="${ESPRESSO}"/>` +
+        `<circle r="${n(C * 0.42)}" fill="none" stroke="${BRASS_LINE}" stroke-width="0.006" stroke-dasharray="0.006 0.018"/>` +
+        star(8, C * 0.17, 0.7, `fill="url(#brass)"`),
+    ),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${bazaarJewel(color)}" stroke="${BRASS_LINE}" stroke-width="0.012"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    return (
+      `<circle r="${n(r)}" fill="url(#brass)"/>` +
+      `<circle r="${n(r * 0.9)}" fill="${ESPRESSO}"/>` +
+      `<circle r="${n(r * 0.8)}" fill="none" stroke="${BRASS_LINE}" stroke-width="0.005" stroke-dasharray="0.008 0.018"/>` +
+      star(8, r * 0.5, 0.7, `fill="url(#brass)"`) +
+      `<circle r="${n(r * 0.12)}" fill="${ESPRESSO}"/>`
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${PARCHMENT}" stroke="${BRASS_LINE}" stroke-width="0.01"`) +
+    inCell(
+      point,
+      arm,
+      `<polygon points="${n(-C * 0.3)},0 0,${n(-C * 0.22)} ${n(C * 0.3)},0 0,${n(C * 0.22)}" fill="${BAZAAR_MOTIF[color]}" stroke="${BRASS_LINE}" stroke-width="0.008"/>`,
+    ),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(`track-${cell}`, point, arm, `fill="${bazaarJewel(kind === "entry" ? owner : BOARD_6.colors[arm])}" stroke="${BRASS_LINE}" stroke-width="0.01"`) +
+    (kind === "star"
+      ? inCell(point, arm, bazaarMedallion(C * 0.36, star(8, C * 0.17, 0.7, `fill="url(#brass)"`)))
+      : kind === "entry"
+        ? inCell(
+            point,
+            arm,
+            bazaarMedallion(
+              C * 0.36,
+              `<polygon points="${n(-C * 0.14)},0 0,${n(-C * 0.14)} ${n(C * 0.14)},0 0,${n(C * 0.14)}" fill="${PARCHMENT}"/>`,
+            ),
+          )
+        : ""),
+  tip: (arm) => chevron(arm, "#F3D07A"),
+};
+
+const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar };
 
 // ---------------------------------------------------------------------------
 // The document

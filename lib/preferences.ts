@@ -91,7 +91,11 @@ function isBotLevel(value: unknown): value is BotLevel {
 }
 function isBoardStyle(value: unknown): value is BoardStyle {
   return (
-    value === "signature" || value === "classic" || value === "geometric" || value === "aladdin"
+    value === "signature" ||
+    value === "classic" ||
+    value === "geometric" ||
+    value === "aladdin" ||
+    value === "bazaar"
   );
 }
 

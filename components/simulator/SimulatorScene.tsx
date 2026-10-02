@@ -74,11 +74,13 @@ import boardArtwork from "@/designs/board-design.webp";
 import classicBoardArtwork from "@/designs/board-classic.svg";
 import geometricBoardArtwork from "@/designs/board-geometric.svg";
 import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
+import bazaarBoardArtwork from "@/designs/board-bazaar.svg";
 // The 5-6 player hexagon in each board style (F5.2); lib/presentation/hexArtwork.ts.
 import hexClassicArtwork from "@/designs/board-hex-classic.svg";
 import hexSignatureArtwork from "@/designs/board-hex-signature.svg";
 import hexGeometricArtwork from "@/designs/board-hex-geometric.svg";
 import hexAladdinArtwork from "@/designs/board-hex-aladdin.svg";
+import hexBazaarArtwork from "@/designs/board-hex-bazaar.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
@@ -98,10 +100,11 @@ import { LakeCabin } from "./LakeCabin";
 import { Rooftop } from "./Rooftop";
 import { canvasTexture, drawVeins } from "./roomParts";
 import { diceSkinFor, type DiceSkin } from "@/lib/presentation/diceSkins";
-import type { RoomStyle } from "@/lib/presentation/simulatorPrefs";
+import type { BoardStyle, RoomStyle } from "@/lib/presentation/simulatorPrefs";
 import { GlassPawn, GLASS_PAWN_HEIGHT } from "./GlassPawn";
 import { ClassicPawn, CLASSIC_PAWN_HEIGHT } from "./ClassicPawn";
 import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
+import { BazaarPawn, BAZAAR_PAWN_HEIGHT } from "./BazaarPawn";
 import { MarblePawn, MARBLE_PAWN_HEIGHT, WoodPawn, WOOD_PAWN_HEIGHT } from "./TurnedPawns";
 import { isFigure, pieceStyleFor, type PieceStyle } from "@/lib/presentation/pieceStyles";
 import { Icon } from "./Icon";
@@ -131,7 +134,7 @@ export interface SceneProps {
   speakingPlayerIds?: Set<string>;
   preview?: boolean;
   soundEnabled?: boolean;
-  boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
+  boardStyle?: BoardStyle;
   /** The room around the table. Apartment unless the player picked another. */
   room?: RoomStyle;
   /** Snakes & Ladders (F2.6): which printed board — 0 (default) or 1. */
@@ -349,33 +352,37 @@ function CameraRig({
   );
 }
 
-type BoardStyle = "signature" | "classic" | "geometric" | "aladdin";
-
-// The signature artwork (designs/board-design.webp) prints its base nest
-// circles at ~9.6% / ~90.4% of each quadrant — closer to the corners than
-// the shared NEST_SLOT_POSITIONS, which match the classic/geometric/aladdin
-// artworks. Slot order matches those: 0 top-left, 1 top-right, 2 bottom-left,
+// Boards whose base nests aren't where the shared NEST_SLOT_POSITIONS put
+// them (those match the classic/geometric/aladdin artworks), as the near and
+// far percentage of each quadrant: the signature artwork
+// (designs/board-design.webp) prints its nest circles closer to the corners,
+// the Bazaar (designs/board-bazaar.svg) sets its brass trays further in.
+// Slot order matches those: 0 top-left, 1 top-right, 2 bottom-left,
 // 3 bottom-right.
-const SIGNATURE_NEST_LO = 9.6;
-const SIGNATURE_NEST_HI = 90.4;
+const OWN_NESTS: Partial<Record<BoardStyle, readonly [number, number]>> = {
+  signature: [9.6, 90.4],
+  bazaar: [(160 / 600) * 100, (440 / 600) * 100],
+};
 
-/** pawnPoint, with parked pieces moved onto the signature board's own nest circles. */
+/** pawnPoint, with parked pieces moved onto a board's own nest circles. */
 function simPawnPoint(
   pawn: Pawn,
   gameType: GameType,
   spec: BoardSpec,
   boardStyle: BoardStyle,
 ): Point {
+  const nests = OWN_NESTS[boardStyle];
   if (
-    boardStyle !== "signature" ||
+    !nests ||
     gameType !== "ludo" ||
     spec.arms !== 4 ||
     pawn.pathIndex !== null
   )
     return pawnPoint(pawn, gameType, spec);
   const base = BASE_AREA[pawn.color];
-  const left = pawn.index % 2 ? SIGNATURE_NEST_HI : SIGNATURE_NEST_LO;
-  const top = pawn.index >= 2 ? SIGNATURE_NEST_HI : SIGNATURE_NEST_LO;
+  const [near, far] = nests;
+  const left = pawn.index % 2 ? far : near;
+  const top = pawn.index >= 2 ? far : near;
   return gridPoint(
     base.rowStart + (top / 100) * 6 - 0.5,
     base.colStart + (left / 100) * 6 - 0.5,
@@ -406,7 +413,7 @@ function Piece({
   mode: InteractionMode;
   gameType?: GameType;
   soundEnabled?: boolean;
-  boardStyle?: "signature" | "classic" | "geometric" | "aladdin";
+  boardStyle?: BoardStyle;
   /** How this piece is drawn: its owner's equipped style, or the board's own (F3.5). */
   style?: PieceStyle;
   /** Which Luddo board: the 4-arm cross or the 6-arm hexagon (F5.2). */
@@ -444,6 +451,7 @@ function Piece({
       glass: GLASS_PAWN_HEIGHT,
       classic: CLASSIC_PAWN_HEIGHT,
       aladdin: ALADDIN_PAWN_HEIGHT,
+      bazaar: BAZAAR_PAWN_HEIGHT,
       wood: WOOD_PAWN_HEIGHT,
       marble: MARBLE_PAWN_HEIGHT,
     }[style] * scale;
@@ -692,6 +700,8 @@ function Piece({
           <ClassicPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "aladdin" ? (
           <AladdinPawn color={pawn.color} colorBlind={colorBlind} />
+        ) : style === "bazaar" ? (
+          <BazaarPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "wood" ? (
           <WoodPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "marble" ? (
@@ -1263,6 +1273,7 @@ const HEX_ARTWORK: Record<HexBoardStyle, { src: string }> = {
   signature: hexSignatureArtwork,
   geometric: hexGeometricArtwork,
   aladdin: hexAladdinArtwork,
+  bazaar: hexBazaarArtwork,
 };
 
 /**
@@ -1323,12 +1334,13 @@ function BoardObject(props: SceneProps) {
   const colorBlind = !!props.colorBlind;
   const seats = (src: string, artworkKey: string) =>
     colorBlind ? `${src}#seats=${artworkKey}` : src;
-  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, snakeSource] =
+  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, snakeSource] =
     useLoader(colorBlind ? SeatRecolorLoader : THREE.ImageLoader, [
       boardArtwork.src,
       seats(classicBoardArtwork.src as string, "classic"),
       seats(geometricBoardArtwork.src as string, "geometric"),
       seats(aladdinBoardArtwork.src as string, "aladdin"),
+      seats(bazaarBoardArtwork.src as string, "bazaar"),
       snakeSrc,
     ]);
   // Vector boards are rasterized once into a texture. On a desktop screen
@@ -1346,18 +1358,24 @@ function BoardObject(props: SceneProps) {
       : 2048;
   const texture = useMemo(
     () => {
-      const classic = props.boardStyle === "classic";
-      const geometric = props.boardStyle === "geometric";
-      const aladdin = props.boardStyle === "aladdin";
+      // Every board but the raster signature one is a vector whose grid
+      // fills the image.
+      const vectors: Partial<Record<BoardStyle, HTMLImageElement>> = {
+        classic: classicArtwork,
+        geometric: geometricArtwork,
+        aladdin: aladdinArtwork,
+        bazaar: bazaarArtwork,
+      };
+      const vector = vectors[props.boardStyle ?? "signature"];
       return makeBoardTexture(
-        classic ? classicArtwork : geometric ? geometricArtwork : aladdin ? aladdinArtwork : artwork,
-        classic ? "full" : geometric ? "full" : aladdin ? "full" : "ludo",
+        vector ?? artwork,
+        vector ? "full" : "ludo",
         props.view === "overhead" ? 1.24 : 1,
         vectorSize,
         colorBlind,
       );
     },
-    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
+    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
   );
   const snakeTexture = useMemo(
     () => makeBoardTexture(snakeSource, "full", 1, vectorSize),

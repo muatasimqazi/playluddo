@@ -79,6 +79,8 @@ export const ur: Messages = {
     boardGeometricDesc: "نمایاں شکلیں، سنہری جھلک",
     boardAladdin: "علاء الدین",
     boardAladdinDesc: "الف لیلوی راتوں کی ایک میز",
+    boardBazaar: "بازار",
+    boardBazaarDesc: "کلیم پر پیتل کی لالٹینیں",
 
     yourTeam: "آپ کی ٹیم",
     memberOne: "{count} رکن",

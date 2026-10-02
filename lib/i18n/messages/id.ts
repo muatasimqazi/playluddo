@@ -79,6 +79,8 @@ export const id: Messages = {
     boardGeometricDesc: "Bentuk tegas, aksen emas",
     boardAladdin: "Aladdin",
     boardAladdinDesc: "Meja bernuansa negeri seribu satu malam",
+    boardBazaar: "Bazar",
+    boardBazaarDesc: "Lentera kuningan di atas kilim",
 
     yourTeam: "Timmu",
     memberOne: "{count} anggota",

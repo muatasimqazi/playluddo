@@ -79,6 +79,8 @@ export const bn: Messages = {
     boardGeometricDesc: "সাহসী আকৃতি, সোনালি ছোঁয়া",
     boardAladdin: "আলাদিন",
     boardAladdinDesc: "আরব্য রজনীর এক টেবিল",
+    boardBazaar: "বাজার",
+    boardBazaarDesc: "কিলিমের ওপর পিতলের লণ্ঠন",
 
     yourTeam: "আপনার দল",
     memberOne: "{count} জন সদস্য",

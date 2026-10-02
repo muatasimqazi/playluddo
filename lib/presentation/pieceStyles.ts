@@ -1,15 +1,14 @@
 import type { GameType } from "../board/types";
+import type { BoardStyle } from "./simulatorPrefs";
 
 /**
  * Piece styles (docs/COMPETITIVE_ROADMAP.md F3.5). Each board design comes
- * with its own pieces (glass discs, classic pegs, Aladdin minarets); an
- * equipped piece cosmetic replaces them for that player's pieces only, and
- * everyone at the table sees it. Every style keeps the seat colour as its
+ * with its own pieces (glass discs, classic pegs, Aladdin minarets, Bazaar
+ * lanterns); an equipped piece cosmetic replaces them for that player's
+ * pieces only, and everyone at the table sees it. Every style keeps the seat colour as its
  * dominant colour, so pieces stay identifiable (F5.5 adds seat symbols).
  */
-export type PieceStyle = "glass" | "classic" | "aladdin" | "wood" | "marble";
-
-type BoardStyle = "signature" | "classic" | "geometric" | "aladdin";
+export type PieceStyle = "glass" | "classic" | "aladdin" | "bazaar" | "wood" | "marble";
 
 const PIECE_COSMETIC_STYLE: Record<string, PieceStyle> = {
   piece_glass: "glass",
@@ -34,6 +33,7 @@ export function pieceStyleFor(
   if (chosen) return chosen;
   if (gameType === "ludo" && boardStyle === "classic") return "classic";
   if (gameType === "ludo" && boardStyle === "aladdin") return "aladdin";
+  if (gameType === "ludo" && boardStyle === "bazaar") return "bazaar";
   return "glass";
 }
 

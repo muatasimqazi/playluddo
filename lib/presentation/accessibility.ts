@@ -194,6 +194,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     yellow: [rgb(212, 164, 28), rgb(154, 116, 16), rgb(74, 52, 6)],
     blue: [rgb(31, 91, 158), rgb(20, 58, 102), rgb(7, 24, 49)],
   },
+  // The Bazaar's jewel gradients, then its home-column diamonds (and the
+  // saffron diamonds' darker outline). Its brass is not a seat colour.
+  bazaar: {
+    red: ["#D24A3E", "#651413", "#7A1A18"],
+    green: ["#349A6B", "#103F2B", "#155238"],
+    yellow: ["#F0BC45", "#94600E", "#A86B0F", "#7A4E0E"],
+    blue: ["#4B78C4", "#16285A", "#1E3570"],
+  },
   "hex-classic": {
     red: ["#e2262e"],
     green: ["#31a65b"],
@@ -225,6 +233,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     blue: [rgb(31, 91, 158), rgb(20, 58, 102), rgb(7, 24, 49)],
     orange: [rgb(214, 112, 30), rgb(150, 72, 14), rgb(72, 32, 4)],
     black: [rgb(104, 116, 138), rgb(62, 72, 92), rgb(26, 32, 44)],
+  },
+  "hex-bazaar": {
+    red: ["#D24A3E", "#651413", "#7A1A18"],
+    green: ["#349A6B", "#103F2B", "#155238"],
+    yellow: ["#F0BC45", "#94600E", "#A86B0F"],
+    blue: ["#4B78C4", "#16285A", "#1E3570"],
+    orange: ["#E0823A", "#7A3A0E", "#8A4210"],
+    black: ["#6A6272", "#24202A", "#3A3440"],
   },
 };
 

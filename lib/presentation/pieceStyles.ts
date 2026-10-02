@@ -17,6 +17,9 @@ const PIECE_COSMETIC_STYLE: Record<string, PieceStyle> = {
   piece_marble: "marble",
 };
 
+/** Every piece cosmetic the table can draw, in catalog order. */
+export const PIECE_COSMETICS = Object.keys(PIECE_COSMETIC_STYLE);
+
 /**
  * A player's pieces: their equipped piece cosmetic if they've chosen one,
  * otherwise the pieces that come with the board (Luddo only — Snakes &

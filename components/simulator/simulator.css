@@ -7359,6 +7359,25 @@ body.sim-die-blocked .sim-canvas {
   color: #b9d3a3;
   font-size: 12px;
 }
+/* F3.5 Dice & pieces: the profile panel's dice skin and piece style pickers. */
+.loadout-group {
+  border: 0;
+  padding: 0;
+  margin-inline: 0;
+}
+.loadout-group legend {
+  padding: 0;
+  margin-bottom: 2px;
+  color: #b5c1a1;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.profile-privacy.is-locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .notification-note {
   margin: 8px 0 0;
   color: #c0c8b5;

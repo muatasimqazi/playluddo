@@ -14,6 +14,9 @@ const DICE_COSMETIC_SKIN: Record<string, DiceSkin> = {
   dice_marble: "marble",
 };
 
+/** Every dice cosmetic the table can draw, in catalog order. */
+export const DICE_COSMETICS = Object.keys(DICE_COSMETIC_SKIN);
+
 /** The skin for an equipped dice cosmetic id; the classic die when none (or unknown). */
 export function diceSkinFor(cosmeticId: string | undefined): DiceSkin {
   return (cosmeticId && DICE_COSMETIC_SKIN[cosmeticId]) || "classic";

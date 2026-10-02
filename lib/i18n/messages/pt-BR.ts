@@ -620,6 +620,12 @@ export const ptBR: Messages = {
     reduceMotionHint: "Sem câmera deslizando, peças pulando ou dados rolando",
     reduceMotionSystem: "Ativado nas configurações do seu dispositivo",
   },
+  loadout: {
+    heading: "Dados e peças",
+    note: "Tudo o que você conquistou. Todos na mesa veem seu dado e suas peças.",
+    boardPieces: "Até você escolher, suas peças combinam com o tabuleiro.",
+    locked: "Bloqueado · {requirement}",
+  },
   party: {
     boardAria: "O tabuleiro. Suas peças são numeradas; as que você pode mover brilham.",
     // PartyWhere

@@ -621,6 +621,12 @@ export const es: Messages = {
     reduceMotionHint: "Sin desplazamientos de cámara, fichas que saltan ni dados que ruedan",
     reduceMotionSystem: "Activado en los ajustes de tu dispositivo",
   },
+  loadout: {
+    heading: "Dados y fichas",
+    note: "Todo lo que has ganado. Todos en la mesa ven tu dado y tus fichas.",
+    boardPieces: "Hasta que elijas, tus fichas van a juego con el tablero.",
+    locked: "Bloqueado · {requirement}",
+  },
   party: {
     boardAria: "El tablero. Tus fichas están numeradas; brillan las que puedes mover.",
     // PartyWhere

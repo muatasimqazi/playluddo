@@ -620,6 +620,12 @@ export const id: Messages = {
     reduceMotionHint: "Tanpa kamera meluncur, bidak melompat, atau dadu bergulir",
     reduceMotionSystem: "Aktif di pengaturan perangkat Anda",
   },
+  loadout: {
+    heading: "Dadu & bidak",
+    note: "Semua yang sudah kamu raih. Semua orang di meja melihat dadu dan bidakmu.",
+    boardPieces: "Sampai kamu memilih, bidakmu mengikuti papan.",
+    locked: "Terkunci · {requirement}",
+  },
   party: {
     boardAria: "Papan. Bidakmu bernomor; yang bisa digerakkan menyala.",
     // PartyWhere

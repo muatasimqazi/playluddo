@@ -36,6 +36,7 @@ import { sendSignInCode, signInOrLinkWithOAuth, verifySignInCode } from "@/lib/s
 import { useI18n, type Translator } from "@/lib/i18n";
 import { NotificationSettings } from "@/components/preferences/NotificationSettings";
 import { AccessibilitySettings } from "@/components/preferences/AccessibilitySettings";
+import { LoadoutSettings } from "@/components/preferences/LoadoutSettings";
 
 type LoginMethod = "email" | "phone";
 
@@ -829,6 +830,7 @@ export function ProfilePanel({
                     ))}
                   </div>
                 </section>
+                <LoadoutSettings />
                 <NotificationSettings signedIn />
                 <AccessibilitySettings />
                 <button

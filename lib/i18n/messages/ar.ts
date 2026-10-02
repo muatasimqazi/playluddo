@@ -621,6 +621,12 @@ export const ar: Messages = {
     reduceMotionHint: "بدون انزلاق الكاميرا أو قفز القطع أو تدحرج النرد",
     reduceMotionSystem: "مفعّل في إعدادات جهازك",
   },
+  loadout: {
+    heading: "النرد والقطع",
+    note: "كل ما ربحته. يرى الجميع على الطاولة نردك وقطعك.",
+    boardPieces: "إلى أن تختار، تطابق قطعك اللوحة.",
+    locked: "مقفل · {requirement}",
+  },
   party: {
     boardAria: "اللوحة. قطعك مرقّمة، والقطع التي يمكنك تحريكها تتوهّج.",
     // PartyWhere

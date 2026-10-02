@@ -56,6 +56,8 @@ import {
   roomCosmetic,
 } from "@/lib/presentation/cosmeticGates";
 import { useCosmeticOwnership } from "@/lib/hooks/useCosmeticOwnership";
+import { DICE_COSMETICS, diceSkinFor, type DiceSkin } from "@/lib/presentation/diceSkins";
+import { PIECE_COSMETICS } from "@/lib/presentation/pieceStyles";
 import { gamePreferences, isSignedIn } from "@/lib/preferences";
 import { createClient } from "@/lib/supabase/client";
 import { equipCosmetic, getMyCosmetics, type EquippedCosmetics } from "@/lib/supabase/cosmetics";
@@ -149,8 +151,21 @@ function plural(count: number, one: string, many = `${one}s`) {
   return `${count} ${count === 1 ? one : many}`;
 }
 
+/** The table's names for each dice skin and piece style (F3.5). */
+const DICE_LABELS: Record<DiceSkin, readonly [string, string]> = {
+  classic: ["Classic", "The standard ivory die"],
+  glass: ["Glass", "A clear, polished die"],
+  wood: ["Wood", "A turned wooden die"],
+  marble: ["Marble", "A polished marble die"],
+};
+const PIECE_LABELS: Record<string, readonly [string, string]> = {
+  piece_glass: ["Glass", "Glossy glass discs"],
+  piece_wood: ["Wood", "Turned wooden pieces"],
+  piece_marble: ["Marble", "Polished marble pieces"],
+};
+
 /**
- * Picking a board or room at the table also equips it (F3.5), so the
+ * Picking a board, room, die or pieces at the table also equips it (F3.5), so the
  * profile's cosmetics locker shows the same choice. Best effort: the table
  * already shows the pick, and a guest without a session just keeps it here.
  */
@@ -414,14 +429,24 @@ export default function Simulator({
       cancelled = true;
     };
   }, [offlineSeat]);
+  // A die or pieces picked at this table (the Dice & pieces panel) draw
+  // straight away: online the room state only carries the new loadout on its
+  // next update, and offline it never does.
+  const [myPicks, setMyPicks] = useState<EquippedCosmetics>({});
+  const myCosmetics: EquippedCosmetics = {
+    ...(offlineSeat ? myLoadout : me?.cosmetics),
+    ...myPicks,
+  };
   const scenePlayers = useMemo(
     () =>
-      offlineSeat && myLoadout
+      (offlineSeat && myLoadout) || Object.keys(myPicks).length > 0
         ? state.players.map((p) =>
-            p.id === myPlayerId ? { ...p, cosmetics: myLoadout } : p,
+            p.id === myPlayerId
+              ? { ...p, cosmetics: { ...(offlineSeat ? myLoadout : p.cosmetics), ...myPicks } }
+              : p,
           )
         : state.players,
-    [offlineSeat, myLoadout, state.players, myPlayerId],
+    [offlineSeat, myLoadout, myPicks, state.players, myPlayerId],
   );
   // The 5-6 player hexagon or the 4-arm cross (F5.2), from the seat colours.
   const boardSpec = boardSpecForPawns(state.players);
@@ -525,7 +550,7 @@ export default function Simulator({
   const [mode, setMode] = useState<InteractionMode>("play");
   const [leaving, setLeaving] = useState(false);
   const [panel, setPanel] = useState<
-    "menu" | "camera" | "board" | "preferences" | "chat" | "help" | null
+    "menu" | "camera" | "board" | "loadout" | "preferences" | "chat" | "help" | null
   >(null);
   const [resetKey, setResetKey] = useState(0);
   const [timeline] = useState(() => new PresentationTimeline(state));
@@ -1573,7 +1598,9 @@ export default function Simulator({
                   ? "Find your perspective"
                   : panel === "board"
                     ? "Board & room"
-                    : panel === "preferences"
+                    : panel === "loadout"
+                      ? "Dice & pieces"
+                      : panel === "preferences"
                       ? "Preferences"
                       : panel === "chat"
                         ? "Table talk"
@@ -1717,6 +1744,76 @@ export default function Simulator({
               </div>
             </>
           )}
+          {panel === "loadout" && (
+            <>
+              <p>Everything you&rsquo;ve earned. Everyone at the table sees your die and pieces.</p>
+              <div className="camera-options">
+                {DICE_COSMETICS.map((id) => {
+                  const [label, desc] = DICE_LABELS[diceSkinFor(id)];
+                  const locked = ownership.ready && !ownership.owns(id);
+                  const selected = diceSkinFor(myCosmetics.dice) === diceSkinFor(id);
+                  return (
+                    <button
+                      key={id}
+                      className={`${selected ? "is-selected" : ""} ${locked ? "is-locked" : ""}`}
+                      disabled={locked}
+                      aria-disabled={locked}
+                      onClick={() => {
+                        setMyPicks((prev) => ({ ...prev, dice: id }));
+                        mirrorEquip(id);
+                      }}
+                    >
+                      <Icon name="dice" />
+                      <span>
+                        <strong>{label}</strong>
+                        <small>
+                          {locked
+                            ? `Locked · ${ownership.requirement(id) ?? "Earned by playing"}`
+                            : desc}
+                        </small>
+                      </span>
+                      {selected && <Icon name="check" size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="panel-subsection">
+                {myCosmetics.piece
+                  ? "And your pieces."
+                  : "And your pieces. Until you choose, they match the board."}
+              </p>
+              <div className="camera-options">
+                {PIECE_COSMETICS.map((id) => {
+                  const [label, desc] = PIECE_LABELS[id];
+                  const locked = ownership.ready && !ownership.owns(id);
+                  const selected = myCosmetics.piece === id;
+                  return (
+                    <button
+                      key={id}
+                      className={`${selected ? "is-selected" : ""} ${locked ? "is-locked" : ""}`}
+                      disabled={locked}
+                      aria-disabled={locked}
+                      onClick={() => {
+                        setMyPicks((prev) => ({ ...prev, piece: id }));
+                        mirrorEquip(id);
+                      }}
+                    >
+                      <Icon name="user" />
+                      <span>
+                        <strong>{label}</strong>
+                        <small>
+                          {locked
+                            ? `Locked · ${ownership.requirement(id) ?? "Earned by playing"}`
+                            : desc}
+                        </small>
+                      </span>
+                      {selected && <Icon name="check" size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
           {panel === "help" && (
             <>
               <p>Move around the room and spin the board without breaking your flow.</p>
@@ -1812,6 +1909,13 @@ export default function Simulator({
               >
                 <Icon name="grid" />
                 Board &amp; room
+              </button>
+              <button
+                className="panel-secondary"
+                onClick={() => setPanel("loadout")}
+              >
+                <Icon name="dice" />
+                Dice &amp; pieces
               </button>
               <button
                 className="panel-secondary"

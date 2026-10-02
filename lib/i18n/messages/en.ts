@@ -648,6 +648,12 @@ export const en = {
     reduceMotionHint: "No camera glides, hopping pieces or rolling dice",
     reduceMotionSystem: "On in your device settings",
   },
+  loadout: {
+    heading: "Dice & pieces",
+    note: "Everything you've earned. Everyone at the table sees your die and pieces.",
+    boardPieces: "Until you choose, your pieces match the board.",
+    locked: "Locked · {requirement}",
+  },
   party: {
     boardAria: "The board. Your pieces are numbered; the ones you can move glow.",
     // PartyWhere

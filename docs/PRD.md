@@ -91,8 +91,9 @@ This is the concrete ruleset engineering should implement. Flagged items need a 
 ### 4.2 Turn Structure
 - Each player has 4 pawns assigned to one color: red, green, yellow, or blue. Pawns begin in the `nest`.
 - A roll of **6** is required to move a pawn from the nest to that player's entry cell.
-- A turn is one or more **rolls**. A roll grants one bonus follow-up roll when either of the following is true: the die shows **6**, the resulting move **captures** an opponent pawn, or the move gets a pawn **home** (reaches the final home cell) while the room's `bonusRollOnFinish` rule is on. That rule is **on by default** and a private-room host can turn it off. *(Changed 2026-09-28, docs/COMPETITIVE_ROADMAP.md decision 1; originally finishing a pawn granted no bonus.)* A player's last pawn getting home ends their play, so it never earns a roll. Multiple qualifying conditions on the same roll (e.g., a 6 that also captures) still grant only **one** bonus roll, not a stacked total.
-- **Three consecutive sixes** ends the turn immediately and cancels the third roll's move. Moves made on the first two sixes remain valid.
+- A turn is one or more **rolls**. **Sixes are rolled first:** a **6** is rolled again straight away, before anything moves. The first roll that isn't a 6 ends the rolling, and the player then moves by each of those dice **in the order they were rolled** (e.g., 6, 6, 3 is three moves: 6, then 6, then 3). A die that has no legal move when its turn comes is passed over. *(Changed 2026-10-01; previously each 6 was moved straight away and then earned a roll.)*
+- A move earns one more roll, taken once the turn's dice are used up, when it **captures** an opponent pawn, or gets a pawn **home** (reaches the final home cell) while the room's `bonusRollOnFinish` rule is on. That rule is **on by default** and a private-room host can turn it off. *(Changed 2026-09-28, docs/COMPETITIVE_ROADMAP.md decision 1; originally finishing a pawn granted no bonus.)* A player's last pawn getting home ends their play, so it never earns a roll. However many of a turn's moves qualify, it is **one** extra roll, not a stacked total.
+- **Three consecutive sixes** count for nothing: none of them is moved, and the turn ends immediately.
 - If a player has no legal move after a roll, the turn advances automatically after a **1.5-second** acknowledgement delay so the result is still readable.
 
 ### 4.3 Movement, Capture & Blockades
@@ -305,6 +306,8 @@ interface GameRoomState {
   rollsThisTurn: number;        // tracks progress toward the 3-consecutive-sixes rule
   activeDiceValue: number | null;
   consecutiveSixes: number;
+  pendingDice: number[];        // sixes rolled so far, or the dice still to move by after activeDiceValue (4.2)
+  bonusRollPending: boolean;    // a capture or a pawn home this turn: one more roll once the dice are used
   legalMoves: LegalMove[];
   winnerIds: string[];
   matchEndReason: MatchEndReason | null;

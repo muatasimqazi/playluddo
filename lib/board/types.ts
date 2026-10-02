@@ -187,6 +187,15 @@ export interface GameRoomState {
   rollsThisTurn: number;
   activeDiceValue: number | null;
   consecutiveSixes: number;
+  /**
+   * PRD 4.2: sixes are rolled first and moved by afterwards, in order. While
+   * awaiting a roll, the sixes rolled so far; while awaiting a move, the dice
+   * still to come after `activeDiceValue`. Absent on older snapshots — treat
+   * as empty.
+   */
+  pendingDice?: number[];
+  /** A move this turn captured or got a piece home: one more roll once the dice are used. */
+  bonusRollPending?: boolean;
   legalMoves: LegalMove[];
   winnerIds: string[];
   matchEndReason: MatchEndReason | null;

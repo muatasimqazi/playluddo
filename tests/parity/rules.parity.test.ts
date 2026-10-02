@@ -11,6 +11,7 @@ import {
   getLegalMoves,
   isMatchWon,
   isTeamUpWon,
+  nextPlayableDie,
   rankPlayers,
   resolveRoomRules,
   type PlayerProgress,
@@ -160,16 +161,31 @@ async function sqlEvaluateSixRoll(before: number, dieValue: number) {
   return rows[0].result;
 }
 
-async function sqlEarnsBonusRoll(
-  dieValue: number,
-  move: LegalMove,
-  rules: RoomRules,
-): Promise<boolean> {
+async function sqlEarnsBonusRoll(move: LegalMove, rules: RoomRules): Promise<boolean> {
   const { rows } = await client.query(
-    "select private.ludo_earns_bonus_roll($1, $2::jsonb, $3::jsonb) as result",
-    [dieValue, JSON.stringify(move), JSON.stringify(rules)],
+    "select private.ludo_earns_bonus_roll($1::jsonb, $2::jsonb) as result",
+    [JSON.stringify(move), JSON.stringify(rules)],
   );
   return rows[0].result as boolean;
+}
+
+async function sqlNextPlayableDie(
+  pawns: EnginePawn[],
+  color: PlayerColor,
+  dice: number[],
+  context: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean } = {},
+) {
+  const { rows } = await client.query(
+    "select private.ludo_next_playable_die($1::jsonb, $2, $3::int[], $4::jsonb, $5) as result",
+    [
+      JSON.stringify(pawns),
+      color,
+      dice,
+      context.rules == null ? null : JSON.stringify(context.rules),
+      context.hasCaptured ?? false,
+    ],
+  );
+  return rows[0].result;
 }
 
 async function sqlResolveRules(rules: unknown): Promise<RoomRules> {
@@ -360,7 +376,7 @@ describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
     }
   });
 
-  it("agree on bonus-roll eligibility for every die, move kind and rule setting", async () => {
+  it("agree on bonus-roll eligibility for every move kind and rule setting", async () => {
     const plain: LegalMove = {
       pawnId: "x",
       fromTileId: "track:1",
@@ -379,10 +395,31 @@ describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
     ];
     for (const rules of ruleSets)
       for (const move of moves)
-        for (let dieValue = 1; dieValue <= 6; dieValue++)
-          expect(await sqlEarnsBonusRoll(dieValue, move, rules)).toBe(
-            earnsBonusRoll(dieValue, move, rules),
-          );
+        expect(await sqlEarnsBonusRoll(move, rules)).toBe(earnsBonusRoll(move, rules));
+  });
+
+  it("agree on which of a turn's dice is moved by next", async () => {
+    // Sixes are rolled first, then moved by in order; a die that can't move
+    // anything is passed over (PRD 4.2).
+    const cases: { pawns: EnginePawn[]; dice: number[]; context?: { rules?: Partial<RoomRules>; hasCaptured?: boolean } }[] = [
+      { pawns: fullBoard(), dice: [] },
+      { pawns: fullBoard(), dice: [4] },
+      { pawns: fullBoard(), dice: [6, 3] },
+      { pawns: fullBoard(), dice: [6, 6, 2] },
+      // Only a 3 finishes the home-lane piece; the 6 and 5 pass over it.
+      { pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "home_lane", 53) }), dice: [5, 3, 1] },
+      { pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "home_lane", 53) }), dice: [5, 4] },
+      // Master mode holds the piece on the last shared square.
+      {
+        pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "track", 50) }),
+        dice: [6, 2],
+        context: { rules: { captureToEnterHome: true }, hasCaptured: false },
+      },
+    ];
+    for (const { pawns, dice, context } of cases)
+      expect(await sqlNextPlayableDie(pawns, "red", dice, context)).toEqual(
+        nextPlayableDie(pawns, "red", dice, context),
+      );
   });
 
   it("agree on resolving room rules", async () => {

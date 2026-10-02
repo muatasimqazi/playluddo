@@ -43,15 +43,20 @@ export function LudoRules({ rules }: { rules?: RoomRules | null }) {
       <h3>Rolling again</h3>
       <ul>
         <li>
-          Roll a <strong>6</strong>, capture a piece
+          Roll a <strong>6</strong> and you roll again straight away, before moving. Once you roll
+          something else, move by each roll in the order you rolled them.
+        </li>
+        <li>Three 6s in a row cancel out: none of them moves, and your turn ends.</li>
+        <li>
+          Capture a piece
           {homeRoll ? (
             <>
-              , or get a piece <strong>home</strong>
+              {" "}or get one <strong>home</strong>
             </>
-          ) : null}
-          , and you roll again. One extra roll per roll, however many of those happen at once.
+          ) : null}{" "}
+          and you roll again once those rolls are used. Just one extra roll, however many of those
+          happen along the way.
         </li>
-        <li>Three 6s in a row and the third is cancelled: your turn ends.</li>
         {rules ? (
           !homeRoll && <li>At this table, getting a piece home doesn&rsquo;t earn another roll.</li>
         ) : (

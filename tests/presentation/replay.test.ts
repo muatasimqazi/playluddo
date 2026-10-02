@@ -154,6 +154,6 @@ describe("match replay reconstruction (F4.3)", () => {
     };
     const { steps } = buildReplay(transcript);
     const roll = steps.find((s) => s.kind === "roll")!;
-    expect(roll.caption).toBe("Ada rolled a third six — turn skipped");
+    expect(roll.caption).toBe("Ada rolled a third six — all three cancelled, turn skipped");
   });
 });

@@ -7,6 +7,7 @@ import {
   getLegalMoves,
   isMatchWon,
   isTeamUpWon,
+  nextPlayableDie,
   rankPlayers,
   resolveRoomRules,
 } from "../../lib/board/rules";
@@ -265,33 +266,52 @@ describe("earnsBonusRoll", () => {
   const finishMove: LegalMove = { ...plainMove, finishesPawn: true };
   const rulesOff = { ...DEFAULT_ROOM_RULES, bonusRollOnFinish: false };
 
-  it("grants a bonus roll on a six", () => {
-    expect(earnsBonusRoll(6, plainMove, DEFAULT_ROOM_RULES)).toBe(true);
-  });
-
   it("grants a bonus roll on a capture", () => {
-    expect(earnsBonusRoll(3, captureMove, DEFAULT_ROOM_RULES)).toBe(true);
-  });
-
-  it("does not stack when a roll is both a six and a capture", () => {
-    // earnsBonusRoll is boolean by construction — there is no "count" to stack.
-    expect(earnsBonusRoll(6, captureMove, DEFAULT_ROOM_RULES)).toBe(true);
+    expect(earnsBonusRoll(captureMove, DEFAULT_ROOM_RULES)).toBe(true);
   });
 
   it("grants a bonus roll for getting a pawn home under the default rules", () => {
-    expect(earnsBonusRoll(3, finishMove, DEFAULT_ROOM_RULES)).toBe(true);
+    expect(earnsBonusRoll(finishMove, DEFAULT_ROOM_RULES)).toBe(true);
   });
 
-  it("grants one bonus roll, not two, for getting a pawn home with a six", () => {
-    expect(earnsBonusRoll(6, finishMove, DEFAULT_ROOM_RULES)).toBe(true);
+  it("grants one bonus roll, not two, for a move that captures and gets home", () => {
+    // earnsBonusRoll is boolean by construction — there is no "count" to stack.
+    expect(earnsBonusRoll({ ...captureMove, finishesPawn: true }, DEFAULT_ROOM_RULES)).toBe(true);
   });
 
   it("does not grant a bonus roll for getting a pawn home when the host turned the rule off", () => {
-    expect(earnsBonusRoll(3, finishMove, rulesOff)).toBe(false);
+    expect(earnsBonusRoll(finishMove, rulesOff)).toBe(false);
   });
 
-  it("grants no bonus roll for a plain non-six, non-capture move", () => {
-    expect(earnsBonusRoll(3, plainMove, DEFAULT_ROOM_RULES)).toBe(false);
+  it("grants no bonus roll for a plain move — a six's extra roll comes before it moves", () => {
+    expect(earnsBonusRoll(plainMove, DEFAULT_ROOM_RULES)).toBe(false);
+  });
+});
+
+describe("nextPlayableDie — moving by the turn's dice in order", () => {
+  it("takes the first die, leaving the rest in the order rolled", () => {
+    expect(nextPlayableDie(makeBoard(), "red", [6, 6, 3])).toMatchObject({
+      dieValue: 6,
+      rest: [6, 3],
+    });
+  });
+
+  it("passes over a die that can't move anything", () => {
+    // Three home already; the last needs a 3 or less.
+    const board = makeBoard({
+      "red-0": pawn("red-0", "red", 0, "home_lane", 53),
+      "red-1": pawn("red-1", "red", 1, "finished", 56),
+      "red-2": pawn("red-2", "red", 2, "finished", 56),
+      "red-3": pawn("red-3", "red", 3, "finished", 56),
+    });
+    const next = nextPlayableDie(board, "red", [6, 5, 3, 1]);
+    expect(next).toMatchObject({ dieValue: 3, rest: [1] });
+    expect(next?.legalMoves.map((m) => m.pawnId)).toEqual(["red-0"]);
+  });
+
+  it("is null once no die is left that can move", () => {
+    expect(nextPlayableDie(makeBoard(), "red", [4, 2])).toBeNull();
+    expect(nextPlayableDie(makeBoard(), "red", [])).toBeNull();
   });
 });
 
@@ -327,7 +347,7 @@ describe("evaluateSixRoll — consecutive sixes", () => {
     expect(evaluateSixRoll(1, 6)).toEqual({ consecutiveSixesAfter: 2, cancelMove: false });
   });
 
-  it("cancels the move on the third consecutive six", () => {
+  it("cancels all three on the third consecutive six", () => {
     expect(evaluateSixRoll(2, 6)).toEqual({ consecutiveSixesAfter: 3, cancelMove: true });
   });
 });

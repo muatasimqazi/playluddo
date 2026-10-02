@@ -29,6 +29,14 @@ function pawn(color: PlayerColor, pathIndex: number | null, index = 0): Pawn {
 }
 afterEach(() => vi.useRealTimers());
 
+/** A six, then `next`: sixes are rolled first, so the six is moved by first and `next` after it. */
+function rollSixThen(session = createPractice(), next = 2) {
+  return practiceReducer(practiceReducer(session, { type: "roll", value: 6 }), {
+    type: "roll",
+    value: next,
+  });
+}
+
 describe("responsive camera framing", () => {
   it("keeps the board inside all three main views on phones and desktops", () => {
     for (const aspect of [390 / 844, 393 / 852, 768 / 1024, 1440 / 900]) {
@@ -135,12 +143,14 @@ describe("event playback and replay isolation", () => {
     vi.useFakeTimers();
     const initial = createPractice(),
       timeline = new PresentationTimeline(initial.state);
-    const roll = practiceReducer(initial, { type: "roll", value: 6 });
+    const roll = rollSixThen(initial);
     const move = practiceReducer(roll, { type: "move", pawnId: "blue-0" });
     timeline.receive(move.events, move.state);
     timeline.receive(move.events, move.state);
     expect(timeline.getSnapshot().pawns[0].pathIndex).toBeNull();
     expect(timeline.getSnapshot().rollId).toBe(1);
+    vi.advanceTimersByTime(1180);
+    expect(timeline.getSnapshot().rollId).toBe(2);
     vi.advanceTimersByTime(1180);
     expect(timeline.getSnapshot().phase).toBe("move");
     expect(timeline.getSnapshot().pawns[0].pathIndex).toBe(0);
@@ -152,10 +162,7 @@ describe("event playback and replay isolation", () => {
     vi.useFakeTimers();
     const initial = createPractice(),
       timeline = new PresentationTimeline(initial.state);
-    const move = practiceReducer(
-      practiceReducer(initial, { type: "roll", value: 6 }),
-      { type: "move", pawnId: "blue-0" },
-    );
+    const move = practiceReducer(rollSixThen(initial), { type: "move", pawnId: "blue-0" });
     const serialized = JSON.stringify(move.state);
     timeline.receive(move.events, move.state);
     vi.runAllTimers();
@@ -172,14 +179,13 @@ describe("event playback and replay isolation", () => {
     vi.useFakeTimers();
     const initial = createPractice(),
       timeline = new PresentationTimeline(initial.state);
-    const move = practiceReducer(
-      practiceReducer(initial, { type: "roll", value: 6 }),
-      { type: "move", pawnId: "blue-0" },
-    );
+    const move = practiceReducer(rollSixThen(initial), { type: "move", pawnId: "blue-0" });
     timeline.receive(move.events, move.state);
     vi.runAllTimers();
     timeline.replay();
-    const next = practiceReducer(move, { type: "roll", value: 4 });
+    // Move by the 2 as well, which passes the turn on; the next seat rolls.
+    const moved = practiceReducer(move, { type: "move", pawnId: "blue-0" });
+    const next = practiceReducer(moved, { type: "roll", value: 4 });
     timeline.receive(next.events, next.state);
     vi.runAllTimers();
     expect(timeline.getSnapshot()).toMatchObject({
@@ -190,10 +196,7 @@ describe("event playback and replay isolation", () => {
     timeline.dispose();
   });
   it("joins a current snapshot without playing historical actions", () => {
-    const rolled = practiceReducer(createPractice(), {
-      type: "roll",
-      value: 6,
-    });
+    const rolled = rollSixThen();
     const timeline = new PresentationTimeline(rolled.state);
     timeline.receive(rolled.events, rolled.state);
     expect(timeline.getSnapshot()).toMatchObject({
@@ -207,7 +210,7 @@ describe("event playback and replay isolation", () => {
     vi.useFakeTimers();
     const initial = createPractice();
     const timeline = new PresentationTimeline(initial.state);
-    const roll = practiceReducer(initial, { type: "roll", value: 6 });
+    const roll = rollSixThen(initial);
     timeline.receive(roll.events, roll.state);
     expect(timeline.getSnapshot().busy).toBe(true);
     const move = practiceReducer(roll, { type: "move", pawnId: "blue-0" });
@@ -226,10 +229,7 @@ describe("event playback and replay isolation", () => {
   it("snaps to the authoritative snapshot if the event history has a gap", () => {
     const initial = createPractice(),
       timeline = new PresentationTimeline(initial.state);
-    const move = practiceReducer(
-      practiceReducer(initial, { type: "roll", value: 6 }),
-      { type: "move", pawnId: "blue-0" },
-    );
+    const move = practiceReducer(rollSixThen(initial), { type: "move", pawnId: "blue-0" });
     timeline.receive(move.events.slice(1), move.state);
     expect(timeline.getSnapshot().pawns).toEqual(move.state.pawns);
     expect(timeline.getSnapshot().revision).toBe(1);
@@ -261,10 +261,7 @@ describe("event playback and replay isolation", () => {
     vi.useFakeTimers();
     const initial = createPractice(),
       timeline = new PresentationTimeline(initial.state);
-    const move = practiceReducer(
-      practiceReducer(initial, { type: "roll", value: 6 }),
-      { type: "move", pawnId: "blue-0" },
-    );
+    const move = practiceReducer(rollSixThen(initial), { type: "move", pawnId: "blue-0" });
     timeline.receive([], move.state);
     vi.advanceTimersByTime(4501);
     expect(timeline.getSnapshot().pawns).toEqual(move.state.pawns);
@@ -311,19 +308,25 @@ describe("offline practice uses the established rules", () => {
     expect(next.state.turnPlayerId).toBe("practice-0");
     expect(next.state.turnPhase).toBe("awaiting_roll");
   });
-  it("resets the six streak when a pawn gets home after two sixes", () => {
+  it("takes the extra roll for getting a pawn home only once the turn's dice are used", () => {
     let game = createPractice();
     game.state.pawns = game.state.pawns.map((piece) =>
       piece.id === "blue-0" ? { ...piece, state: "home_lane", pathIndex: 53 } : piece,
     );
-    for (let i = 0; i < 2; i++) {
-      game = practiceReducer(game, { type: "roll", value: 6 });
-      game = practiceReducer(game, { type: "move", pawnId: "blue-1" });
-    }
-    game = practiceReducer(game, { type: "roll", value: 3 });
-    game = practiceReducer(game, { type: "move", pawnId: "blue-0" });
-    expect(game.state.turnPlayerId).toBe("practice-0");
+    for (const value of [6, 6, 3]) game = practiceReducer(game, { type: "roll", value });
     expect(game.state.consecutiveSixes).toBe(0);
+    // The 3 that gets blue-0 home comes last: the sixes bring two pieces out first.
+    expect(game.state.activeDiceValue).toBe(6);
+    game = practiceReducer(game, { type: "move", pawnId: "blue-1" });
+    expect(game.state.pendingDice).toEqual([3]);
+    game = practiceReducer(game, { type: "move", pawnId: "blue-2" });
+    expect(game.state.activeDiceValue).toBe(3);
+    game = practiceReducer(game, { type: "move", pawnId: "blue-0" });
+    expect(game.state.pawns[0].state).toBe("finished");
+    expect(game.state.turnPlayerId).toBe("practice-0");
+    expect(game.state.turnPhase).toBe("awaiting_roll");
+    expect(game.state.consecutiveSixes).toBe(0);
+    expect(game.state.pendingDice).toEqual([]);
   });
   it("keeps a game saved before room rules on the rules it started with", () => {
     const initial = createPractice();
@@ -352,23 +355,53 @@ describe("offline practice uses the established rules", () => {
     );
     const noMove = practiceReducer(initial, { type: "roll", value: 5 });
     expect(noMove.state.turnPlayerId).toBe("practice-1");
+    // A six is rolled again before anything moves.
     const six = practiceReducer(initial, { type: "roll", value: 6 });
-    expect(six.state.legalMoves).toHaveLength(4);
-    expect(practiceReducer(six, { type: "move", pawnId: "red-0" })).toBe(six);
-    const moved = practiceReducer(six, { type: "move", pawnId: "blue-0" });
-    expect(moved.state.turnPlayerId).toBe("practice-0");
-    expect(moved.state.pawns[0].pathIndex).toBe(0);
+    expect(six.state.turnPlayerId).toBe("practice-0");
+    expect(six.state.turnPhase).toBe("awaiting_roll");
+    expect(six.state.pendingDice).toEqual([6]);
+    expect(practiceReducer(six, { type: "move", pawnId: "blue-0" })).toBe(six);
+    // Then the dice are moved by in the order rolled: the six first.
+    const sixThenTwo = practiceReducer(six, { type: "roll", value: 2 });
+    expect(sixThenTwo.state.activeDiceValue).toBe(6);
+    expect(sixThenTwo.state.pendingDice).toEqual([2]);
+    expect(sixThenTwo.state.legalMoves).toHaveLength(4);
+    expect(practiceReducer(sixThenTwo, { type: "move", pawnId: "red-0" })).toBe(sixThenTwo);
+    const out = practiceReducer(sixThenTwo, { type: "move", pawnId: "blue-0" });
+    expect(out.state.pawns[0].pathIndex).toBe(0);
+    expect(out.state.activeDiceValue).toBe(2);
+    expect(out.state.legalMoves.map((m) => m.pawnId)).toEqual(["blue-0"]);
+    const moved = practiceReducer(out, { type: "move", pawnId: "blue-0" });
+    expect(moved.state.pawns[0].pathIndex).toBe(2);
+    expect(moved.state.turnPlayerId).toBe("practice-1");
   });
-  it("cancels the third six without moving a piece", () => {
+  it("passes over a die that can't move anything", () => {
+    const game = createPractice();
+    game.state.pawns = game.state.pawns.map((piece) =>
+      piece.color === "blue"
+        ? piece.index === 0
+          ? { ...piece, state: "home_lane" as const, pathIndex: 55 }
+          : { ...piece, state: "finished" as const, pathIndex: 56 }
+        : piece,
+    );
+    // Neither six can move blue-0, which needs exactly a 1.
+    let last = game;
+    for (const value of [6, 6, 1]) last = practiceReducer(last, { type: "roll", value });
+    expect(last.state.turnPhase).toBe("awaiting_move");
+    expect(last.state.activeDiceValue).toBe(1);
+    expect(last.state.pendingDice).toEqual([]);
+  });
+  it("counts three sixes in a row for nothing and passes the turn", () => {
     let game = createPractice();
-    for (let i = 0; i < 2; i++) {
-      game = practiceReducer(game, { type: "roll", value: 6 });
-      game = practiceReducer(game, { type: "move", pawnId: "blue-0" });
-    }
+    for (let i = 0; i < 2; i++) game = practiceReducer(game, { type: "roll", value: 6 });
+    expect(game.state.pendingDice).toEqual([6, 6]);
     const before = game.state.pawns;
     game = practiceReducer(game, { type: "roll", value: 6 });
     expect(game.state.turnPlayerId).toBe("practice-1");
     expect(game.state.pawns).toBe(before);
+    expect(game.state.pendingDice).toEqual([]);
+    expect(game.state.consecutiveSixes).toBe(0);
+    expect(game.events.filter((e) => e.event_type === "legal_move_selected")).toHaveLength(0);
     expect(game.events.at(-1)?.payload.cancelledByThirdSix).toBe(true);
   });
   it("records the first finisher and continues with the next color", () => {
@@ -409,7 +442,7 @@ describe("offline practice uses the established rules", () => {
 describe("offline undo (F4.5)", () => {
   it("takes back your last piece choice, keeping the dice you rolled", () => {
     const initial = createPractice();
-    const six = practiceReducer(initial, { type: "roll", value: 6 });
+    const six = rollSixThen(initial);
     const moved = practiceReducer(six, { type: "move", pawnId: "blue-0" });
     expect(moved.state.pawns.find((p) => p.id === "blue-0")?.pathIndex).toBe(0);
     expect(canUndoLastMove(moved)).toBe(true);
@@ -423,14 +456,15 @@ describe("offline undo (F4.5)", () => {
   });
 
   it("rewinds past the computers' replies to your last move", () => {
-    let game = createPractice();
-    game = practiceReducer(game, { type: "roll", value: 6 });
-    game = practiceReducer(game, { type: "move", pawnId: "blue-0" }); // bonus roll
-    const rolled = practiceReducer(game, { type: "roll", value: 3 });
+    // The six brings blue-0 out; the 3 is still to move by.
+    const rolled = practiceReducer(rollSixThen(createPractice(), 3), {
+      type: "move",
+      pawnId: "blue-0",
+    });
     const humanDone = practiceReducer(rolled, { type: "move", pawnId: "blue-0" });
     expect(humanDone.state.turnPlayerId).toBe("practice-1"); // a computer's turn
 
-    const botRolled = practiceReducer(humanDone, { type: "roll", value: 6 });
+    const botRolled = rollSixThen(humanDone, 1);
     const botMoved = practiceReducer(botRolled, { type: "move", pawnId: "red-0" });
     expect(botMoved.state.pawns.find((p) => p.id === "red-0")?.pathIndex).not.toBeNull();
 

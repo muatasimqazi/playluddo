@@ -47,7 +47,7 @@ export function announceEvent(
       const value = Number(event.payload.dieValue);
       if (!Number.isFinite(value)) return null;
       return event.payload.cancelledByThirdSix
-        ? `${name} rolled a ${value}. Third six in a row, so the turn passes.`
+        ? `${name} rolled a ${value}. Three sixes in a row cancel out, so the turn passes.`
         : `${name} rolled a ${value}.`;
     }
     case "legal_move_selected": {

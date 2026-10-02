@@ -77,7 +77,7 @@ describe("screen-reader announcements", () => {
         state,
         "Sam",
       ),
-    ).toBe("You rolled a 6. Third six in a row, so the turn passes.");
+    ).toBe("You rolled a 6. Three sixes in a row cancel out, so the turn passes.");
   });
 
   it("names whose piece was captured", () => {

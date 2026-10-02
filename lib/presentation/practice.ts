@@ -3,8 +3,8 @@ import {
   DEFAULT_ROOM_RULES,
   earnsBonusRoll,
   evaluateSixRoll,
-  getLegalMoves,
   isMatchWon,
+  nextPlayableDie,
 } from "../board/rules";
 import type { GameRoomState, GameType, PlayerColor, RoomRules } from "../board/types";
 import { applySnakeMove, snakeMove } from "../board/snakes";
@@ -120,6 +120,7 @@ export function createPractice(
       rollsThisTurn: 0,
       activeDiceValue: null,
       consecutiveSixes: 0,
+      pendingDice: [],
       legalMoves: [],
       winnerIds: [],
       matchEndReason: null,
@@ -229,7 +230,33 @@ function ludoPracticeReducer(
       legalMoves: [],
       consecutiveSixes: 0,
       rollsThisTurn: 0,
+      pendingDice: [],
+      bonusRollPending: false,
     };
+  };
+  // Move by the next of the turn's dice that can move anything; once none
+  // is left, take any extra roll a capture or a piece home has earned.
+  const playNextDie = (dice: number[], bonusRollPending: boolean) => {
+    const die = nextPlayableDie(next.pawns, player.color, dice);
+    if (die)
+      next = {
+        ...next,
+        activeDiceValue: die.dieValue,
+        pendingDice: die.rest,
+        legalMoves: die.legalMoves,
+        turnPhase: "awaiting_move",
+        bonusRollPending,
+      };
+    else if (bonusRollPending)
+      next = {
+        ...next,
+        activeDiceValue: null,
+        pendingDice: [],
+        legalMoves: [],
+        turnPhase: "awaiting_roll",
+        bonusRollPending: false,
+      };
+    else advance();
   };
   if (action.type === "roll") {
     if (
@@ -240,16 +267,13 @@ function ludoPracticeReducer(
     )
       return session;
     const six = evaluateSixRoll(state.consecutiveSixes, action.value);
-    const legal = six.cancelMove
-      ? []
-      : getLegalMoves(state.pawns, player.color, action.value);
+    // The sixes already rolled this turn. Without a streak there are none,
+    // whatever an older save left behind.
+    const sixes = state.consecutiveSixes > 0 ? (state.pendingDice ?? []) : [];
     next = {
       ...next,
-      activeDiceValue: action.value,
       consecutiveSixes: six.consecutiveSixesAfter,
       rollsThisTurn: state.rollsThisTurn + 1,
-      legalMoves: legal,
-      turnPhase: "awaiting_move",
     };
     event = {
       id: state.eventSequence + 1,
@@ -259,7 +283,12 @@ function ludoPracticeReducer(
       payload: { dieValue: action.value, cancelledByThirdSix: six.cancelMove },
       created_at: new Date().toISOString(),
     };
-    if (!legal.length) advance();
+    // Three sixes in a row count for nothing: the turn passes.
+    if (six.cancelMove) advance();
+    // A six is rolled again before anything moves.
+    else if (action.value === 6)
+      next = { ...next, pendingDice: [...sixes, 6], activeDiceValue: null, legalMoves: [] };
+    else playNextDie([...sixes, action.value], false);
   } else {
     if (state.turnPhase !== "awaiting_move") return session;
     const move = state.legalMoves.find((m) => m.pawnId === action.pawnId);
@@ -302,11 +331,12 @@ function ludoPracticeReducer(
           : {}),
       };
       if (!complete) advance();
-    } else if (
-      earnsBonusRoll(state.activeDiceValue!, move, state.rules ?? RULES_BEFORE_ROOM_RULES)
-    )
-      next.turnPhase = "awaiting_roll";
-    else advance();
+    } else
+      playNextDie(
+        state.pendingDice ?? [],
+        !!state.bonusRollPending ||
+          earnsBonusRoll(move, state.rules ?? RULES_BEFORE_ROOM_RULES),
+      );
   }
   next.eventSequence = state.eventSequence + 1;
   return { ...session, state: next, events: [...session.events, event].slice(-100) };

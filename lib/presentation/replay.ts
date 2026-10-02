@@ -155,7 +155,7 @@ export function buildReplay(transcript: MatchTranscript): Replay {
         dice,
         actorId: actor,
         caption: cancelled
-          ? `${name(actor)} rolled a third six — turn skipped`
+          ? `${name(actor)} rolled a third six — all three cancelled, turn skipped`
           : `${name(actor)} rolled a ${dice ?? "?"}`,
         kind: "roll",
         highlight: false,

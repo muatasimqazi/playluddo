@@ -629,6 +629,9 @@ export default function Simulator({
     (p) => p.id === (frame.actorId ?? frame.turnPlayerId),
   );
   const isMyTurn = state.turnPlayerId === myPlayerId;
+  // Sixes are rolled first and moved by afterwards (PRD 4.2): while rolling,
+  // the sixes so far; while moving, the dice still to come after this one.
+  const pendingDice = state.gameType === "ludo" ? (state.pendingDice ?? []) : [];
   const needsReclaim =
     state.status === "in_game" &&
     !!me &&
@@ -994,14 +997,18 @@ export default function Simulator({
                       ? "Reconnecting to your table…"
                       : isMyTurn
                         ? state.turnPhase === "awaiting_move"
-                          ? `You rolled ${state.activeDiceValue}. Choose a highlighted piece.`
+                          ? pendingDice.length
+                            ? `Move ${state.activeDiceValue} first, then ${pendingDice.join(", then ")}. Choose a highlighted piece.`
+                            : `You rolled ${state.activeDiceValue}. Choose a highlighted piece.`
                           : me?.autoRollEnabled
                             ? "Auto-roll is on"
-                            : state.rollsThisTurn > 0
-                              ? "A little luck. One more roll."
-                              : snakes
-                                ? "Roll to move · Land exactly on 100 to finish."
-                                : "Your next move starts here."
+                            : pendingDice.length
+                              ? "A six! Roll again, then move."
+                              : state.rollsThisTurn > 0
+                                ? "A little luck. One more roll."
+                                : snakes
+                                  ? "Roll to move · Land exactly on 100 to finish."
+                                  : "Your next move starts here."
                         : "Settle in. Your turn is coming.";
   const actionLabel = frame.busy
     ? frame.phase === "roll"
@@ -1174,14 +1181,18 @@ export default function Simulator({
             {frame.busy
               ? `ROLLED ${frame.dice}`
               : state.turnPhase === "awaiting_move"
-                ? `ROLLED ${state.activeDiceValue}`
-                : practice
-                  ? localPlay
-                    ? "TABLE TOGETHER"
-                    : "VS COMPUTER"
-                  : state.isParty
-                    ? "PARTY TABLE"
-                    : "PRIVATE TABLE"}
+                ? pendingDice.length
+                  ? `MOVING ${state.activeDiceValue} · THEN ${pendingDice.join(" · ")}`
+                  : `ROLLED ${state.activeDiceValue}`
+                : pendingDice.length
+                  ? `ROLLED ${pendingDice.join(" · ")} · ROLL AGAIN`
+                  : practice
+                    ? localPlay
+                      ? "TABLE TOGETHER"
+                      : "VS COMPUTER"
+                    : state.isParty
+                      ? "PARTY TABLE"
+                      : "PRIVATE TABLE"}
           </span>
           {matchLeft !== null && (
             <time className={`sim-match-clock${matchLeft <= 30 ? " urgent" : ""}`} aria-label="Time left in this match">
@@ -2473,7 +2484,7 @@ export default function Simulator({
                       </span>
                       <p>
                         {e.event_type === "dice_rolled"
-                          ? `rolled ${e.payload.dieValue}${e.payload.needsSixToEnter ? " · needs a six to enter" : e.payload.overshoot ? " · exact roll needed, stays put" : e.payload.cancelledByThirdSix ? " · third six, turn ends" : ""}`
+                          ? `rolled ${e.payload.dieValue}${e.payload.needsSixToEnter ? " · needs a six to enter" : e.payload.overshoot ? " · exact roll needed, stays put" : e.payload.cancelledByThirdSix ? " · three sixes cancel out, turn ends" : ""}`
                           : e.event_type === "legal_move_selected"
                             ? snakes
                               ? e.payload.finishesPawn

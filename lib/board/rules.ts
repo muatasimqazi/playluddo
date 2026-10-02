@@ -231,26 +231,21 @@ export function resolveRoomRules(rules?: Partial<RoomRules> | null): RoomRules {
 }
 
 /**
- * PRD 4.2 plus F1.5: a roll grants one bonus follow-up roll on a six, a
- * capture, or (when the room's rule is on) a pawn reaching home. Never
- * stacked: this returns a boolean, not a count, by construction. A player's
- * final pawn never reaches this — finishing the match is handled first.
+ * PRD 4.2 plus F1.5: a move that captures, or (when the room's rule is on)
+ * gets a pawn home, earns one more roll once the turn's dice are used up.
+ * A six no longer earns a roll after its move — it is rolled again straight
+ * away (see {@link nextPlayableDie}). Never stacked: however many of a
+ * turn's moves qualify, the player rolls once more, not once per move. A
+ * player's final pawn never reaches this — finishing the match is handled
+ * first.
  */
-export function earnsBonusRoll(
-  dieValue: number,
-  move: LegalMove,
-  rules: RoomRules,
-): boolean {
-  return (
-    dieValue === 6 ||
-    move.capturesPawnIds.length > 0 ||
-    (rules.bonusRollOnFinish && move.finishesPawn)
-  );
+export function earnsBonusRoll(move: LegalMove, rules: RoomRules): boolean {
+  return move.capturesPawnIds.length > 0 || (rules.bonusRollOnFinish && move.finishesPawn);
 }
 
 export interface SixRollEvaluation {
   consecutiveSixesAfter: number;
-  /** True iff this is the third consecutive six — PRD 4.2: cancels this roll's move, ends the turn. */
+  /** True iff this is the third consecutive six — PRD 4.2: all three count for nothing and the turn ends. */
   cancelMove: boolean;
 }
 
@@ -261,6 +256,33 @@ export function evaluateSixRoll(
   if (dieValue !== 6) return { consecutiveSixesAfter: 0, cancelMove: false };
   const after = consecutiveSixesBefore + 1;
   return { consecutiveSixesAfter: after, cancelMove: after === 3 };
+}
+
+export interface PlayableDie {
+  dieValue: number;
+  /** The dice still to move by after this one, in the order rolled. */
+  rest: number[];
+  legalMoves: LegalMove[];
+}
+
+/**
+ * PRD 4.2: sixes are rolled first, then the turn's dice are moved by in the
+ * order they were rolled. This finds the next one that moves anything; a die
+ * with no legal move is passed over. Null once no die is left that can move.
+ * Mirrors the SQL private.ludo_next_playable_die().
+ */
+export function nextPlayableDie(
+  pawns: EnginePawn[],
+  color: PlayerColor,
+  dice: readonly number[],
+  context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
+  spec: BoardSpec = BOARD_4,
+): PlayableDie | null {
+  for (let i = 0; i < dice.length; i++) {
+    const legalMoves = getLegalMoves(pawns, color, dice[i], context, spec);
+    if (legalMoves.length) return { dieValue: dice[i], rest: dice.slice(i + 1), legalMoves };
+  }
+  return null;
 }
 
 /**

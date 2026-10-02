@@ -1,191 +1,181 @@
-<svg width="1500" height="1500" viewBox="30 30 1500 1500" xmlns="http://www.w3.org/2000/svg" aria-label="Bazaar-themed Ludo board" role="img">
- <defs>
-  <polygon points="50,0 35.36,14.64 35.36,35.36 14.64,35.36 0,50 -14.64,35.36 -35.36,35.36 -35.36,14.64 -50,0 -35.36,-14.64 -35.36,-35.36 -14.64,-35.36 0,-50 14.64,-35.36 35.36,-35.36 35.36,-14.64" id="bz-star8"/>
-  <path d="m0,-30l22,30l-22,30l-22,-30l22,-30z" id="bz-dia"/>
-  <g id="bz-tray">
-   <circle id="svg_1" fill="url(#bz-brass)" r="56"/>
-   <circle id="svg_2" fill="#1E120B" r="47"/>
-   <circle id="svg_3" stroke-dasharray="2 6" stroke-width="2" stroke="#D9A845" fill="none" r="40"/>
-   <use id="svg_4" fill="url(#bz-brass)" transform="scale(0.3)" href="#bz-star8"/>
-  </g>
-  <g id="bz-safe">
-   <circle id="svg_5" fill="url(#bz-brass)" r="36"/>
-   <circle id="svg_6" fill="#1E120B" r="30"/>
-   <use id="svg_7" fill="url(#bz-brass)" transform="scale(0.46)" href="#bz-star8"/>
-   <circle id="svg_8" fill="#1E120B" r="6"/>
-  </g>
-  <g id="bz-start">
-   <circle id="svg_9" fill="url(#bz-brass)" r="36"/>
-   <circle id="svg_10" fill="#1E120B" r="30"/>
-   <path id="svg_11" stroke-linejoin="round" stroke-linecap="round" stroke-width="6" stroke="#F3D07A" fill="none" d="m-15,-12l12,12l-12,12m16,-24l12,12l-12,12"/>
-  </g>
-  <g id="bz-quad">
-   <rect id="svg_12" stroke-width="3" stroke="#D9A845" fill="none" rx="10" height="576" width="576" y="12" x="12"/>
-   <path id="svg_13" fill-rule="evenodd" fill="url(#bz-kilim)" d="m30,30l540,0l0,540l-540,0l0,-540zm36,36l0,468l468,0l0,-468l-468,0z"/>
-   <rect id="svg_14" stroke-width="2" stroke="#D9A845" fill="none" height="540" width="540" y="30" x="30"/>
-   <rect id="svg_15" stroke-width="2" stroke="#D9A845" fill="none" height="468" width="468" y="66" x="66"/>
-   <use id="svg_16" y="160" x="160" href="#bz-tray"/>
-   <use id="svg_17" y="160" x="440" href="#bz-tray"/>
-   <use id="svg_18" y="440" x="160" href="#bz-tray"/>
-   <use id="svg_19" y="440" x="440" href="#bz-tray"/>
-   <use id="svg_20" fill="url(#bz-brass)" transform="translate(300 300) scale(1.9)" href="#bz-star8"/>
-  </g>
-  <linearGradient y2="1" x2="1" y1="0" x1="0" id="bz-brass">
-   <stop stop-color="#F8E29A" offset="0"/>
-   <stop stop-color="#D9A845" offset="0.45"/>
-   <stop stop-color="#8A5E1C" offset="1"/>
-  </linearGradient>
-  <radialGradient r="0.8" cy="0.38" cx="0.42" id="bz-gB">
-   <stop stop-color="#4B78C4" offset="0"/>
-   <stop stop-color="#16285A" offset="1"/>
-  </radialGradient>
-  <radialGradient r="0.8" cy="0.38" cx="0.42" id="bz-gR">
-   <stop stop-color="#D24A3E" offset="0"/>
-   <stop stop-color="#651413" offset="1"/>
-  </radialGradient>
-  <radialGradient r="0.8" cy="0.38" cx="0.42" id="bz-gY">
-   <stop stop-color="#F0BC45" offset="0"/>
-   <stop stop-color="#94600E" offset="1"/>
-  </radialGradient>
-  <radialGradient r="0.8" cy="0.38" cx="0.42" id="bz-gG">
-   <stop stop-color="#349A6B" offset="0"/>
-   <stop stop-color="#103F2B" offset="1"/>
-  </radialGradient>
-  <radialGradient r="0.7" cy="0.35" cx="0.4" id="bz-sheen">
-   <stop stop-opacity="0.22" stop-color="#FFFFFF" offset="0"/>
-   <stop stop-opacity="0" stop-color="#FFFFFF" offset="1"/>
-  </radialGradient>
-  <radialGradient r="0.5" cy="0.5" cx="0.5" id="bz-glow">
-   <stop stop-opacity="0.55" stop-color="#FFB547" offset="0"/>
-   <stop stop-opacity="0" stop-color="#FFB547" offset="1"/>
-  </radialGradient>
-  <pattern patternTransform="matrix(1,0,0,1,120,120)" patternUnits="userSpaceOnUse" height="100" width="100" id="bz-tiles">
-   <rect id="svg_21" fill="url(#bz-sheen)" rx="8" height="90" width="90" y="5" x="5"/>
-   <rect id="svg_22" stroke-width="3" stroke="#D9A845" fill="none" height="100" width="100" y="0" x="0"/>
-  </pattern>
-  <pattern patternUnits="userSpaceOnUse" height="36" width="36" y="30" x="30" id="bz-kilim">
-   <rect id="svg_23" fill-opacity="0.22" fill="#000000" height="36" width="36"/>
-   <path id="svg_24" stroke-width="2" stroke-opacity="0.75" stroke="#F3E3C3" fill="none" d="m18,4l14,14l-14,14l-14,-14l14,-14z"/>
-   <path id="svg_25" fill-opacity="0.85" fill="#F3E3C3" d="m18,12l6,6l-6,6l-6,-6l6,-6z"/>
-   <path id="svg_26" stroke-width="2" stroke-opacity="0.55" stroke="#F3E3C3" d="m0,0l5,5m31,-5l-5,5m-31,31l5,-5m31,5l-5,-5"/>
-  </pattern>
- </defs>
- <!-- frame -->
- <!-- home yards: pomegranate (red), emerald (green), saffron (yellow), indigo (blue) -->
- <!-- track arms -->
- <!-- home lanes: parchment -->
- <!-- tile bevel + brass grout -->
- <!-- lane motifs -->
- <!-- start squares (arrow medallions) -->
- <!-- safe squares (star medallions) -->
- <!-- center: four home triangles -->
- <!-- brass dividers -->
- <!-- center medallion with lantern -->
- <g>
-  <title>Layer 1</title>
-  <rect id="svg_27" fill="#1e120b" height="1560" width="1560" y="0" x="0"/>
-  <rect id="svg_28" stroke-width="5" stroke="url(#bz-brass)" fill="none" rx="10" height="1530" width="1530" y="15" x="15"/>
-  <g id="svg_29">
-   <rect x="30" y="30" id="svg_30" fill="url(#bz-gR)" height="600" width="600"/>
-   <use x="30" y="30" id="svg_31" href="#bz-quad"/>
-   <use x="24" y="24" id="svg_32" fill="#651413" transform="translate(300 300) scale(1.25 1.25)" href="#bz-star8"/>
-   <circle id="svg_33" fill="url(#bz-brass)" r="22" cy="330" cx="330"/>
-  </g>
-  <g id="svg_34">
-   <rect id="svg_35" x="930" y="30" fill="url(#bz-gG)" height="600" width="600"/>
-   <use id="svg_36" x="930" y="30" href="#bz-quad"/>
-   <use id="svg_37" x="744" y="24" fill="#103F2B" transform="translate(300 300) scale(1.25 1.25)" href="#bz-star8"/>
-   <circle id="svg_38" fill="url(#bz-brass)" r="22" cy="330" cx="1230"/>
-  </g>
-  <g id="svg_39">
-   <rect id="svg_40" x="30" y="930" fill="url(#bz-gB)" height="600" width="600"/>
-   <use id="svg_41" x="30" y="930" href="#bz-quad"/>
-   <use id="svg_42" x="24" y="744" fill="#16285A" transform="translate(300 300) scale(1.25 1.25)" href="#bz-star8"/>
-   <circle id="svg_43" fill="url(#bz-brass)" r="22" cy="1230" cx="330"/>
-  </g>
-  <g id="svg_44">
-   <rect id="svg_45" x="930" y="930" fill="url(#bz-gY)" height="600" width="600"/>
-   <use id="svg_46" x="930" y="930" href="#bz-quad"/>
-   <use id="svg_47" x="744" y="744" fill="#94600E" transform="translate(300 300) scale(1.25 1.25)" href="#bz-star8"/>
-   <circle id="svg_48" fill="url(#bz-brass)" r="22" cy="1230" cx="1230"/>
-  </g>
-  <rect id="svg_49" fill="url(#bz-gG)" height="600" width="300" y="30" x="630"/>
-  <rect id="svg_50" fill="url(#bz-gY)" height="300" width="600" y="630" x="930"/>
-  <rect id="svg_51" fill="url(#bz-gB)" height="600" width="300" y="930" x="630"/>
-  <rect id="svg_52" fill="url(#bz-gR)" height="300" width="600" y="630" x="30"/>
-  <rect id="svg_53" fill="#F1E2C0" height="500" width="100" y="130" x="730"/>
-  <rect id="svg_54" fill="#F1E2C0" height="100" width="500" y="730" x="930"/>
-  <rect id="svg_55" fill="#F1E2C0" height="500" width="100" y="930" x="730"/>
-  <rect id="svg_56" fill="#F1E2C0" height="100" width="500" y="730" x="130"/>
-  <rect id="svg_57" fill="url(#bz-tiles)" height="600" width="300" y="30" x="630"/>
-  <rect id="svg_58" fill="url(#bz-tiles)" height="300" width="600" y="630" x="930"/>
-  <rect id="svg_59" fill="url(#bz-tiles)" height="600" width="300" y="930" x="630"/>
-  <rect id="svg_60" fill="url(#bz-tiles)" height="300" width="600" y="630" x="30"/>
-  <g id="svg_61" stroke-width="3" stroke="#D9A845" fill="#155238">
-   <use id="svg_62" y="180" x="780" href="#bz-dia"/>
-   <use id="svg_63" y="280" x="780" href="#bz-dia"/>
-   <use id="svg_64" y="380" x="780" href="#bz-dia"/>
-   <use id="svg_65" y="480" x="780" href="#bz-dia"/>
-   <use id="svg_66" y="580" x="780" href="#bz-dia"/>
-  </g>
-  <g id="svg_67" stroke-width="3" stroke="#7A4E0E" fill="#A86B0F">
-   <use id="svg_68" transform="rotate(90 980 780)" y="780" x="980" href="#bz-dia"/>
-   <use id="svg_69" transform="rotate(90 1080 780)" y="780" x="1080" href="#bz-dia"/>
-   <use id="svg_70" transform="rotate(90 1180 780)" y="780" x="1180" href="#bz-dia"/>
-   <use id="svg_71" transform="rotate(90 1280 780)" y="780" x="1280" href="#bz-dia"/>
-   <use id="svg_72" transform="rotate(90 1380 780)" y="780" x="1380" href="#bz-dia"/>
-  </g>
-  <g id="svg_73" stroke-width="3" stroke="#D9A845" fill="#1E3570">
-   <use id="svg_74" y="980" x="780" href="#bz-dia"/>
-   <use id="svg_75" y="1080" x="780" href="#bz-dia"/>
-   <use id="svg_76" y="1180" x="780" href="#bz-dia"/>
-   <use id="svg_77" y="1280" x="780" href="#bz-dia"/>
-   <use id="svg_78" y="1380" x="780" href="#bz-dia"/>
-  </g>
-  <g id="svg_79" stroke-width="3" stroke="#D9A845" fill="#7A1A18">
-   <use id="svg_80" transform="rotate(90 180 780)" y="780" x="180" href="#bz-dia"/>
-   <use id="svg_81" transform="rotate(90 280 780)" y="780" x="280" href="#bz-dia"/>
-   <use id="svg_82" transform="rotate(90 380 780)" y="780" x="380" href="#bz-dia"/>
-   <use id="svg_83" transform="rotate(90 480 780)" y="780" x="480" href="#bz-dia"/>
-   <use id="svg_84" transform="rotate(90 580 780)" y="780" x="580" href="#bz-dia"/>
-  </g>
-  <use id="svg_85" x="180" y="680" href="#bz-start"/>
-  <use id="svg_86" x="880" y="180" transform="rotate(90 880 180)" href="#bz-start"/>
-  <use id="svg_87" x="1380" y="880" transform="rotate(180 1380 880)" href="#bz-start"/>
-  <use id="svg_88" x="680" y="1380" transform="rotate(270 680 1380)" href="#bz-start"/>
-  <use id="svg_89" x="280" y="880" href="#bz-safe"/>
-  <use id="svg_90" x="680" y="280" href="#bz-safe"/>
-  <use id="svg_91" x="1280" y="680" href="#bz-safe"/>
-  <use id="svg_92" x="880" y="1280" href="#bz-safe"/>
-  <polygon id="svg_93" fill="url(#bz-gG)" points="630,630 930,630 780,780 "/>
-  <polygon id="svg_94" fill="url(#bz-gY)" points="930,630 930,930 780,780 "/>
-  <polygon id="svg_95" fill="url(#bz-gB)" points="930,930 630,930 780,780 "/>
-  <polygon id="svg_96" fill="url(#bz-gR)" points="630,930 630,630 780,780 "/>
-  <path id="svg_97" stroke-width="3" stroke="#D9A845" d="m630,630l300,300m0,-300l-300,300"/>
-  <path id="svg_98" stroke-width="5" stroke="url(#bz-brass)" d="m630,30l0,1500m300,-1500l0,1500m-900,-900l1500,0m-1500,300l1500,0"/>
-  <rect id="svg_99" stroke-width="6" stroke="#D9A845" fill="none" height="300" width="300" y="630" x="630"/>
-  <circle id="svg_100" fill="url(#bz-brass)" r="104" cy="780" cx="780"/>
-  <circle id="svg_101" fill="#1e120b" r="95" cy="780" cx="780"/>
-  <circle id="svg_102" stroke-dasharray="3 7" stroke-width="1.5" stroke="#D9A845" fill="none" r="86" cy="780" cx="780"/>
-  <circle id="svg_103" fill="url(#bz-glow)" r="80" cy="785" cx="780"/>
-  <g id="svg_104" transform="translate(750 758) scale(1.1 1.1)">
-   <circle id="svg_105" stroke-width="3" stroke="#D9A845" fill="none" r="7" cy="-38.72727" cx="27.27273"/>
-   <path id="svg_106" fill="url(#bz-brass)" d="m23.27273,-31.72727l8,0l-1,7l-6,0l-1,-7z"/>
-   <path id="svg_107" fill="url(#bz-brass)" d="m7.27273,-10.72727q2,-16 20,-16q18,0 20,16l-40,0z"/>
-   <rect id="svg_108" fill="url(#bz-brass)" rx="2" height="7" width="52" y="-12.72727" x="1.27273"/>
-   <path id="svg_109" fill="url(#bz-brass)" d="m3.27273,-5.72727l48,0l10,39l-14,30l-40,0l-14,-30l10,-39z"/>
-   <path id="svg_110" fill="#FFE29A" d="m21.27273,57.27273l0,-44q6,-12 12,0l0,44l-12,0z"/>
-   <path id="svg_111" fill="#FFD27A" d="m15.27273,57.27273l-13,-24l7,-26q5,-4 6,4l0,46z"/>
-   <path id="svg_112" fill="#FFD27A" d="m39.27272,57.27273l13,-24l-7,-26q-5,-4 -6,4l0,46z"/>
-   <path id="svg_113" stroke-width="3" stroke="#6E4512" d="m-6.72727,33.27273l68,0"/>
-   <rect id="svg_114" fill="url(#bz-brass)" rx="2" height="7" width="32" y="63.27273" x="11.27273"/>
-   <path id="svg_115" fill="url(#bz-brass)" d="m19.27273,70.27273l16,0l-8,12l-8,-12z"/>
-  </g>
-  <g id="svg_116" fill="#F3D07A">
-   <circle id="svg_117" r="3" cy="694" cx="780"/>
-   <circle id="svg_118" r="3" cy="780" cx="866"/>
-   <circle id="svg_119" r="3" cy="866" cx="780"/>
-   <circle id="svg_120" r="3" cy="780" cx="694"/>
-  </g>
- </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1500 1500" role="img" aria-label="Bazaar-themed Ludo board">
+<defs>
+<linearGradient id="bz-brass" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#F8E29A"></stop>
+<stop offset="0.45" stop-color="#D9A845"></stop>
+<stop offset="1" stop-color="#8A5E1C"></stop>
+</linearGradient>
+<radialGradient id="bz-gB" cx="0.42" cy="0.38" r="0.8">
+<stop offset="0" stop-color="#4B78C4"></stop>
+<stop offset="1" stop-color="#16285A"></stop>
+</radialGradient>
+<radialGradient id="bz-gR" cx="0.42" cy="0.38" r="0.8">
+<stop offset="0" stop-color="#D24A3E"></stop>
+<stop offset="1" stop-color="#651413"></stop>
+</radialGradient>
+<radialGradient id="bz-gY" cx="0.42" cy="0.38" r="0.8">
+<stop offset="0" stop-color="#F0BC45"></stop>
+<stop offset="1" stop-color="#94600E"></stop>
+</radialGradient>
+<radialGradient id="bz-gG" cx="0.42" cy="0.38" r="0.8">
+<stop offset="0" stop-color="#349A6B"></stop>
+<stop offset="1" stop-color="#103F2B"></stop>
+</radialGradient>
+<radialGradient id="bz-sheen" cx="0.4" cy="0.35" r="0.7">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"></stop>
+<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</radialGradient>
+<radialGradient id="bz-glow" cx="0.5" cy="0.5" r="0.5">
+<stop offset="0" stop-color="#FFB547" stop-opacity="0.55"></stop>
+<stop offset="1" stop-color="#FFB547" stop-opacity="0"></stop>
+</radialGradient>
+<pattern id="bz-tiles" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect x="5" y="5" width="90" height="90" rx="8" fill="url(#bz-sheen)"></rect>
+<rect x="0" y="0" width="100" height="100" fill="none" stroke="#D9A845" stroke-width="3"></rect>
+</pattern>
+<pattern id="bz-kilim" x="30" y="30" width="36" height="36" patternUnits="userSpaceOnUse">
+<rect width="36" height="36" fill="#000000" fill-opacity="0.22"></rect>
+<path d="M18,4 L32,18 L18,32 L4,18Z" fill="none" stroke="#F3E3C3" stroke-opacity="0.75" stroke-width="2"></path>
+<path d="M18,12 L24,18 L18,24 L12,18Z" fill="#F3E3C3" fill-opacity="0.85"></path>
+<path d="M0,0 L5,5 M36,0 L31,5 M0,36 L5,31 M36,36 L31,31" stroke="#F3E3C3" stroke-opacity="0.55" stroke-width="2"></path>
+</pattern>
+<polygon id="bz-star8" points="50,0 35.36,14.64 35.36,35.36 14.64,35.36 0,50 -14.64,35.36 -35.36,35.36 -35.36,14.64 -50,0 -35.36,-14.64 -35.36,-35.36 -14.64,-35.36 0,-50 14.64,-35.36 35.36,-35.36 35.36,-14.64"></polygon>
+<path id="bz-dia" d="M0,-30 L22,0 L0,30 L-22,0Z"></path>
+<g id="bz-tray">
+<circle r="56" fill="url(#bz-brass)"></circle>
+<circle r="47" fill="#1E120B"></circle>
+<circle r="40" fill="none" stroke="#D9A845" stroke-width="2" stroke-dasharray="2 6"></circle>
+<use href="#bz-star8" transform="scale(0.3)" fill="url(#bz-brass)"></use>
+</g>
+<g id="bz-safe">
+<circle r="36" fill="url(#bz-brass)"></circle>
+<circle r="30" fill="#1E120B"></circle>
+<use href="#bz-star8" transform="scale(0.46)" fill="url(#bz-brass)"></use>
+<circle r="6" fill="#1E120B"></circle>
+</g>
+<g id="bz-start">
+<circle r="36" fill="url(#bz-brass)"></circle>
+<circle r="30" fill="#1E120B"></circle>
+<path d="M-15,-12 L-3,0 L-15,12 M1,-12 L13,0 L1,12" fill="none" stroke="#F3D07A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+<g id="bz-quad">
+<rect x="12" y="12" width="576" height="576" rx="10" fill="none" stroke="#D9A845" stroke-width="3"></rect>
+<path d="M30,30 H570 V570 H30Z M66,66 V534 H534 V66Z" fill="url(#bz-kilim)" fill-rule="evenodd"></path>
+<rect x="30" y="30" width="540" height="540" fill="none" stroke="#D9A845" stroke-width="2"></rect>
+<rect x="66" y="66" width="468" height="468" fill="none" stroke="#D9A845" stroke-width="2"></rect>
+<use href="#bz-tray" x="160" y="160"></use>
+<use href="#bz-tray" x="440" y="160"></use>
+<use href="#bz-tray" x="160" y="440"></use>
+<use href="#bz-tray" x="440" y="440"></use>
+<use href="#bz-star8" transform="translate(300 300) scale(1.9)" fill="url(#bz-brass)"></use>
+</g>
+</defs>
+
+<!-- frame -->
+<rect x="-30" y="-30" width="1560" height="1560" fill="#2A1810"></rect>
+<rect x="-15" y="-15" width="1530" height="1530" rx="10" fill="none" stroke="url(#bz-brass)" stroke-width="5"></rect>
+
+<!-- home yards, as the game seats them: pomegranate (red), emerald (green), indigo (blue), saffron (yellow) -->
+<g>
+<rect width="600" height="600" fill="url(#bz-gR)"></rect>
+<use href="#bz-quad"></use>
+<use href="#bz-star8" transform="translate(300 300) scale(1.25)" fill="#651413"></use>
+<circle cx="300" cy="300" r="22" fill="url(#bz-brass)"></circle>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="url(#bz-gG)"></rect>
+<use href="#bz-quad"></use>
+<use href="#bz-star8" transform="translate(300 300) scale(1.25)" fill="#103F2B"></use>
+<circle cx="300" cy="300" r="22" fill="url(#bz-brass)"></circle>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="url(#bz-gB)"></rect>
+<use href="#bz-quad"></use>
+<use href="#bz-star8" transform="translate(300 300) scale(1.25)" fill="#16285A"></use>
+<circle cx="300" cy="300" r="22" fill="url(#bz-brass)"></circle>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="url(#bz-gY)"></rect>
+<use href="#bz-quad"></use>
+<use href="#bz-star8" transform="translate(300 300) scale(1.25)" fill="#94600E"></use>
+<circle cx="300" cy="300" r="22" fill="url(#bz-brass)"></circle>
+</g>
+
+<!-- track arms -->
+<rect x="600" y="0" width="300" height="600" fill="url(#bz-gG)"></rect>
+<rect x="900" y="600" width="600" height="300" fill="url(#bz-gY)"></rect>
+<rect x="600" y="900" width="300" height="600" fill="url(#bz-gB)"></rect>
+<rect x="0" y="600" width="600" height="300" fill="url(#bz-gR)"></rect>
+
+<!-- home lanes: parchment -->
+<rect x="700" y="100" width="100" height="500" fill="#F1E2C0"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#F1E2C0"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#F1E2C0"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#F1E2C0"></rect>
+
+<!-- tile bevel + brass grout -->
+<rect x="600" y="0" width="300" height="600" fill="url(#bz-tiles)"></rect>
+<rect x="900" y="600" width="600" height="300" fill="url(#bz-tiles)"></rect>
+<rect x="600" y="900" width="300" height="600" fill="url(#bz-tiles)"></rect>
+<rect x="0" y="600" width="600" height="300" fill="url(#bz-tiles)"></rect>
+
+<!-- lane motifs -->
+<g fill="#155238" stroke="#D9A845" stroke-width="3">
+<use href="#bz-dia" x="750" y="150"></use><use href="#bz-dia" x="750" y="250"></use><use href="#bz-dia" x="750" y="350"></use><use href="#bz-dia" x="750" y="450"></use><use href="#bz-dia" x="750" y="550"></use>
+</g>
+<g fill="#A86B0F" stroke="#7A4E0E" stroke-width="3">
+<use href="#bz-dia" x="950" y="750" transform="rotate(90 950 750)"></use><use href="#bz-dia" x="1050" y="750" transform="rotate(90 1050 750)"></use><use href="#bz-dia" x="1150" y="750" transform="rotate(90 1150 750)"></use><use href="#bz-dia" x="1250" y="750" transform="rotate(90 1250 750)"></use><use href="#bz-dia" x="1350" y="750" transform="rotate(90 1350 750)"></use>
+</g>
+<g fill="#1E3570" stroke="#D9A845" stroke-width="3">
+<use href="#bz-dia" x="750" y="950"></use><use href="#bz-dia" x="750" y="1050"></use><use href="#bz-dia" x="750" y="1150"></use><use href="#bz-dia" x="750" y="1250"></use><use href="#bz-dia" x="750" y="1350"></use>
+</g>
+<g fill="#7A1A18" stroke="#D9A845" stroke-width="3">
+<use href="#bz-dia" x="150" y="750" transform="rotate(90 150 750)"></use><use href="#bz-dia" x="250" y="750" transform="rotate(90 250 750)"></use><use href="#bz-dia" x="350" y="750" transform="rotate(90 350 750)"></use><use href="#bz-dia" x="450" y="750" transform="rotate(90 450 750)"></use><use href="#bz-dia" x="550" y="750" transform="rotate(90 550 750)"></use>
+</g>
+
+<!-- start squares (arrow medallions) -->
+<use href="#bz-start" transform="translate(150 650)"></use>
+<use href="#bz-start" transform="translate(850 150) rotate(90)"></use>
+<use href="#bz-start" transform="translate(1350 850) rotate(180)"></use>
+<use href="#bz-start" transform="translate(650 1350) rotate(270)"></use>
+
+<!-- safe squares (star medallions) -->
+<use href="#bz-safe" transform="translate(250 850)"></use>
+<use href="#bz-safe" transform="translate(650 250)"></use>
+<use href="#bz-safe" transform="translate(1250 650)"></use>
+<use href="#bz-safe" transform="translate(850 1250)"></use>
+
+<!-- center: four home triangles -->
+<polygon points="600,600 900,600 750,750" fill="url(#bz-gG)"></polygon>
+<polygon points="900,600 900,900 750,750" fill="url(#bz-gY)"></polygon>
+<polygon points="900,900 600,900 750,750" fill="url(#bz-gB)"></polygon>
+<polygon points="600,900 600,600 750,750" fill="url(#bz-gR)"></polygon>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#D9A845" stroke-width="3"></path>
+
+<!-- brass dividers -->
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="url(#bz-brass)" stroke-width="5"></path>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="#D9A845" stroke-width="6"></rect>
+
+<!-- center medallion with lantern -->
+<circle cx="750" cy="750" r="104" fill="url(#bz-brass)"></circle>
+<circle cx="750" cy="750" r="95" fill="#1E120B"></circle>
+<circle cx="750" cy="750" r="86" fill="none" stroke="#D9A845" stroke-width="1.5" stroke-dasharray="3 7"></circle>
+<circle cx="750" cy="755" r="80" fill="url(#bz-glow)"></circle>
+<g transform="translate(750 758) scale(1.1)">
+<circle cx="0" cy="-66" r="7" fill="none" stroke="#D9A845" stroke-width="3"></circle>
+<path d="M-4,-59 L4,-59 L3,-52 L-3,-52Z" fill="url(#bz-brass)"></path>
+<path d="M-20,-38 Q-18,-54 0,-54 Q18,-54 20,-38Z" fill="url(#bz-brass)"></path>
+<rect x="-26" y="-40" width="52" height="7" rx="2" fill="url(#bz-brass)"></rect>
+<path d="M-24,-33 L24,-33 L34,6 L20,36 L-20,36 L-34,6Z" fill="url(#bz-brass)"></path>
+<path d="M-6,30 L-6,-14 Q0,-26 6,-14 L6,30Z" fill="#FFE29A"></path>
+<path d="M-12,30 L-25,6 L-18,-20 Q-13,-24 -12,-16Z" fill="#FFD27A"></path>
+<path d="M12,30 L25,6 L18,-20 Q13,-24 12,-16Z" fill="#FFD27A"></path>
+<path d="M-34,6 H34" stroke="#6E4512" stroke-width="3"></path>
+<rect x="-16" y="36" width="32" height="7" rx="2" fill="url(#bz-brass)"></rect>
+<path d="M-8,43 L8,43 L0,55Z" fill="url(#bz-brass)"></path>
+</g>
+<g fill="#F3D07A">
+<circle cx="750" cy="664" r="3"></circle><circle cx="836" cy="750" r="3"></circle><circle cx="750" cy="836" r="3"></circle><circle cx="664" cy="750" r="3"></circle>
+</g>
 </svg>

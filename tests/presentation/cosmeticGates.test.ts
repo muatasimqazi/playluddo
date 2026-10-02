@@ -14,7 +14,7 @@ const freeOnly = (id: string) => FREE_COSMETICS.has(id);
 
 describe("cosmetic gates", () => {
   it("maps every board and room to a catalog cosmetic and back", () => {
-    for (const style of ["signature", "classic", "geometric", "aladdin", "bazaar"] as const) {
+    for (const style of ["signature", "classic", "geometric", "aladdin", "bazaar", "rug"] as const) {
       expect(boardStyleForCosmetic(boardCosmetic(style))).toBe(style);
     }
     for (const room of ROOM_STYLES) {
@@ -25,7 +25,7 @@ describe("cosmetic gates", () => {
   });
 
   it("keeps every board free, and the Apartment", () => {
-    for (const style of ["signature", "classic", "geometric", "aladdin", "bazaar"] as const)
+    for (const style of ["signature", "classic", "geometric", "aladdin", "bazaar", "rug"] as const)
       expect(ownedBoardStyle(style, freeOnly)).toBe(style);
     expect(ownedRoom("apartment", freeOnly)).toBe("apartment");
   });

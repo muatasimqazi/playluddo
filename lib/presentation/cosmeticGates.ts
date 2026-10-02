@@ -18,6 +18,7 @@ const BOARD_COSMETIC: Record<BoardStyle, string> = {
   geometric: "board_geometric",
   aladdin: "board_aladdin",
   bazaar: "board_bazaar",
+  rug: "board_rug",
 };
 
 const ROOM_COSMETIC: Record<RoomStyle, string> = {
@@ -38,6 +39,7 @@ export const FREE_COSMETICS: ReadonlySet<string> = new Set([
   "board_geometric",
   "board_aladdin",
   "board_bazaar",
+  "board_rug",
   "piece_glass",
   "dice_classic",
   "room_apartment",

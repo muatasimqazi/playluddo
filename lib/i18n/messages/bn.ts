@@ -81,6 +81,8 @@ export const bn: Messages = {
     boardAladdinDesc: "আরব্য রজনীর এক টেবিল",
     boardBazaar: "বাজার",
     boardBazaarDesc: "কিলিমের ওপর পিতলের লণ্ঠন",
+    boardRug: "গালিচা",
+    boardRugDesc: "হাতে বোনা বালুচি গালিচা",
 
     yourTeam: "আপনার দল",
     memberOne: "{count} জন সদস্য",

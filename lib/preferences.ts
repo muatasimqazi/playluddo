@@ -95,7 +95,8 @@ function isBoardStyle(value: unknown): value is BoardStyle {
     value === "classic" ||
     value === "geometric" ||
     value === "aladdin" ||
-    value === "bazaar"
+    value === "bazaar" ||
+    value === "rug"
   );
 }
 

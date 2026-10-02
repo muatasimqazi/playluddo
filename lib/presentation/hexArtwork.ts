@@ -27,6 +27,7 @@ import {
  *   geometric -> designs/board-hex-geometric.svg  (board-geometric.svg)
  *   aladdin   -> designs/board-hex-aladdin.svg    (board-aladdin.svg)
  *   bazaar    -> designs/board-hex-bazaar.svg     (board-bazaar.svg)
+ *   rug       -> designs/board-hex-rug.svg        (board-rug.svg)
  *
  * Written by `npm run board:hex`, then free to restyle by hand. Every style
  * draws the same anchors — the track cells, home columns, bases and nest
@@ -40,13 +41,14 @@ import {
  * onto the hexagonal top face.
  */
 
-export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar";
+export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug";
 export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "classic",
   "signature",
   "geometric",
   "aladdin",
   "bazaar",
+  "rug",
 ];
 /** File name in designs/ for each style. */
 export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
@@ -55,6 +57,7 @@ export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
   geometric: "board-hex-geometric.svg",
   aladdin: "board-hex-aladdin.svg",
   bazaar: "board-hex-bazaar.svg",
+  rug: "board-hex-rug.svg",
 };
 
 // ---------------------------------------------------------------------------
@@ -525,7 +528,104 @@ const bazaar: Theme = {
   tip: (arm) => chevron(arm, "#F3D07A"),
 };
 
-const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar };
+// ---------------------------------------------------------------------------
+// Rug: natural dyes on a dark ground, a madder border, camel-wool track, and
+// the stepped diamonds of a Balochi rug (board-rug.svg)
+// ---------------------------------------------------------------------------
+
+const RUG_DYE: Record<PlayerColor, string> = {
+  red: "#9B2D24",
+  green: "#3D6B55",
+  yellow: "#C68B2C",
+  blue: "#24395F",
+  orange: "#B35A1F",
+  black: "#3A302C",
+};
+const RUG_GROUND = "#2B1B15";
+const RUG_IVORY = "#EDE0C4";
+const RUG_CAMEL = "#C9AE80";
+// The border's madder, and the safe stars' (a step off the red seat's, so
+// colour-blind mode leaves them be, as on the square board).
+const RUG_BORDER = "#5E1612";
+const RUG_STAR = "#9B2D25";
+
+/** The rug's stepped diamond (#rg-step in board-rug.svg), `radius` from tip to tip's centre. */
+function steppedDiamond(radius: number, attrs: string): string {
+  const unit = radius / 100;
+  const quarter = [
+    [-10, -100], [10, -100], [10, -80], [30, -80], [30, -60], [50, -60], [50, -40], [70, -40],
+    [70, -20], [90, -20], [90, -10], [100, -10],
+  ];
+  // One quarter, then the same turned three times about the centre.
+  const points = [0, 1, 2, 3].flatMap((turn) =>
+    quarter.map(([x, y]) => {
+      const [a, b] = [[x, y], [-y, x], [-x, -y], [y, -x]][turn];
+      return `${n(a * unit)},${n(b * unit)}`;
+    }),
+  );
+  return `<polygon points="${points.join(" ")}" ${attrs}/>`;
+}
+
+const rug: Theme = {
+  defs: "",
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${RUG_BORDER}" stroke="${RUG_IVORY}" stroke-width="0.02"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.07)}" fill="${RUG_GROUND}" stroke="${RUG_IVORY}" stroke-width="0.012"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${RUG_DYE[color]}" stroke="${RUG_IVORY}" stroke-width="0.016"`) +
+      around(
+        center,
+        angle,
+        // A guard border of small ivory diamonds round the yard's edge.
+        `<circle r="${n(R * 0.88)}" fill="none" stroke="${RUG_GROUND}" stroke-width="${n(R * 0.13)}"/>` +
+          Array.from({ length: 16 }, (_, i) =>
+            around(hexPolar((i * Math.PI) / 8, R * 0.88), 0, steppedDiamond(R * 0.05, `fill="${RUG_IVORY}"`)),
+          ).join(""),
+      )
+    );
+  },
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="${RUG_IVORY}"`) +
+    around(
+      point,
+      0,
+      `<circle r="${n(C * 0.5)}" fill="${RUG_GROUND}"/>` + steppedDiamond(C * 0.3, `fill="${RUG_CAMEL}"`),
+    ),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${RUG_DYE[color]}" stroke="${RUG_IVORY}" stroke-width="0.012"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    return (
+      `<circle r="${n(r)}" fill="${RUG_IVORY}"/>` +
+      `<circle r="${n(r * 0.88)}" fill="${RUG_GROUND}"/>` +
+      steppedDiamond(r * 0.7, `fill="${RUG_IVORY}"`) +
+      steppedDiamond(r * 0.5, `fill="${RUG_GROUND}"`) +
+      star(8, r * 0.34, 0.75, `fill="${RUG_IVORY}"`)
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${RUG_DYE[color]}" stroke="${RUG_GROUND}" stroke-width="0.012"`) +
+    inCell(point, arm, steppedDiamond(C * 0.32, `fill="${RUG_IVORY}"`) + steppedDiamond(C * 0.18, `fill="${RUG_GROUND}"`)),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? RUG_DYE[owner] : kind === "star" ? RUG_GROUND : RUG_CAMEL}" stroke="${RUG_GROUND}" stroke-width="0.012"`,
+    ) +
+    (kind === "star"
+      ? around(point, 0, star(8, C * 0.36, 0.72, `fill="${RUG_IVORY}"`) + star(8, C * 0.25, 0.72, `fill="${RUG_STAR}"`))
+      : ""),
+  tip: (arm) => chevron(arm, RUG_IVORY),
+};
+
+const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug };
 
 // ---------------------------------------------------------------------------
 // The document

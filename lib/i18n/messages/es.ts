@@ -82,6 +82,8 @@ export const es: Messages = {
     boardAladdinDesc: "Una mesa de las mil y una noches",
     boardBazaar: "Bazar",
     boardBazaarDesc: "Faroles de latón sobre un kilim",
+    boardRug: "Alfombra",
+    boardRugDesc: "Una alfombra baluchi anudada a mano",
 
     yourTeam: "Tu equipo",
     memberOne: "{count} miembro",

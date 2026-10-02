@@ -82,6 +82,8 @@ export const ar: Messages = {
     boardAladdinDesc: "طاولة من ليالي ألف ليلة وليلة",
     boardBazaar: "البازار",
     boardBazaarDesc: "فوانيس نحاسية على سجادة كليم",
+    boardRug: "سجادة",
+    boardRugDesc: "سجادة بلوشية معقودة يدويًا",
 
     yourTeam: "فريقك",
     memberOne: "عضو واحد",

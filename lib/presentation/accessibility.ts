@@ -202,6 +202,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     yellow: ["#F0BC45", "#94600E", "#A86B0F", "#7A4E0E"],
     blue: ["#4B78C4", "#16285A", "#1E3570"],
   },
+  // The Rug's dyes. Its borders and stars use twins one step off these, so
+  // only the seat areas move.
+  rug: {
+    red: ["#9B2D24"],
+    green: ["#3D6B55"],
+    yellow: ["#C68B2C"],
+    blue: ["#24395F"],
+  },
   "hex-classic": {
     red: ["#e2262e"],
     green: ["#31a65b"],
@@ -241,6 +249,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     blue: ["#4B78C4", "#16285A", "#1E3570"],
     orange: ["#E0823A", "#7A3A0E", "#8A4210"],
     black: ["#6A6272", "#24202A", "#3A3440"],
+  },
+  "hex-rug": {
+    red: ["#9B2D24"],
+    green: ["#3D6B55"],
+    yellow: ["#C68B2C"],
+    blue: ["#24395F"],
+    orange: ["#B35A1F"],
+    black: ["#3A302C"],
   },
 };
 

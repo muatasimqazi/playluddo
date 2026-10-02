@@ -81,6 +81,8 @@ export const id: Messages = {
     boardAladdinDesc: "Meja bernuansa negeri seribu satu malam",
     boardBazaar: "Bazar",
     boardBazaarDesc: "Lentera kuningan di atas kilim",
+    boardRug: "Permadani",
+    boardRugDesc: "Permadani Baluchi tenunan tangan",
 
     yourTeam: "Timmu",
     memberOne: "{count} anggota",

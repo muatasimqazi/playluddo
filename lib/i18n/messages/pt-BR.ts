@@ -81,6 +81,8 @@ export const ptBR: Messages = {
     boardAladdinDesc: "Uma mesa das mil e uma noites",
     boardBazaar: "Bazar",
     boardBazaarDesc: "Lanternas de latão sobre um kilim",
+    boardRug: "Tapete",
+    boardRugDesc: "Um tapete baluchi tecido à mão",
 
     yourTeam: "Seu time",
     memberOne: "{count} membro",

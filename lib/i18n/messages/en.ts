@@ -100,6 +100,8 @@ export const en = {
     boardAladdinDesc: "An Arabian-nights table",
     boardBazaar: "Bazaar",
     boardBazaarDesc: "Brass lanterns on a kilim",
+    boardRug: "Rug",
+    boardRugDesc: "A hand-knotted Balochi rug",
 
     yourTeam: "Your team",
     memberOne: "{count} member",

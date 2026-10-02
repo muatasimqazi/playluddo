@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500" role="img" aria-label="Ludo board styled as a Persian Balochi rug">
+<defs>
+<polygon id="rg-star8" points="50,0 35.36,14.64 35.36,35.36 14.64,35.36 0,50 -14.64,35.36 -35.36,35.36 -35.36,14.64 -50,0 -35.36,-14.64 -35.36,-35.36 -14.64,-35.36 0,-50 14.64,-35.36 35.36,-35.36 35.36,-14.64"></polygon>
+<polygon id="rg-oct" points="24,-58 58,-24 58,24 24,58 -24,58 -58,24 -58,-24 -24,-58"></polygon>
+<polygon id="rg-step" points="-10,-100 10,-100 10,-80 30,-80 30,-60 50,-60 50,-40 70,-40 70,-20 90,-20 90,-10 100,-10 100,10 90,10 90,20 70,20 70,40 50,40 50,60 30,60 30,80 10,80 10,100 -10,100 -10,80 -30,80 -30,60 -50,60 -50,40 -70,40 -70,20 -90,20 -90,10 -100,10 -100,-10 -90,-10 -90,-20 -70,-20 -70,-40 -50,-40 -50,-60 -30,-60 -30,-80 -10,-80"></polygon>
+<polygon id="rg-spandrel" points="62,62 172,62 172,82 152,82 152,102 132,102 132,122 112,122 112,142 92,142 92,162 82,162 82,172 62,172"></polygon>
+
+<clipPath id="rg-gulclip"><use href="#rg-oct" transform="scale(0.78)"></use></clipPath>
+<clipPath id="rg-centerclip"><use href="#rg-oct" transform="scale(1.38)"></use></clipPath>
+
+<!-- knot grain and abrash (natural dye banding) -->
+<pattern id="rg-knots" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect x="0" y="0" width="4" height="4" fill="#000000" fill-opacity="0.06"></rect>
+<rect x="4" y="4" width="4" height="4" fill="#000000" fill-opacity="0.06"></rect>
+</pattern>
+<linearGradient id="rg-abrash" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#000000" stop-opacity="0"></stop>
+<stop offset="0.18" stop-color="#000000" stop-opacity="0.07"></stop>
+<stop offset="0.3" stop-color="#000000" stop-opacity="0"></stop>
+<stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.05"></stop>
+<stop offset="0.72" stop-color="#000000" stop-opacity="0.06"></stop>
+<stop offset="0.85" stop-color="#000000" stop-opacity="0"></stop>
+<stop offset="1" stop-color="#000000" stop-opacity="0.05"></stop>
+</linearGradient>
+
+<!-- fringe strands -->
+<pattern id="rg-fringe" x="-90" y="0" width="12" height="56" patternUnits="userSpaceOnUse">
+<rect x="2" y="0" width="7" height="56" rx="3.5" fill="#EDE0C4"></rect>
+<rect x="7" y="0" width="2" height="56" fill="#B9A47E" fill-opacity="0.6"></rect>
+</pattern>
+
+<!-- main border: hooked lozenges on madder ground -->
+<pattern id="rg-border" x="-90" y="-90" width="70" height="70" patternUnits="userSpaceOnUse">
+<rect width="70" height="70" fill="#5E1612"></rect>
+<use href="#rg-step" transform="translate(35 35) scale(0.27)" fill="#EDE0C4"></use>
+<use href="#rg-step" transform="translate(35 35) scale(0.17)" fill="#24395E"></use>
+<rect x="31" y="31" width="8" height="8" fill="#C68B2D"></rect>
+<path d="M0,0 L8,0 L0,8Z M70,0 L62,0 L70,8Z M0,70 L8,70 L0,62Z M70,70 L62,70 L70,62Z" fill="#C68B2D"></path>
+</pattern>
+<!-- minor guard: ivory dots on indigo -->
+<pattern id="rg-guard" x="-20" y="-20" width="20" height="20" patternUnits="userSpaceOnUse">
+<rect width="20" height="20" fill="#24395E"></rect>
+<path d="M10,4 L16,10 L10,16 L4,10Z" fill="#EDE0C4"></path>
+</pattern>
+<!-- yard frame: small stars on dark ground -->
+<pattern id="rg-yardband" x="18" y="18" width="44" height="44" patternUnits="userSpaceOnUse">
+<rect width="44" height="44" fill="#2B1B15"></rect>
+<use href="#rg-star8" transform="translate(22 22) scale(0.26)" fill="#EDE0C4"></use>
+<rect x="19" y="19" width="6" height="6" fill="#9B2D25"></rect>
+</pattern>
+<!-- track cells -->
+<pattern id="rg-cells" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect x="9" y="9" width="82" height="82" fill="none" stroke="#EDE0C4" stroke-opacity="0.45" stroke-width="2" stroke-dasharray="6 4"></rect>
+<rect x="0" y="0" width="100" height="100" fill="none" stroke="#2B1B15" stroke-width="5"></rect>
+</pattern>
+
+<!-- token gul (Balochi quartered octagon) -->
+<g id="rg-gul">
+<use href="#rg-oct" fill="#EDE0C4"></use>
+<use href="#rg-oct" transform="scale(0.86)" fill="#2B1B15"></use>
+<g clip-path="url(#rg-gulclip)">
+<rect x="-50" y="-50" width="50" height="50" fill="#C9AE80"></rect>
+<rect x="0" y="0" width="50" height="50" fill="#C9AE80"></rect>
+<rect x="0" y="-50" width="50" height="50" fill="#5A3A2C"></rect>
+<rect x="-50" y="0" width="50" height="50" fill="#5A3A2C"></rect>
+</g>
+<use href="#rg-step" transform="scale(0.2)" fill="#EDE0C4"></use>
+<rect x="-5" y="-5" width="10" height="10" fill="#2B1B15"></rect>
+</g>
+
+<!-- shared yard decoration (colour-neutral) -->
+<g id="rg-yard">
+<path d="M18,18 H582 V582 H18Z M62,62 V538 H538 V62Z" fill="url(#rg-yardband)" fill-rule="evenodd"></path>
+<rect x="18" y="18" width="564" height="564" fill="none" stroke="#EDE0C4" stroke-width="3"></rect>
+<rect x="62" y="62" width="476" height="476" fill="none" stroke="#EDE0C4" stroke-width="3"></rect>
+<g fill="#EDE0C4">
+<use href="#rg-spandrel"></use>
+<use href="#rg-spandrel" transform="rotate(90 300 300)"></use>
+<use href="#rg-spandrel" transform="rotate(180 300 300)"></use>
+<use href="#rg-spandrel" transform="rotate(270 300 300)"></use>
+</g>
+<g fill="#2B1B15">
+<polygon points="62,62 132,62 132,82 112,82 112,102 102,102 102,112 82,112 82,132 62,132"></polygon>
+<polygon points="62,62 132,62 132,82 112,82 112,102 102,102 102,112 82,112 82,132 62,132" transform="rotate(90 300 300)"></polygon>
+<polygon points="62,62 132,62 132,82 112,82 112,102 102,102 102,112 82,112 82,132 62,132" transform="rotate(180 300 300)"></polygon>
+<polygon points="62,62 132,62 132,82 112,82 112,102 102,102 102,112 82,112 82,132 62,132" transform="rotate(270 300 300)"></polygon>
+</g>
+<use href="#rg-step" transform="translate(300 300) scale(1.62)" fill="#EDE0C4"></use>
+<use href="#rg-step" transform="translate(300 300) scale(1.42)" fill="#2B1B15"></use>
+<g fill="#EDE0C4">
+<path d="M300,108 L312,120 L300,132 L288,120Z"></path>
+<path d="M300,468 L312,480 L300,492 L288,480Z"></path>
+<path d="M108,300 L120,312 L132,300 L120,288Z"></path>
+<path d="M468,300 L480,312 L492,300 L480,288Z"></path>
+</g>
+<use href="#rg-gul" x="168" y="168"></use>
+<use href="#rg-gul" x="432" y="168"></use>
+<use href="#rg-gul" x="168" y="432"></use>
+<use href="#rg-gul" x="432" y="432"></use>
+</g>
+
+<!-- medallion core, drawn on top of the player colour -->
+<g id="rg-core">
+<use href="#rg-star8" transform="scale(1.05)" fill="#EDE0C4"></use>
+<use href="#rg-star8" transform="scale(0.78)" fill="#2B1B15"></use>
+<use href="#rg-step" transform="scale(0.26)" fill="#C68B2D"></use>
+<rect x="-6" y="-6" width="12" height="12" fill="#EDE0C4"></rect>
+</g>
+
+<g id="rg-safe">
+<use href="#rg-star8" transform="scale(0.72)" fill="#EDE0C4"></use>
+<use href="#rg-star8" transform="scale(0.5)" fill="#9B2D25"></use>
+<rect x="-7" y="-7" width="14" height="14" fill="#EDE0C4"></rect>
+</g>
+<path id="rg-arrow" d="M-20,-20 L0,0 L-20,20 M2,-20 L22,0 L2,20" fill="none" stroke="#EDE0C4" stroke-width="9" stroke-linecap="square" stroke-linejoin="miter"></path>
+<g id="rg-lanemotif">
+<use href="#rg-step" transform="scale(0.32)" fill="#EDE0C4"></use>
+<use href="#rg-step" transform="scale(0.18)" fill="#2B1B15"></use>
+</g>
+</defs>
+
+<!-- fringe + kilim ends -->
+<rect x="-90" y="-160" width="1680" height="56" fill="url(#rg-fringe)"></rect>
+<rect x="-90" y="1605" width="1680" height="56" fill="url(#rg-fringe)"></rect>
+<rect x="-90" y="-104" width="1680" height="14" fill="#9B2D25"></rect>
+<rect x="-90" y="-99" width="1680" height="3" fill="#EDE0C4"></rect>
+<rect x="-90" y="1590" width="1680" height="15" fill="#9B2D25"></rect>
+<rect x="-90" y="1596" width="1680" height="3" fill="#EDE0C4"></rect>
+
+<!-- borders -->
+<path d="M-90,-90 H1590 V1590 H-90Z M-20,-20 V1520 H1520 V-20Z" fill="url(#rg-border)" fill-rule="evenodd"></path>
+<path d="M-20,-20 H1520 V1520 H-20Z M0,0 V1500 H1500 V0Z" fill="url(#rg-guard)" fill-rule="evenodd"></path>
+<rect x="-88" y="-88" width="1676" height="1676" fill="none" stroke="#EDE0C4" stroke-width="3"></rect>
+<rect x="-20" y="-20" width="1540" height="1540" fill="none" stroke="#EDE0C4" stroke-width="3"></rect>
+
+<!-- home yards, as the game seats them: madder (red), green, indigo (blue), ochre (yellow) -->
+<g>
+<rect width="600" height="600" fill="#9B2D24"></rect>
+<use href="#rg-yard"></use>
+<use href="#rg-step" transform="translate(300 300) scale(1.12)" fill="#9B2D24"></use>
+<use href="#rg-core" x="300" y="300"></use>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="#3D6B55"></rect>
+<use href="#rg-yard"></use>
+<use href="#rg-step" transform="translate(300 300) scale(1.12)" fill="#3D6B55"></use>
+<use href="#rg-core" x="300" y="300"></use>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="#24395F"></rect>
+<use href="#rg-yard"></use>
+<use href="#rg-step" transform="translate(300 300) scale(1.12)" fill="#24395F"></use>
+<use href="#rg-core" x="300" y="300"></use>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="#C68B2C"></rect>
+<use href="#rg-yard"></use>
+<use href="#rg-step" transform="translate(300 300) scale(1.12)" fill="#C68B2C"></use>
+<use href="#rg-core" x="300" y="300"></use>
+</g>
+
+<!-- track arms: camel-wool field -->
+<g fill="#C9AE80">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- home lanes -->
+<rect x="700" y="100" width="100" height="500" fill="#3D6B55"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#C68B2C"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#24395F"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#9B2D24"></rect>
+
+<!-- start squares -->
+<rect x="100" y="600" width="100" height="100" fill="#9B2D24"></rect>
+<rect x="800" y="100" width="100" height="100" fill="#3D6B55"></rect>
+<rect x="1300" y="800" width="100" height="100" fill="#C68B2C"></rect>
+<rect x="600" y="1300" width="100" height="100" fill="#24395F"></rect>
+
+<!-- safe squares -->
+<g fill="#2B1B15">
+<rect x="200" y="800" width="100" height="100"></rect>
+<rect x="600" y="200" width="100" height="100"></rect>
+<rect x="1200" y="600" width="100" height="100"></rect>
+<rect x="800" y="1200" width="100" height="100"></rect>
+</g>
+
+<!-- cell grid -->
+<g fill="url(#rg-cells)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- lane motifs -->
+<use href="#rg-lanemotif" x="750" y="150"></use><use href="#rg-lanemotif" x="750" y="250"></use><use href="#rg-lanemotif" x="750" y="350"></use><use href="#rg-lanemotif" x="750" y="450"></use><use href="#rg-lanemotif" x="750" y="550"></use>
+<use href="#rg-lanemotif" x="950" y="750"></use><use href="#rg-lanemotif" x="1050" y="750"></use><use href="#rg-lanemotif" x="1150" y="750"></use><use href="#rg-lanemotif" x="1250" y="750"></use><use href="#rg-lanemotif" x="1350" y="750"></use>
+<use href="#rg-lanemotif" x="750" y="950"></use><use href="#rg-lanemotif" x="750" y="1050"></use><use href="#rg-lanemotif" x="750" y="1150"></use><use href="#rg-lanemotif" x="750" y="1250"></use><use href="#rg-lanemotif" x="750" y="1350"></use>
+<use href="#rg-lanemotif" x="150" y="750"></use><use href="#rg-lanemotif" x="250" y="750"></use><use href="#rg-lanemotif" x="350" y="750"></use><use href="#rg-lanemotif" x="450" y="750"></use><use href="#rg-lanemotif" x="550" y="750"></use>
+
+<!-- start arrows -->
+<use href="#rg-arrow" transform="translate(148 650)"></use>
+<use href="#rg-arrow" transform="translate(850 148) rotate(90)"></use>
+<use href="#rg-arrow" transform="translate(1352 850) rotate(180)"></use>
+<use href="#rg-arrow" transform="translate(650 1352) rotate(270)"></use>
+
+<!-- safe stars -->
+<use href="#rg-safe" x="250" y="850"></use>
+<use href="#rg-safe" x="650" y="250"></use>
+<use href="#rg-safe" x="1250" y="650"></use>
+<use href="#rg-safe" x="850" y="1250"></use>
+
+<!-- center: home triangles + quartered gul -->
+<polygon points="600,600 900,600 750,750" fill="#3D6B55"></polygon>
+<polygon points="900,600 900,900 750,750" fill="#C68B2C"></polygon>
+<polygon points="900,900 600,900 750,750" fill="#24395F"></polygon>
+<polygon points="600,900 600,600 750,750" fill="#9B2D24"></polygon>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#EDE0C4" stroke-width="4"></path>
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="#2B1B15" stroke-width="6"></path>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="#2B1B15" stroke-width="8"></rect>
+<g transform="translate(750 750)">
+<use href="#rg-oct" transform="scale(1.72)" fill="#EDE0C4"></use>
+<use href="#rg-oct" transform="scale(1.56)" fill="#2B1B15"></use>
+<g clip-path="url(#rg-centerclip)">
+<polygon points="-100,-100 100,-100 0,0" fill="#3D6B55"></polygon>
+<polygon points="100,-100 100,100 0,0" fill="#C68B2C"></polygon>
+<polygon points="100,100 -100,100 0,0" fill="#24395F"></polygon>
+<polygon points="-100,100 -100,-100 0,0" fill="#9B2D24"></polygon>
+<path d="M-100,-100 L100,100 M100,-100 L-100,100" stroke="#EDE0C4" stroke-width="3"></path>
+</g>
+<use href="#rg-step" transform="scale(0.46)" fill="#EDE0C4"></use>
+<use href="#rg-step" transform="scale(0.32)" fill="#2B1B15"></use>
+<use href="#rg-star8" transform="scale(0.4)" fill="#EDE0C4"></use>
+<rect x="-6" y="-6" width="12" height="12" fill="#9B2D25"></rect>
+</g>
+
+<!-- woven texture over the whole pile -->
+<rect x="-90" y="-90" width="1680" height="1680" fill="url(#rg-abrash)"></rect>
+<rect x="-90" y="-90" width="1680" height="1680" fill="url(#rg-knots)"></rect>
+</svg>

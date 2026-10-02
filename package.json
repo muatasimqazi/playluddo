@@ -23,7 +23,8 @@
     "test:parity": "vitest run tests/parity",
     "test:multiplayer": "vitest run tests/integration",
     "test:strength": "vitest run tests/strength",
-    "board:hex": "tsx scripts/generate-hex-board.ts"
+    "board:hex": "tsx scripts/generate-hex-board.ts",
+    "db:clean-test-data": "bash scripts/clean-test-data.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",

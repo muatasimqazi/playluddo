@@ -168,11 +168,13 @@ The TV is the one device that sees every party game once, so it reports games; p
 | `seat_reclaimed` | `play_context` | The player takes it back |
 | `realtime_reconnected` | `offline_seconds`, `game_phase` (`lobby`, `in_game`, `summary`) | The live connection returns after 3 s or more |
 | `realtime_reconnect_failed` | `game_phase` | Still offline after 60 s |
-
-An outage the page spent in the background (a phone locked or switched away) is not counted: the connection drops there on purpose.
 | `app_error` | `area` (`room_access`, `join`, `create`, `matchmaking`, `start`, `rematch`, `reclaim`, `three_d`), `error_code` | Once per area and code per page |
 
-`error_code` is an `RpcErrorCode` (`lib/supabase/rpc.ts`) or `scene_crash`, `webgl_unavailable`, `context_lost`. Every `AGE_*` code is excluded: `AGE_RESTRICTED` means a child. Messages are never sent; an unrecognised error is `UNKNOWN`.
+An outage the page spent in the background (a phone locked or switched away) is not counted: the connection drops there on purpose.
+
+`error_code` is an `RpcErrorCode` (`lib/supabase/rpc.ts`) or one of the 3D table's codes (`components/analytics/ThreeDErrors.tsx`): `scene_crash` (the scene threw), `webgl_unavailable` (a probe context could not be opened) and `context_lost` (the GPU dropped the table's context while it was open). Every `AGE_*` code is excluded: `AGE_RESTRICTED` means a child. Messages are never sent; an unrecognised error is `UNKNOWN`.
+
+Nothing that reports goes in the Canvas `fallback`: React Three Fiber renders it inside the `<canvas>` element on every browser, so it mounts for everyone. And the table's own exit forces a context loss (React Three Fiber frees the GPU that way), so the `context_lost` listener lives inside the Canvas and goes when the table closes.
 
 ### Social, progression and trust
 
@@ -425,12 +427,14 @@ Useful standard reports once the dimensions exist: Events by `play_context` and 
 | Ad blockers, private browsing | GA requests blocked | Supabase |
 | A party TV closed mid-game | Each TV reports for itself | Supabase `matches` |
 | A matched or tournament player who never opens the table | The server seats them | Supabase |
+| False 3D errors on 2 October 2026 | From the first deploy (about 11:00 PT) until the fix went live, every 3D table sent `app_error` `three_d` / `webgl_unavailable` on opening and `context_lost` on leaving | Exclude `area = three_d` for that window; `scene_crash` was unaffected |
 
 ## Testing
 
-- `npm test` runs `tests/analytics`: the catalog's names and types (with `@ts-expect-error` checks that `npx tsc --noEmit` enforces), sanitizing, redaction, de-duplication, the under-13 switch, the head script (parsed as ES5, run against stand-in windows), game parameters, sign-in events, PostHog redaction and the GTM file.
+- `npm test` runs `tests/analytics`: the catalog's names and types (with `@ts-expect-error` checks that `npx tsc --noEmit` enforces), sanitizing, redaction, de-duplication, the under-13 switch, the head script (parsed as ES5, run against stand-in windows), game parameters, sign-in events, PostHog redaction, the 3D table's WebGL probe (and that nothing reports from the Canvas fallback) and the GTM file.
 - Locally: build, `next start -p 3917`, then in the console `localStorage.setItem('luddo-analytics-debug', '1')` and reload. `dataLayer` shows every push; nothing reaches GA without network access to Google.
 - App build: `npm run build:capacitor`, then `grep -rlE "googletagmanager|G-75GZQ69MCG|GTM-N7X49V9F|dataLayer" out` prints nothing.
+- 3D table errors: on the local build, open `/practice`, leave with a client-side navigation, and `dataLayer` holds no `app_error`; `loseContext()` on the table's context mid-game gives one `context_lost`; a browser launched with `--disable-webgl --disable-3d-apis` gives one `webgl_unavailable`.
 - Production: private rooms only.
 
 ## Adding an event

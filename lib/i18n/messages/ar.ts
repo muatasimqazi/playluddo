@@ -2,7 +2,7 @@
  * F5.1 Localization — Arabic (ar). Right-to-left.
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
- * before release. Brand terms "Luddo House" and "Ludo" stay untranslated
+ * before release. Brand terms "Luddo House" and "Luddo" stay untranslated
  * (kept in Latin script inside the RTL text on purpose).
  */
 import type { Messages } from "../types";
@@ -16,6 +16,7 @@ export const ar: Messages = {
     tournaments: "البطولات",
     profile: "الملف الشخصي",
     support: "الدعم",
+    about: "من نحن",
     privacy: "الخصوصية",
     player: "لاعب",
     connectError: "تعذّر الاتصال. حاول مرة أخرى.",
@@ -50,7 +51,7 @@ export const ar: Messages = {
 
     chooseMode: "كيف تريد أن تلعب؟",
     chooseGame: "اختر لعبتك",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "احصل على ستة، وأوصل قطعك الأربع إلى البيت",
     snakes: "الثعابين والسلالم",
     snakesDescription: "اصعد السلالم، وتجنّب الثعابين، وصل إلى 100",
@@ -689,7 +690,7 @@ export const ar: Messages = {
     whatPlaying: "ماذا سنلعب؟",
     openingTable: "جارٍ فتح الطاولة…",
     openPartyTable: "افتح طاولة الحفلة",
-    hintDefaults: "إعدادات العائلة: أدوار مدتها 30 ثانية، وتوقف مؤقت عند صمت أحد الهواتف، ورمية إضافية في Ludo عند الوصول إلى البيت.",
+    hintDefaults: "إعدادات العائلة: أدوار مدتها 30 ثانية، وتوقف مؤقت عند صمت أحد الهواتف، ورمية إضافية في Luddo عند الوصول إلى البيت.",
     hintTv: "الأفضل على تلفاز أو حاسوب محمول يراه الجميع. لا حاجة لتسجيل الدخول هنا.",
 
     // PartyScreen — connected/error

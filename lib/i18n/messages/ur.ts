@@ -2,7 +2,7 @@
  * F5.1 Localization — Urdu (ur). Right-to-left.
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
- * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
+ * before release. Brand terms "Luddo House" and "Luddo" stay untranslated.
  */
 import type { Messages } from "../types";
 
@@ -15,6 +15,7 @@ export const ur: Messages = {
     tournaments: "ٹورنامنٹ",
     profile: "پروفائل",
     support: "معاونت",
+    about: "ہمارے بارے میں",
     privacy: "رازداری",
     player: "کھلاڑی",
     connectError: "رابطہ نہیں ہو سکا۔ براہِ کرم دوبارہ کوشش کریں۔",
@@ -49,7 +50,7 @@ export const ur: Messages = {
 
     chooseMode: "آپ کیسے کھیلنا چاہتے ہیں؟",
     chooseGame: "اپنا کھیل چنیں",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "چھ لائیں، چاروں گوٹیاں گھر پہنچائیں",
     snakes: "سانپ اور سیڑھی",
     snakesDescription: "سیڑھیاں چڑھیں، سانپوں سے بچیں، 100 تک پہنچیں",
@@ -688,7 +689,7 @@ export const ur: Messages = {
     whatPlaying: "ہم کیا کھیل رہے ہیں؟",
     openingTable: "ٹیبل کھل رہی ہے…",
     openPartyTable: "پارٹی ٹیبل کھولیں",
-    hintDefaults: "خاندان کے لیے طے شدہ: 30 سیکنڈ کی باری، کسی فون کے خاموش ہونے پر وقفہ، اور گھر پہنچنے پر Ludo میں ایک اضافی رول۔",
+    hintDefaults: "خاندان کے لیے طے شدہ: 30 سیکنڈ کی باری، کسی فون کے خاموش ہونے پر وقفہ، اور گھر پہنچنے پر Luddo میں ایک اضافی رول۔",
     hintTv: "ٹی وی یا لیپ ٹاپ پر بہترین جسے سب دیکھ سکیں۔ یہاں سائن ان کی ضرورت نہیں۔",
 
     // PartyScreen — connected/error

@@ -2,7 +2,7 @@
  * F5.1 Localization — Bengali (bn).
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
- * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
+ * before release. Brand terms "Luddo House" and "Luddo" stay untranslated.
  */
 import type { Messages } from "../types";
 
@@ -15,6 +15,7 @@ export const bn: Messages = {
     tournaments: "টুর্নামেন্ট",
     profile: "প্রোফাইল",
     support: "সহায়তা",
+    about: "আমাদের সম্পর্কে",
     privacy: "গোপনীয়তা",
     player: "খেলোয়াড়",
     connectError: "সংযোগ করা যায়নি। আবার চেষ্টা করুন।",
@@ -49,7 +50,7 @@ export const bn: Messages = {
 
     chooseMode: "আপনি কীভাবে খেলতে চান?",
     chooseGame: "আপনার খেলা বেছে নিন",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "ছয় তুলুন, চারটি গুটি ঘরে পৌঁছে দিন",
     snakes: "সাপ-লুডু",
     snakesDescription: "সিঁড়ি বেয়ে উঠুন, সাপ এড়িয়ে চলুন, ১০০-তে পৌঁছান",
@@ -688,7 +689,7 @@ export const bn: Messages = {
     whatPlaying: "আমরা কী খেলছি?",
     openingTable: "টেবিল খোলা হচ্ছে…",
     openPartyTable: "পার্টি টেবিল খুলুন",
-    hintDefaults: "পরিবারের জন্য ডিফল্ট: 30 সেকেন্ডের পালা, কোনো ফোন চুপ থাকলে বিরতি, আর ঘরে পৌঁছালে Ludo-তে একটি বাড়তি রোল।",
+    hintDefaults: "পরিবারের জন্য ডিফল্ট: 30 সেকেন্ডের পালা, কোনো ফোন চুপ থাকলে বিরতি, আর ঘরে পৌঁছালে Luddo-তে একটি বাড়তি রোল।",
     hintTv: "সবাই দেখতে পায় এমন টিভি বা ল্যাপটপে সবচেয়ে ভালো। এখানে সাইন ইন লাগবে না।",
 
     // PartyScreen — connected/error

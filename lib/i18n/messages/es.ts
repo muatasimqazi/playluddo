@@ -3,7 +3,7 @@
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
  * before release (docs/COMPETITIVE_ROADMAP.md is still a Draft). Brand terms
- * "Luddo House" and the game title "Ludo" are intentionally left untranslated.
+ * "Luddo House" and the game title "Luddo" are intentionally left untranslated.
  */
 import type { Messages } from "../types";
 
@@ -16,6 +16,7 @@ export const es: Messages = {
     tournaments: "Torneos",
     profile: "Perfil",
     support: "Soporte",
+    about: "Acerca de",
     privacy: "Privacidad",
     player: "Jugador",
     connectError: "No se pudo conectar. Inténtalo de nuevo.",
@@ -50,7 +51,7 @@ export const es: Messages = {
 
     chooseMode: "¿Cómo quieres jugar?",
     chooseGame: "Elige tu juego",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "Saca un seis y lleva tus cuatro fichas a casa",
     snakes: "Serpientes y Escaleras",
     snakesDescription: "Sube escaleras, esquiva serpientes, llega a 100",
@@ -689,7 +690,7 @@ export const es: Messages = {
     whatPlaying: "¿A qué jugamos?",
     openingTable: "Abriendo la mesa…",
     openPartyTable: "Abrir la mesa de fiesta",
-    hintDefaults: "Ajustes familiares: turnos de 30 segundos, una pausa si un teléfono se queda callado y una tirada extra de Ludo al llegar a casa.",
+    hintDefaults: "Ajustes familiares: turnos de 30 segundos, una pausa si un teléfono se queda callado y una tirada extra de Luddo al llegar a casa.",
     hintTv: "Mejor en una tele o un portátil que todos puedan ver. Aquí no hace falta iniciar sesión.",
 
     // PartyScreen — connected/error

@@ -36,7 +36,7 @@ export default function Image() {
             clipPath: "polygon(90px 0px, 0px 70px, 180px 70px)",
           }}
         />
-        {/* The four Ludo colors, standing in for the four players/rooms */}
+        {/* The four Luddo colors, standing in for the four players/rooms */}
         <div style={{ display: "flex", gap: 14, marginTop: 22 }}>
           {COLORS.map((color) => (
             <div

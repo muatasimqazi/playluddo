@@ -2,7 +2,7 @@
  * F5.1 Localization — Portuguese, Brazil (pt-BR).
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
- * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
+ * before release. Brand terms "Luddo House" and "Luddo" stay untranslated.
  */
 import type { Messages } from "../types";
 
@@ -15,6 +15,7 @@ export const ptBR: Messages = {
     tournaments: "Torneios",
     profile: "Perfil",
     support: "Suporte",
+    about: "Sobre",
     privacy: "Privacidade",
     player: "Jogador",
     connectError: "Não foi possível conectar. Tente novamente.",
@@ -49,7 +50,7 @@ export const ptBR: Messages = {
 
     chooseMode: "Como você quer jogar?",
     chooseGame: "Escolha seu jogo",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "Tire um seis e leve suas quatro peças para casa",
     snakes: "Cobras e Escadas",
     snakesDescription: "Suba escadas, desvie das cobras, chegue a 100",
@@ -688,7 +689,7 @@ export const ptBR: Messages = {
     whatPlaying: "O que vamos jogar?",
     openingTable: "Abrindo a mesa…",
     openPartyTable: "Abrir a mesa de festa",
-    hintDefaults: "Padrões para a família: turnos de 30 segundos, uma pausa quando um celular fica em silêncio e uma jogada extra no Ludo ao chegar em casa.",
+    hintDefaults: "Padrões para a família: turnos de 30 segundos, uma pausa quando um celular fica em silêncio e uma jogada extra no Luddo ao chegar em casa.",
     hintTv: "Melhor em uma TV ou notebook que todos possam ver. Não precisa entrar na conta aqui.",
 
     // PartyScreen — connected/error

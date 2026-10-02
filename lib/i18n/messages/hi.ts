@@ -2,7 +2,7 @@
  * F5.1 Localization — Hindi (hi).
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
- * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
+ * before release. Brand terms "Luddo House" and "Luddo" stay untranslated.
  */
 import type { Messages } from "../types";
 
@@ -15,6 +15,7 @@ export const hi: Messages = {
     tournaments: "टूर्नामेंट",
     profile: "प्रोफ़ाइल",
     support: "सहायता",
+    about: "हमारे बारे में",
     privacy: "गोपनीयता",
     player: "खिलाड़ी",
     connectError: "कनेक्ट नहीं हो सका। कृपया फिर से कोशिश करें।",
@@ -49,7 +50,7 @@ export const hi: Messages = {
 
     chooseMode: "आप कैसे खेलना चाहते हैं?",
     chooseGame: "अपना खेल चुनें",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "छह लाएँ, चारों गोटियाँ घर पहुँचाएँ",
     snakes: "साँप और सीढ़ी",
     snakesDescription: "सीढ़ियाँ चढ़ें, साँपों से बचें, 100 तक पहुँचें",
@@ -688,7 +689,7 @@ export const hi: Messages = {
     whatPlaying: "हम क्या खेल रहे हैं?",
     openingTable: "टेबल खुल रही है…",
     openPartyTable: "पार्टी टेबल खोलें",
-    hintDefaults: "परिवार के लिए डिफ़ॉल्ट: 30 सेकंड की बारी, किसी फ़ोन के चुप होने पर विराम, और घर पहुँचने पर Ludo में एक अतिरिक्त रोल।",
+    hintDefaults: "परिवार के लिए डिफ़ॉल्ट: 30 सेकंड की बारी, किसी फ़ोन के चुप होने पर विराम, और घर पहुँचने पर Luddo में एक अतिरिक्त रोल।",
     hintTv: "टीवी या लैपटॉप पर सबसे अच्छा, जिसे सब देख सकें। यहाँ साइन इन की ज़रूरत नहीं।",
 
     // PartyScreen — connected/error

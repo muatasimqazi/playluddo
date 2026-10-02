@@ -1658,7 +1658,7 @@ export function CafeRoom({ quality }: { quality: Quality }) {
             ["Matcha", "4.75"],
             ["Hot chocolate", "4.00"],
             ["Lemonade", "3.50"],
-            ["A game of Ludo", "free"],
+            ["A game of Luddo", "free"],
           ],
           107,
         ),

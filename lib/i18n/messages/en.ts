@@ -7,7 +7,7 @@
  * Keep it complete.
  *
  * Interpolation uses `{name}` placeholders, filled by `t(key, { name })`.
- * The brand wordmark ("Luddo House", "Ludo") comes from lib/brand.ts and is
+ * The brand wordmark ("Luddo House", "Luddo") comes from lib/brand.ts and is
  * intentionally NOT translated.
  */
 export const en = {
@@ -19,6 +19,7 @@ export const en = {
     tournaments: "Tournaments",
     profile: "Profile",
     support: "Support",
+    about: "About",
     privacy: "Privacy",
     player: "Player",
     connectError: "Could not connect. Please try again.",
@@ -67,7 +68,7 @@ export const en = {
 
     chooseMode: "How do you want to play?",
     chooseGame: "Choose your game",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "Roll a six, race four pieces home",
     snakes: "Snakes & Ladders",
     snakesDescription: "Climb ladders, dodge snakes, reach 100",
@@ -716,7 +717,7 @@ export const en = {
     whatPlaying: "What are we playing?",
     openingTable: "Opening the table…",
     openPartyTable: "Open the party table",
-    hintDefaults: "Family defaults: 30-second turns, a pause for a quiet phone, and an extra Ludo roll for getting home.",
+    hintDefaults: "Family defaults: 30-second turns, a pause for a quiet phone, and an extra Luddo roll for getting home.",
     hintTv: "Best on a TV or a laptop everyone can see. No sign-in needed here.",
 
     // PartyScreen — connected/error

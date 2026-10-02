@@ -7,7 +7,7 @@ import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
   title: `How to Play – ${BRAND.name}`,
-  description: `The rules of Ludo and Snakes & Ladders at ${BRAND.name}, including house rules.`,
+  description: `The rules of Luddo and Snakes & Ladders at ${BRAND.name}, including house rules.`,
   alternates: { canonical: "/how-to-play" },
 };
 
@@ -20,7 +20,7 @@ export default function HowToPlayPage() {
       <Suspense fallback={null}>
         <TableRulesNote />
       </Suspense>
-      <h2 id="ludo">Ludo</h2>
+      <h2 id="ludo">Luddo</h2>
       <LudoRules />
       <h2 id="snakes-and-ladders">Snakes &amp; Ladders</h2>
       <SnakesRules />

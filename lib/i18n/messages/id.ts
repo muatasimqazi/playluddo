@@ -2,7 +2,7 @@
  * F5.1 Localization — Indonesian (id).
  *
  * Machine-drafted for the first wave; needs a native-speaker review pass
- * before release. Brand terms "Luddo House" and "Ludo" stay untranslated.
+ * before release. Brand terms "Luddo House" and "Luddo" stay untranslated.
  */
 import type { Messages } from "../types";
 
@@ -15,6 +15,7 @@ export const id: Messages = {
     tournaments: "Turnamen",
     profile: "Profil",
     support: "Bantuan",
+    about: "Tentang",
     privacy: "Privasi",
     player: "Pemain",
     connectError: "Tidak dapat terhubung. Silakan coba lagi.",
@@ -49,7 +50,7 @@ export const id: Messages = {
 
     chooseMode: "Bagaimana kamu ingin bermain?",
     chooseGame: "Pilih permainanmu",
-    ludo: "Ludo",
+    ludo: "Luddo",
     ludoDescription: "Dapatkan angka enam, bawa empat bidak ke rumah",
     snakes: "Ular Tangga",
     snakesDescription: "Naik tangga, hindari ular, capai 100",
@@ -688,7 +689,7 @@ export const id: Messages = {
     whatPlaying: "Kita main apa?",
     openingTable: "Membuka meja…",
     openPartyTable: "Buka meja pesta",
-    hintDefaults: "Pengaturan keluarga: giliran 30 detik, jeda saat ada ponsel yang diam, dan lemparan tambahan Ludo saat bidak sampai rumah.",
+    hintDefaults: "Pengaturan keluarga: giliran 30 detik, jeda saat ada ponsel yang diam, dan lemparan tambahan Luddo saat bidak sampai rumah.",
     hintTv: "Paling pas di TV atau laptop yang bisa dilihat semua orang. Tidak perlu masuk akun di sini.",
 
     // PartyScreen — connected/error

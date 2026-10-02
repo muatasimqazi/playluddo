@@ -58,7 +58,7 @@ export default function SupportPage() {
       </p>
       <h3>How do I play?</h3>
       <p>
-        <strong>Ludo:</strong> roll a six to bring a piece out, race all four pieces around the board and
+        <strong>Luddo:</strong> roll a six to bring a piece out, race all four pieces around the board and
         into the center, and land on opponents to send them home. <strong>Snakes &amp; Ladders:</strong>{" "}
         climb ladders, slide down snakes, and land exactly on 100. Tap <strong>?</strong> at the top of the
         table for the full rules and controls.

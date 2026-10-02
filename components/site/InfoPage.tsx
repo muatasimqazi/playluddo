@@ -58,6 +58,8 @@ export function InfoPage({
         {intro && <p className="info-intro">{intro}</p>}
         <div className="info-body">{children}</div>
         <footer className="info-footer">
+          <Link href="/about">{tx("common.about")}</Link>
+          <span aria-hidden>·</span>
           <Link href="/how-to-play">{tx("actions.howToPlay")}</Link>
           <span aria-hidden>·</span>
           <Link href="/support">{tx("common.support")}</Link>

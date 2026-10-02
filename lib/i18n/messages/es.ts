@@ -86,6 +86,8 @@ export const es: Messages = {
     boardRugDesc: "Una alfombra baluchi anudada a mano",
     boardMosaic: "Mosaico",
     boardMosaicDesc: "Azulejos esmaltados de estrellas de ocho puntas",
+    boardSindbad: "Simbad",
+    boardSindbadDesc: "Daus, anclas y una rosa de los vientos",
 
     yourTeam: "Tu equipo",
     memberOne: "{count} miembro",

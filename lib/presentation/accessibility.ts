@@ -217,6 +217,13 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     yellow: ["#E0A637", "#8E5D10"],
     blue: ["#2F5BBE", "#142A63"],
   },
+  // The Sindbad's harbour colours (its yards, sails, lanes and triangles).
+  sindbad: {
+    red: ["#C9473A"],
+    green: ["#2E8B6E"],
+    yellow: ["#E0A03A"],
+    blue: ["#2C5D9E"],
+  },
   "hex-classic": {
     red: ["#e2262e"],
     green: ["#31a65b"],
@@ -272,6 +279,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     blue: ["#2F5BBE", "#142A63"],
     orange: ["#D8691C", "#7A3508"],
     black: ["#4A5266", "#1E2330"],
+  },
+  "hex-sindbad": {
+    red: ["#C9473A"],
+    green: ["#2E8B6E"],
+    yellow: ["#E0A03A"],
+    blue: ["#2C5D9E"],
+    orange: ["#D2691E"],
+    black: ["#3A4250"],
   },
 };
 

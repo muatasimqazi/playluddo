@@ -27,6 +27,7 @@ import aladdinBoardArt from "@/designs/board-aladdin.svg";
 import bazaarBoardArt from "@/designs/board-bazaar.svg";
 import rugBoardArt from "@/designs/board-rug.svg";
 import mosaicBoardArt from "@/designs/board-mosaic.svg";
+import sindbadBoardArt from "@/designs/board-sindbad.svg";
 import hexClassicBoardArt from "@/designs/board-hex-classic.svg";
 import hexSignatureBoardArt from "@/designs/board-hex-signature.svg";
 import hexGeometricBoardArt from "@/designs/board-hex-geometric.svg";
@@ -34,6 +35,7 @@ import hexAladdinBoardArt from "@/designs/board-hex-aladdin.svg";
 import hexBazaarBoardArt from "@/designs/board-hex-bazaar.svg";
 import hexRugBoardArt from "@/designs/board-hex-rug.svg";
 import hexMosaicBoardArt from "@/designs/board-hex-mosaic.svg";
+import hexSindbadBoardArt from "@/designs/board-hex-sindbad.svg";
 import snakesBoardArt from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakesBoardArt2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
 import { useGamePreference } from "@/lib/preferences-react";
@@ -128,6 +130,7 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
     bazaar: bazaarBoardArt.src as string,
     rug: rugBoardArt.src as string,
     mosaic: mosaicBoardArt.src as string,
+    sindbad: sindbadBoardArt.src as string,
   },
   hex: {
     classic: hexClassicBoardArt.src as string,
@@ -137,6 +140,7 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
     bazaar: hexBazaarBoardArt.src as string,
     rug: hexRugBoardArt.src as string,
     mosaic: hexMosaicBoardArt.src as string,
+    sindbad: hexSindbadBoardArt.src as string,
   },
 };
 
@@ -175,6 +179,7 @@ export default function Home() {
     { value: "bazaar", label: t("entrance.boardBazaar"), desc: t("entrance.boardBazaarDesc") },
     { value: "rug", label: t("entrance.boardRug"), desc: t("entrance.boardRugDesc") },
     { value: "mosaic", label: t("entrance.boardMosaic"), desc: t("entrance.boardMosaicDesc") },
+    { value: "sindbad", label: t("entrance.boardSindbad"), desc: t("entrance.boardSindbadDesc") },
   ];
   // "Quick match" is the highlighted default — the quickest way into a game
   // against real people. Once a mode has been picked, its tile stays

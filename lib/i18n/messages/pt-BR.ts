@@ -85,6 +85,8 @@ export const ptBR: Messages = {
     boardRugDesc: "Um tapete baluchi tecido à mão",
     boardMosaic: "Mosaico",
     boardMosaicDesc: "Azulejos vitrificados com estrelas de oito pontas",
+    boardSindbad: "Simbad",
+    boardSindbadDesc: "Daus, âncoras e uma rosa dos ventos",
 
     yourTeam: "Seu time",
     memberOne: "{count} membro",

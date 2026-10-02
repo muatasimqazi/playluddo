@@ -10,6 +10,7 @@ describe("pieceStyleFor", () => {
     expect(pieceStyleFor(undefined, "bazaar", "ludo")).toBe("bazaar");
     expect(pieceStyleFor(undefined, "rug", "ludo")).toBe("rug");
     expect(pieceStyleFor(undefined, "mosaic", "ludo")).toBe("mosaic");
+    expect(pieceStyleFor(undefined, "sindbad", "ludo")).toBe("sindbad");
   });
 
   it("uses the glass discs on the Snakes & Ladders board", () => {
@@ -29,7 +30,7 @@ describe("pieceStyleFor", () => {
 
   it("treats every style but the glass disc as a standing figure", () => {
     expect(isFigure("glass")).toBe(false);
-    for (const style of ["classic", "aladdin", "bazaar", "rug", "mosaic", "wood", "marble"] as const) {
+    for (const style of ["classic", "aladdin", "bazaar", "rug", "mosaic", "sindbad", "wood", "marble"] as const) {
       expect(isFigure(style)).toBe(true);
     }
   });

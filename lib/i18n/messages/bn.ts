@@ -85,6 +85,8 @@ export const bn: Messages = {
     boardRugDesc: "হাতে বোনা বালুচি গালিচা",
     boardMosaic: "মোজাইক",
     boardMosaicDesc: "আট-কোণা তারার চকচকে টালি",
+    boardSindbad: "সিন্দবাদ",
+    boardSindbadDesc: "পালতোলা নৌকা, নোঙর আর কম্পাস",
 
     yourTeam: "আপনার দল",
     memberOne: "{count} জন সদস্য",

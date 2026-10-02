@@ -77,6 +77,7 @@ import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
 import bazaarBoardArtwork from "@/designs/board-bazaar.svg";
 import rugBoardArtwork from "@/designs/board-rug.svg";
 import mosaicBoardArtwork from "@/designs/board-mosaic.svg";
+import sindbadBoardArtwork from "@/designs/board-sindbad.svg";
 // The 5-6 player hexagon in each board style (F5.2); lib/presentation/hexArtwork.ts.
 import hexClassicArtwork from "@/designs/board-hex-classic.svg";
 import hexSignatureArtwork from "@/designs/board-hex-signature.svg";
@@ -85,6 +86,7 @@ import hexAladdinArtwork from "@/designs/board-hex-aladdin.svg";
 import hexBazaarArtwork from "@/designs/board-hex-bazaar.svg";
 import hexRugArtwork from "@/designs/board-hex-rug.svg";
 import hexMosaicArtwork from "@/designs/board-hex-mosaic.svg";
+import hexSindbadArtwork from "@/designs/board-hex-sindbad.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
@@ -111,6 +113,7 @@ import { AladdinPawn, ALADDIN_PAWN_HEIGHT } from "./AladdinPawn";
 import { BazaarPawn, BAZAAR_PAWN_HEIGHT } from "./BazaarPawn";
 import { RugPawn, RUG_PAWN_HEIGHT } from "./RugPawn";
 import { MosaicPawn, MOSAIC_PAWN_HEIGHT } from "./MosaicPawn";
+import { SindbadPawn, SINDBAD_PAWN_HEIGHT } from "./SindbadPawn";
 import { MarblePawn, MARBLE_PAWN_HEIGHT, WoodPawn, WOOD_PAWN_HEIGHT } from "./TurnedPawns";
 import { isFigure, pieceStyleFor, type PieceStyle } from "@/lib/presentation/pieceStyles";
 import { Icon } from "./Icon";
@@ -363,8 +366,9 @@ function CameraRig({
 // far percentage of each quadrant, across and down: the signature artwork
 // (designs/board-design.webp) prints its nest circles closer to the corners;
 // the Bazaar (designs/board-bazaar.svg) sets its brass trays further in, the
-// Rug (designs/board-rug.svg) its four guls, and the Mosaic
-// (designs/board-mosaic.svg) its four spots low in the yard, under the arch.
+// Rug (designs/board-rug.svg) its four guls, the Mosaic
+// (designs/board-mosaic.svg) its four spots low in the yard, under the arch,
+// and the Sindbad (designs/board-sindbad.svg) its portholes near the corners.
 // Slot order matches those: 0 top-left, 1 top-right, 2 bottom-left,
 // 3 bottom-right.
 type Nests = { across: readonly [number, number]; down: readonly [number, number] };
@@ -374,6 +378,7 @@ const OWN_NESTS: Partial<Record<BoardStyle, Nests>> = {
   bazaar: square((160 / 600) * 100, (440 / 600) * 100),
   rug: square((168 / 600) * 100, (432 / 600) * 100),
   mosaic: { across: [(210 / 600) * 100, (390 / 600) * 100], down: [(330 / 600) * 100, (480 / 600) * 100] },
+  sindbad: square((112 / 600) * 100, (488 / 600) * 100),
 };
 
 /** pawnPoint, with parked pieces moved onto a board's own nest circles. */
@@ -465,6 +470,7 @@ function Piece({
       bazaar: BAZAAR_PAWN_HEIGHT,
       rug: RUG_PAWN_HEIGHT,
       mosaic: MOSAIC_PAWN_HEIGHT,
+      sindbad: SINDBAD_PAWN_HEIGHT,
       wood: WOOD_PAWN_HEIGHT,
       marble: MARBLE_PAWN_HEIGHT,
     }[style] * scale;
@@ -719,6 +725,8 @@ function Piece({
           <RugPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "mosaic" ? (
           <MosaicPawn color={pawn.color} colorBlind={colorBlind} />
+        ) : style === "sindbad" ? (
+          <SindbadPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "wood" ? (
           <WoodPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "marble" ? (
@@ -1293,6 +1301,7 @@ const HEX_ARTWORK: Record<HexBoardStyle, { src: string }> = {
   bazaar: hexBazaarArtwork,
   rug: hexRugArtwork,
   mosaic: hexMosaicArtwork,
+  sindbad: hexSindbadArtwork,
 };
 
 /**
@@ -1353,7 +1362,7 @@ function BoardObject(props: SceneProps) {
   const colorBlind = !!props.colorBlind;
   const seats = (src: string, artworkKey: string) =>
     colorBlind ? `${src}#seats=${artworkKey}` : src;
-  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, snakeSource] =
+  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, sindbadArtwork, snakeSource] =
     useLoader(colorBlind ? SeatRecolorLoader : THREE.ImageLoader, [
       boardArtwork.src,
       seats(classicBoardArtwork.src as string, "classic"),
@@ -1362,6 +1371,7 @@ function BoardObject(props: SceneProps) {
       seats(bazaarBoardArtwork.src as string, "bazaar"),
       seats(rugBoardArtwork.src as string, "rug"),
       seats(mosaicBoardArtwork.src as string, "mosaic"),
+      seats(sindbadBoardArtwork.src as string, "sindbad"),
       snakeSrc,
     ]);
   // Vector boards are rasterized once into a texture. On a desktop screen
@@ -1388,6 +1398,7 @@ function BoardObject(props: SceneProps) {
         bazaar: bazaarArtwork,
         rug: rugArtwork,
         mosaic: mosaicArtwork,
+        sindbad: sindbadArtwork,
       };
       const vector = vectors[props.boardStyle ?? "signature"];
       return makeBoardTexture(
@@ -1398,7 +1409,7 @@ function BoardObject(props: SceneProps) {
         colorBlind,
       );
     },
-    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
+    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, sindbadArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
   );
   const snakeTexture = useMemo(
     () => makeBoardTexture(snakeSource, "full", 1, vectorSize),

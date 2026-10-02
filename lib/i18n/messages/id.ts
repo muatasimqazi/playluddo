@@ -85,6 +85,8 @@ export const id: Messages = {
     boardRugDesc: "Permadani Baluchi tenunan tangan",
     boardMosaic: "Mozaik",
     boardMosaicDesc: "Ubin berglasir bermotif bintang delapan sudut",
+    boardSindbad: "Sinbad",
+    boardSindbadDesc: "Kapal layar, jangkar, dan mawar angin",
 
     yourTeam: "Timmu",
     memberOne: "{count} anggota",

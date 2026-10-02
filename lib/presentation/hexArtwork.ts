@@ -29,6 +29,7 @@ import {
  *   bazaar    -> designs/board-hex-bazaar.svg     (board-bazaar.svg)
  *   rug       -> designs/board-hex-rug.svg        (board-rug.svg)
  *   mosaic    -> designs/board-hex-mosaic.svg     (board-mosaic.svg)
+ *   sindbad   -> designs/board-hex-sindbad.svg    (board-sindbad.svg)
  *
  * Written by `npm run board:hex`, then free to restyle by hand. Every style
  * draws the same anchors — the track cells, home columns, bases and nest
@@ -42,7 +43,7 @@ import {
  * onto the hexagonal top face.
  */
 
-export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic";
+export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad";
 export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "classic",
   "signature",
@@ -51,6 +52,7 @@ export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "bazaar",
   "rug",
   "mosaic",
+  "sindbad",
 ];
 /** File name in designs/ for each style. */
 export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
@@ -61,6 +63,7 @@ export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
   bazaar: "board-hex-bazaar.svg",
   rug: "board-hex-rug.svg",
   mosaic: "board-hex-mosaic.svg",
+  sindbad: "board-hex-sindbad.svg",
 };
 
 // ---------------------------------------------------------------------------
@@ -711,7 +714,116 @@ const mosaic: Theme = {
   tip: (arm) => chevron(arm, MOSAIC_CREAM),
 };
 
-const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic };
+// ---------------------------------------------------------------------------
+// Sindbad: open sea, rope edges, chart-paper cells, porthole nests, anchors
+// and a compass rose (board-sindbad.svg)
+// ---------------------------------------------------------------------------
+
+const SINDBAD_HARBOUR: Record<PlayerColor, string> = {
+  red: "#C9473A",
+  green: "#2E8B6E",
+  yellow: "#E0A03A",
+  blue: "#2C5D9E",
+  orange: "#D2691E",
+  black: "#3A4250",
+};
+const SEA = "#12324A";
+const ROPE_LIGHT = "#EAD39C";
+const ROPE_DARK = "#7E5D32";
+const CHART = "#F3E4BF";
+const CHART_LINE = "#B8975E";
+const TIMBER_INK = "#3E2A1A";
+const SINDBAD_BRASS = "#C9A04A";
+const ANCHOR_INK = "#16324A";
+
+/** A rope: a dark strand under a light one, dashed so it reads as twisted. */
+function ropeRing(radius: number, width: number): string {
+  return (
+    `<circle r="${n(radius)}" fill="none" stroke="${ROPE_DARK}" stroke-width="${n(width)}"/>` +
+    `<circle r="${n(radius)}" fill="none" stroke="${ROPE_LIGHT}" stroke-width="${n(width * 0.6)}" stroke-dasharray="${n(width * 0.9)} ${n(width * 0.7)}"/>`
+  );
+}
+
+/** The board's anchor, `size` from ring to crown. */
+function anchor(size: number): string {
+  const u = size / 70;
+  return (
+    `<g fill="none" stroke="${ANCHOR_INK}" stroke-width="${n(6 * u)}" stroke-linecap="round">` +
+    `<circle cx="0" cy="${n(-28 * u)}" r="${n(8 * u)}"/>` +
+    `<path d="M0,${n(-20 * u)} V${n(32 * u)} M${n(-16 * u)},${n(-10 * u)} H${n(16 * u)} M${n(-28 * u)},${n(10 * u)} Q${n(-26 * u)},${n(34 * u)} 0,${n(34 * u)} Q${n(26 * u)},${n(34 * u)} ${n(28 * u)},${n(10 * u)}"/>` +
+    `</g>`
+  );
+}
+
+const sindbad: Theme = {
+  defs:
+    gradient("brass", ["#F3D98C", "#C9A04A", "#7E5A1E"]) +
+    gradient("glass", ["#6FA7C2", "#1F4E6B", "#0B2233"], true),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${SEA}"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.04)}" fill="none" stroke="${ROPE_DARK}" stroke-width="0.04"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.04)}" fill="none" stroke="${ROPE_LIGHT}" stroke-width="0.024" stroke-dasharray="0.036 0.028"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${SINDBAD_HARBOUR[color]}" stroke="url(#brass)" stroke-width="0.02"`) +
+      around(center, angle, ropeRing(R * 0.88, R * 0.07))
+    );
+  },
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="url(#brass)"`) +
+    around(point, 0, `<circle r="${n(C * 0.49)}" fill="${TIMBER_INK}"/><circle r="${n(C * 0.44)}" fill="url(#glass)"/>`),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${SINDBAD_HARBOUR[color]}" stroke="${CHART}" stroke-width="0.012"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    const points = Array.from({ length: 8 }, (_, i) => {
+      const reach = i % 2 === 0 ? r * 0.86 : r * 0.55;
+      const w = reach * 0.16;
+      const body =
+        `<path d="M0,0 L0,${n(-reach)} L${n(-w)},${n(-w)}Z" fill="${TIMBER_INK}"/>` +
+        `<path d="M0,0 L0,${n(-reach)} L${n(w)},${n(-w)}Z" fill="${SINDBAD_BRASS}"/>`;
+      return `<g transform="rotate(${i * 45})">${body}</g>`;
+    }).join("");
+    return (
+      `<circle r="${n(r)}" fill="url(#brass)"/>` +
+      `<circle r="${n(r * 0.93)}" fill="${CHART}"/>` +
+      `<circle r="${n(r * 0.78)}" fill="none" stroke="${TIMBER_INK}" stroke-width="0.004"/>` +
+      points +
+      `<circle r="${n(r * 0.09)}" fill="url(#brass)" stroke="${TIMBER_INK}" stroke-width="0.003"/>`
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${SINDBAD_HARBOUR[color]}" stroke="${TIMBER_INK}" stroke-width="0.012"`) +
+    inCell(
+      point,
+      arm,
+      `<path d="M${n(-C * 0.28)},${n(C * 0.04)} Q${n(-C * 0.14)},${n(-C * 0.12)} 0,${n(C * 0.04)} T${n(C * 0.28)},${n(C * 0.04)}" fill="none" stroke="${CHART}" stroke-width="${n(C * 0.07)}" stroke-linecap="round"/>`,
+    ),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? SINDBAD_HARBOUR[owner] : CHART}" stroke="${TIMBER_INK}" stroke-width="0.012"`,
+    ) +
+    (kind === "star"
+      ? around(point, 0, anchor(C * 0.6))
+      : kind === "plain"
+        ? around(
+            point,
+            0,
+            `<path d="M0,${n(-C * 0.12)} V${n(C * 0.12)} M${n(-C * 0.12)},0 H${n(C * 0.12)}" stroke="${CHART_LINE}" stroke-width="0.008"/>`,
+          )
+        : ""),
+  tip: (arm) => chevron(arm, CHART),
+};
+
+const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic, sindbad };
 
 // ---------------------------------------------------------------------------
 // The document

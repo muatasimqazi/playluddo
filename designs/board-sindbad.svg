@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500" role="img" aria-label="Ludo board inspired by the voyages of Sindbad the Sailor">
+<defs>
+<linearGradient id="sb-brass" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#F3D98C"></stop>
+<stop offset="0.5" stop-color="#C9A04A"></stop>
+<stop offset="1" stop-color="#7E5A1E"></stop>
+</linearGradient>
+<radialGradient id="sb-vignette" cx="0.5" cy="0.5" r="0.72">
+<stop offset="0.45" stop-color="#000000" stop-opacity="0"></stop>
+<stop offset="1" stop-color="#000000" stop-opacity="0.38"></stop>
+</radialGradient>
+<radialGradient id="sb-glass" cx="0.38" cy="0.32" r="0.75">
+<stop offset="0" stop-color="#6FA7C2"></stop>
+<stop offset="0.5" stop-color="#1F4E6B"></stop>
+<stop offset="1" stop-color="#0B2233"></stop>
+</radialGradient>
+<radialGradient id="sb-paper" cx="0.5" cy="0.45" r="0.7">
+<stop offset="0" stop-color="#F3E4BF"></stop>
+<stop offset="1" stop-color="#D9BF86"></stop>
+</radialGradient>
+
+<!-- sea swell lines -->
+<pattern id="sb-waves" width="60" height="26" patternUnits="userSpaceOnUse">
+<path d="M0,18 Q15,6 30,18 T60,18" fill="none" stroke="#F3E4BF" stroke-opacity="0.28" stroke-width="3"></path>
+</pattern>
+<pattern id="sb-waves2" x="30" width="60" height="26" patternUnits="userSpaceOnUse">
+<path d="M0,18 Q15,6 30,18 T60,18" fill="none" stroke="#9CC6D6" stroke-opacity="0.35" stroke-width="3"></path>
+</pattern>
+<!-- twisted rope -->
+<pattern id="sb-rope" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="14" height="14" fill="#C9A66B"></rect>
+<rect x="0" width="5" height="14" fill="#7E5D32"></rect>
+<rect x="8" width="3" height="14" fill="#EAD39C"></rect>
+</pattern>
+<!-- chart-paper track cells -->
+<pattern id="sb-cell" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="url(#sb-paper)"></rect>
+<rect x="9" y="9" width="82" height="82" fill="none" stroke="#B8975E" stroke-width="2"></rect>
+<path d="M50,38 V62 M38,50 H62" stroke="#B8975E" stroke-width="2"></path>
+</pattern>
+<pattern id="sb-lanewave" width="100" height="100" patternUnits="userSpaceOnUse">
+<path d="M20,54 Q35,38 50,54 T80,54" fill="none" stroke="#F3E4BF" stroke-width="7" stroke-linecap="round"></path>
+<path d="M30,70 Q40,60 50,70 T70,70" fill="none" stroke="#F3E4BF" stroke-opacity="0.6" stroke-width="4" stroke-linecap="round"></path>
+</pattern>
+<pattern id="sb-grout" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="none" stroke="#3E2A1A" stroke-width="5"></rect>
+</pattern>
+
+<clipPath id="sb-medclip"><circle r="148"></circle></clipPath>
+
+<!-- dhow under a lateen sail; the sail takes the player colour -->
+<g id="sb-ship">
+<circle r="150" fill="url(#sb-paper)"></circle>
+<g clip-path="url(#sb-medclip)">
+<path d="M-118,-92 q8,-8 16,0 q8,-8 16,0" fill="none" stroke="#3E2A1A" stroke-width="3" stroke-linecap="round"></path>
+<path d="M-70,-112 q5,-5 10,0 q5,-5 10,0" fill="none" stroke="#3E2A1A" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M0,40 L12,-100" stroke="#5A3A22" stroke-width="6" stroke-linecap="round"></path>
+<path d="M-82,8 L93,-122 Q104,-34 70,30 Q-4,30 -82,8Z" stroke="#3E2A1A" stroke-width="3"></path>
+<path d="M-40,-22 Q-10,10 -14,26 M0,-52 Q30,0 22,28 M42,-82 Q72,-20 58,28" fill="none" stroke="#F3E4BF" stroke-opacity="0.55" stroke-width="2.5"></path>
+<path d="M-90,14 L100,-128" stroke="#5A3A22" stroke-width="5" stroke-linecap="round"></path>
+<path d="M12,-100 L36,-93 L13,-86Z" fill="#3E2A1A"></path>
+<path d="M-100,28 L-78,28 L-70,40 L88,40 L118,18 Q106,62 60,72 L-62,72 Q-92,62 -100,28Z" fill="#5A3A22"></path>
+<path d="M-82,54 H96" stroke="#8A5A32" stroke-width="3"></path>
+<path d="M-150,64 Q-135,54 -120,64 T-90,64 T-60,64 T-30,64 T0,64 T30,64 T60,64 T90,64 T120,64 T150,64 V160 H-150Z" fill="#1F4E6B"></path>
+<path d="M-150,92 Q-130,82 -110,92 T-70,92 T-30,92 T10,92 T50,92 T90,92 T130,92 T170,92" fill="none" stroke="#9CC6D6" stroke-width="3"></path>
+<path d="M-130,120 Q-110,110 -90,120 T-50,120 T-10,120 T30,120 T70,120 T110,120 T150,120" fill="none" stroke="#9CC6D6" stroke-opacity="0.6" stroke-width="3"></path>
+</g>
+<circle r="150" fill="none" stroke="#3E2A1A" stroke-width="4"></circle>
+<circle r="160" fill="none" stroke="url(#sb-brass)" stroke-width="10"></circle>
+</g>
+
+<!-- porthole token spot -->
+<g id="sb-porthole">
+<circle r="58" fill="url(#sb-brass)"></circle>
+<circle r="47" fill="#3E2A1A"></circle>
+<circle r="43" fill="url(#sb-glass)"></circle>
+<path d="M-24,-22 A32,32 0 0 1 8,-34" fill="none" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"></path>
+<g fill="#7E5A1E">
+<circle cx="0" cy="-52" r="3.5"></circle><circle cx="52" cy="0" r="3.5"></circle><circle cx="0" cy="52" r="3.5"></circle><circle cx="-52" cy="0" r="3.5"></circle>
+<circle cx="36.8" cy="-36.8" r="3.5"></circle><circle cx="36.8" cy="36.8" r="3.5"></circle><circle cx="-36.8" cy="36.8" r="3.5"></circle><circle cx="-36.8" cy="-36.8" r="3.5"></circle>
+</g>
+</g>
+
+<!-- shared yard dressing -->
+<g id="sb-yard">
+<rect width="600" height="600" fill="url(#sb-waves)"></rect>
+<rect width="600" height="600" fill="url(#sb-vignette)"></rect>
+<rect x="22" y="22" width="556" height="556" rx="18" fill="none" stroke="url(#sb-rope)" stroke-width="14"></rect>
+<use href="#sb-porthole" x="112" y="112"></use>
+<use href="#sb-porthole" x="488" y="112"></use>
+<use href="#sb-porthole" x="112" y="488"></use>
+<use href="#sb-porthole" x="488" y="488"></use>
+</g>
+
+<!-- anchor for safe squares -->
+<g id="sb-anchor" fill="none" stroke="#16324A" stroke-width="6" stroke-linecap="round">
+<circle cx="0" cy="-28" r="8"></circle>
+<path d="M0,-20 V32 M-16,-10 H16 M-28,10 Q-26,34 0,34 Q26,34 28,10"></path>
+<path d="M-35,17 L-28,3 L-20,15Z M35,17 L28,3 L20,15Z" fill="#16324A" stroke-width="2"></path>
+</g>
+<path id="sb-arrow" d="M-20,-20 L0,0 L-20,20 M2,-20 L22,0 L2,20" fill="none" stroke="#F3E4BF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+
+<!-- compass rose point: shaded kite -->
+<g id="sb-pt">
+<path d="M0,0 L0,-100 L-16,-16Z" fill="#3E2A1A"></path>
+<path d="M0,0 L0,-100 L16,-16Z" fill="#C9A04A"></path>
+</g>
+</defs>
+
+<!-- open sea margin with rope edge -->
+<rect x="-60" y="-60" width="1620" height="1620" fill="#12324A"></rect>
+<rect x="-60" y="-60" width="1620" height="1620" fill="url(#sb-waves2)"></rect>
+<rect x="-50" y="-50" width="1600" height="1600" rx="20" fill="none" stroke="url(#sb-rope)" stroke-width="10"></rect>
+
+<!-- home harbours, as the game seats them: coral (red), sea green, ocean blue, amber (yellow) -->
+<g>
+<rect width="600" height="600" fill="#C9473A"></rect>
+<use href="#sb-yard"></use>
+<use href="#sb-ship" x="300" y="300" fill="#C9473A"></use>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="#2E8B6E"></rect>
+<use href="#sb-yard"></use>
+<use href="#sb-ship" x="300" y="300" fill="#2E8B6E"></use>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="#2C5D9E"></rect>
+<use href="#sb-yard"></use>
+<use href="#sb-ship" x="300" y="300" fill="#2C5D9E"></use>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="#E0A03A"></rect>
+<use href="#sb-yard"></use>
+<use href="#sb-ship" x="300" y="300" fill="#E0A03A"></use>
+</g>
+
+<!-- track arms: sea-chart paper -->
+<g fill="url(#sb-cell)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- home lanes -->
+<rect x="700" y="100" width="100" height="500" fill="#2E8B6E"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#E0A03A"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#2C5D9E"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#C9473A"></rect>
+<g fill="url(#sb-lanewave)">
+<rect x="700" y="100" width="100" height="500"></rect>
+<rect x="900" y="700" width="500" height="100"></rect>
+<rect x="700" y="900" width="100" height="500"></rect>
+<rect x="100" y="700" width="500" height="100"></rect>
+</g>
+
+<!-- start squares -->
+<rect x="100" y="600" width="100" height="100" fill="#C9473A"></rect>
+<rect x="800" y="100" width="100" height="100" fill="#2E8B6E"></rect>
+<rect x="1300" y="800" width="100" height="100" fill="#E0A03A"></rect>
+<rect x="600" y="1300" width="100" height="100" fill="#2C5D9E"></rect>
+<use href="#sb-arrow" transform="translate(148 650)"></use>
+<use href="#sb-arrow" transform="translate(850 148) rotate(90)"></use>
+<use href="#sb-arrow" transform="translate(1352 850) rotate(180)"></use>
+<use href="#sb-arrow" transform="translate(650 1352) rotate(270)"></use>
+
+<!-- safe harbours (anchors) -->
+<use href="#sb-anchor" x="250" y="850"></use>
+<use href="#sb-anchor" x="650" y="250"></use>
+<use href="#sb-anchor" x="1250" y="650"></use>
+<use href="#sb-anchor" x="850" y="1250"></use>
+
+<!-- grout -->
+<g fill="url(#sb-grout)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- center: home triangles under a compass rose -->
+<polygon points="600,600 900,600 750,750" fill="#2E8B6E"></polygon>
+<polygon points="900,600 900,900 750,750" fill="#E0A03A"></polygon>
+<polygon points="900,900 600,900 750,750" fill="#2C5D9E"></polygon>
+<polygon points="600,900 600,600 750,750" fill="#C9473A"></polygon>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#F3E4BF" stroke-width="4"></path>
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="#3E2A1A" stroke-width="6"></path>
+<rect x="0" y="0" width="1500" height="1500" fill="none" stroke="url(#sb-brass)" stroke-width="8"></rect>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="url(#sb-brass)" stroke-width="6"></rect>
+<g transform="translate(750 750)">
+<circle r="122" fill="url(#sb-brass)"></circle>
+<circle r="114" fill="url(#sb-paper)"></circle>
+<circle r="106" fill="none" stroke="#3E2A1A" stroke-width="10" stroke-dasharray="2.5 18.3"></circle>
+<circle r="94" fill="none" stroke="#3E2A1A" stroke-width="2"></circle>
+<circle r="58" fill="none" stroke="#3E2A1A" stroke-width="1.5" stroke-dasharray="4 4"></circle>
+<use href="#sb-pt" transform="rotate(45) scale(0.62)"></use>
+<use href="#sb-pt" transform="rotate(135) scale(0.62)"></use>
+<use href="#sb-pt" transform="rotate(225) scale(0.62)"></use>
+<use href="#sb-pt" transform="rotate(315) scale(0.62)"></use>
+<use href="#sb-pt"></use>
+<use href="#sb-pt" transform="rotate(90)"></use>
+<use href="#sb-pt" transform="rotate(180)"></use>
+<use href="#sb-pt" transform="rotate(270)"></use>
+<circle r="11" fill="url(#sb-brass)" stroke="#3E2A1A" stroke-width="2"></circle>
+</g>
+</svg>

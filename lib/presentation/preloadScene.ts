@@ -10,6 +10,7 @@ import aladdinBoardArtwork from "@/designs/board-aladdin.svg";
 import bazaarBoardArtwork from "@/designs/board-bazaar.svg";
 import rugBoardArtwork from "@/designs/board-rug.svg";
 import mosaicBoardArtwork from "@/designs/board-mosaic.svg";
+import sindbadBoardArtwork from "@/designs/board-sindbad.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 
@@ -23,6 +24,7 @@ const BOARD_IMAGE_SOURCES = [
   bazaarBoardArtwork.src as string,
   rugBoardArtwork.src as string,
   mosaicBoardArtwork.src as string,
+  sindbadBoardArtwork.src as string,
   snakeArtwork.src as string,
 ];
 

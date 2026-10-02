@@ -85,6 +85,8 @@ export const ur: Messages = {
     boardRugDesc: "ہاتھ سے بُنا بلوچی قالین",
     boardMosaic: "موزیک",
     boardMosaicDesc: "آٹھ کونوں والے ستاروں کی چمکدار ٹائلیں",
+    boardSindbad: "سندباد",
+    boardSindbadDesc: "بادبانی کشتیاں، لنگر اور قطب نما",
 
     yourTeam: "آپ کی ٹیم",
     memberOne: "{count} رکن",

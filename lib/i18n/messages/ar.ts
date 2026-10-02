@@ -86,6 +86,8 @@ export const ar: Messages = {
     boardRugDesc: "سجادة بلوشية معقودة يدويًا",
     boardMosaic: "فسيفساء",
     boardMosaicDesc: "بلاط مزجّج بنجوم ثمانية الرؤوس",
+    boardSindbad: "السندباد",
+    boardSindbadDesc: "مراكب شراعية ومراسٍ وبوصلة",
 
     yourTeam: "فريقك",
     memberOne: "عضو واحد",

@@ -7,6 +7,7 @@ import {
   RpcError,
   getDiceProof,
   getMatchResults,
+  getRoomState,
   getPartyExtras,
   guessPartyRound,
   partyPreviewMove,
@@ -38,6 +39,16 @@ import { noteTableMessage, reportLeftTable } from "@/lib/analytics/useRoomAnalyt
 // immediately instead of arriving with the same lazy chunk it stands in for.
 import "@/components/simulator/simulator.css";
 
+// The server refuses a turn that has already moved on; the board was just
+// showing an old snapshot, so fetch the room instead of showing the code.
+const STALE_TURN_CODES = new Set(["NOT_YOUR_TURN", "INVALID_PHASE"]);
+
+function resync(client: SupabaseClient, roomId: string) {
+  return getRoomState(client, roomId)
+    .then((next) => useRoomStore.getState().setRoomState(next))
+    .catch(() => {});
+}
+
 const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
   ssr: false,
   loading: () => <TableLoading label="Joining the table…" />,
@@ -67,6 +78,22 @@ export function MatchArena({
   const blockedPlayerIds = useRoomStore((s) => s.blockedPlayerIds);
   const setBlockedPlayerIds = useRoomStore((s) => s.setBlockedPlayerIds);
   const [pending, setPending] = useState(false);
+  // A roll or move resolves before the realtime update that shows it, and
+  // until then the board still offers the turn just played: a second tap, or
+  // the forced-move timer, sends it again and the server answers
+  // NOT_YOUR_TURN. Hold the controls until the room passes the event
+  // sequence we acted on.
+  const [actedAt, setActedAt] = useState<number | null>(null);
+  const settling = actedAt !== null && (state?.eventSequence ?? -1) <= actedAt;
+  useEffect(() => {
+    if (!settling) return;
+    // Realtime can drop an update; fetch the room rather than lock the table.
+    const timer = setTimeout(
+      () => void resync(client, roomId).finally(() => setActedAt(null)),
+      2500,
+    );
+    return () => clearTimeout(timer);
+  }, [client, roomId, settling]);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<MatchResult[] | null>(null);
   const [diceProof, setDiceProof] = useState<DiceProof | null>(null);
@@ -122,18 +149,25 @@ export function MatchArena({
       cancelled = true;
     };
   }, [client, roomId, ended]);
-  async function act(fn: () => Promise<unknown>, area?: ErrorArea) {
-    if (pending || sessionReplaced) return;
+  async function act(
+    fn: () => Promise<unknown>,
+    { area, settles = false }: { area?: ErrorArea; settles?: boolean } = {},
+  ) {
+    if (pending || settling || sessionReplaced) return;
+    const sequence = state?.eventSequence ?? -1;
     setPending(true);
     setError(null);
     try {
       await fn();
+      if (settles) setActedAt(sequence);
     } catch (e) {
-      if (age.handle(e, () => void act(fn, area))) return;
+      if (age.handle(e, () => void act(fn, { area, settles }))) return;
       // Codes only, and only for actions worth counting (not roll/move races).
       if (area) trackError(area, errorCode(e));
       if (e instanceof RpcError && e.code === "SESSION_REPLACED")
         setSessionReplaced();
+      else if (e instanceof RpcError && STALE_TURN_CODES.has(e.code))
+        void resync(client, roomId);
       else
         setError(
           e instanceof Error ? e.message : "The action could not be completed.",
@@ -158,16 +192,17 @@ export function MatchArena({
     addMessage(data);
     noteTableMessage(kind);
   }
-  const onRoll = () => act(() => requestRoll(client, roomId, connectionToken));
+  const onRoll = () =>
+    act(() => requestRoll(client, roomId, connectionToken), { settles: true });
   const onMove = (id: string) =>
-    act(() => requestMove(client, roomId, id, connectionToken));
+    act(() => requestMove(client, roomId, id, connectionToken), { settles: true });
   const onRematch = () =>
     act(async () => {
       const accepting = state.players.some((p) => p.rematchReady);
       await (accepting ? acceptRematch(client, roomId) : requestRematch(client, roomId));
       track("rematch_requested", { role: accepting ? "accepter" : "proposer" });
-    }, "rematch");
-  const onReclaim = () => act(() => reclaimSeat(client, roomId), "reclaim");
+    }, { area: "rematch" });
+  const onReclaim = () => act(() => reclaimSeat(client, roomId), { area: "reclaim" });
   const onAutoRoll = (enabled: boolean) =>
     act(() => toggleAutoRoll(client, roomId, enabled));
   const onPause = (paused: boolean) =>
@@ -185,7 +220,7 @@ export function MatchArena({
         <PartyController
           state={state}
           myPlayerId={myPlayerId}
-          pending={pending}
+          pending={pending || settling}
           error={error}
           connection={connection}
           sessionReplaced={sessionReplaced}
@@ -211,7 +246,7 @@ export function MatchArena({
         state={state}
         events={events}
         myPlayerId={myPlayerId}
-        pending={pending}
+        pending={pending || settling}
         error={error}
         readOnly={sessionReplaced}
         connection={connection}

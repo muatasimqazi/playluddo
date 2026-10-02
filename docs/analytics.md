@@ -345,12 +345,11 @@ Property `554915319`, web stream `15805270706`, measurement ID `G-75GZQ69MCG`.
 | Enhanced measurement | Page views, scrolls, outbound clicks on; form interactions, site search, video and file downloads off |
 | Event data retention | 14 months |
 | Stream URL | `https://www.luddohouse.com`; configured domain `luddohouse.com` |
+| History-based page views | Off ("Page changes based on browser history events"): the app sends its own `page_view`. Page loads stay on. |
 
-**At deploy:** turn off "Page changes based on browser history events" under Enhanced measurement → Page views (the app sends its own `page_view`). Leave "page views" itself on.
+**Created after the code went live (2 October 2026).** Custom definitions can only be archived, not deleted.
 
-**After the code is live (each needs the owner's approval; definitions can only be archived):**
-
-Custom definitions, event-scoped dimensions (27): `game_type`, `game_mode`, `play_context`, `entry_point`, `bot_difficulty`, `rules_customized`, `is_host`, `seat_count`, `human_count`, `bot_count`, `play_mode`, `method`, `content_type`, `role`, `abandon_reason`, `end_reason`, `reason`, `outcome`, `area`, `error_code`, `game_phase`, `won`, `seat_taken_over`, `used_chat`, `used_call`, `from_guest`, `result`.
+Event-scoped dimensions (27): `game_type`, `game_mode`, `play_context`, `entry_point`, `bot_difficulty`, `rules_customized`, `is_host`, `seat_count`, `human_count`, `bot_count`, `play_mode`, `method`, `content_type`, `role`, `abandon_reason`, `end_reason`, `reason`, `outcome`, `area`, `error_code`, `game_phase`, `won`, `seat_taken_over`, `used_chat`, `used_call`, `from_guest`, `result`.
 
 Custom metrics (10): `duration_seconds`, `lobby_wait_seconds`, `wait_seconds`, `offline_seconds` (unit: seconds); `turn_count`, `captures`, `sixes`, `pawns_home`, `missed_decisions`, `reaction_count` (standard).
 
@@ -358,9 +357,9 @@ User-scoped dimensions (6): `player_type`, `app_locale`, `colorblind_mode`, `red
 
 Not registered on purpose: `game_id` (unique per game; BigQuery), `finish_place`, `turn_timer_s`, `level`, `size`, `context`, `is_friend`, `remote`, `remote_count`, `audience_count`, `has_room`, `is_party`.
 
-Key events: `game_started`, `game_completed`, `sign_up`, and `invite_accepted` (Admin → Events → Create event: `room_joined` where `entry_point` equals `invite_link`). Unmark `purchase`.
+Key events: `game_started`, `game_completed`, `sign_up` (Admin → Events → Create event → Create with code, no default value, once per event) and `invite_accepted`. `invite_accepted` is a custom event on the web stream (Data streams → the stream → Create custom events): `event_name` equals `room_joined` and `entry_point` equals `invite_link`, copying the source event's parameters. `purchase` stays listed: GA no longer lets it be unmarked, and nothing sends it.
 
-Audiences: Played 2+ games (`game_completed` count ≥ 2); Guests who played online (`player_type = guest` and `game_started` with `play_context` ≠ `practice`, `table_together`); Party hosts (`party_game_started`).
+Audiences (30-day membership): Played 2+ games (`game_completed` event count > 1); Guests who played online (`player_type` exactly matches `guest`, and `game_started` with `play_context` not matching `^(practice|table_together)$`); Party hosts (TV) (`party_game_started`).
 
 **BigQuery export (prepared, not linked).** Needs a Google Cloud project with billing and the owner accepting terms. Then: Admin → Product links → BigQuery links → Link → choose the project → data location → Daily export (Streaming is optional and costs more) → include web stream `15805270706` → Submit. Matches per day:
 
@@ -375,13 +374,16 @@ ORDER BY event_date;
 
 ## Rollout
 
-1. Publish the GTM container. Safe before deploy: its Google tag waits for `luddo_ready`, which only the new code pushes. Until deploy the old code's direct `gtag.js` keeps measuring.
-2. Deploy. The direct `gtag.js` snippet is gone; GTM now carries GA.
-3. Turn off history-based page views in the stream (above).
-4. Check Realtime and DebugView on production with a private room (never public quick match: it pairs you with real players).
-5. Once events arrive, create the custom definitions, key events and audiences.
+Done on 2 October 2026, in this order:
 
-If the code deploys before the container is published, GA stops until it is published.
+1. Published the GTM container as version 3, "Luddo catalog v1". Safe before deploy: its Google tag waits for `luddo_ready`, which only the new code pushes.
+2. Deployed (`develop` → Vercel production). The direct `gtag.js` snippet is gone; GTM now carries GA. Checked on www.luddohouse.com: `luddo_ready`, then a `page_view` with the cleaned URL and user properties, from Tag Manager.
+3. Turned off history-based page views in the stream.
+4. Created the custom definitions, key events, the `invite_accepted` rule and the three audiences.
+
+Still to do: a full game in a private room on production, watched in DebugView (`?gtm_debug` through Tag Assistant marks the hits debug). Never use public quick match for this: it pairs you with real players.
+
+For later releases: if new code that depends on a container change deploys before the container is published, the new events go unmeasured until it is.
 
 ## Funnels and reports
 

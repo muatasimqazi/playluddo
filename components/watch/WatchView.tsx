@@ -11,6 +11,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { GameRoomState } from "@/lib/board/types";
 import type { MatchEventRow, AudienceReaction } from "@/lib/realtime/room-channel";
 import { subscribeToRoom, fetchRecentEvents } from "@/lib/realtime/room-channel";
+import { stopAnalyticsForChild, track } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { joinWatch, leaveWatch, getWatchState, watcherReact } from "@/lib/supabase/watch";
@@ -67,6 +68,7 @@ export function WatchView({ roomId }: { roomId: string }) {
           (data.user?.user_metadata?.display_name as string) || tx("watching.watcher");
         const { watchTopic } = await joinWatch(c, roomId, nameRef.current);
         if (cancelled) return;
+        track("watch_started", {});
 
         const receive = (next: GameRoomState) => {
           setState((cur) => (cur && cur.eventSequence > next.eventSequence ? cur : next));
@@ -91,6 +93,8 @@ export function WatchView({ roomId }: { roomId: string }) {
       } catch (err) {
         if (cancelled) return;
         const text = err instanceof Error ? err.message : "Could not join.";
+        // An under-13 account: no analytics from here on (docs/analytics.md).
+        if (text.includes("AGE_RESTRICTED")) stopAnalyticsForChild();
         setMessage(
           text.includes("WATCHING_OFF")
             ? tx("watching.closed")

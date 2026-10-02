@@ -30,6 +30,8 @@ import {
   useTexture,
 } from "@react-three/drei";
 import * as THREE from "three";
+import { trackError } from "@/lib/analytics";
+import { ReportOnce } from "@/components/analytics/ReportOnce";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { hapticTap, useCoarsePointer } from "@/lib/hooks/useCoarsePointer";
 import type { GameType, Pawn, Player, PlayerColor } from "@/lib/board/types";
@@ -2729,8 +2731,13 @@ export default function SimulatorScene(props: SceneProps) {
           alpha: false,
           powerPreference: "high-performance",
         }}
+        onCreated={({ gl }) => {
+          // A lost GPU context leaves a frozen table: count it, as a code only.
+          gl.domElement.addEventListener("webglcontextlost", () => trackError("three_d", "context_lost"));
+        }}
         fallback={
           <div className="sim-fallback">
+            <ReportOnce area="three_d" code="webgl_unavailable" />
             A physical 3D game table. Use the controls below to play. If the
             table is not visible, enable WebGL in your browser.
           </div>

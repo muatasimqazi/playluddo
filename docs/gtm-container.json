@@ -1,0 +1,2624 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-10-02 15:22:50",
+  "containerVersion": {
+    "accountId": "6380212474",
+    "containerId": "265907052",
+    "containerVersionId": "0",
+    "container": {
+      "accountId": "6380212474",
+      "containerId": "265907052",
+      "name": "Luddo House",
+      "publicId": "GTM-N7X49V9F",
+      "usageContext": [
+        "WEB"
+      ]
+    },
+    "tag": [
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "tagId": "64",
+        "name": "Google tag - Luddo House",
+        "type": "googtag",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "tagId",
+            "value": "G-75GZQ69MCG"
+          },
+          {
+            "type": "LIST",
+            "key": "configSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "send_page_view"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "false"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{Event Settings - Luddo}}"
+          }
+        ],
+        "firingTriggerId": [
+          "62"
+        ],
+        "tagFiringOption": "ONCE_PER_LOAD",
+        "consentSettings": {
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "analytics_storage"
+              }
+            ]
+          }
+        },
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "notes": "Fires once on luddo_ready, which only the app's code pushes. Page views come from the app."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "tagId": "65",
+        "name": "GA4 Event - Luddo catalog",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "{{Event}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-75GZQ69MCG"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "play_mode"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.play_mode}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "game_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.game_id}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "game_type"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.game_type}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "game_mode"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.game_mode}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "play_context"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.play_context}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "seat_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.seat_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "human_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.human_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "bot_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.bot_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "bot_difficulty"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.bot_difficulty}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "rules_customized"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.rules_customized}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "turn_timer_s"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.turn_timer_s}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "entry_point"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.entry_point}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "is_host"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.is_host}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "lobby_wait_seconds"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.lobby_wait_seconds}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "duration_seconds"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.duration_seconds}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "turn_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.turn_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "finish_place"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.finish_place}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "won"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.won}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "captures"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.captures}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "sixes"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.sixes}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "pawns_home"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.pawns_home}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "missed_decisions"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.missed_decisions}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "seat_taken_over"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.seat_taken_over}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "used_chat"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.used_chat}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "used_call"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.used_call}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "reaction_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.reaction_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "end_reason"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.end_reason}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "abandon_reason"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.abandon_reason}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "role"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.role}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "method"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.method}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "content_type"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.content_type}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "wait_seconds"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.wait_seconds}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "is_friend"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.is_friend}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "context"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.context}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "from_guest"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.from_guest}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "remote_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.remote_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "audience_count"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.audience_count}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "outcome"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.outcome}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "remote"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.remote}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "is_party"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.is_party}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "has_room"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.has_room}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "reason"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.reason}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "offline_seconds"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.offline_seconds}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "game_phase"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.game_phase}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "area"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.area}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "error_code"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.error_code}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "level"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.level}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "result"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.result}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "group_type"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.group_type}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "size"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.size}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "debug_mode"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - luddo.debug_mode}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventSettingsVariable",
+            "value": "{{Event Settings - Luddo}}"
+          }
+        ],
+        "firingTriggerId": [
+          "63"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "consentSettings": {
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "analytics_storage"
+              }
+            ]
+          }
+        },
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "notes": "Every catalog event, with whichever parameters it carries. Generated; do not edit in GTM."
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "triggerId": "62",
+        "name": "CE - luddo_ready",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "luddo_ready"
+              }
+            ]
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "triggerId": "63",
+        "name": "CE - Luddo catalog",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "MATCH_REGEX",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "^(page_view|play_mode_selected|room_created|share|room_joined|matchmaking_started|match_found|matchmaking_cancelled|play_again_used|watch_started|age_check_completed|age_check_dismissed|sign_up|login|game_started|game_completed|game_abandoned|rematch_requested|party_screen_opened|party_room_created|party_game_started|party_game_completed|party_game_abandoned|party_table_paused|party_pause_ended|party_controller_joined|cast_started|seat_taken_over|seat_reclaimed|realtime_reconnected|realtime_reconnect_failed|app_error|call_joined|friend_request_sent|friend_request_accepted|level_up|dice_check_run|join_group|tournament_created|tournament_joined)$"
+              }
+            ]
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts."
+      }
+    ],
+    "variable": [
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "1",
+        "name": "DLV - page_location",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "page_location"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "2",
+        "name": "DLV - page_referrer",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "page_referrer"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "3",
+        "name": "DLV - page_title",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "page_title"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "4",
+        "name": "DLV - luddo.play_mode",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.play_mode"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "5",
+        "name": "DLV - luddo.game_id",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.game_id"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "6",
+        "name": "DLV - luddo.game_type",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.game_type"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "7",
+        "name": "DLV - luddo.game_mode",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.game_mode"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "8",
+        "name": "DLV - luddo.play_context",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.play_context"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "9",
+        "name": "DLV - luddo.seat_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.seat_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "10",
+        "name": "DLV - luddo.human_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.human_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "11",
+        "name": "DLV - luddo.bot_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.bot_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "12",
+        "name": "DLV - luddo.bot_difficulty",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.bot_difficulty"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "13",
+        "name": "DLV - luddo.rules_customized",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.rules_customized"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "14",
+        "name": "DLV - luddo.turn_timer_s",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.turn_timer_s"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "15",
+        "name": "DLV - luddo.entry_point",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.entry_point"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "16",
+        "name": "DLV - luddo.is_host",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.is_host"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "17",
+        "name": "DLV - luddo.lobby_wait_seconds",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.lobby_wait_seconds"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "18",
+        "name": "DLV - luddo.duration_seconds",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.duration_seconds"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "19",
+        "name": "DLV - luddo.turn_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.turn_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "20",
+        "name": "DLV - luddo.finish_place",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.finish_place"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "21",
+        "name": "DLV - luddo.won",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.won"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "22",
+        "name": "DLV - luddo.captures",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.captures"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "23",
+        "name": "DLV - luddo.sixes",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.sixes"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "24",
+        "name": "DLV - luddo.pawns_home",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.pawns_home"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "25",
+        "name": "DLV - luddo.missed_decisions",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.missed_decisions"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "26",
+        "name": "DLV - luddo.seat_taken_over",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.seat_taken_over"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "27",
+        "name": "DLV - luddo.used_chat",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.used_chat"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "28",
+        "name": "DLV - luddo.used_call",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.used_call"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "29",
+        "name": "DLV - luddo.reaction_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.reaction_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "30",
+        "name": "DLV - luddo.end_reason",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.end_reason"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "31",
+        "name": "DLV - luddo.abandon_reason",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.abandon_reason"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "32",
+        "name": "DLV - luddo.role",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.role"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "33",
+        "name": "DLV - luddo.method",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.method"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "34",
+        "name": "DLV - luddo.content_type",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.content_type"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "35",
+        "name": "DLV - luddo.wait_seconds",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.wait_seconds"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "36",
+        "name": "DLV - luddo.is_friend",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.is_friend"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "37",
+        "name": "DLV - luddo.context",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.context"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "38",
+        "name": "DLV - luddo.from_guest",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.from_guest"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "39",
+        "name": "DLV - luddo.remote_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.remote_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "40",
+        "name": "DLV - luddo.audience_count",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.audience_count"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "41",
+        "name": "DLV - luddo.outcome",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.outcome"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "42",
+        "name": "DLV - luddo.remote",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.remote"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "43",
+        "name": "DLV - luddo.is_party",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.is_party"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "44",
+        "name": "DLV - luddo.has_room",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.has_room"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "45",
+        "name": "DLV - luddo.reason",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.reason"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "46",
+        "name": "DLV - luddo.offline_seconds",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.offline_seconds"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "47",
+        "name": "DLV - luddo.game_phase",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.game_phase"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "48",
+        "name": "DLV - luddo.area",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.area"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "49",
+        "name": "DLV - luddo.error_code",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.error_code"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "50",
+        "name": "DLV - luddo.level",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.level"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "51",
+        "name": "DLV - luddo.result",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.result"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "52",
+        "name": "DLV - luddo.group_type",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.group_type"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "53",
+        "name": "DLV - luddo.size",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.size"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "54",
+        "name": "DLV - luddo.debug_mode",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo.debug_mode"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "55",
+        "name": "DLV - luddo_user.player_type",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo_user.player_type"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "56",
+        "name": "DLV - luddo_user.app_locale",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo_user.app_locale"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "57",
+        "name": "DLV - luddo_user.colorblind_mode",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo_user.colorblind_mode"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "58",
+        "name": "DLV - luddo_user.reduced_motion",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo_user.reduced_motion"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "59",
+        "name": "DLV - luddo_user.graphics_quality",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo_user.graphics_quality"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "60",
+        "name": "DLV - luddo_user.level_bucket",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "luddo_user.level_bucket"
+          }
+        ],
+        "notes": "Generated by scripts/generate-gtm-container.ts. Do not edit in GTM."
+      },
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "variableId": "61",
+        "name": "Event Settings - Luddo",
+        "type": "gtes",
+        "parameter": [
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "page_location"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - page_location}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "page_referrer"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - page_referrer}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "page_title"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - page_title}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "LIST",
+            "key": "userProperties",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "player_type"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{DLV - luddo_user.player_type}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "app_locale"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{DLV - luddo_user.app_locale}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "colorblind_mode"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{DLV - luddo_user.colorblind_mode}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "reduced_motion"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{DLV - luddo_user.reduced_motion}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "graphics_quality"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{DLV - luddo_user.graphics_quality}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "name",
+                    "value": "level_bucket"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "value",
+                    "value": "{{DLV - luddo_user.level_bucket}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "notes": "Cleaned page and user properties for every hit. Generated; do not edit in GTM."
+      }
+    ],
+    "builtInVariable": [
+      {
+        "accountId": "6380212474",
+        "containerId": "265907052",
+        "type": "EVENT",
+        "name": "Event"
+      }
+    ]
+  }
+}

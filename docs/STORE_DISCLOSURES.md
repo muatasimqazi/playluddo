@@ -26,6 +26,7 @@ update private.feature_flags set enabled = false where name = 'video_chat';
 | Session recordings | PostHog | No | Analytics | Layout, taps and scrolls; every word on screen and every input masked; no canvas or video |
 | Approximate location | PostHog, from the IP address | No | Analytics | Country and city |
 | Call connection outcome | PostHog | No | Analytics | `call_ice_outcome`: transport facts only, never IPs, SDP or player IDs |
+| Game events | PostHog; Google Analytics on the website only (never in the app) | No | Analytics | How games go: mode, start and end, place, simple counts, reconnects and error codes; random match ID, no names, chat, age or room codes (`docs/analytics.md`) |
 | Voice and video | Not stored | n/a | n/a | Direct between devices, or through Twilio's TURN relay in real time; never recorded |
 
 Not collected: precise location, contacts, browsing history, advertising ID, health, financial or payment data, crash logs. No tracking, so no App Tracking Transparency prompt.

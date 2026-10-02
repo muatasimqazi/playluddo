@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 import { COLORS } from "@/lib/presentation/board";
 import type { MatchResult, Player } from "@/lib/board/types";
 import {
@@ -52,6 +53,11 @@ function DiceCheckResult({ proof }: { proof: DiceProof }) {
       (): DiceCheck => ({ ok: false, reason: "protocol" }),
     );
     setState({ kind: "done", check, sawStart: remembered !== null });
+    // "Dice you can check": whether people use it, and whether a check ever fails (a code only).
+    track(
+      "dice_check_run",
+      check.ok ? { result: "verified" } : { result: "mismatch", reason: check.reason.replace(/-/g, "_") },
+    );
   }
 
   if (state.kind === "idle")

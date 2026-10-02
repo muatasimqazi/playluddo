@@ -28,6 +28,7 @@ import { LudoRules, OnlineTableRules, SnakesRules } from "@/components/site/Game
 import { FirstGameTips } from "./FirstGameTips";
 import { REACTION_EMOJI_ROWS, REACTION_PHRASES, REVENGE } from "@/lib/realtime/reactions";
 import { clock, describeMove, forcedMovePawnId, partyWaitEndsAt } from "@/lib/presentation/controller";
+import { track, trackError } from "@/lib/analytics";
 import { useAdaptiveQuality } from "@/lib/hooks/useAdaptiveQuality";
 import type { DiceProof } from "@/lib/presentation/diceProof";
 import { useCountdown } from "@/lib/hooks/useCountdown";
@@ -115,6 +116,8 @@ export interface SimulatorProps {
   onFlip?: () => void;
   onRematch?: () => Promise<unknown>;
   onReclaim?: () => Promise<unknown>;
+  /** Leaving for the entrance from the table (analytics: a game left mid-way). */
+  onLeaveTable?: () => void;
   paused?: boolean;
   canPause?: boolean;
   onPause?: (paused: boolean) => Promise<unknown> | void;
@@ -302,6 +305,10 @@ class SceneBoundary extends Component<
   static getDerivedStateFromError() {
     return { failed: true };
   }
+  componentDidCatch() {
+    // A code only: never the error's message or stack (docs/analytics.md).
+    trackError("three_d", "scene_crash");
+  }
   render() {
     return this.state.failed ? (
       <div className="sim-fallback">
@@ -371,6 +378,7 @@ export default function Simulator({
   onFlip,
   onRematch,
   onReclaim,
+  onLeaveTable,
   paused = false,
   canPause = false,
   onPause,
@@ -1585,7 +1593,7 @@ export default function Simulator({
                   <Icon name="play" />
                   Keep playing
                 </button>
-                <Link href="/" className="panel-secondary">
+                <Link href="/" className="panel-secondary" onClick={() => onLeaveTable?.()}>
                   <Icon name="home" />
                   Leave and go to the entrance
                 </Link>
@@ -2273,6 +2281,7 @@ export default function Simulator({
                       onClick={() =>
                         void navigator.clipboard
                           ?.writeText(webUrl(`/watch?room=${state.roomId}`))
+                          .then(() => track("share", { method: "copy", content_type: "watch_link" }))
                           .catch(() => {})
                       }
                     >
@@ -2319,7 +2328,7 @@ export default function Simulator({
                   Start a fresh practice
                 </button>
               )}
-              <Link href="/" className="panel-secondary">
+              <Link href="/" className="panel-secondary" onClick={() => onLeaveTable?.()}>
                 <Icon name="home" />
                 Back to the entrance
               </Link>

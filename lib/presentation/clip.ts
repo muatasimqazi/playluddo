@@ -139,13 +139,16 @@ export function recordHighlight({
   });
 }
 
-/** Shares a recorded clip, falling back to a download when sharing is unavailable. */
-export async function shareClip(blob: Blob, caption: string): Promise<void> {
+/**
+ * Shares a recorded clip, falling back to a download when sharing is
+ * unavailable. Says which one happened (for the `share` event).
+ */
+export async function shareClip(blob: Blob, caption: string): Promise<"share_sheet" | "download"> {
   const extension = blob.type.includes("mp4") ? "mp4" : "webm";
   const file = new File([blob], `luddo-highlight.${extension}`, { type: blob.type });
   if (navigator.canShare?.({ files: [file] })) {
     await navigator.share({ files: [file], text: `${caption} · ${BRAND.name}` });
-    return;
+    return "share_sheet";
   }
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -153,4 +156,5 @@ export async function shareClip(blob: Blob, caption: string): Promise<void> {
   link.download = file.name;
   link.click();
   URL.revokeObjectURL(url);
+  return "download";
 }

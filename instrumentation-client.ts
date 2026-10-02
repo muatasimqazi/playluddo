@@ -1,5 +1,7 @@
 import posthog from "posthog-js";
-import { deviceAgeBlocked } from "./lib/community";
+import { childAnalyticsOff } from "./lib/analytics/children";
+import { redactPostHogEvent } from "./lib/analytics/posthogRedact";
+import { redactUrl } from "./lib/analytics/redact";
 
 const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 
@@ -20,14 +22,19 @@ if (key) {
       maskAllInputs: true,
       maskTextSelector: "*",
     },
+    // A room link is the invitation to the table, and other links carry
+    // team invite codes, cast tokens and OAuth codes: every URL PostHog
+    // records is cleaned first (docs/analytics.md, "URL redaction").
+    before_send: redactPostHogEvent,
   });
-  // A device where someone answered under 13 sends nothing (F0.4); it's the
-  // only opt-out the app has, so it lifts when the device flag does.
-  if (deviceAgeBlocked()) posthog.opt_out_capturing();
+  // A device where someone answered under 13, or where an account the
+  // server marks under 13 was used, sends nothing (F0.4). It's the only
+  // opt-out the app has, so it lifts when both flags have.
+  if (childAnalyticsOff()) posthog.opt_out_capturing();
   else if (posthog.has_opted_out_capturing()) posthog.opt_in_capturing();
   posthog.capture("$pageview");
 }
 
 export function onRouterTransitionStart(url: string) {
-  posthog.capture("$pageview", { $current_url: url });
+  posthog.capture("$pageview", { $current_url: redactUrl(url, window.location.href) });
 }

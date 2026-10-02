@@ -9,6 +9,9 @@ import type { GameType } from "@/lib/board/types";
 import { Icon } from "@/components/simulator/Icon";
 import { useI18n, type Translator } from "@/lib/i18n";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
+import { errorCode, track, trackError } from "@/lib/analytics";
+import { tagRoomEntry } from "@/lib/analytics/entry";
+import { analyticsGameType } from "@/lib/analytics/gameParams";
 
 const POLL_MS = 2000;
 const TIMEOUT_SECONDS = 45;
@@ -59,6 +62,20 @@ export function QuickMatch({
   const [attempt, setAttempt] = useState(0);
   const age = useAgeCheck();
   const handleAge = age.handle;
+  // Analytics: how long this search ran, and the room it ended in.
+  const searchStartedAt = useRef<number | null>(null);
+  const waitSeconds = () =>
+    searchStartedAt.current === null ? undefined : Math.round((Date.now() - searchStartedAt.current) / 1000);
+  const reportMatched = (roomId: string, players: number, computers: number) => {
+    tagRoomEntry(roomId, { entry_point: "quick_match", play_context: "quick_match" });
+    track("match_found", {
+      game_type: analyticsGameType(gameType),
+      seat_count: players,
+      human_count: players - computers,
+      bot_count: computers,
+      wait_seconds: waitSeconds(),
+    });
+  };
 
   useEffect(() => {
     const client = createClient();
@@ -76,6 +93,7 @@ export function QuickMatch({
         if (current.stopped) return;
         if (result.status === "matched") {
           current.settled = true;
+          reportMatched(result.roomId, result.players, result.computers);
           setPhase({ kind: "matched", players: result.players, computers: result.computers });
           timer = setTimeout(() => router.push(`/room?id=${result.roomId}`), HANDOFF_MS);
           return;
@@ -94,6 +112,7 @@ export function QuickMatch({
           setElapsed(0);
           setAttempt((n) => n + 1);
         });
+        if (!askedForAge) trackError("matchmaking", errorCode(error));
         setPhase({
           kind: "error",
           message: askedForAge
@@ -107,7 +126,10 @@ export function QuickMatch({
 
     ensureSession(client).then(
       () => {
-        if (!current.stopped) void poll();
+        if (current.stopped) return;
+        searchStartedAt.current = Date.now();
+        track("matchmaking_started", { game_type: analyticsGameType(gameType), seat_count: playerCount });
+        void poll();
       },
       (error: unknown) => {
         if (current.stopped) return;
@@ -159,9 +181,11 @@ export function QuickMatch({
       // strand the opponent at an empty seat.
       const result = await cancelMatchmaking(client);
       if (result.status === "matched") {
+        reportMatched(result.roomId, result.players, result.computers);
         router.push(`/room?id=${result.roomId}`);
         return;
       }
+      track("matchmaking_cancelled", { wait_seconds: waitSeconds() });
     } catch {
       // Nothing to undo; the queue row expires on its own.
     }

@@ -5,7 +5,7 @@
 import { useI18n, useT } from "@/lib/i18n";
 
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/simulator/Icon";
@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import { declareAge, getAgeEligibility, RpcError } from "@/lib/supabase/rpc";
 import { blockDeviceUntil, deviceAgeBlocked } from "@/lib/community";
 import { stopAnalyticsForChild } from "@/lib/analytics/children";
+import { track } from "@/lib/analytics";
 import "@/components/simulator/simulator.css";
 
 /**
@@ -46,11 +47,14 @@ export function AskAge({
   onUnderAge,
   onCancel,
   partyAgreement = false,
+  context = partyAgreement ? "party" : "online_table",
 }: {
   onEligible: () => void;
   onUnderAge: () => void;
   onCancel: () => void;
   partyAgreement?: boolean;
+  /** Where the check was asked, for analytics (only ever sent for a 13+ answer or "Not now"). */
+  context?: "online_table" | "sign_in" | "party";
 }) {
   const { t: tx, locale } = useI18n();
   const [month, setMonth] = useState("");
@@ -82,9 +86,14 @@ export function AskAge({
           result = await getAgeEligibility(client);
         else throw e;
       }
-      if (result.online) onEligible();
-      else {
+      if (result.online) {
+        // Only an answer the server accepts as 13+ is ever reported, and never the answer itself.
+        track("age_check_completed", { context });
+        onEligible();
+      } else {
+        // Under 13: analytics stop before anything else happens (docs/analytics.md).
         if (result.eligibleFrom) blockDeviceUntil(result.eligibleFrom);
+        else stopAnalyticsForChild(null);
         onUnderAge();
       }
     } catch (e) {
@@ -143,7 +152,14 @@ export function AskAge({
           <span>{pending ? tx("actions.wait") : tx("common.continue")}</span>
           <Icon name="arrow" />
         </button>
-        <button type="button" className="table-rules-back" onClick={onCancel}>
+        <button
+          type="button"
+          className="table-rules-back"
+          onClick={() => {
+            track("age_check_dismissed", { context });
+            onCancel();
+          }}
+        >
           {tx("actions.notNow")}</button>
       </section>
     </Backdrop>
@@ -151,8 +167,13 @@ export function AskAge({
 }
 
 /** Under 13: no online tables, but the offline games are right here. */
-export function UnderAgeNotice() {
+export function UnderAgeNotice({ eligibleFrom = null }: { eligibleFrom?: string | null } = {}) {
   const tx = useT();
+  // Shown only to a device or account that is under 13: no analytics from here on,
+  // whichever path led here (docs/analytics.md, "Under-13 off switch").
+  useEffect(() => {
+    stopAnalyticsForChild(eligibleFrom);
+  }, [eligibleFrom]);
   return (
     <Backdrop>
       <section className="entrance-content room-notice table-rules" role="alert">

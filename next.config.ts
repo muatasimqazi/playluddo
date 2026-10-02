@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
   // webDir: "out"). The Vercel web deploy keeps its normal dynamic build
   // so it can still grow a real server route later.
   output: process.env.CAPACITOR_BUILD ? "export" : undefined,
+  // Inlined into the client bundle, so the app build compiles out every
+  // Google Tag Manager / Analytics branch in lib/analytics (the apps report
+  // to PostHog only; docs/analytics.md, "Architecture").
+  env: {
+    LUDDO_APP_BUILD: process.env.CAPACITOR_BUILD ? "1" : "",
+  },
 };
 
 export default nextConfig;

@@ -22,6 +22,8 @@ import { PartyWhere } from "@/components/party/PartyWhere";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { AudienceView } from "@/components/party/AudienceView";
+import { useOnlineRoomAnalytics } from "@/lib/analytics/useRoomAnalytics";
+import { track } from "@/lib/analytics";
 import "@/components/simulator/simulator.css";
 
 // A query param, not a [roomId] path segment: `output: "export"` (the
@@ -128,9 +130,19 @@ function ConnectedRoom({
   // survives the lobby -> in-game -> summary transition, all one roomId.
   const voice = useVoiceChat(client, roomId);
   const seated = !loading && !error;
+  // Joins, game lifecycle, seat takeovers and reconnects, once per seat
+  // (lib/analytics/useRoomAnalytics.ts). Lives here so it spans lobby → game.
+  useOnlineRoomAnalytics(roomId, client, seated, wantsRemote);
   // Likewise the cast, so a TV that's showing keeps its "Stop casting".
   // Only a seat can cast its table.
   const cast = useCast(seated ? roomId : null);
+  const casting = cast.connected;
+  const isPartyRoom = !!roomState?.isParty;
+  useEffect(() => {
+    if (casting) track("cast_started", { is_party: isPartyRoom });
+    // Reported as the cast connects, not on every later change of room state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casting]);
   useEffect(() => {
     if (!seated) return;
     const { setBlockedPlayerIds } = useRoomStore.getState();

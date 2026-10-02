@@ -29,7 +29,7 @@ export function PartyAgreement({ onAgree }: { onAgree: () => void }) {
   const agree = () => { acceptPartyRules(); onAgree(); };
   if (error) return <main className="party-pad"><p role="alert">{t("party.checkError")}</p></main>;
   if (!age) return <TableLoading label={t("lobby.opening")} />;
-  if (restricted || (age.required && !age.online && (age.declared || deviceAgeBlocked()))) return <UnderAgeNotice />;
+  if (restricted || (age.required && !age.online && (age.declared || deviceAgeBlocked()))) return <UnderAgeNotice eligibleFrom={age.eligibleFrom} />;
   if (age.required && !age.declared) return <AskAge partyAgreement onEligible={agree} onUnderAge={() => setRestricted(true)} onCancel={() => router.push("/")} />;
   return <PartyAgreementScreen onAgree={agree} />;
 }

@@ -38,6 +38,8 @@ import type { PlayerColor } from "@/lib/board/types";
 import type { VoiceChat } from "@/lib/hooks/useVoiceChat";
 import { BRAND } from "@/lib/brand";
 import { webUrl } from "@/lib/native";
+import { errorCode, track, trackError } from "@/lib/analytics";
+import type { ErrorArea } from "@/lib/analytics/events";
 import "@/components/simulator/simulator.css";
 
 const SEAT_COLORS: PlayerColor[] = ["red", "green", "yellow", "blue", "orange", "black"];
@@ -100,12 +102,13 @@ export function RoomLobby({
   const host = state.hostPlayerId
     ? state.hostPlayerId === myPlayerId
     : state.players.find((p) => p.seatIndex === 0)?.id === myPlayerId;
-  async function run(fn: () => Promise<unknown>) {
+  async function run(fn: () => Promise<unknown>, area?: ErrorArea) {
     setPending(true);
     setError(null);
     try {
       await fn();
     } catch (e) {
+      if (area) trackError(area, errorCode(e));
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setPending(false);
@@ -118,6 +121,7 @@ export function RoomLobby({
   async function copyInvite(value: string, kind: "code" | "link") {
     try {
       await navigator.clipboard.writeText(value);
+      track("share", { method: "copy", content_type: kind === "code" ? "room_code" : "room_invite" });
       showInviteFeedback(kind);
     } catch {
       setError("Could not copy the invite. Select the room code above instead.");
@@ -135,6 +139,8 @@ export function RoomLobby({
         text: `Join my ${BRAND.gameName} game on ${BRAND.name} — room code ${state!.code}.`,
         url,
       });
+      // Resolves only once something was shared; a cancel rejects with AbortError.
+      track("share", { method: "share_sheet", content_type: "room_invite" });
       showInviteFeedback("shared");
     } catch (shareError) {
       if (shareError instanceof DOMException && shareError.name === "AbortError") return;
@@ -721,7 +727,7 @@ export function RoomLobby({
                 for (const seat of openSeats.slice(0, computersNeeded))
                   await fillBot(client, roomId, seat);
                 await startMatch(client, roomId);
-              })
+              }, "start")
             }
           >
             {pending

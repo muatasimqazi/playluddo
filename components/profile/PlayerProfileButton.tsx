@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { getAccountProfile, getMyProfile, getPlayerProfile, type PlayerProfile } from "@/lib/supabase/profile";
 import { addFriendFromSeat } from "@/lib/supabase/friends";
+import { track } from "@/lib/analytics";
 import { ProfileCard } from "@/components/profile/ProfileCard";
 import { useI18n } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
@@ -93,6 +94,7 @@ export function PlayerProfileDialog({
     setFriendState("sending");
     try {
       await addFriendFromSeat(client, playerId);
+      track("friend_request_sent", { method: "seat" });
       setFriendState("sent");
     } catch {
       setFriendState("failed");

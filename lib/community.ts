@@ -31,7 +31,7 @@ export function acceptTableRules() {
  * lifts, and never stops an account that has already answered: the server
  * only asks accounts that haven't. Support can tell a parent how to clear it.
  */
-const UNDER_13_KEY = "luddo-under-13-until";
+const UNDER_13_KEY = "luddo-under-13-until"; // Also read by lib/analytics (children.ts, headScript.ts).
 
 export function deviceAgeBlocked() {
   try {
@@ -48,7 +48,7 @@ export function deviceAgeBlocked() {
 }
 
 export function blockDeviceUntil(eligibleFrom: string) {
-  stopAnalyticsForChild();
+  stopAnalyticsForChild(eligibleFrom);
   try {
     localStorage.setItem(UNDER_13_KEY, eligibleFrom);
   } catch {

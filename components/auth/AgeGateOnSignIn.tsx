@@ -20,6 +20,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getAgeEligibility } from "@/lib/supabase/rpc";
 import { isSignedIn } from "@/lib/preferences";
 import { AskAge, UnderAgeNotice } from "@/components/lobby/AgeCheck";
+import { stopAnalyticsForChild } from "@/lib/analytics/children";
 
 type Gate = "ask" | "restricted" | null;
 
@@ -37,6 +38,9 @@ export function AgeGateOnSignIn() {
       if (handled.current || !isSignedIn(user)) return;
       try {
         const eligibility = await getAgeEligibility(client);
+        // An account the server already marks under 13: no analytics on this
+        // device, before it reaches any table (docs/analytics.md).
+        if (eligibility.declared && !eligibility.online) stopAnalyticsForChild(eligibility.eligibleFrom);
         if (!eligibility.required) return; // flag off → never ask
         handled.current = true;
         if (!eligibility.declared) setGate("ask");
@@ -63,6 +67,7 @@ export function AgeGateOnSignIn() {
     >
       {gate === "ask" ? (
         <AskAge
+          context="sign_in"
           onEligible={() => setGate(null)}
           onUnderAge={() => setGate("restricted")}
           onCancel={() => setGate(null)}

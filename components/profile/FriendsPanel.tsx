@@ -13,6 +13,7 @@ import {
   sendFriendRequest,
   type Friend,
 } from "@/lib/supabase/friends";
+import { track } from "@/lib/analytics";
 
 /**
  * The player's friends manager (docs/COMPETITIVE_ROADMAP.md F3.6): their
@@ -67,6 +68,7 @@ export function FriendsPanel() {
     setMessage(null);
     try {
       await sendFriendRequest(client, value);
+      track("friend_request_sent", { method: "code" });
       setEntry("");
       setMessage(t("profile.requestSent"));
       await refresh();
@@ -94,6 +96,7 @@ export function FriendsPanel() {
     if (!code) return;
     try {
       await navigator.clipboard.writeText(code);
+      track("share", { method: "copy", content_type: "friend_code" });
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -143,7 +146,16 @@ export function FriendsPanel() {
                   <button
                     type="button"
                     disabled={pending !== null}
-                    onClick={() => void act(f, () => respondFriendRequest(client, f.userId, true), "accept")}
+                    onClick={() =>
+                      void act(
+                        f,
+                        async () => {
+                          await respondFriendRequest(client, f.userId, true);
+                          track("friend_request_accepted", {});
+                        },
+                        "accept",
+                      )
+                    }
                   >
                     {t("profile.accept")}
                   </button>

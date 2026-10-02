@@ -30,6 +30,9 @@ import { useAgeCheck } from "@/components/lobby/AgeCheck";
 import { PartyController } from "@/components/controller/PartyController";
 import type { Cast } from "@/lib/hooks/useCast";
 import { usePartyHeartbeat } from "@/lib/hooks/usePartyHeartbeat";
+import { errorCode, track, trackError } from "@/lib/analytics";
+import type { ErrorArea } from "@/lib/analytics/events";
+import { noteTableMessage, reportLeftTable } from "@/lib/analytics/useRoomAnalytics";
 // Eagerly loaded here, not just inside the dynamic Simulator below, so the
 // loading fallback's own styling (the die animation) is available
 // immediately instead of arriving with the same lazy chunk it stands in for.
@@ -119,14 +122,16 @@ export function MatchArena({
       cancelled = true;
     };
   }, [client, roomId, ended]);
-  async function act(fn: () => Promise<unknown>) {
+  async function act(fn: () => Promise<unknown>, area?: ErrorArea) {
     if (pending || sessionReplaced) return;
     setPending(true);
     setError(null);
     try {
       await fn();
     } catch (e) {
-      if (age.handle(e, () => void act(fn))) return;
+      if (age.handle(e, () => void act(fn, area))) return;
+      // Codes only, and only for actions worth counting (not roll/move races).
+      if (area) trackError(area, errorCode(e));
       if (e instanceof RpcError && e.code === "SESSION_REPLACED")
         setSessionReplaced();
       else
@@ -151,17 +156,18 @@ export function MatchArena({
           : error.message,
       );
     addMessage(data);
+    noteTableMessage(kind);
   }
   const onRoll = () => act(() => requestRoll(client, roomId, connectionToken));
   const onMove = (id: string) =>
     act(() => requestMove(client, roomId, id, connectionToken));
   const onRematch = () =>
-    act(() =>
-      state.players.some((p) => p.rematchReady)
-        ? acceptRematch(client, roomId)
-        : requestRematch(client, roomId),
-    );
-  const onReclaim = () => act(() => reclaimSeat(client, roomId));
+    act(async () => {
+      const accepting = state.players.some((p) => p.rematchReady);
+      await (accepting ? acceptRematch(client, roomId) : requestRematch(client, roomId));
+      track("rematch_requested", { role: accepting ? "accepter" : "proposer" });
+    }, "rematch");
+  const onReclaim = () => act(() => reclaimSeat(client, roomId), "reclaim");
   const onAutoRoll = (enabled: boolean) =>
     act(() => toggleAutoRoll(client, roomId, enabled));
   const onPause = (paused: boolean) =>
@@ -215,6 +221,7 @@ export function MatchArena({
         onMove={onMove}
         onRematch={onRematch}
         onReclaim={onReclaim}
+        onLeaveTable={() => reportLeftTable(roomId)}
         onAutoRoll={onAutoRoll}
         paused={state.paused}
         canPause={state.hostPlayerId === myPlayerId}

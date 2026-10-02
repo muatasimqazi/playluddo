@@ -11,6 +11,7 @@ import {
   type PracticeSession,
 } from "@/lib/presentation/practice";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
+import { useOfflineGameAnalytics } from "@/lib/analytics/useOfflineAnalytics";
 import Simulator from "./Simulator";
 
 const DEFAULT_NAMES = ["Player 1", "Player 2", "Player 3", "Player 4"];
@@ -85,6 +86,8 @@ export default function TableTogether() {
   const [handoffPlayerId, setHandoffPlayerId] = useState<string | null>(null);
   const session = sessions?.[gameType];
   const state = session?.state;
+  // Start, finish and replacement of this shared-device game (lib/analytics/useOfflineAnalytics.ts).
+  useOfflineGameAnalytics("table_together", session);
   const turnPlayer = state?.players.find((player) => player.id === state.turnPlayerId);
   const needsHandoff =
     !!state && !paused && state.status === "in_game" && readyPlayerId !== state.turnPlayerId;

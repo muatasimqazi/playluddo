@@ -18,6 +18,7 @@ import {
 } from "../supabase/rpc";
 import type { WebRtcSignalPayload } from "../realtime/webrtc-signal";
 import { useRoomStore } from "../store/room-store";
+import { noteCall } from "../analytics/useRoomAnalytics";
 
 /**
  * Full-mesh WebRTC audio and optional video for a room (Section 7, V2).
@@ -389,6 +390,7 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
     joinedRef.current = false;
     setJoined(false);
     setSpeakingPlayerIds(new Set());
+    noteCall(roomId, false);
     void leaveVoiceRpc(client, roomId).catch(() => {});
   }, [client, roomId, myPlayerId, cleanupPeer, detachAnalyser, stopCamera]);
 
@@ -421,6 +423,8 @@ export function useTableCall(client: SupabaseClient, roomId: string): TableCall 
         await joinVoiceRpc(client, roomId);
         joinedRef.current = true;
         setJoined(true);
+        // Whether the call was used, never who was on it (docs/analytics.md).
+        noteCall(roomId, true);
       })
       .catch((e) => {
         setError(

@@ -106,15 +106,21 @@ export default function PrivacyPage() {
       </p>
       <h3>Usage analytics</h3>
       <p>
-        We use PostHog to understand how the game is used — for example which screens are visited and which
-        buttons are tapped — so we can improve it. PostHog also makes session recordings: replays of how a
+        We use PostHog to understand how the game is used — for example which screens are visited, which
+        buttons are tapped and how games go — so we can improve it. PostHog also makes session recordings: replays of how a
         visit moved through the screens, with taps and scrolls. Every word on screen and everything typed is
         hidden in them, so they never show names, chat or codes, and the 3D table and video aren&rsquo;t
         recorded. PostHog uses your IP address to estimate your approximate location (country and city). These
         analytics aren&rsquo;t linked to your name, email or phone number. Recordings and analytics are deleted
         automatically after PostHog&rsquo;s retention period. On a device where someone has told us
         they&rsquo;re under 13, we turn analytics off. On our website (not the app) we also use Google
-        Analytics to measure visits. Both use cookies or similar browser storage.
+        Analytics, through Google Tag Manager, to measure visits and how games go: for example which way of
+        playing you chose, when a game starts and ends, your place, simple counts such as captures and sixes,
+        and whether you used chat or a call. Games are identified by a random match number, not by your name
+        or account. We never send Google your name, contact details, chat, your age or birth date, or the
+        links and codes that let someone join your table, team or TV screen. In the European Economic Area,
+        the UK and Switzerland, Google Analytics is off. Google Analytics keeps this event data for 14
+        months. Both PostHog and Google Analytics use cookies or similar browser storage.
       </p>
 
       <h2>How we use it</h2>
@@ -146,8 +152,9 @@ export default function PrivacyPage() {
           <strong>Vercel</strong> — hosts the website.
         </li>
         <li>
-          <strong>PostHog</strong> and, on the website only, <strong>Google Analytics</strong> — usage
-          analytics and session recordings (PostHog), with approximate location from your IP address.
+          <strong>PostHog</strong> (usage analytics and session recordings) and, on the website only,{" "}
+          <strong>Google Analytics</strong> through Google Tag Manager (usage and game analytics), both with
+          approximate location from your IP address.
         </li>
         <li>
           <strong>Google</strong> — only if you choose &ldquo;Continue with Google&rdquo;.

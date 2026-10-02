@@ -15,6 +15,8 @@ import {
   type TournamentSummary,
 } from "@/lib/supabase/tournaments";
 import { Icon } from "@/components/simulator/Icon";
+import { track } from "@/lib/analytics";
+import { analyticsGameType } from "@/lib/analytics/gameParams";
 import { ProfileHeaderLink } from "@/components/profile/ProfileHeaderLink";
 import { useI18n, type LocaleCode } from "@/lib/i18n";
 import "@/components/simulator/simulator.css";
@@ -180,6 +182,7 @@ export default function TournamentsPage() {
                           setPending(true);
                           try {
                             await joinTournament(client, t.id);
+                            track("tournament_joined", {});
                             await refresh();
                           } catch (err) {
                             setError(err instanceof Error ? err.message : tx("tournaments.joinError"));
@@ -210,6 +213,7 @@ export default function TournamentsPage() {
                   setError(null);
                   try {
                     await createTournament(client, values);
+                    track("tournament_created", { size: values.size, game_type: analyticsGameType(values.gameType) });
                     setCreating(false);
                     await refresh();
                   } catch (err) {

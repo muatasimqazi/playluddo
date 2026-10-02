@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { getRoomInvite, joinPartyAudience, joinRoomById, RpcError, type RoomInvite } from "@/lib/supabase/rpc";
 import { useAgeCheck } from "@/components/lobby/AgeCheck";
+import { track, trackError } from "@/lib/analytics";
 import { ProfilePanel } from "@/components/auth/ProfilePanel";
 import { TableLoading } from "@/components/simulator/TableLoading";
 import { Icon } from "@/components/simulator/Icon";
@@ -98,14 +99,18 @@ export function JoinTable({
       } catch {
         // Remembering the name is a convenience only.
       }
-      if (audience) onAudience?.();
-      else onJoined();
+      if (audience) {
+        // Audience phones never hold a seat; this is their only join event.
+        track("party_controller_joined", { role: "audience", remote: false }, { once: `party_audience:${roomId}` });
+        onAudience?.();
+      } else onJoined();
     } catch (err) {
       if (age.handle(err, () => void join())) {
         setPending(false);
         return;
       }
       const code = err instanceof RpcError ? err.code : "UNKNOWN";
+      trackError("join", code);
       if (invite?.isParty && onAudience && (code === "ROOM_FULL" || code === "ALREADY_STARTED" || code === "PARTY_LOCKED")) {
         setSeatsGone(true);
         setError(t("lobby.lastSeatAudience"));

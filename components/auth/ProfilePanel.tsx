@@ -35,6 +35,8 @@ import { deleteAccount } from "@/lib/supabase/account";
 import { sendSignInCode, signInOrLinkWithOAuth, verifySignInCode } from "@/lib/supabase/linkAccount";
 import { useI18n, type Translator } from "@/lib/i18n";
 import { NotificationSettings } from "@/components/preferences/NotificationSettings";
+import { track } from "@/lib/analytics";
+import { noteSignInStarted } from "@/lib/analytics/auth";
 import { AccessibilitySettings } from "@/components/preferences/AccessibilitySettings";
 import { LoadoutSettings } from "@/components/preferences/LoadoutSettings";
 
@@ -298,6 +300,7 @@ export function ProfilePanel({
   async function signInWithGoogle() {
     setPending("google");
     setMessage(null);
+    noteSignInStarted("google", user);
     if (native) {
       const result = await signInWithGoogleNative(client);
       setPending(null);
@@ -317,6 +320,7 @@ export function ProfilePanel({
   async function continueWithApple() {
     setPending("apple");
     setMessage(null);
+    noteSignInStarted("apple", user);
     if (!native) {
       const { error } = await signInOrLinkWithOAuth(client, "apple", webUrlHere());
       if (error) {
@@ -334,6 +338,7 @@ export function ProfilePanel({
   async function continueWithGameCenter() {
     setPending("game-center");
     setMessage(null);
+    noteSignInStarted("game_center", user);
     const problem = await signInWithGameCenter(client);
     setPending(null);
     if (problem) {
@@ -356,6 +361,8 @@ export function ProfilePanel({
     }
     setLinking(linked);
     setSent(true);
+    // sign_up or login is reported when the account appears (lib/analytics/auth.ts).
+    noteSignInStarted(method === "email" ? "email_code" : "phone_code", user);
     setMessage(
       method === "email"
         ? t("account.checkEmail")
@@ -522,6 +529,7 @@ export function ProfilePanel({
     setMessage(null);
     try {
       setTeams(await joinTeam(client, value, displayName, avatarId));
+      track("join_group", { group_type: "team" });
       setInviteCode("");
       const url = new URL(window.location.href);
       url.searchParams.delete("team");
@@ -556,8 +564,10 @@ export function ProfilePanel({
           text: t("account.shareTeamText", { game: BRAND.gameName, team: team.name, brand: BRAND.name }),
           url,
         });
+        track("share", { method: "share_sheet", content_type: "team_invite" });
       } else {
         await navigator.clipboard.writeText(url);
+        track("share", { method: "copy", content_type: "team_invite" });
       }
       setSharedTeamId(team.id);
       window.setTimeout(() => setSharedTeamId(null), 1800);

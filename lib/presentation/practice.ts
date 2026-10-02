@@ -47,6 +47,24 @@ export interface PracticeSession {
   botLevel?: BotLevel;
   /** Take-back stack (F4.5). Absent on older saves: nothing to undo yet. */
   history?: PracticeHistoryEntry[];
+  /**
+   * A random id for this game, made when it is set up and kept through moves,
+   * undo and reloads (it is saved with the session). Analytics uses it as the
+   * offline `game_id` (docs/analytics.md); nothing else reads it. Absent on
+   * older saves.
+   */
+  id?: string;
+}
+
+/** A random id for a local game; never derived from anything about the players. */
+export function newLocalGameId(): string {
+  const bytes = new Uint8Array(16);
+  const cryptoApi = typeof globalThis !== "undefined" ? globalThis.crypto : undefined;
+  if (cryptoApi && typeof cryptoApi.getRandomValues === "function") cryptoApi.getRandomValues(bytes);
+  else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) hex += (bytes[i] < 16 ? "0" : "") + bytes[i].toString(16);
+  return `local-${hex}`;
 }
 export interface PracticeProfile {
   displayName?: string;
@@ -128,6 +146,7 @@ export function createPractice(
     },
     events: [],
     botLevel,
+    id: newLocalGameId(),
   };
 }
 export type PracticeAction =

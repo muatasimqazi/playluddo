@@ -12,6 +12,7 @@ import {
   type PracticeSession,
 } from "@/lib/presentation/practice";
 import Simulator from "./Simulator";
+import { useOfflineGameAnalytics } from "@/lib/analytics/useOfflineAnalytics";
 import { createClient } from "@/lib/supabase/client";
 
 function requestedPlayerCount(
@@ -138,6 +139,8 @@ export default function PracticeTable() {
     }));
   const [generation, setGeneration] = useState(0);
   const state = session.state;
+  // Start, finish and replacement of this offline game (lib/analytics/useOfflineAnalytics.ts).
+  useOfflineGameAnalytics("practice", session);
   useEffect(() => {
     function applyIfNew() {
       const current = searchParams.toString();

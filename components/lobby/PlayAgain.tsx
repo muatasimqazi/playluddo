@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { track } from "@/lib/analytics";
 import { PlayerAvatar } from "@/components/shared/PlayerAvatar";
 import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import {
@@ -84,6 +85,7 @@ export function PlayAgain({ onJoin }: { onJoin: (roomCode: string) => void }) {
   async function add(userId: string) {
     try {
       await addRecentPlayerFriend(client, userId);
+      track("friend_request_sent", { method: "recent_table" });
       setAdded((prev) => ({ ...prev, [userId]: true }));
     } catch {
       // Non-fatal: the manager on the profile page can retry.
@@ -110,7 +112,13 @@ export function PlayAgain({ onJoin }: { onJoin: (roomCode: string) => void }) {
             </PlayerProfileButton>
             <span className="play-again-name">{e.displayName}</span>
             {e.roomCode ? (
-              <button type="button" onClick={() => onJoin(e.roomCode!)}>
+              <button
+                type="button"
+                onClick={() => {
+                  track("play_again_used", { is_friend: !!e.isFriend });
+                  onJoin(e.roomCode!);
+                }}
+              >
                 {t("actions.join")}
               </button>
             ) : e.isFriend ? (

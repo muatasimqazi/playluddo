@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { trackError } from "@/lib/analytics";
 import Link from "next/link";
 import { Icon } from "@/components/simulator/Icon";
 import { useI18n, type MessageKey } from "@/lib/i18n";
@@ -41,6 +43,10 @@ const DEFAULT_KEYS = {
 } as const;
 
 export function RoomNotice({ code }: { code: string }) {
+  // Counted as a code from the allow-list; age codes are never reported.
+  useEffect(() => {
+    trackError("room_access", code);
+  }, [code]);
   const { t } = useI18n();
   const keys = NOTICE_KEYS[code] ?? DEFAULT_KEYS;
   return (

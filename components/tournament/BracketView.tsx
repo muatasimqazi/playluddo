@@ -11,6 +11,7 @@ import {
   type TournamentTable,
 } from "@/lib/supabase/tournaments";
 import { Icon } from "@/components/simulator/Icon";
+import { tagRoomEntry } from "@/lib/analytics/entry";
 import { PlayerProfileButton } from "@/components/profile/PlayerProfileButton";
 import { COLORS } from "@/lib/presentation/board";
 import { useI18n, type Translator } from "@/lib/i18n";
@@ -148,7 +149,11 @@ export function BracketView({ tournamentId }: { tournamentId: string }) {
       )}
 
       {myTable?.roomId && (
-        <Link className="sim-primary" href={`/room?id=${myTable.roomId}`}>
+        <Link
+          className="sim-primary"
+          href={`/room?id=${myTable.roomId}`}
+          onClick={() => tagRoomEntry(myTable.roomId!, { entry_point: "tournament", play_context: "tournament" })}
+        >
           <Icon name="play" size={16} />
           {tx("tournaments.goToTable")}
         </Link>

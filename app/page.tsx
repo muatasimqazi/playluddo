@@ -42,6 +42,10 @@ import { EntranceSheet, Segmented } from "@/components/lobby/EntrancePickers";
 import type { Team } from "@/lib/supabase/teams";
 import { BRAND } from "@/lib/brand";
 import { useI18n } from "@/lib/i18n";
+import { errorCode, track, trackError } from "@/lib/analytics";
+import type { PlayMode as AnalyticsPlayMode } from "@/lib/analytics/events";
+import { tagRoomEntry } from "@/lib/analytics/entry";
+import { analyticsGameType } from "@/lib/analytics/gameParams";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import "@/components/simulator/simulator.css";
 
@@ -96,6 +100,13 @@ const MODE_LABEL_KEYS = {
 // Android's hardware back button inside the Capacitor app — steps back
 // through the flow instead of leaving the app.
 const PLAY_MODES: readonly PlayMode[] = ["quick", "friends", "practice", "together"];
+/** The entrance's steps, as the analytics catalog names them (lib/analytics/events.ts). */
+const PLAY_MODE_EVENT: Record<PlayMode, AnalyticsPlayMode> = {
+  quick: "quick_match",
+  friends: "private_room",
+  practice: "practice",
+  together: "table_together",
+};
 const isPlayMode = (value: string | null): value is PlayMode =>
   PLAY_MODES.includes(value as PlayMode);
 
@@ -273,6 +284,7 @@ export default function Home() {
     applyUrl();
   }
   function chooseMode(next: PlayMode) {
+    track("play_mode_selected", { play_mode: PLAY_MODE_EVENT[next] });
     go(`?play=${next}`);
   }
   function pickAvatar(id: string | null) {
@@ -296,10 +308,17 @@ export default function Home() {
       if (kind === "join") {
         const roomId = await roomIdForCode(client, code.trim());
         try { localStorage.setItem("luddo-player-name", name.trim()); } catch { /* Optional. */ }
+        tagRoomEntry(roomId, { entry_point: "room_code", play_context: "private_room" });
         router.push(`/room?id=${roomId}`);
         return;
       }
       const room = await createRoom(client, name.trim(), undefined, tableSize);
+      tagRoomEntry(room.roomId, { entry_point: "created", play_context: "private_room" });
+      track("room_created", {
+        game_type: analyticsGameType(gameType),
+        seat_count: tableSize,
+        play_context: "private_room",
+      });
       if (kind === "create" && playerColor !== "red")
         await setPlayerColor(client, room.roomId, playerColor);
       if (kind === "create" && gameType !== "ludo") {
@@ -314,6 +333,7 @@ export default function Home() {
     } catch (e) {
       setPending(null);
       if (age.handle(e, () => void enter(kind))) return;
+      trackError(kind === "create" ? "create" : "join", errorCode(e));
       setError(
         e instanceof Error ? e.message : t("common.connectError"),
       );
@@ -337,11 +357,14 @@ export default function Home() {
         return;
       }
       const room = await createRoom(client, displayName, team.id);
+      tagRoomEntry(room.roomId, { entry_point: "team", play_context: "team" });
+      track("room_created", { game_type: analyticsGameType(gameType), seat_count: 4, play_context: "team" });
       if (gameType !== "ludo") await setRoomGame(client, room.roomId, gameType);
       router.push(`/room?id=${room.roomId}`);
     } catch (e) {
       setPending(null);
       if (age.handle(e, () => void startForTeam(team))) return;
+      trackError("create", errorCode(e));
       setError(e instanceof Error ? e.message : t("common.connectError"));
     }
   }
@@ -358,7 +381,9 @@ export default function Home() {
     try {
       const client = createClient();
       await ensureSession(client);
-      openRoom(await roomIdForCode(client, roomCode));
+      const roomId = await roomIdForCode(client, roomCode);
+      tagRoomEntry(roomId, { entry_point: "play_again", play_context: "private_room" });
+      openRoom(roomId);
     } catch (e) {
       setPending(null);
       setError(e instanceof Error ? e.message : t("common.connectError"));
@@ -447,7 +472,11 @@ export default function Home() {
                   </button>
                 ))}
                 {/* Party mode needs no setup, so it leaves the flow directly. */}
-                <Link className="entrance-mode-link" href="/screen">
+                <Link
+                  className="entrance-mode-link"
+                  href="/screen"
+                  onClick={() => track("play_mode_selected", { play_mode: "party" })}
+                >
                   <ModeLabel label={t("entrance.partyMode")} />
                   <Icon name="arrow" />
                 </Link>
@@ -505,7 +534,11 @@ export default function Home() {
                         type="button"
                         className="sim-primary"
                         disabled={pending !== null}
-                        onClick={() => (canJoin ? openRoom(room.roomId) : void startForTeam(team))}
+                        onClick={() => {
+                          if (!canJoin) return void startForTeam(team);
+                          tagRoomEntry(room.roomId, { entry_point: "team", play_context: "team" });
+                          openRoom(room.roomId);
+                        }}
                       >
                         <span>{canJoin ? t("entrance.joinNow") : t("entrance.startTable")}</span>
                         <Icon name="arrow" />

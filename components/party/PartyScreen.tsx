@@ -38,6 +38,10 @@ import { QrCode } from "./QrCode";
 import { CastScreen } from "@/components/cast/CastScreen";
 import "@/components/simulator/simulator.css";
 
+import { track } from "@/lib/analytics";
+import { analyticsGameType } from "@/lib/analytics/gameParams";
+import { usePartyScreenAnalytics } from "@/lib/analytics/usePartyScreenAnalytics";
+
 const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
   ssr: false,
   loading: () => <TableLoading label="Setting the table…" />,
@@ -48,12 +52,21 @@ const Simulator = dynamic(() => import("@/components/simulator/Simulator"), {
  * Opens a party room, shows its code and a QR code for phones to join, and
  * follows the room live. It never takes a seat: phones do the playing.
  */
+let screenOpenedSent = false;
+
 export function PartyScreen() {
   const params = useSearchParams();
   const roomId = params.get("id");
   // Cast to TV: a phone at the table sent this TV here with a cast token.
   const castToken = params.get("cast");
   useWakeLock();
+  // Once per page load on this screen (the TV is its own analytics user).
+  // A TV showing a cast table is not a Party Mode screen.
+  useEffect(() => {
+    if (screenOpenedSent || castToken) return;
+    screenOpenedSent = true;
+    track("party_screen_opened", { has_room: !!roomId });
+  }, [roomId, castToken]);
   if (roomId && castToken) return <CastReceiver key={roomId} roomId={roomId} token={castToken} />;
   return roomId ? <ConnectedScreen key={roomId} roomId={roomId} /> : <StartScreen />;
 }
@@ -119,6 +132,7 @@ function StartScreen() {
       const client = createClient();
       await ensureSession(client);
       const room = await createPartyRoom(client, gameType);
+      track("party_room_created", { game_type: analyticsGameType(gameType) });
       router.replace(`/screen?id=${room.roomId}`);
     } catch {
       setError(t("party.openError"));
@@ -195,6 +209,8 @@ function ConnectedScreen({ roomId }: { roomId: string }) {
   useEffect(() => {
     if (status) loadExtras();
   }, [status, loadExtras]);
+  // Games, pauses and how they ended, from the one device that sees them all.
+  usePartyScreenAnalytics(state, events, extras?.audience.length);
   // While the podium is up, everyone's phone gets one question (P8).
   const hasRound = !!extras?.round;
   useEffect(() => {

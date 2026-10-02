@@ -8,6 +8,8 @@ import { PreferencesSync } from "@/components/preferences/PreferencesSync";
 import { AgeGateOnSignIn } from "@/components/auth/AgeGateOnSignIn";
 import { OAuthLinkFallback } from "@/components/auth/OAuthLinkFallback";
 import { PushRegistration } from "@/components/preferences/PushRegistration";
+import { AnalyticsRoot } from "@/components/analytics/AnalyticsRoot";
+import { analyticsHeadScript, gtmLoaderScript } from "@/lib/analytics/headScript";
 import "./globals.css";
 
 // Publishes the real visible viewport height to CSS as `--app-height`, so
@@ -79,6 +81,10 @@ export const viewport: Viewport = {
 const isAppBuild = !!process.env.CAPACITOR_BUILD;
 
 const GTM_ID = "GTM-N7X49V9F";
+// Google Analytics is delivered by the GTM container's Google tag
+// (docs/analytics.md). The id is needed here only so the head script can
+// switch it off completely on an under-13 device.
+const GA_MEASUREMENT_ID = "G-75GZQ69MCG";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -111,19 +117,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: APP_HEIGHT_SCRIPT }} />
         {/* Flags browsers without flexbox gap so the CSS margin fallbacks apply. */}
         <script dangerouslySetInnerHTML={{ __html: FLEX_GAP_DETECT }} />
+        {/* Web only. Runs before Tag Manager can load: consent defaults, the
+            under-13 off switch and the production-host check
+            (lib/analytics/headScript.ts). */}
+        {!isAppBuild && (
+          <script dangerouslySetInnerHTML={{ __html: analyticsHeadScript(GA_MEASUREMENT_ID) }} />
+        )}
       </head>
       <body className="min-h-full flex flex-col">
-        {/* Google Tag Manager (noscript) — web only, like the GTM script below. */}
-        {!isAppBuild && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-            />
-          </noscript>
-        )}
+        {/* No GTM <noscript> iframe: the container has no tag that could use
+            it, and it could not honour the under-13 off switch. */}
         {/* F5.1: client-side locale detection + <html lang/dir> sync. The
             server always renders the default (English) HTML above; the
             provider adopts the player's locale right after mount. */}
@@ -132,6 +135,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <AgeGateOnSignIn />
           <OAuthLinkFallback />
           <PushRegistration />
+          <AnalyticsRoot />
           {children}
           <NativeShell />
         </I18nProvider>
@@ -139,27 +143,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* Web only: the app build (CAPACITOR_BUILD) leaves out Google
           Analytics' and Tag Manager's marketing tracking, keeping the App Store
           privacy label to the product analytics declared in
-          ios/App/App/PrivacyInfo.xcprivacy. */}
+          ios/App/App/PrivacyInfo.xcprivacy. The app's events go to PostHog.
+          Google Analytics now loads through the container's Google tag, not a
+          direct gtag.js snippet, so every page is counted once. The loader
+          runs only if the head script allowed it. */}
       {!isAppBuild && (
-        <>
-          <Script id="google-tag-manager" strategy="afterInteractive">
-            {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`}
-          </Script>
-          <Script
-            src="https://www.googletagmanager.com/gtag/js?id=G-75GZQ69MCG"
-            strategy="afterInteractive"
-          />
-          <Script id="google-analytics" strategy="afterInteractive">
-            {`window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-75GZQ69MCG');`}
-          </Script>
-        </>
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {gtmLoaderScript(GTM_ID)}
+        </Script>
       )}
     </html>
   );

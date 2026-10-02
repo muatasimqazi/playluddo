@@ -12,6 +12,7 @@ import { getMatchTranscript } from "@/lib/supabase/replay";
 import { buildReplay, type Replay, type ReplayStep } from "@/lib/presentation/replay";
 import type { PresentationFrame } from "@/lib/presentation/timeline";
 import { mediaRecordingSupported, recordHighlight, shareClip } from "@/lib/presentation/clip";
+import { track } from "@/lib/analytics";
 import { useGamePreference } from "@/lib/preferences-react";
 import { useCosmeticOwnership } from "@/lib/hooks/useCosmeticOwnership";
 import { ownedRoom } from "@/lib/presentation/cosmeticGates";
@@ -121,7 +122,8 @@ export function ReplayView({ matchId }: { matchId: string }) {
         caption: steps[index]?.caption ?? tx("replay.highlight"),
       });
       setClipState("sharing");
-      await shareClip(blob, steps[index]?.caption ?? tx("replay.highlight"));
+      const method = await shareClip(blob, steps[index]?.caption ?? tx("replay.highlight"));
+      track("share", { method, content_type: "highlight_clip" });
     } catch (err) {
       if (!(err instanceof DOMException && err.name === "AbortError"))
         setError(err instanceof Error ? err.message : tx("replay.saveError"));

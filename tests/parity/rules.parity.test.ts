@@ -400,14 +400,25 @@ describe("parity: evaluateSixRoll / earnsBonusRoll", () => {
 
   it("agree on which of a turn's dice is moved by next", async () => {
     // Sixes are rolled first, then moved by in order; a die that can't move
-    // anything is passed over (PRD 4.2).
+    // anything ends the moving (PRD 4.2).
     const cases: { pawns: EnginePawn[]; dice: number[]; context?: { rules?: Partial<RoomRules>; hasCaptured?: boolean } }[] = [
       { pawns: fullBoard(), dice: [] },
       { pawns: fullBoard(), dice: [4] },
       { pawns: fullBoard(), dice: [6, 3] },
       { pawns: fullBoard(), dice: [6, 6, 2] },
-      // Only a 3 finishes the home-lane piece; the 6 and 5 pass over it.
-      { pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "home_lane", 53) }), dice: [5, 3, 1] },
+      // Only a 3 or less moves the home-lane piece: a 6 first stops the 3.
+      { pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "home_lane", 53) }), dice: [6, 3] },
+      { pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "home_lane", 53) }), dice: [3] },
+      // The last piece left: nothing else can take the 6, so the 3 is lost.
+      {
+        pawns: fullBoard({
+          "red-0": pawn("red-0", "red", 0, "home_lane", 53),
+          "red-1": pawn("red-1", "red", 1, "finished", 56),
+          "red-2": pawn("red-2", "red", 2, "finished", 56),
+          "red-3": pawn("red-3", "red", 3, "finished", 56),
+        }),
+        dice: [6, 3],
+      },
       { pawns: fullBoard({ "red-0": pawn("red-0", "red", 0, "home_lane", 53) }), dice: [5, 4] },
       // Master mode holds the piece on the last shared square.
       {

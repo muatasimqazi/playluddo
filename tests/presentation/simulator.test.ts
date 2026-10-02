@@ -375,7 +375,7 @@ describe("offline practice uses the established rules", () => {
     expect(moved.state.pawns[0].pathIndex).toBe(2);
     expect(moved.state.turnPlayerId).toBe("practice-1");
   });
-  it("passes over a die that can't move anything", () => {
+  it("ends the turn on a six that can't move instead of rolling again", () => {
     const game = createPractice();
     game.state.pawns = game.state.pawns.map((piece) =>
       piece.color === "blue"
@@ -384,11 +384,30 @@ describe("offline practice uses the established rules", () => {
           : { ...piece, state: "finished" as const, pathIndex: 56 }
         : piece,
     );
-    // Neither six can move blue-0, which needs exactly a 1.
+    // The last piece needs exactly a 1; a six can't move it, so no roll for the 1.
+    const six = practiceReducer(game, { type: "roll", value: 6 });
+    expect(six.state.turnPlayerId).toBe("practice-1");
+    expect(six.state.pendingDice).toEqual([]);
+    expect(six.state.consecutiveSixes).toBe(0);
+  });
+  it("loses the dice after a six that can't move once the sixes before it have", () => {
+    const game = createPractice();
+    // Blue-0 is one six from its home lane; after that six it needs a 3 or less.
+    game.state.pawns = game.state.pawns.map((piece) =>
+      piece.color === "blue"
+        ? piece.index === 0
+          ? { ...piece, state: "track" as const, pathIndex: 47 }
+          : { ...piece, state: "finished" as const, pathIndex: 56 }
+        : piece,
+    );
     let last = game;
-    for (const value of [6, 6, 1]) last = practiceReducer(last, { type: "roll", value });
-    expect(last.state.turnPhase).toBe("awaiting_move");
-    expect(last.state.activeDiceValue).toBe(1);
+    for (const value of [6, 6, 3]) last = practiceReducer(last, { type: "roll", value });
+    expect(last.state.activeDiceValue).toBe(6);
+    expect(last.state.pendingDice).toEqual([6, 3]);
+    last = practiceReducer(last, { type: "move", pawnId: "blue-0" });
+    expect(last.state.pawns[0].pathIndex).toBe(53);
+    // The second six can't move it, so the 3 that would get it home is lost.
+    expect(last.state.turnPlayerId).toBe("practice-1");
     expect(last.state.pendingDice).toEqual([]);
   });
   it("counts three sixes in a row for nothing and passes the turn", () => {

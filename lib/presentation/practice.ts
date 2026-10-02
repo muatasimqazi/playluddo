@@ -5,6 +5,7 @@ import {
   evaluateSixRoll,
   isMatchWon,
   nextPlayableDie,
+  sixRollsAgain,
 } from "../board/rules";
 import type { GameRoomState, GameType, PlayerColor, RoomRules } from "../board/types";
 import { applySnakeMove, snakeMove } from "../board/snakes";
@@ -253,8 +254,9 @@ function ludoPracticeReducer(
       bonusRollPending: false,
     };
   };
-  // Move by the next of the turn's dice that can move anything; once none
-  // is left, take any extra roll a capture or a piece home has earned.
+  // Move by the next of the turn's dice; once none is left, or the next
+  // can't move anything, take any extra roll a capture or a piece home has
+  // earned.
   const playNextDie = (dice: number[], bonusRollPending: boolean) => {
     const die = nextPlayableDie(next.pawns, player.color, dice);
     if (die)
@@ -304,8 +306,9 @@ function ludoPracticeReducer(
     };
     // Three sixes in a row count for nothing: the turn passes.
     if (six.cancelMove) advance();
-    // A six is rolled again before anything moves.
-    else if (action.value === 6)
+    // A six is rolled again before anything moves — unless it can't move at
+    // all, which ends the turn here rather than handing out a free roll.
+    else if (action.value === 6 && sixRollsAgain(state.pawns, player.color, sixes.length))
       next = { ...next, pendingDice: [...sixes, 6], activeDiceValue: null, legalMoves: [] };
     else playNextDie([...sixes, action.value], false);
   } else {

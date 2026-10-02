@@ -8,6 +8,7 @@ import {
   isMatchWon,
   isTeamUpWon,
   nextPlayableDie,
+  sixRollsAgain,
   rankPlayers,
   resolveRoomRules,
 } from "../../lib/board/rules";
@@ -296,22 +297,42 @@ describe("nextPlayableDie — moving by the turn's dice in order", () => {
     });
   });
 
-  it("passes over a die that can't move anything", () => {
-    // Three home already; the last needs a 3 or less.
+  it("stops at a die that can't move anything, losing the dice after it", () => {
+    // Three home already; the last needs a 3 or less, so the 6 stops the 3.
     const board = makeBoard({
       "red-0": pawn("red-0", "red", 0, "home_lane", 53),
       "red-1": pawn("red-1", "red", 1, "finished", 56),
       "red-2": pawn("red-2", "red", 2, "finished", 56),
       "red-3": pawn("red-3", "red", 3, "finished", 56),
     });
-    const next = nextPlayableDie(board, "red", [6, 5, 3, 1]);
-    expect(next).toMatchObject({ dieValue: 3, rest: [1] });
-    expect(next?.legalMoves.map((m) => m.pawnId)).toEqual(["red-0"]);
+    expect(nextPlayableDie(board, "red", [6, 3])).toBeNull();
+    expect(nextPlayableDie(board, "red", [3])).toMatchObject({ dieValue: 3, rest: [] });
   });
 
-  it("is null once no die is left that can move", () => {
+  it("is null when the next die can't move or none is left", () => {
     expect(nextPlayableDie(makeBoard(), "red", [4, 2])).toBeNull();
     expect(nextPlayableDie(makeBoard(), "red", [])).toBeNull();
+  });
+});
+
+describe("sixRollsAgain — a six earns the roll after it only if it can move", () => {
+  const lastPieceInHomeLane = makeBoard({
+    "red-0": pawn("red-0", "red", 0, "home_lane", 53),
+    "red-1": pawn("red-1", "red", 1, "finished", 56),
+    "red-2": pawn("red-2", "red", 2, "finished", 56),
+    "red-3": pawn("red-3", "red", 3, "finished", 56),
+  });
+
+  it("rolls again when the six can bring a piece out", () => {
+    expect(sixRollsAgain(makeBoard(), "red", 0)).toBe(true);
+  });
+
+  it("ends the turn on a first six nothing can move", () => {
+    expect(sixRollsAgain(lastPieceInHomeLane, "red", 0)).toBe(false);
+  });
+
+  it("leaves a later six to be settled once the sixes before it move", () => {
+    expect(sixRollsAgain(lastPieceInHomeLane, "red", 1)).toBe(true);
   });
 });
 

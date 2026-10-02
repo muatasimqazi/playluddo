@@ -46,6 +46,11 @@ export function LudoRules({ rules }: { rules?: RoomRules | null }) {
           Roll a <strong>6</strong> and you roll again straight away, before moving. Once you roll
           something else, move by each roll in the order you rolled them.
         </li>
+        <li>
+          Each roll is used before the next. If one can&rsquo;t move any piece, your turn ends there and
+          the rolls after it are lost, so a <strong>6</strong> that can&rsquo;t move doesn&rsquo;t earn
+          another roll.
+        </li>
         <li>Three 6s in a row cancel out: none of them moves, and your turn ends.</li>
         <li>
           Capture a piece

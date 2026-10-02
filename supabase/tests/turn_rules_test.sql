@@ -4,7 +4,7 @@
 -- Run with `supabase test db` (requires `supabase start`).
 
 begin;
-select plan(15);
+select plan(16);
 
 create function private.ludo_test_pawn(p_id text, p_color text, p_index int, p_state text, p_path_index int)
 returns jsonb language sql immutable as $$
@@ -82,6 +82,18 @@ select is(
   private.ludo_next_playable_die(private.ludo_test_board(), 'red', array[4, 2]),
   null,
   'no die is playable with every pawn in its nest and no six'
+);
+
+select is(
+  private.ludo_next_playable_die(
+    jsonb_build_array(
+      private.ludo_test_pawn('red-0', 'red', 0, 'home_lane', 53),
+      private.ludo_test_pawn('red-1', 'red', 1, 'finished', 56),
+      private.ludo_test_pawn('red-2', 'red', 2, 'finished', 56),
+      private.ludo_test_pawn('red-3', 'red', 3, 'finished', 56)
+    ), 'red', array[6, 3]),
+  null,
+  'a six that can''t move ends the moving: the 3 after it is lost'
 );
 
 -- consecutive sixes (PRD 4.2)

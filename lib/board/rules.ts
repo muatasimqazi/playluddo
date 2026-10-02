@@ -267,9 +267,11 @@ export interface PlayableDie {
 
 /**
  * PRD 4.2: sixes are rolled first, then the turn's dice are moved by in the
- * order they were rolled. This finds the next one that moves anything; a die
- * with no legal move is passed over. Null once no die is left that can move.
- * Mirrors the SQL private.ludo_next_playable_die().
+ * order they were rolled. Each is used before the next, so a die with no
+ * legal move ends the moving and the dice after it are lost: a six that
+ * can't move doesn't let the roll after it through. Null when the next die
+ * can't move anything, or none is left. Mirrors the SQL
+ * private.ludo_next_playable_die().
  */
 export function nextPlayableDie(
   pawns: EnginePawn[],
@@ -278,11 +280,25 @@ export function nextPlayableDie(
   context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
   spec: BoardSpec = BOARD_4,
 ): PlayableDie | null {
-  for (let i = 0; i < dice.length; i++) {
-    const legalMoves = getLegalMoves(pawns, color, dice[i], context, spec);
-    if (legalMoves.length) return { dieValue: dice[i], rest: dice.slice(i + 1), legalMoves };
-  }
-  return null;
+  if (!dice.length) return null;
+  const legalMoves = getLegalMoves(pawns, color, dice[0], context, spec);
+  return legalMoves.length ? { dieValue: dice[0], rest: dice.slice(1), legalMoves } : null;
+}
+
+/**
+ * PRD 4.2: a six earns the roll after it only if it can be moved by. The
+ * first six of a run is checked against the board as it stands; later ones
+ * wait for the moves before them, and {@link nextPlayableDie} settles them.
+ * Mirrors the check in the SQL private.ludo_perform_ludo_roll().
+ */
+export function sixRollsAgain(
+  pawns: EnginePawn[],
+  color: PlayerColor,
+  sixesInHand: number,
+  context?: { rules?: Partial<RoomRules> | null; hasCaptured?: boolean },
+  spec: BoardSpec = BOARD_4,
+): boolean {
+  return sixesInHand > 0 || getLegalMoves(pawns, color, 6, context, spec).length > 0;
 }
 
 /**

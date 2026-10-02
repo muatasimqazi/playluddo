@@ -672,7 +672,7 @@ A streak for playing at least one game a day, rewarding cosmetics at streak mile
 **Ours:** unlocked through levels, achievements and streaks. Types:
 - **Dice skins:** glass variants, wood, marble.
 - **Piece styles:** pieces separate from board designs, with the constraint that they must remain identifiable.
-- **Board designs:** new art.
+- **Board designs:** new art. Every board shipped so far is free to everyone (changed 2026-10-02); boards added later can be earned.
 - **Room themes:** café, rooftop, lake cabin. This is our unique 3D advantage.
 - **Reaction packs.**
 

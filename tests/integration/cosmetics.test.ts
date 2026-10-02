@@ -46,16 +46,19 @@ it("unlocks cosmetics by level and equips only owned ones", async () => {
     );
     // Defaults are always owned; level unlocks up to the account's level.
     expect(byId.board_signature.owned).toBe(true);
-    expect(byId.board_classic.owned).toBe(true); // level 3
-    expect(byId.board_geometric.owned).toBe(false); // level 8
+    expect(byId.board_classic.owned).toBe(true);
+    // Every board is free.
+    expect(byId.board_geometric.owned).toBe(true);
+    expect(byId.board_aladdin.owned).toBe(true);
     expect(byId.dice_glass.owned).toBe(true); // level 2
+    expect(byId.dice_wood.owned).toBe(false); // level 10
 
     // Equipping an owned cosmetic succeeds.
     const { error: equipErr } = await ada.rpc("equip_cosmetic", { p_cosmetic_id: "board_classic" });
     expect(equipErr).toBeNull();
 
     // Equipping a locked one is rejected.
-    const { error: lockedErr } = await ada.rpc("equip_cosmetic", { p_cosmetic_id: "board_geometric" });
+    const { error: lockedErr } = await ada.rpc("equip_cosmetic", { p_cosmetic_id: "dice_wood" });
     expect(lockedErr?.message).toContain("COSMETIC_LOCKED");
   } finally {
     try {

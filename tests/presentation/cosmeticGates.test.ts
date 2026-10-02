@@ -24,23 +24,22 @@ describe("cosmetic gates", () => {
     expect(boardStyleForCosmetic("dice_wood")).toBeUndefined();
   });
 
-  it("keeps the shipped defaults free: Classic and Signature boards, the Apartment", () => {
-    expect(ownedBoardStyle("classic", freeOnly)).toBe("classic");
-    expect(ownedBoardStyle("signature", freeOnly)).toBe("signature");
+  it("keeps every board free, and the Apartment", () => {
+    for (const style of ["signature", "classic", "geometric", "aladdin"] as const)
+      expect(ownedBoardStyle(style, freeOnly)).toBe(style);
     expect(ownedRoom("apartment", freeOnly)).toBe("apartment");
   });
 
   it("draws an unowned choice as the free default", () => {
-    expect(ownedBoardStyle("geometric", freeOnly)).toBe("classic");
-    expect(ownedBoardStyle("aladdin", freeOnly)).toBe("classic");
+    // No board is locked today; a later one that is falls back to Classic.
+    expect(ownedBoardStyle("geometric", () => false)).toBe("classic");
     for (const room of ["mahogany", "cafe", "lake", "rooftop"] as const) {
       expect(ownedRoom(room, freeOnly)).toBe("apartment");
     }
   });
 
   it("draws an owned choice as chosen", () => {
-    const owns = (id: string) => freeOnly(id) || id === "board_geometric" || id === "room_cafe";
-    expect(ownedBoardStyle("geometric", owns)).toBe("geometric");
+    const owns = (id: string) => freeOnly(id) || id === "room_cafe";
     expect(ownedRoom("cafe", owns)).toBe("cafe");
     expect(ownedRoom("lake", owns)).toBe("apartment");
   });

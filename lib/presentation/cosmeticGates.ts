@@ -34,6 +34,8 @@ const ROOM_COSMETIC: Record<RoomStyle, string> = {
 export const FREE_COSMETICS: ReadonlySet<string> = new Set([
   "board_signature",
   "board_classic",
+  "board_geometric",
+  "board_aladdin",
   "piece_glass",
   "dice_classic",
   "room_apartment",

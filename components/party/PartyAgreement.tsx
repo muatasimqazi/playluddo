@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import Link from "next/link";
 import { acceptPartyRules, partyRulesAccepted, deviceAgeBlocked } from "@/lib/community";
 import { getAgeEligibility, type AgeEligibility } from "@/lib/supabase/rpc";
@@ -13,7 +13,7 @@ import { useI18n } from "@/lib/i18n";
 /** P7 / decision 7: one agreement for players and audience, alongside age. */
 export function PartyAgreement({ onAgree }: { onAgree: () => void }) {
   const { t } = useI18n();
-  const router = useRouter();
+  const router = useProgressRouter();
   const [age, setAge] = useState<AgeEligibility | null>(null);
   const [error, setError] = useState(false);
   const [restricted, setRestricted] = useState(false);

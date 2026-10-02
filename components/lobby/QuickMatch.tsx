@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import { cancelMatchmaking, matchmake } from "@/lib/supabase/rpc";
@@ -41,7 +41,7 @@ export function QuickMatch({
   displayName: string;
   onCancel: () => void;
 }) {
-  const router = useRouter();
+  const router = useProgressRouter();
   const { t: tx } = useI18n();
   const [phase, setPhase] = useState<Phase>({ kind: "searching" });
   const [elapsed, setElapsed] = useState(0);

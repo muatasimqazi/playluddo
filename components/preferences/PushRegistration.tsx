@@ -8,14 +8,14 @@
  * handled by the service worker (public/sw.js).
  */
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { createClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { pushAvailability, syncPushRegistration } from "@/lib/push";
 
 export function PushRegistration() {
-  const router = useRouter();
+  const router = useProgressRouter();
   const { t, locale } = useI18n();
   const channelName = t("notifications.androidChannel");
 

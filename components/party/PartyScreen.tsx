@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import {
@@ -120,7 +121,7 @@ function CastReceiver({ roomId, token }: { roomId: string; token: string }) {
 
 function StartScreen() {
   const { t } = useI18n();
-  const router = useRouter();
+  const router = useProgressRouter();
   const [gameType, setGameType] = useState<GameType>("ludo");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);

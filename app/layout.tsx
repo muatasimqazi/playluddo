@@ -3,6 +3,7 @@ import { Noto_Nastaliq_Urdu, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { BRAND } from "@/lib/brand";
 import { NativeShell } from "@/components/NativeShell";
+import { LoadingBar } from "@/components/LoadingBar";
 import { I18nProvider } from "@/lib/i18n";
 import { PreferencesSync } from "@/components/preferences/PreferencesSync";
 import { AgeGateOnSignIn } from "@/components/auth/AgeGateOnSignIn";
@@ -137,6 +138,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <PushRegistration />
           <AnalyticsRoot />
           {children}
+          <LoadingBar />
           <NativeShell />
         </I18nProvider>
       </body>

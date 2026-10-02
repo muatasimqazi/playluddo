@@ -4,11 +4,12 @@
 // Reads the id at runtime (not at build), so the single prerendered static
 // page works for any real id under the Capacitor export.
 import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 
 export function LegacyTournamentRedirect() {
   const params = useParams();
-  const router = useRouter();
+  const router = useProgressRouter();
   useEffect(() => {
     const raw = params?.id;
     const id = Array.isArray(raw) ? raw[0] : raw;

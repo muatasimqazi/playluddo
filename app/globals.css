@@ -501,6 +501,56 @@ html.reduce-motion *::after {
   scroll-behavior: auto !important;
 }
 
+/* The loading bar (components/LoadingBar.tsx): a thin strip along the top
+   that answers a slow tap, creeping along until the work lands, then filling
+   and fading. */
+.loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483000;
+  height: 3px;
+  background: var(--action);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--action) 55%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0;
+  pointer-events: none;
+}
+[dir="rtl"] .loading-bar {
+  transform-origin: right;
+}
+.loading-bar.is-running {
+  opacity: 1;
+  animation: loading-bar-creep 10s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+}
+.loading-bar.is-done {
+  opacity: 0;
+  transform: scaleX(1);
+  transition:
+    transform 200ms ease-out,
+    opacity 200ms ease 200ms;
+}
+@keyframes loading-bar-creep {
+  from {
+    transform: scaleX(0.08);
+  }
+  to {
+    transform: scaleX(0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar.is-running {
+    animation: none;
+    transform: scaleX(0.6);
+  }
+}
+html.is-loading,
+html.is-loading * {
+  cursor: progress !important;
+}
+
 /* Read by screen readers, not shown. */
 .sr-only {
   position: absolute;

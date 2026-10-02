@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import { createClient } from "@/lib/supabase/client";
 import { ensureSession } from "@/lib/supabase/auth";
 import {
@@ -152,7 +152,7 @@ const COLOR_KEYS = {
 } as const satisfies Record<PlayerColor, string>;
 
 export default function Home() {
-  const router = useRouter();
+  const router = useProgressRouter();
   const { t } = useI18n();
   // Localized board labels/descriptions, mirroring BOARD_STYLE_VALUES' order.
   const BOARD_STYLES: { value: BoardStyle; label: string; desc: string }[] = [

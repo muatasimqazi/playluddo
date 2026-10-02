@@ -6,7 +6,7 @@ import { useT } from "@/lib/i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { GameRoomState } from "@/lib/board/types";
 import type { MatchEventRow, AudienceReaction } from "@/lib/realtime/room-channel";
@@ -30,7 +30,7 @@ type Phase = "loading" | "watching" | "ended" | "error";
 export function WatchView({ roomId }: { roomId: string }) {
   const tx = useT();
   const client = useMemo(() => createClient(), []);
-  const router = useRouter();
+  const router = useProgressRouter();
   const [phase, setPhase] = useState<Phase>("loading");
   const [message, setMessage] = useState<string | null>(null);
   const [state, setState] = useState<GameRoomState | null>(null);

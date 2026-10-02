@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import { App } from "@capacitor/app";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar } from "@capacitor/status-bar";
@@ -19,7 +19,7 @@ import { signInToGameCenter } from "@/lib/gameCenter";
  *   once universal links are set up) open that screen in-app.
  */
 export function NativeShell() {
-  const router = useRouter();
+  const router = useProgressRouter();
   useEffect(() => {
     if (!isNativeApp()) return;
     document.documentElement.classList.add("native-app");

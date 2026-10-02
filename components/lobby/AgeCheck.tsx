@@ -7,7 +7,7 @@ import { useI18n, useT } from "@/lib/i18n";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useProgressRouter } from "@/lib/navigation/progress";
 import { Icon } from "@/components/simulator/Icon";
 import { ensureSession } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/client";
@@ -201,7 +201,7 @@ export function UnderAgeNotice({ eligibleFrom = null }: { eligibleFrom?: string 
  * ask, then call onEligible to try again. "Not now" goes home.
  */
 export function AgeRequired({ onEligible }: { onEligible: () => void }) {
-  const router = useRouter();
+  const router = useProgressRouter();
   const [restricted, setRestricted] = useState(deviceAgeBlocked);
   if (restricted) return <UnderAgeNotice />;
   return (

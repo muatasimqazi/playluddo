@@ -9,6 +9,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/simulator/Icon";
+import { ensureSession } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/client";
 import { declareAge, getAgeEligibility, RpcError } from "@/lib/supabase/rpc";
 import { blockDeviceUntil, deviceAgeBlocked } from "@/lib/community";
@@ -69,6 +70,9 @@ export function AskAge({
     setError(null);
     const client = createClient();
     try {
+      // The answer is saved against the account: make sure it still exists
+      // (a session cached from a deleted account would fail the insert).
+      await ensureSession(client);
       let result;
       try {
         result = await declareAge(client, Number(year), Number(month));

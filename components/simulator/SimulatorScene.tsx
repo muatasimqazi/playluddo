@@ -1087,7 +1087,7 @@ function PhysicalDie({
 /** Marble for the marble die: black Nero Marquina with white veins. */
 function makeDieMarble() {
   const t = canvasTexture(256, 256, (ctx) => {
-    ctx.fillStyle = "#141312";
+    ctx.fillStyle = "#26231f";
     ctx.fillRect(0, 0, 256, 256);
     drawVeins(
       ctx,
@@ -1117,7 +1117,10 @@ function DieBody({
   compact: boolean;
   canRoll: boolean;
 }) {
-  const woodSource = useTexture("/textures/board-wood.webp");
+  // Pale maple, cut from the light oak photo: lighter than every room's
+  // table, so the die stands out on the wood ones too and its burned pips
+  // read even in the dim rooms.
+  const woodSource = useTexture("/textures/table-top.webp");
   const wood = useMemo(() => {
     if (skin !== "wood") return null;
     const t = woodSource.clone();
@@ -1132,25 +1135,21 @@ function DieBody({
   const body =
     skin === "glass" ? (
       <meshPhysicalMaterial
-        // Saturated sea glass: tinted through, so the white pips stand out,
-        // and only softly reflective, so the light overhead doesn't wash the
-        // top face out to grey.
-        color="#5fb3c9"
-        roughness={0.08}
+        // Solid sea-glass teal under a glossy coat. No transmission: on a
+        // real GPU even a little let the table show through the die. Deep
+        // enough that the white pips stand out, and only softly reflective,
+        // so the light overhead doesn't wash the top face out to grey.
+        color="#3a9ab4"
+        roughness={0.12}
         metalness={0}
-        clearcoat={0.6}
-        clearcoatRoughness={0.12}
-        transmission={0.6}
-        thickness={0.46}
-        ior={1.5}
-        attenuationColor="#1f6f8c"
-        attenuationDistance={0.18}
+        clearcoat={0.8}
+        clearcoatRoughness={0.08}
         specularIntensity={0.6}
         envMapIntensity={0.9}
       />
     ) : skin === "wood" ? (
       <meshPhysicalMaterial
-        color="#e2b277"
+        color="#ffe9c8"
         map={wood}
         roughness={0.5}
         clearcoat={0.35}
@@ -1194,7 +1193,15 @@ function DieBody({
     ) : skin === "wood" ? (
       <meshStandardMaterial color="#2a170c" roughness={0.9} />
     ) : skin === "marble" ? (
-      <meshStandardMaterial color="#d6aa4c" metalness={1} roughness={0.28} />
+      // Gilded, with a little glow of its own so it stays gold, not
+      // orange, in the dim rooms.
+      <meshStandardMaterial
+        color="#e8bd5c"
+        metalness={0.85}
+        roughness={0.3}
+        emissive="#6b4a10"
+        emissiveIntensity={0.6}
+      />
     ) : (
       <meshPhysicalMaterial color="#111111" roughness={0.22} clearcoat={0.65} />
     );

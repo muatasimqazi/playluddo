@@ -1072,7 +1072,12 @@ function PhysicalDie({
         }}
         onPointerOut={() => setHovered(false)}
       >
-        <DieBody skin={skin} compact={compact} canRoll={canRoll} />
+        {/* Keyed by skin: a skin arriving after mount (an offline player's
+            equipped die loads a moment after the table) needs fresh
+            materials. Updated in place, a material gaining a texture never
+            recompiles its shader, so the old look stuck until something
+            remounted the die. */}
+        <DieBody key={skin} skin={skin} compact={compact} canRoll={canRoll} />
         {canRoll && (
           <mesh visible={false}>
             <sphereGeometry args={[0.4, 12, 12]} />
@@ -1135,17 +1140,17 @@ function DieBody({
   const body =
     skin === "glass" ? (
       <meshPhysicalMaterial
-        // Solid sea-glass teal under a glossy coat. No transmission: on a
-        // real GPU even a little let the table show through the die. Deep
-        // enough that the white pips stand out, and only softly reflective,
-        // so the light overhead doesn't wash the top face out to grey.
+        // Solid sea-glass teal with a satin finish, like a resin die. No
+        // transmission, and no mirror gloss either: a sharp reflection of
+        // the room read as seeing through the die. Deep enough that the
+        // white pips stand out.
         color="#3a9ab4"
-        roughness={0.12}
+        roughness={0.3}
         metalness={0}
-        clearcoat={0.8}
-        clearcoatRoughness={0.08}
+        clearcoat={0.35}
+        clearcoatRoughness={0.25}
         specularIntensity={0.6}
-        envMapIntensity={0.9}
+        envMapIntensity={0.55}
       />
     ) : skin === "wood" ? (
       <meshPhysicalMaterial
@@ -1167,17 +1172,17 @@ function DieBody({
         envMapIntensity={0.45}
       />
     ) : (
-      // Solid glossy white: no light through it, so nothing behind the die
-      // shows through on any screen.
+      // Solid white with a satin finish: no light through it, and no mirror
+      // gloss, whose sharp reflection of the room read as see-through.
       <meshPhysicalMaterial
         color="#ffffff"
-        roughness={compact ? 0.015 : 0.025}
+        roughness={0.22}
         metalness={0}
-        clearcoat={1}
-        clearcoatRoughness={0.01}
+        clearcoat={0.5}
+        clearcoatRoughness={0.18}
         specularIntensity={1}
         specularColor="#ffffff"
-        envMapIntensity={compact ? 2.8 : 2.2}
+        envMapIntensity={compact ? 1.2 : 1}
         emissive={compact ? "#ffffff" : canRoll ? "#ffffff" : "#000000"}
         emissiveIntensity={compact ? 0.14 : canRoll ? 0.025 : 0}
       />

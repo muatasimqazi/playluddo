@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx cap *)",
+      "Bash(npx tsx scripts/*)",
+      "Bash(supabase start)",
+      "Bash(supabase functions serve *)"
+    ],
+    "deny": [
+      "Bash(vercel --prod*)",
+      "Bash(supabase db push*)",
+      "Read(./.env*)"
+    ]
+  }
+}

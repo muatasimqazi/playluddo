@@ -87,6 +87,12 @@ export const ur: Messages = {
     boardMosaicDesc: "آٹھ کونوں والے ستاروں کی چمکدار ٹائلیں",
     boardSindbad: "سندباد",
     boardSindbadDesc: "بادبانی کشتیاں، لنگر اور قطب نما",
+    boardGlam: "گلابی گلیم",
+    boardGlamDesc: "سنگھار کے آئینے، دل اور چمک",
+    boardCinderella: "سنڈریلا",
+    boardCinderellaDesc: "شیشے کی جوتی، کدو کی بگھی اور آدھی رات کی گھڑی",
+    boardBows: "گلابی ربن",
+    boardBowsDesc: "ساٹن کے بو، ربن اور لیس",
 
     yourTeam: "آپ کی ٹیم",
     memberOne: "{count} رکن",

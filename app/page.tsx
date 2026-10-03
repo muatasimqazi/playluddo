@@ -28,6 +28,9 @@ import bazaarBoardArt from "@/designs/board-bazaar.svg";
 import rugBoardArt from "@/designs/board-rug.svg";
 import mosaicBoardArt from "@/designs/board-mosaic.svg";
 import sindbadBoardArt from "@/designs/board-sindbad.svg";
+import glamBoardArt from "@/designs/board-glam.svg";
+import cinderellaBoardArt from "@/designs/board-cinderella.svg";
+import bowsBoardArt from "@/designs/board-bows.svg";
 import hexClassicBoardArt from "@/designs/board-hex-classic.svg";
 import hexSignatureBoardArt from "@/designs/board-hex-signature.svg";
 import hexGeometricBoardArt from "@/designs/board-hex-geometric.svg";
@@ -36,6 +39,9 @@ import hexBazaarBoardArt from "@/designs/board-hex-bazaar.svg";
 import hexRugBoardArt from "@/designs/board-hex-rug.svg";
 import hexMosaicBoardArt from "@/designs/board-hex-mosaic.svg";
 import hexSindbadBoardArt from "@/designs/board-hex-sindbad.svg";
+import hexGlamBoardArt from "@/designs/board-hex-glam.svg";
+import hexCinderellaBoardArt from "@/designs/board-hex-cinderella.svg";
+import hexBowsBoardArt from "@/designs/board-hex-bows.svg";
 import snakesBoardArt from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakesBoardArt2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
 import { useGamePreference } from "@/lib/preferences-react";
@@ -131,6 +137,9 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
     rug: rugBoardArt.src as string,
     mosaic: mosaicBoardArt.src as string,
     sindbad: sindbadBoardArt.src as string,
+    glam: glamBoardArt.src as string,
+    cinderella: cinderellaBoardArt.src as string,
+    bows: bowsBoardArt.src as string,
   },
   hex: {
     classic: hexClassicBoardArt.src as string,
@@ -141,6 +150,9 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
     rug: hexRugBoardArt.src as string,
     mosaic: hexMosaicBoardArt.src as string,
     sindbad: hexSindbadBoardArt.src as string,
+    glam: hexGlamBoardArt.src as string,
+    cinderella: hexCinderellaBoardArt.src as string,
+    bows: hexBowsBoardArt.src as string,
   },
 };
 
@@ -180,6 +192,9 @@ export default function Home() {
     { value: "rug", label: t("entrance.boardRug"), desc: t("entrance.boardRugDesc") },
     { value: "mosaic", label: t("entrance.boardMosaic"), desc: t("entrance.boardMosaicDesc") },
     { value: "sindbad", label: t("entrance.boardSindbad"), desc: t("entrance.boardSindbadDesc") },
+    { value: "glam", label: t("entrance.boardGlam"), desc: t("entrance.boardGlamDesc") },
+    { value: "cinderella", label: t("entrance.boardCinderella"), desc: t("entrance.boardCinderellaDesc") },
+    { value: "bows", label: t("entrance.boardBows"), desc: t("entrance.boardBowsDesc") },
   ];
   // "Quick match" is the highlighted default — the quickest way into a game
   // against real people. Once a mode has been picked, its tile stays

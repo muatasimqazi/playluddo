@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500" role="img" aria-label="Cinderella themed Luddo board with glass slipper, pumpkin carriage, tiara, castle and midnight clock">
+<defs>
+<linearGradient id="cy-gold" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#F7E3A6"></stop>
+<stop offset="0.5" stop-color="#D9B65A"></stop>
+<stop offset="1" stop-color="#8C6A22"></stop>
+</linearGradient>
+<radialGradient id="cy-night" cx="0.5" cy="0.4" r="0.7">
+<stop offset="0" stop-color="#34418A"></stop>
+<stop offset="1" stop-color="#141A3F"></stop>
+</radialGradient>
+<linearGradient id="cy-crystal" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#F2FAFF"></stop>
+<stop offset="0.5" stop-color="#BFE0F7"></stop>
+<stop offset="1" stop-color="#7FB2E0"></stop>
+</linearGradient>
+<radialGradient id="cy-pearl" cx="0.35" cy="0.3" r="0.7">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.85"></stop>
+<stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.15"></stop>
+<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</radialGradient>
+<radialGradient id="cy-vignette" cx="0.5" cy="0.5" r="0.72">
+<stop offset="0.5" stop-color="#000000" stop-opacity="0"></stop>
+<stop offset="1" stop-color="#000000" stop-opacity="0.3"></stop>
+</radialGradient>
+
+<path id="cy-spark" d="M0,-34 C4,-8 8,-4 34,0 C8,4 4,8 0,34 C-4,8 -8,4 -34,0 C-8,-4 -4,-8 0,-34Z"></path>
+
+<!-- starry midnight sky -->
+<pattern id="cy-stars" width="90" height="90" patternUnits="userSpaceOnUse">
+<rect width="90" height="90" fill="#141A3F"></rect>
+<use href="#cy-spark" transform="translate(22 24) scale(0.24)" fill="#F7E3A6"></use>
+<circle cx="64" cy="18" r="2" fill="#FFFFFF"></circle>
+<circle cx="52" cy="62" r="2.5" fill="#FFFFFF" fill-opacity="0.8"></circle>
+<circle cx="12" cy="70" r="1.6" fill="#FFFFFF"></circle>
+<use href="#cy-spark" transform="translate(78 78) scale(0.14)" fill="#FFFFFF"></use>
+</pattern>
+<!-- ballroom harlequin wallpaper -->
+<pattern id="cy-harlequin" width="60" height="80" patternUnits="userSpaceOnUse">
+<path d="M30,0 L60,40 L30,80 L0,40Z" fill="#FFFFFF" fill-opacity="0.12" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2"></path>
+<circle cx="30" cy="40" r="3" fill="#F7E3A6" fill-opacity="0.8"></circle>
+</pattern>
+<!-- pearl track tiles -->
+<pattern id="cy-cell" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="#F7F5FB"></rect>
+<rect x="9" y="9" width="82" height="82" rx="14" fill="none" stroke="#C9CCE3" stroke-width="2.5"></rect>
+</pattern>
+<pattern id="cy-lanespark" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect x="9" y="9" width="82" height="82" rx="14" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2.5"></rect>
+<use href="#cy-spark" transform="translate(50 50) scale(0.8)" fill="#FFFFFF"></use>
+</pattern>
+<pattern id="cy-grout" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="none" stroke="#1F2552" stroke-width="4"></rect>
+</pattern>
+
+<!-- glass slipper -->
+<g id="cy-slipper">
+<path d="M-110,42 C-114,22 -92,14 -62,12 C-24,10 6,2 28,-26 C42,-46 60,-62 80,-60 C96,-58 100,-42 94,-28 L92,46 L82,46 L78,-8 C56,22 22,42 -24,46 C-62,49 -96,50 -110,42Z" fill="url(#cy-crystal)" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"></path>
+<path d="M-56,14 C-20,10 10,0 30,-24 C42,-40 56,-52 74,-52" fill="none" stroke="#5E86B8" stroke-width="3" stroke-linecap="round"></path>
+<path d="M-90,30 C-60,24 -30,28 -6,34" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-opacity="0.8"></path>
+<circle cx="-84" cy="20" r="11"></circle>
+<circle cx="-84" cy="20" r="11" fill="url(#cy-pearl)"></circle>
+</g>
+
+<!-- pumpkin carriage -->
+<g id="cy-carriage">
+<g fill="none" stroke="url(#cy-gold)" stroke-width="6">
+<circle cx="-70" cy="62" r="32"></circle><circle cx="70" cy="62" r="32"></circle>
+<path d="M-70,30 V94 M-102,62 H-38 M-92.6,39.4 L-47.4,84.6 M-92.6,84.6 L-47.4,39.4 M70,30 V94 M38,62 H102 M47.4,39.4 L92.6,84.6 M47.4,84.6 L92.6,39.4" stroke-width="3"></path>
+</g>
+<ellipse cx="0" cy="0" rx="98" ry="72"></ellipse>
+<g fill="none" stroke="#000000" stroke-opacity="0.22" stroke-width="4">
+<ellipse cx="0" cy="0" rx="62" ry="72"></ellipse>
+<ellipse cx="0" cy="0" rx="26" ry="72"></ellipse>
+</g>
+<ellipse cx="-40" cy="-30" rx="30" ry="14" transform="rotate(-25 -40 -30)" fill="#FFFFFF" fill-opacity="0.35"></ellipse>
+<path d="M-26,14 V-18 Q-26,-42 0,-42 Q26,-42 26,-18 V14Z" fill="#FFE9A8" stroke="url(#cy-gold)" stroke-width="5"></path>
+<path d="M0,-42 V14 M-26,-12 H26" stroke="url(#cy-gold)" stroke-width="3"></path>
+<path d="M-18,-70 L-18,-90 L-9,-80 L0,-96 L9,-80 L18,-90 L18,-70Z" fill="url(#cy-gold)"></path>
+<path d="M-96,22 Q-120,30 -112,50 M96,22 Q120,30 112,50 M-46,68 Q0,92 46,68" fill="none" stroke="url(#cy-gold)" stroke-width="5" stroke-linecap="round"></path>
+</g>
+
+<!-- tiara -->
+<g id="cy-tiara">
+<path d="M-100,44 Q-82,0 -60,-6 Q-50,20 -34,22 Q-28,-28 0,-74 Q28,-28 34,22 Q50,20 60,-6 Q82,0 100,44 Q0,14 -100,44Z" fill="url(#cy-gold)" stroke="#8C6A22" stroke-width="2"></path>
+<path d="M-102,44 Q0,14 102,44 L98,62 Q0,34 -98,62Z" fill="#EDEFF8" stroke="#8C6A22" stroke-width="2"></path>
+<path d="M-16,-6 Q0,-46 16,-6 Q0,6 -16,-6Z" fill="#FFFFFF" fill-opacity="0.35"></path>
+<circle cx="0" cy="-26" r="15"></circle>
+<circle cx="-60" cy="14" r="10"></circle>
+<circle cx="60" cy="14" r="10"></circle>
+<g fill="url(#cy-pearl)"><circle cx="0" cy="-26" r="15"></circle><circle cx="-60" cy="14" r="10"></circle><circle cx="60" cy="14" r="10"></circle></g>
+<g fill="#FFFFFF"><circle cx="-80" cy="50" r="4"></circle><circle cx="-56" cy="44" r="4"></circle><circle cx="-30" cy="40" r="4"></circle><circle cx="0" cy="38" r="4"></circle><circle cx="30" cy="40" r="4"></circle><circle cx="56" cy="44" r="4"></circle><circle cx="80" cy="50" r="4"></circle></g>
+<circle cx="0" cy="-74" r="6" fill="#FFFFFF"></circle>
+</g>
+
+<!-- fairy-tale castle; roofs take the player colour -->
+<g id="cy-castle">
+<g fill="#EDEFF8" stroke="#9AA0C8" stroke-width="2">
+<rect x="-90" y="0" width="180" height="72"></rect>
+<rect x="-104" y="-40" width="40" height="112"></rect>
+<rect x="64" y="-40" width="40" height="112"></rect>
+<rect x="-30" y="-72" width="60" height="144"></rect>
+</g>
+<g stroke="#FFFFFF" stroke-width="2">
+<polygon points="-110,-40 -84,-104 -58,-40"></polygon>
+<polygon points="58,-40 84,-104 110,-40"></polygon>
+<polygon points="-38,-72 0,-140 38,-72"></polygon>
+</g>
+<path d="M-84,-104 V-120 L-70,-114 L-84,-108 M84,-104 V-120 L98,-114 L84,-108" fill="#D9B65A" stroke="#D9B65A" stroke-width="2"></path>
+<g fill="#141A3F">
+<path d="M-16,72 V44 Q-16,26 0,26 Q16,26 16,44 V72Z"></path>
+</g>
+<g fill="#FFE9A8">
+<path d="M-8,-40 V-50 Q-8,-58 0,-58 Q8,-58 8,-50 V-40Z"></path>
+<path d="M-90,-14 V-22 Q-90,-28 -84,-28 Q-78,-28 -78,-22 V-14Z"></path>
+<path d="M78,-14 V-22 Q78,-28 84,-28 Q90,-28 90,-22 V-14Z"></path>
+<path d="M-56,26 V18 Q-56,12 -50,12 Q-44,12 -44,18 V26Z"></path>
+<path d="M44,26 V18 Q44,12 50,12 Q56,12 56,18 V26Z"></path>
+</g>
+<path d="M-90,0 h12 v-8 h12 v8 h12 v-8 h12 v8 M30,0 h12 v-8 h12 v8 h12 v-8 h12 v8" fill="none" stroke="#9AA0C8" stroke-width="2"></path>
+</g>
+
+<!-- shared yard dressing -->
+<g id="cy-yard">
+<rect width="600" height="600" fill="url(#cy-harlequin)"></rect>
+<rect width="600" height="600" fill="url(#cy-vignette)"></rect>
+<rect x="20" y="20" width="560" height="560" rx="36" fill="none" stroke="url(#cy-gold)" stroke-width="8"></rect>
+<rect x="36" y="36" width="528" height="528" rx="26" fill="none" stroke="#F7E3A6" stroke-width="2"></rect>
+<circle cx="300" cy="300" r="160" fill="url(#cy-gold)"></circle>
+<circle cx="300" cy="300" r="150" fill="url(#cy-night)"></circle>
+<circle cx="300" cy="300" r="141" fill="none" stroke="#F7E3A6" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="3 7"></circle>
+<g fill="#FFFFFF">
+<circle cx="220" cy="210" r="2.5"></circle><circle cx="380" cy="200" r="2"></circle><circle cx="400" cy="260" r="2.5"></circle><circle cx="200" cy="290" r="2"></circle><circle cx="250" cy="180" r="1.8"></circle><circle cx="350" cy="170" r="2.2"></circle>
+</g>
+<use href="#cy-spark" transform="translate(205 240) scale(0.3)" fill="#F7E3A6"></use>
+<use href="#cy-spark" transform="translate(398 228) scale(0.22)" fill="#F7E3A6"></use>
+</g>
+
+<!-- pearl token seat -->
+<g id="cy-seat">
+<circle r="56" fill="url(#cy-gold)"></circle>
+<circle r="47"></circle>
+<circle r="47" fill="url(#cy-pearl)"></circle>
+<use href="#cy-spark" transform="scale(0.5)" fill="#FFFFFF"></use>
+</g>
+
+<path id="cy-arrow" d="M-20,-20 L0,0 L-20,20 M2,-20 L22,0 L2,20" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+</defs>
+
+<!-- starry midnight frame -->
+<rect x="-60" y="-60" width="1620" height="1620" rx="40" fill="url(#cy-stars)"></rect>
+<rect x="-48" y="-48" width="1596" height="1596" rx="30" fill="none" stroke="url(#cy-gold)" stroke-width="5"></rect>
+
+<!-- home yards: rose / tiara, mint / castle, pumpkin / carriage, crystal blue / glass slipper -->
+<g>
+<rect width="600" height="600" fill="#D45A88"></rect>
+<use href="#cy-yard"></use>
+<use href="#cy-tiara" transform="translate(300 310) scale(1.1)" fill="#D45A88"></use>
+<g fill="#D45A88"><use href="#cy-seat" x="112" y="112"></use><use href="#cy-seat" x="488" y="112"></use><use href="#cy-seat" x="112" y="488"></use><use href="#cy-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="#3FA78A"></rect>
+<use href="#cy-yard"></use>
+<use href="#cy-castle" transform="translate(300 330)" fill="#3FA78A"></use>
+<g fill="#3FA78A"><use href="#cy-seat" x="112" y="112"></use><use href="#cy-seat" x="488" y="112"></use><use href="#cy-seat" x="112" y="488"></use><use href="#cy-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="#4F8FD9"></rect>
+<use href="#cy-yard"></use>
+<use href="#cy-slipper" transform="translate(300 320) scale(1.05)" fill="#4F8FD9"></use>
+<g fill="#4F8FD9"><use href="#cy-seat" x="112" y="112"></use><use href="#cy-seat" x="488" y="112"></use><use href="#cy-seat" x="112" y="488"></use><use href="#cy-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="#E07B26"></rect>
+<use href="#cy-yard"></use>
+<use href="#cy-carriage" transform="translate(300 300)" fill="#E07B26"></use>
+<g fill="#E07B26"><use href="#cy-seat" x="112" y="112"></use><use href="#cy-seat" x="488" y="112"></use><use href="#cy-seat" x="112" y="488"></use><use href="#cy-seat" x="488" y="488"></use></g>
+</g>
+
+<!-- track arms -->
+<g fill="url(#cy-cell)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- home lanes -->
+<rect x="700" y="100" width="100" height="500" fill="#3FA78A"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#E07B26"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#4F8FD9"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#D45A88"></rect>
+<g fill="url(#cy-lanespark)">
+<rect x="700" y="100" width="100" height="500"></rect>
+<rect x="900" y="700" width="500" height="100"></rect>
+<rect x="700" y="900" width="100" height="500"></rect>
+<rect x="100" y="700" width="500" height="100"></rect>
+</g>
+
+<!-- start squares -->
+<rect x="100" y="600" width="100" height="100" fill="#D45A88"></rect>
+<rect x="800" y="100" width="100" height="100" fill="#3FA78A"></rect>
+<rect x="1300" y="800" width="100" height="100" fill="#E07B26"></rect>
+<rect x="600" y="1300" width="100" height="100" fill="#4F8FD9"></rect>
+<use href="#cy-arrow" transform="translate(148 650)"></use>
+<use href="#cy-arrow" transform="translate(850 148) rotate(90)"></use>
+<use href="#cy-arrow" transform="translate(1352 850) rotate(180)"></use>
+<use href="#cy-arrow" transform="translate(650 1352) rotate(270)"></use>
+
+<!-- safe squares: little glass slippers -->
+<g fill="#D9B65A">
+<use href="#cy-slipper" transform="translate(252 852) scale(0.36)"></use>
+<use href="#cy-slipper" transform="translate(652 252) scale(0.36)"></use>
+<use href="#cy-slipper" transform="translate(1252 652) scale(0.36)"></use>
+<use href="#cy-slipper" transform="translate(852 1252) scale(0.36)"></use>
+</g>
+
+<!-- grout -->
+<g fill="url(#cy-grout)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- center: home triangles under the midnight clock -->
+<polygon points="600,600 900,600 750,750" fill="#3FA78A"></polygon>
+<polygon points="900,600 900,900 750,750" fill="#E07B26"></polygon>
+<polygon points="900,900 600,900 750,750" fill="#4F8FD9"></polygon>
+<polygon points="600,900 600,600 750,750" fill="#D45A88"></polygon>
+<rect x="600" y="600" width="300" height="300" fill="url(#cy-harlequin)"></rect>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#F7E3A6" stroke-width="4"></path>
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="#1F2552" stroke-width="6"></path>
+<rect x="0" y="0" width="1500" height="1500" fill="none" stroke="url(#cy-gold)" stroke-width="8"></rect>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="url(#cy-gold)" stroke-width="6"></rect>
+<g transform="translate(750 750)">
+<circle r="122" fill="url(#cy-gold)"></circle>
+<circle r="111" fill="#FFF8E8"></circle>
+<circle r="100" fill="none" stroke="#1F2552" stroke-width="5" stroke-dasharray="1.2 9.27"></circle>
+<circle r="96" fill="none" stroke="#1F2552" stroke-width="14" stroke-dasharray="4 46.27" transform="rotate(-1.2)"></circle>
+<circle r="70" fill="none" stroke="#D9B65A" stroke-width="2"></circle>
+<use href="#cy-spark" transform="translate(0 -46) scale(0.32)" fill="#D9B65A"></use>
+<g fill="#1F2552">
+<path d="M-7,6 L0,-58 L7,6Z"></path>
+<path d="M-4,10 L0,-86 L4,10Z"></path>
+</g>
+<circle r="10" fill="url(#cy-gold)" stroke="#1F2552" stroke-width="2"></circle>
+<use href="#cy-spark" transform="translate(86 -96) scale(0.4)" fill="#FFFFFF"></use>
+<use href="#cy-spark" transform="translate(-96 88) scale(0.3)" fill="#FFFFFF"></use>
+</g>
+</svg>

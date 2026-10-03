@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500" role="img" aria-label="Luddo board decorated with satin hair bows, ribbons and lace">
+<defs>
+<!-- satin bow: loops, knot and tails take the fill colour -->
+<g id="bw-bow">
+<path d="M-8,8 L-58,112 L-38,104 L-26,124 L10,18Z"></path>
+<path d="M8,8 L58,112 L38,104 L26,124 L-10,18Z"></path>
+<path d="M-8,8 L-58,112 L-38,104 L-26,124 L10,18Z M8,8 L58,112 L38,104 L26,124 L-10,18Z" fill="#000000" fill-opacity="0.12"></path>
+<path d="M-10,0 C-40,-60 -120,-80 -125,-20 C-128,30 -60,40 -10,0Z"></path>
+<path d="M10,0 C40,-60 120,-80 125,-20 C128,30 60,40 10,0Z"></path>
+<path d="M-10,0 C-40,-28 -82,-34 -92,-14 C-70,-8 -40,4 -10,0Z M10,0 C40,-28 82,-34 92,-14 C70,-8 40,4 10,0Z" fill="#000000" fill-opacity="0.2"></path>
+<path d="M-12,4 C-50,22 -96,26 -112,6 M12,4 C50,22 96,26 112,6" fill="none" stroke="#000000" stroke-opacity="0.15" stroke-width="3"></path>
+<path d="M-104,-36 C-96,-58 -66,-56 -46,-40 M104,-36 C96,-58 66,-56 46,-40" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="6" stroke-linecap="round"></path>
+<path d="M-40,60 L-22,26 M40,60 L22,26" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="4" stroke-linecap="round"></path>
+<rect x="-22" y="-24" width="44" height="46" rx="14"></rect>
+<rect x="-22" y="-24" width="44" height="46" rx="14" fill="#000000" fill-opacity="0.08"></rect>
+<path d="M-12,-14 C-6,-18 6,-18 12,-14" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="4" stroke-linecap="round"></path>
+</g>
+
+<radialGradient id="bw-pearl" cx="0.35" cy="0.3" r="0.75">
+<stop offset="0" stop-color="#FFFFFF"></stop>
+<stop offset="0.6" stop-color="#F6E9EF"></stop>
+<stop offset="1" stop-color="#D9C3CE"></stop>
+</radialGradient>
+<radialGradient id="bw-gloss" cx="0.35" cy="0.3" r="0.65">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.7"></stop>
+<stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.12"></stop>
+<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</radialGradient>
+<radialGradient id="bw-vignette" cx="0.5" cy="0.5" r="0.72">
+<stop offset="0.5" stop-color="#000000" stop-opacity="0"></stop>
+<stop offset="1" stop-color="#000000" stop-opacity="0.18"></stop>
+</radialGradient>
+<linearGradient id="bw-satin" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#C2306E"></stop>
+<stop offset="0.35" stop-color="#F06C9E"></stop>
+<stop offset="0.5" stop-color="#F9A8C6"></stop>
+<stop offset="0.65" stop-color="#F06C9E"></stop>
+<stop offset="1" stop-color="#C2306E"></stop>
+</linearGradient>
+<linearGradient id="bw-satinH" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#C2306E"></stop>
+<stop offset="0.35" stop-color="#F06C9E"></stop>
+<stop offset="0.5" stop-color="#F9A8C6"></stop>
+<stop offset="0.65" stop-color="#F06C9E"></stop>
+<stop offset="1" stop-color="#C2306E"></stop>
+</linearGradient>
+
+<!-- grosgrain ribs -->
+<pattern id="bw-grosgrain" width="8" height="8" patternUnits="userSpaceOnUse">
+<rect y="0" width="8" height="3" fill="#FFFFFF" fill-opacity="0.16"></rect>
+</pattern>
+<!-- lace -->
+<pattern id="bw-lace" x="-60" y="-60" width="30" height="30" patternUnits="userSpaceOnUse">
+<rect width="30" height="30" fill="#FCE4EC"></rect>
+<circle cx="15" cy="15" r="13" fill="#FFFFFF"></circle>
+<circle cx="15" cy="15" r="4" fill="#FCE4EC"></circle>
+<circle cx="15" cy="5" r="1.8" fill="#FCE4EC"></circle><circle cx="25" cy="15" r="1.8" fill="#FCE4EC"></circle><circle cx="15" cy="25" r="1.8" fill="#FCE4EC"></circle><circle cx="5" cy="15" r="1.8" fill="#FCE4EC"></circle>
+</pattern>
+<!-- dotted track cells -->
+<pattern id="bw-cell" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="#FFFFFF"></rect>
+<g fill="#F8BBD0"><circle cx="25" cy="25" r="5"></circle><circle cx="75" cy="25" r="5"></circle><circle cx="25" cy="75" r="5"></circle><circle cx="75" cy="75" r="5"></circle><circle cx="50" cy="50" r="5"></circle></g>
+</pattern>
+<pattern id="bw-lanebow" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="url(#bw-grosgrain)"></rect>
+<use href="#bw-bow" transform="translate(50 46) scale(0.3)" fill="#FFFFFF"></use>
+</pattern>
+<pattern id="bw-grout" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="none" stroke="#E87FA6" stroke-width="4"></rect>
+</pattern>
+
+<!-- pearl-centred rosette seat -->
+<g id="bw-seat">
+<circle r="56" fill="#FFFFFF"></circle>
+<circle r="56" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-dasharray="6 5"></circle>
+<circle r="47"></circle>
+<circle r="47" fill="url(#bw-grosgrain)"></circle>
+<circle r="47" fill="url(#bw-gloss)"></circle>
+<circle r="14" fill="url(#bw-pearl)"></circle>
+</g>
+
+<g id="bw-yard">
+<rect width="600" height="600" fill="url(#bw-grosgrain)"></rect>
+<rect width="600" height="600" fill="url(#bw-vignette)"></rect>
+<rect x="22" y="22" width="556" height="556" rx="44" fill="none" stroke="#FFFFFF" stroke-width="12"></rect>
+<rect x="40" y="40" width="520" height="520" rx="30" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="10 8"></rect>
+<circle cx="300" cy="290" r="150" fill="#FFFFFF" fill-opacity="0.22"></circle>
+</g>
+
+<path id="bw-arrow" d="M-20,-20 L0,0 L-20,20 M2,-20 L22,0 L2,20" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+</defs>
+
+<!-- lace frame with a satin ribbon -->
+<rect x="-60" y="-60" width="1620" height="1620" fill="url(#bw-lace)"></rect>
+<rect x="-30" y="-30" width="1560" height="1560" fill="none" stroke="#E0427F" stroke-width="22"></rect>
+<rect x="-30" y="-30" width="1560" height="1560" fill="none" stroke="#F9A8C6" stroke-width="4"></rect>
+<rect x="-37" y="-37" width="1574" height="1574" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="7 5"></rect>
+<rect x="-23" y="-23" width="1546" height="1546" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="7 5"></rect>
+
+<!-- home yards: bubblegum, mint, lilac, peach -->
+<g>
+<rect width="600" height="600" fill="#EC5F9E"></rect>
+<use href="#bw-yard"></use>
+<use href="#bw-bow" transform="translate(300 270) scale(1.25)" fill="#C2306E"></use>
+<g fill="#EC5F9E"><use href="#bw-seat" x="112" y="112"></use><use href="#bw-seat" x="488" y="112"></use><use href="#bw-seat" x="112" y="488"></use><use href="#bw-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="#4DBF9F"></rect>
+<use href="#bw-yard"></use>
+<use href="#bw-bow" transform="translate(300 270) scale(1.25)" fill="#F7B0C9"></use>
+<g fill="#4DBF9F"><use href="#bw-seat" x="112" y="112"></use><use href="#bw-seat" x="488" y="112"></use><use href="#bw-seat" x="112" y="488"></use><use href="#bw-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="#A07BD8"></rect>
+<use href="#bw-yard"></use>
+<use href="#bw-bow" transform="translate(300 270) scale(1.25)" fill="#F7B0C9"></use>
+<g fill="#A07BD8"><use href="#bw-seat" x="112" y="112"></use><use href="#bw-seat" x="488" y="112"></use><use href="#bw-seat" x="112" y="488"></use><use href="#bw-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="#F6A04D"></rect>
+<use href="#bw-yard"></use>
+<use href="#bw-bow" transform="translate(300 270) scale(1.25)" fill="#F7B0C9"></use>
+<g fill="#F6A04D"><use href="#bw-seat" x="112" y="112"></use><use href="#bw-seat" x="488" y="112"></use><use href="#bw-seat" x="112" y="488"></use><use href="#bw-seat" x="488" y="488"></use></g>
+</g>
+
+<!-- track arms -->
+<g fill="url(#bw-cell)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- home lanes -->
+<rect x="700" y="100" width="100" height="500" fill="#4DBF9F"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#F6A04D"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#A07BD8"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#EC5F9E"></rect>
+<g fill="url(#bw-lanebow)">
+<rect x="700" y="100" width="100" height="500"></rect>
+<rect x="900" y="700" width="500" height="100"></rect>
+<rect x="700" y="900" width="100" height="500"></rect>
+<rect x="100" y="700" width="500" height="100"></rect>
+</g>
+
+<!-- start squares -->
+<rect x="100" y="600" width="100" height="100" fill="#EC5F9E"></rect>
+<rect x="800" y="100" width="100" height="100" fill="#4DBF9F"></rect>
+<rect x="1300" y="800" width="100" height="100" fill="#F6A04D"></rect>
+<rect x="600" y="1300" width="100" height="100" fill="#A07BD8"></rect>
+<use href="#bw-arrow" transform="translate(148 650)"></use>
+<use href="#bw-arrow" transform="translate(850 148) rotate(90)"></use>
+<use href="#bw-arrow" transform="translate(1352 850) rotate(180)"></use>
+<use href="#bw-arrow" transform="translate(650 1352) rotate(270)"></use>
+
+<!-- safe squares: little pink bows -->
+<g fill="#FFFFFF">
+<rect x="200" y="800" width="100" height="100"></rect>
+<rect x="600" y="200" width="100" height="100"></rect>
+<rect x="1200" y="600" width="100" height="100"></rect>
+<rect x="800" y="1200" width="100" height="100"></rect>
+</g>
+<g fill="#E0427F">
+<use href="#bw-bow" transform="translate(250 845) scale(0.33)"></use>
+<use href="#bw-bow" transform="translate(650 245) scale(0.33)"></use>
+<use href="#bw-bow" transform="translate(1250 645) scale(0.33)"></use>
+<use href="#bw-bow" transform="translate(850 1245) scale(0.33)"></use>
+</g>
+
+<!-- grout -->
+<g fill="url(#bw-grout)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- center: home triangles wrapped like a gift -->
+<polygon points="600,600 900,600 750,750" fill="#4DBF9F"></polygon>
+<polygon points="900,600 900,900 750,750" fill="#F6A04D"></polygon>
+<polygon points="900,900 600,900 750,750" fill="#A07BD8"></polygon>
+<polygon points="600,900 600,600 750,750" fill="#EC5F9E"></polygon>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#FFFFFF" stroke-width="4"></path>
+<rect x="724" y="600" width="52" height="300" fill="url(#bw-satin)"></rect>
+<rect x="600" y="724" width="300" height="52" fill="url(#bw-satinH)"></rect>
+<path d="M731,600 V900 M769,600 V900 M600,731 H900 M600,769 H900" stroke="#FFFFFF" stroke-width="2" stroke-dasharray="7 5"></path>
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="#E87FA6" stroke-width="6"></path>
+<rect x="0" y="0" width="1500" height="1500" fill="none" stroke="#FFFFFF" stroke-width="8"></rect>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="#FFFFFF" stroke-width="8"></rect>
+<use href="#bw-bow" transform="translate(750 738) scale(1)" fill="#E0427F"></use>
+<circle cx="750" cy="737" r="10" fill="url(#bw-pearl)"></circle>
+
+<!-- corner bows on the ribbon -->
+<g fill="#E0427F">
+<use href="#bw-bow" transform="translate(-30 -36) scale(0.34)"></use>
+<use href="#bw-bow" transform="translate(1530 -36) scale(0.34)"></use>
+<use href="#bw-bow" transform="translate(-30 1524) scale(0.34)"></use>
+<use href="#bw-bow" transform="translate(1530 1524) scale(0.34)"></use>
+</g>
+</svg>

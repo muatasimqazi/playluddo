@@ -87,6 +87,12 @@ export const id: Messages = {
     boardMosaicDesc: "Ubin berglasir bermotif bintang delapan sudut",
     boardSindbad: "Sinbad",
     boardSindbadDesc: "Kapal layar, jangkar, dan mawar angin",
+    boardGlam: "Glamor Merah Muda",
+    boardGlamDesc: "Cermin rias, hati, dan kilauan",
+    boardCinderella: "Cinderella",
+    boardCinderellaDesc: "Sepatu kaca, kereta labu, dan jam tengah malam",
+    boardBows: "Pita Merah Muda",
+    boardBowsDesc: "Pita satin, renda, dan simpul",
 
     yourTeam: "Timmu",
     memberOne: "{count} anggota",

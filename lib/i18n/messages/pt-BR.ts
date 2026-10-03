@@ -87,6 +87,12 @@ export const ptBR: Messages = {
     boardMosaicDesc: "Azulejos vitrificados com estrelas de oito pontas",
     boardSindbad: "Simbad",
     boardSindbadDesc: "Daus, âncoras e uma rosa dos ventos",
+    boardGlam: "Glamour rosa",
+    boardGlamDesc: "Espelhos de penteadeira, corações e brilhos",
+    boardCinderella: "Cinderela",
+    boardCinderellaDesc: "Sapatinho de cristal, carruagem de abóbora e um relógio à meia-noite",
+    boardBows: "Laços cor-de-rosa",
+    boardBowsDesc: "Laços de cetim, fitas e renda",
 
     yourTeam: "Seu time",
     memberOne: "{count} membro",

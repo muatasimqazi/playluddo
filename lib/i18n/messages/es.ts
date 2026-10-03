@@ -88,6 +88,12 @@ export const es: Messages = {
     boardMosaicDesc: "Azulejos esmaltados de estrellas de ocho puntas",
     boardSindbad: "Simbad",
     boardSindbadDesc: "Daus, anclas y una rosa de los vientos",
+    boardGlam: "Glamour rosa",
+    boardGlamDesc: "Espejos de tocador, corazones y destellos",
+    boardCinderella: "Cenicienta",
+    boardCinderellaDesc: "Zapatilla de cristal, carroza de calabaza y un reloj a medianoche",
+    boardBows: "Lazos rosas",
+    boardBowsDesc: "Lazos de satén, cintas y encaje",
 
     yourTeam: "Tu equipo",
     memberOne: "{count} miembro",

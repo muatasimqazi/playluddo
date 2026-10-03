@@ -87,6 +87,12 @@ export const hi: Messages = {
     boardMosaicDesc: "आठ-कोने वाले सितारों की चमकदार टाइलें",
     boardSindbad: "सिंदबाद",
     boardSindbadDesc: "पालदार नावें, लंगर और कम्पास",
+    boardGlam: "गुलाबी ग्लैम",
+    boardGlamDesc: "शृंगार के आईने, दिल और चमक",
+    boardCinderella: "सिंड्रेला",
+    boardCinderellaDesc: "काँच की जूती, कद्दू की बग्घी और आधी रात की घड़ी",
+    boardBows: "गुलाबी रिबन",
+    boardBowsDesc: "साटन के बो, रिबन और लेस",
 
     yourTeam: "आपकी टीम",
     memberOne: "{count} सदस्य",

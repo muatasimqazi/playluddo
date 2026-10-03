@@ -30,6 +30,9 @@ import {
  *   rug       -> designs/board-hex-rug.svg        (board-rug.svg)
  *   mosaic    -> designs/board-hex-mosaic.svg     (board-mosaic.svg)
  *   sindbad   -> designs/board-hex-sindbad.svg    (board-sindbad.svg)
+ *   glam      -> designs/board-hex-glam.svg       (board-glam.svg)
+ *   cinderella -> designs/board-hex-cinderella.svg (board-cinderella.svg)
+ *   bows      -> designs/board-hex-bows.svg       (board-bows.svg)
  *
  * Written by `npm run board:hex`, then free to restyle by hand. Every style
  * draws the same anchors — the track cells, home columns, bases and nest
@@ -43,7 +46,7 @@ import {
  * onto the hexagonal top face.
  */
 
-export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad";
+export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows";
 export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "classic",
   "signature",
@@ -53,6 +56,9 @@ export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "rug",
   "mosaic",
   "sindbad",
+  "glam",
+  "cinderella",
+  "bows",
 ];
 /** File name in designs/ for each style. */
 export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
@@ -64,6 +70,9 @@ export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
   rug: "board-hex-rug.svg",
   mosaic: "board-hex-mosaic.svg",
   sindbad: "board-hex-sindbad.svg",
+  glam: "board-hex-glam.svg",
+  cinderella: "board-hex-cinderella.svg",
+  bows: "board-hex-bows.svg",
 };
 
 // ---------------------------------------------------------------------------
@@ -823,7 +832,258 @@ const sindbad: Theme = {
   tip: (arm) => chevron(arm, CHART),
 };
 
-const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic, sindbad };
+// ---------------------------------------------------------------------------
+// Pink Glam: a hot-pink frame, dashed tiles, compact nests, hearts and
+// sparkles round a heart gem (board-glam.svg)
+// ---------------------------------------------------------------------------
+
+const GLAM_INK: Record<PlayerColor, string> = {
+  red: "#E6268C",
+  green: "#23B5C9",
+  yellow: "#F7B928",
+  blue: "#9A62D3",
+  orange: "#FF7A45",
+  black: "#4A2E4F",
+};
+// Blush, not the square board's hot pink, so the red seat stands out from it.
+const GLAM_FRAME = "#FBD3E6";
+const GLAM_TILE = "#FFF7FB";
+const GLAM_BLUSH = "#F6A9CC";
+const GLAM_GROUT = "#C2186E";
+
+/** The board's heart, `size` across, pointing down. */
+function heart(size: number, fill: string): string {
+  return `<path d="M0,30 C-40,5 -50,-20 -32,-34 C-18,-44 -4,-36 0,-24 C4,-36 18,-44 32,-34 C50,-20 40,5 0,30Z" fill="${fill}" transform="scale(${n(size / 100)}) translate(0 2)"/>`;
+}
+
+/** The board's four-point sparkle, `size` from tip to tip. */
+function sparkle(size: number, fill: string): string {
+  return `<path d="M0,-34 C4,-8 8,-4 34,0 C8,4 4,8 0,34 C-4,8 -8,4 -34,0 C-8,-4 -4,-8 0,-34Z" fill="${fill}" transform="scale(${n(size / 68)})"/>`;
+}
+
+const glam: Theme = {
+  defs: gradient("gem", ["#FF8CC6", "#E6268C", "#A3135F"]),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${GLAM_FRAME}"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.04)}" fill="none" stroke="${GLAM_GROUT}" stroke-width="0.02"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${GLAM_INK[color]}" stroke="#ffffff" stroke-width="0.03"`) +
+      around(
+        center,
+        angle,
+        `<circle r="${n(R * 0.86)}" fill="none" stroke="#ffffff" stroke-width="0.012" stroke-dasharray="0.03 0.024"/>`,
+      )
+    );
+  },
+  // A compact: a white case round a disc in the seat's colour.
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="#ffffff" stroke="${GLAM_BLUSH}" stroke-width="0.01"`) +
+    around(point, 0, `<circle r="${n(C * 0.5)}" fill="${GLAM_INK[color]}"/>` + heart(C * 0.5, "#ffffff")),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${GLAM_INK[color]}" stroke="#ffffff" stroke-width="0.014"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    return (
+      `<circle r="${n(r)}" fill="#ffffff"/>` +
+      `<circle r="${n(r * 0.9)}" fill="none" stroke="${GLAM_BLUSH}" stroke-width="0.006" stroke-dasharray="0.02 0.016"/>` +
+      heart(r * 1.4, "url(#gem)")
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${GLAM_INK[color]}" stroke="${GLAM_GROUT}" stroke-width="0.012"`) +
+    around(point, 0, heart(C * 0.55, "#ffffff")),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? GLAM_INK[owner] : GLAM_TILE}" stroke="${GLAM_GROUT}" stroke-width="0.012"`,
+    ) +
+    (kind === "star" ? around(point, 0, sparkle(C * 0.75, GLAM_GROUT)) : ""),
+  tip: (arm) => chevron(arm, GLAM_GROUT),
+};
+
+// ---------------------------------------------------------------------------
+// Cinderella: a starry midnight sky, gold rims, pearl tiles, glass-slipper
+// safe squares and a clock about to strike twelve (board-cinderella.svg)
+// ---------------------------------------------------------------------------
+
+// The square board's yellow seat is its pumpkin; here the orange seat needs
+// that, so yellow is the board's gold.
+const CINDERELLA_INK: Record<PlayerColor, string> = {
+  red: "#D45A88",
+  green: "#3FA78A",
+  yellow: "#E8B442",
+  blue: "#4F8FD9",
+  orange: "#E07B26",
+  black: "#4A4466",
+};
+const MIDNIGHT = "#141A3F";
+const MIDNIGHT_INK = "#1F2552";
+const PEARL = "#F7F5FB";
+const STARLIGHT = "#F7E3A6";
+const CLOCK_FACE = "#FFF8E8";
+
+/** The board's glass slipper, `size` from heel to toe, toe to the left. */
+function slipper(size: number): string {
+  return `<path d="M-110,42 C-114,22 -92,14 -62,12 C-24,10 6,2 28,-26 C42,-46 60,-62 80,-60 C96,-58 100,-42 94,-28 L92,46 L82,46 L78,-8 C56,22 22,42 -24,46 C-62,49 -96,50 -110,42Z" fill="url(#crystal)" stroke="#5E86B8" stroke-width="5" stroke-linejoin="round" transform="scale(${n(size / 210)}) translate(0 -6)"/>`;
+}
+
+const cinderella: Theme = {
+  defs:
+    gradient("gold", ["#F7E3A6", "#D9B65A", "#8C6A22"]) +
+    gradient("crystal", ["#F2FAFF", "#BFE0F7", "#7FB2E0"]) +
+    gradient("pearl", ["#FFFFFF", "#FFFFFF00"], true),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${MIDNIGHT}"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.04)}" fill="none" stroke="url(#gold)" stroke-width="0.03"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${CINDERELLA_INK[color]}" stroke="url(#gold)" stroke-width="0.03"`) +
+      around(
+        center,
+        angle,
+        `<circle r="${n(R * 0.88)}" fill="none" stroke="${STARLIGHT}" stroke-width="0.008" stroke-dasharray="0.012 0.03"/>`,
+      )
+    );
+  },
+  // A pearl in the seat's colour on a gold setting.
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="url(#gold)"`) +
+    around(
+      point,
+      0,
+      `<circle r="${n(C * 0.5)}" fill="${CINDERELLA_INK[color]}"/><circle r="${n(C * 0.5)}" fill="url(#pearl)"/>` +
+        sparkle(C * 0.45, "#ffffff"),
+    ),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${CINDERELLA_INK[color]}" stroke="${STARLIGHT}" stroke-width="0.012"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    const ticks = Array.from({ length: 12 }, (_, i) => {
+      const long = i % 3 === 0;
+      return `<line x1="0" y1="${n(-r * 0.78)}" x2="0" y2="${n(-r * (long ? 0.6 : 0.68))}" stroke="${MIDNIGHT_INK}" stroke-width="${n(r * (long ? 0.08 : 0.04))}" transform="rotate(${i * 30})"/>`;
+    }).join("");
+    return (
+      `<circle r="${n(r)}" fill="url(#gold)"/>` +
+      `<circle r="${n(r * 0.88)}" fill="${CLOCK_FACE}"/>` +
+      ticks +
+      // Both hands on twelve: midnight.
+      `<path d="M${n(-r * 0.06)},${n(r * 0.05)} L0,${n(-r * 0.45)} L${n(r * 0.06)},${n(r * 0.05)}Z M${n(-r * 0.035)},${n(r * 0.08)} L0,${n(-r * 0.68)} L${n(r * 0.035)},${n(r * 0.08)}Z" fill="${MIDNIGHT_INK}"/>` +
+      `<circle r="${n(r * 0.08)}" fill="url(#gold)" stroke="${MIDNIGHT_INK}" stroke-width="${n(r * 0.02)}"/>`
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${CINDERELLA_INK[color]}" stroke="${MIDNIGHT_INK}" stroke-width="0.012"`) +
+    around(point, 0, sparkle(C * 0.6, "#ffffff")),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? CINDERELLA_INK[owner] : PEARL}" stroke="${MIDNIGHT_INK}" stroke-width="0.012"`,
+    ) +
+    (kind === "star" ? around(point, 0, slipper(C * 0.8)) : ""),
+  tip: (arm) => chevron(arm, MIDNIGHT_INK),
+};
+
+// ---------------------------------------------------------------------------
+// Pink Bows: a lace ground in a satin ribbon, dotted tiles, rosette nests
+// and satin bows (board-bows.svg)
+// ---------------------------------------------------------------------------
+
+// The square board's yellow seat is its peach; here the orange seat needs
+// that, so yellow is butter.
+const BOWS_INK: Record<PlayerColor, string> = {
+  red: "#EC5F9E",
+  green: "#4DBF9F",
+  yellow: "#F2C94C",
+  blue: "#A07BD8",
+  orange: "#F6A04D",
+  black: "#5B4B63",
+};
+const LACE = "#FCE4EC";
+const RIBBON = "#E0427F";
+const BOWS_DOT = "#F8BBD0";
+const BOWS_GROUT = "#E87FA6";
+
+/** The board's satin bow, `size` from loop to loop. */
+function bow(size: number, fill: string): string {
+  return (
+    `<g fill="${fill}" transform="scale(${n(size / 250)}) translate(0 -20)">` +
+    `<path d="M-8,8 L-58,112 L-38,104 L-26,124 L10,18Z M8,8 L58,112 L38,104 L26,124 L-10,18Z"/>` +
+    `<path d="M-10,0 C-40,-60 -120,-80 -125,-20 C-128,30 -60,40 -10,0Z M10,0 C40,-60 120,-80 125,-20 C128,30 60,40 10,0Z"/>` +
+    `<path d="M-10,0 C-40,-28 -82,-34 -92,-14 C-70,-8 -40,4 -10,0Z M10,0 C40,-28 82,-34 92,-14 C70,-8 40,4 10,0Z" fill="#000000" fill-opacity="0.2"/>` +
+    `<rect x="-22" y="-24" width="44" height="46" rx="14"/>` +
+    `</g>`
+  );
+}
+
+const bows: Theme = {
+  defs: gradient("bow-pearl", ["#FFFFFF", "#F6E9EF", "#D9C3CE"], true),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${LACE}"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.04)}" fill="none" stroke="${RIBBON}" stroke-width="0.04"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.04)}" fill="none" stroke="#ffffff" stroke-width="0.006" stroke-dasharray="0.02 0.014"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${BOWS_INK[color]}" stroke="#ffffff" stroke-width="0.03"`) +
+      around(
+        center,
+        angle,
+        `<circle r="${n(R * 0.86)}" fill="none" stroke="#ffffff" stroke-width="0.01" stroke-dasharray="0.03 0.024"/>`,
+      )
+    );
+  },
+  // A rosette: a scalloped white rim round the seat's colour, a pearl at its heart.
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="#ffffff" stroke="#ffffff" stroke-width="0.012" stroke-dasharray="0.012 0.01"`) +
+    around(
+      point,
+      0,
+      `<circle r="${n(C * 0.5)}" fill="${BOWS_INK[color]}"/><circle r="${n(C * 0.15)}" fill="url(#bow-pearl)"/>`,
+    ),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${BOWS_INK[color]}" stroke="#ffffff" stroke-width="0.014"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    return `<circle r="${n(r)}" fill="#ffffff"/>` + bow(r * 1.7, RIBBON) + `<circle r="${n(r * 0.1)}" fill="url(#bow-pearl)"/>`;
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${BOWS_INK[color]}" stroke="${BOWS_GROUT}" stroke-width="0.012"`) +
+    around(point, 0, bow(C * 0.65, "#ffffff")),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? BOWS_INK[owner] : "#ffffff"}" stroke="${BOWS_GROUT}" stroke-width="0.012"`,
+    ) +
+    (kind === "star"
+      ? around(point, 0, bow(C * 0.75, RIBBON))
+      : kind === "plain"
+        ? around(point, 0, `<circle r="${n(C * 0.05)}" fill="${BOWS_DOT}"/>`)
+        : ""),
+  tip: (arm) => chevron(arm, RIBBON),
+};
+
+const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic, sindbad, glam, cinderella, bows };
 
 // ---------------------------------------------------------------------------
 // The document

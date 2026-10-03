@@ -106,6 +106,12 @@ export const en = {
     boardMosaicDesc: "Glazed eight-point star tiles",
     boardSindbad: "Sindbad",
     boardSindbadDesc: "Dhows, anchors and a compass rose",
+    boardGlam: "Pink Glam",
+    boardGlamDesc: "Vanity mirrors, hearts and sparkles",
+    boardCinderella: "Cinderella",
+    boardCinderellaDesc: "Glass slipper, pumpkin carriage and a midnight clock",
+    boardBows: "Pink Bows",
+    boardBowsDesc: "Satin bows, ribbons and lace",
 
     yourTeam: "Your team",
     memberOne: "{count} member",

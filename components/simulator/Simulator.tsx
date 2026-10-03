@@ -271,7 +271,7 @@ function loadPreferences(color: keyof typeof COLORS, spec: BoardSpec = BOARD_4):
       snakeOrientation: Number.isFinite(value.snakeOrientation)
         ? value.snakeOrientation
         : 0,
-      boardStyle: ["signature", "classic", "geometric", "aladdin", "bazaar", "rug", "mosaic", "sindbad"].includes(
+      boardStyle: ["signature", "classic", "geometric", "aladdin", "bazaar", "rug", "mosaic", "sindbad", "glam", "cinderella", "bows"].includes(
         value.boardStyle,
       )
         ? value.boardStyle
@@ -1680,7 +1680,7 @@ export default function Simulator({
           )}
           {panel === "board" && (
             <>
-              <p>The same game, eight different tables. Play to earn more.</p>
+              <p>The same game, eleven different tables. Play to earn more.</p>
               <div className="camera-options">
                 {(
                   [
@@ -1692,6 +1692,9 @@ export default function Simulator({
                     ["rug", "Rug", "A hand-knotted Balochi rug"],
                     ["mosaic", "Mosaic", "Glazed eight-point star tiles"],
                     ["sindbad", "Sindbad", "Dhows, anchors and a compass rose"],
+                    ["glam", "Pink Glam", "Vanity mirrors, hearts and sparkles"],
+                    ["cinderella", "Cinderella", "Glass slipper, pumpkin carriage and a midnight clock"],
+                    ["bows", "Pink Bows", "Satin bows, ribbons and lace"],
                   ] as const
                 ).map(([value, label, desc]) => {
                   const id = boardCosmetic(value);

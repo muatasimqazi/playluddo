@@ -224,6 +224,30 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     yellow: ["#E0A03A"],
     blue: ["#2C5D9E"],
   },
+  // The Pink Glam's yard, lane and triangle colours (hot pink, aqua,
+  // sunshine, lavender), which its sparkles and heart gem share.
+  glam: {
+    red: ["#E6268C"],
+    green: ["#23B5C9"],
+    yellow: ["#F7B928"],
+    blue: ["#9A62D3"],
+  },
+  // The Cinderella's yards, lanes, starts and triangles (rose, mint, pumpkin,
+  // crystal blue), which also tint its emblems and pearls.
+  cinderella: {
+    red: ["#D45A88"],
+    green: ["#3FA78A"],
+    yellow: ["#E07B26"],
+    blue: ["#4F8FD9"],
+  },
+  // The Pink Bows' yards, lanes, starts and triangles (bubblegum, mint, peach,
+  // lilac). Its darker bows and ribbon are not seat colours.
+  bows: {
+    red: ["#EC5F9E"],
+    green: ["#4DBF9F"],
+    yellow: ["#F6A04D"],
+    blue: ["#A07BD8"],
+  },
   "hex-classic": {
     red: ["#e2262e"],
     green: ["#31a65b"],
@@ -287,6 +311,30 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     blue: ["#2C5D9E"],
     orange: ["#D2691E"],
     black: ["#3A4250"],
+  },
+  "hex-glam": {
+    red: ["#E6268C"],
+    green: ["#23B5C9"],
+    yellow: ["#F7B928"],
+    blue: ["#9A62D3"],
+    orange: ["#FF7A45"],
+    black: ["#4A2E4F"],
+  },
+  "hex-cinderella": {
+    red: ["#D45A88"],
+    green: ["#3FA78A"],
+    yellow: ["#E8B442"],
+    blue: ["#4F8FD9"],
+    orange: ["#E07B26"],
+    black: ["#4A4466"],
+  },
+  "hex-bows": {
+    red: ["#EC5F9E"],
+    green: ["#4DBF9F"],
+    yellow: ["#F2C94C"],
+    blue: ["#A07BD8"],
+    orange: ["#F6A04D"],
+    black: ["#5B4B63"],
   },
 };
 

@@ -11,6 +11,9 @@ import bazaarBoardArtwork from "@/designs/board-bazaar.svg";
 import rugBoardArtwork from "@/designs/board-rug.svg";
 import mosaicBoardArtwork from "@/designs/board-mosaic.svg";
 import sindbadBoardArtwork from "@/designs/board-sindbad.svg";
+import glamBoardArtwork from "@/designs/board-glam.svg";
+import cinderellaBoardArtwork from "@/designs/board-cinderella.svg";
+import bowsBoardArtwork from "@/designs/board-bows.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 
@@ -25,6 +28,9 @@ const BOARD_IMAGE_SOURCES = [
   rugBoardArtwork.src as string,
   mosaicBoardArtwork.src as string,
   sindbadBoardArtwork.src as string,
+  glamBoardArtwork.src as string,
+  cinderellaBoardArtwork.src as string,
+  bowsBoardArtwork.src as string,
   snakeArtwork.src as string,
 ];
 

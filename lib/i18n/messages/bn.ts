@@ -87,6 +87,12 @@ export const bn: Messages = {
     boardMosaicDesc: "আট-কোণা তারার চকচকে টালি",
     boardSindbad: "সিন্দবাদ",
     boardSindbadDesc: "পালতোলা নৌকা, নোঙর আর কম্পাস",
+    boardGlam: "গোলাপি গ্ল্যাম",
+    boardGlamDesc: "সাজের আয়না, হৃদয় আর ঝিলিক",
+    boardCinderella: "সিন্ডারেলা",
+    boardCinderellaDesc: "কাচের জুতো, কুমড়োর গাড়ি আর মাঝরাতের ঘড়ি",
+    boardBows: "গোলাপি ফিতে",
+    boardBowsDesc: "সাটিনের বো, ফিতে আর লেস",
 
     yourTeam: "আপনার দল",
     memberOne: "{count} জন সদস্য",

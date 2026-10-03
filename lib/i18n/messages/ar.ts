@@ -88,6 +88,12 @@ export const ar: Messages = {
     boardMosaicDesc: "بلاط مزجّج بنجوم ثمانية الرؤوس",
     boardSindbad: "السندباد",
     boardSindbadDesc: "مراكب شراعية ومراسٍ وبوصلة",
+    boardGlam: "الوردي الفاتن",
+    boardGlamDesc: "مرايا زينة وقلوب وبريق",
+    boardCinderella: "سندريلا",
+    boardCinderellaDesc: "حذاء زجاجي وعربة يقطين وساعة منتصف الليل",
+    boardBows: "الفيونكات الوردية",
+    boardBowsDesc: "فيونكات ساتان وشرائط ودانتيل",
 
     yourTeam: "فريقك",
     memberOne: "عضو واحد",

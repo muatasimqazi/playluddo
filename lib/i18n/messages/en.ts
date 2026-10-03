@@ -112,6 +112,8 @@ export const en = {
     boardCinderellaDesc: "Glass slipper, pumpkin carriage and a midnight clock",
     boardBows: "Pink Bows",
     boardBowsDesc: "Satin bows, ribbons and lace",
+    boardBoba: "Boba",
+    boardBobaDesc: "Bubble tea cups and tapioca pearls",
 
     yourTeam: "Your team",
     memberOne: "{count} member",

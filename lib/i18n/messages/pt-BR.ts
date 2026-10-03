@@ -93,6 +93,8 @@ export const ptBR: Messages = {
     boardCinderellaDesc: "Sapatinho de cristal, carruagem de abóbora e um relógio à meia-noite",
     boardBows: "Laços cor-de-rosa",
     boardBowsDesc: "Laços de cetim, fitas e renda",
+    boardBoba: "Boba",
+    boardBobaDesc: "Copos de bubble tea e pérolas de tapioca",
 
     yourTeam: "Seu time",
     memberOne: "{count} membro",

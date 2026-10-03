@@ -6,11 +6,11 @@ import type { BoardStyle } from "./simulatorPrefs";
  * with its own pieces (glass discs, classic pegs, Aladdin minarets, Bazaar
  * lanterns, the Rug's wool spindles, the Mosaic's glazed tiers, the
  * Sindbad's lighthouses, the Pink Glam's perfume bottles, the Cinderella's
- * princesses, the Pink Bows' hair-bow pegs); an equipped piece cosmetic replaces them for that
+ * princesses, the Pink Bows' hair-bow pegs, the Boba's bubble-tea cups); an equipped piece cosmetic replaces them for that
  * player's pieces only, and everyone at the table sees it. Every style keeps the seat colour as its
  * dominant colour, so pieces stay identifiable (F5.5 adds seat symbols).
  */
-export type PieceStyle = "glass" | "classic" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows" | "wood" | "marble";
+export type PieceStyle = "glass" | "classic" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows" | "boba" | "wood" | "marble";
 
 const PIECE_COSMETIC_STYLE: Record<string, PieceStyle> = {
   piece_glass: "glass",
@@ -42,6 +42,7 @@ export function pieceStyleFor(
   if (gameType === "ludo" && boardStyle === "glam") return "glam";
   if (gameType === "ludo" && boardStyle === "cinderella") return "cinderella";
   if (gameType === "ludo" && boardStyle === "bows") return "bows";
+  if (gameType === "ludo" && boardStyle === "boba") return "boba";
   return "glass";
 }
 

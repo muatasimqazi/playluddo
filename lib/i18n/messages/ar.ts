@@ -94,6 +94,8 @@ export const ar: Messages = {
     boardCinderellaDesc: "حذاء زجاجي وعربة يقطين وساعة منتصف الليل",
     boardBows: "الفيونكات الوردية",
     boardBowsDesc: "فيونكات ساتان وشرائط ودانتيل",
+    boardBoba: "بوبا",
+    boardBobaDesc: "أكواب شاي الفقاعات ولآلئ التابيوكا",
 
     yourTeam: "فريقك",
     memberOne: "عضو واحد",

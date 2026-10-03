@@ -93,6 +93,8 @@ export const bn: Messages = {
     boardCinderellaDesc: "কাচের জুতো, কুমড়োর গাড়ি আর মাঝরাতের ঘড়ি",
     boardBows: "গোলাপি ফিতে",
     boardBowsDesc: "সাটিনের বো, ফিতে আর লেস",
+    boardBoba: "বোবা",
+    boardBobaDesc: "বাবল টির কাপ আর ট্যাপিওকা মুক্তো",
 
     yourTeam: "আপনার দল",
     memberOne: "{count} জন সদস্য",

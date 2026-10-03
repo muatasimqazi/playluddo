@@ -248,6 +248,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     yellow: ["#F6A04D"],
     blue: ["#A07BD8"],
   },
+  // The Boba's flavours (strawberry, matcha, mango, taro): each cup, disc, lane,
+  // start and triangle, then the pastel its yard is tinted with.
+  boba: {
+    red: ["#EE7799", "#FCDDE6"],
+    green: ["#78B062", "#DDEFD3"],
+    yellow: ["#F2A33A", "#FDE8C8"],
+    blue: ["#9B7BC8", "#E4D8F3"],
+  },
   "hex-classic": {
     red: ["#e2262e"],
     green: ["#31a65b"],
@@ -335,6 +343,14 @@ export const BOARD_SEAT_SHADES: Record<string, SeatShades> = {
     blue: ["#A07BD8"],
     orange: ["#F6A04D"],
     black: ["#5B4B63"],
+  },
+  "hex-boba": {
+    red: ["#EE7799"],
+    green: ["#78B062"],
+    yellow: ["#F4B942"],
+    blue: ["#9B7BC8"],
+    orange: ["#DD6A2C"],
+    black: ["#5A3A28"],
   },
 };
 

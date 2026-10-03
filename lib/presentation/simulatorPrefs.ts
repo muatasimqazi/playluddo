@@ -1,6 +1,6 @@
 import { BOT_LEVELS, type BotLevel } from "../board/bot";
 
-export type BoardStyle = "signature" | "classic" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows";
+export type BoardStyle = "signature" | "classic" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows" | "boba";
 
 // Shared with components/simulator/Simulator.tsx's own PREF_KEY/loadPreferences —
 // this is the single place that name is allowed to appear as a literal.
@@ -10,7 +10,7 @@ export const SIMULATOR_PREF_KEY = "luddo-simulator-v1";
 // without duplicating Simulator's whole Preferences shape here. Merges
 // into whatever's already saved so it doesn't clobber a returning
 // player's other saved prefs (quality, sound, camera orientation, etc).
-const BOARD_STYLES: BoardStyle[] = ["signature", "classic", "geometric", "aladdin", "bazaar", "rug", "mosaic", "sindbad", "glam", "cinderella", "bows"];
+const BOARD_STYLES: BoardStyle[] = ["signature", "classic", "geometric", "aladdin", "bazaar", "rug", "mosaic", "sindbad", "glam", "cinderella", "bows", "boba"];
 
 // Classic is the out-of-the-box board (docs entrance default). Kept in step
 // with Simulator's own loadPreferences fallback so the entrance shows — and

@@ -93,6 +93,8 @@ export const ur: Messages = {
     boardCinderellaDesc: "شیشے کی جوتی، کدو کی بگھی اور آدھی رات کی گھڑی",
     boardBows: "گلابی ربن",
     boardBowsDesc: "ساٹن کے بو، ربن اور لیس",
+    boardBoba: "بوبا",
+    boardBobaDesc: "ببل ٹی کے کپ اور ٹیپیوکا موتی",
 
     yourTeam: "آپ کی ٹیم",
     memberOne: "{count} رکن",

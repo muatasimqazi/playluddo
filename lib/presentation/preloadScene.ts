@@ -14,6 +14,7 @@ import sindbadBoardArtwork from "@/designs/board-sindbad.svg";
 import glamBoardArtwork from "@/designs/board-glam.svg";
 import cinderellaBoardArtwork from "@/designs/board-cinderella.svg";
 import bowsBoardArtwork from "@/designs/board-bows.svg";
+import bobaBoardArtwork from "@/designs/board-boba.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 
@@ -31,6 +32,7 @@ const BOARD_IMAGE_SOURCES = [
   glamBoardArtwork.src as string,
   cinderellaBoardArtwork.src as string,
   bowsBoardArtwork.src as string,
+  bobaBoardArtwork.src as string,
   snakeArtwork.src as string,
 ];
 

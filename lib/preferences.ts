@@ -101,7 +101,8 @@ function isBoardStyle(value: unknown): value is BoardStyle {
     value === "sindbad" ||
     value === "glam" ||
     value === "cinderella" ||
-    value === "bows"
+    value === "bows" ||
+    value === "boba"
   );
 }
 

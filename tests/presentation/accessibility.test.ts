@@ -193,6 +193,7 @@ describe("board recolouring", () => {
     glam: "board-glam.svg",
     cinderella: "board-cinderella.svg",
     bows: "board-bows.svg",
+    boba: "board-boba.svg",
     "hex-classic": "board-hex-classic.svg",
     "hex-signature": "board-hex-signature.svg",
     "hex-geometric": "board-hex-geometric.svg",
@@ -204,6 +205,7 @@ describe("board recolouring", () => {
     "hex-glam": "board-hex-glam.svg",
     "hex-cinderella": "board-hex-cinderella.svg",
     "hex-bows": "board-hex-bows.svg",
+    "hex-boba": "board-hex-boba.svg",
   };
 
   it("lists only shades the artwork really uses, and changes every one of them", () => {

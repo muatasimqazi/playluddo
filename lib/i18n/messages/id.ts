@@ -93,6 +93,8 @@ export const id: Messages = {
     boardCinderellaDesc: "Sepatu kaca, kereta labu, dan jam tengah malam",
     boardBows: "Pita Merah Muda",
     boardBowsDesc: "Pita satin, renda, dan simpul",
+    boardBoba: "Boba",
+    boardBobaDesc: "Gelas bubble tea dan mutiara tapioka",
 
     yourTeam: "Timmu",
     memberOne: "{count} anggota",

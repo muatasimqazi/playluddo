@@ -672,7 +672,7 @@ A streak for playing at least one game a day, rewarding cosmetics at streak mile
 **Ours:** unlocked through levels, achievements and streaks. Types:
 - **Dice skins:** glass variants, wood, marble.
 - **Piece styles:** pieces separate from board designs, with the constraint that they must remain identifiable.
-- **Board designs:** new art. Every board is free to everyone for now (changed 2026-10-02), including the Bazaar (with its own lantern pieces) the Rug, a Persian/Balochi rug (with wool-spindle pieces), the Mosaic, glazed star tilework (with glazed-tier pieces), the Sindbad, a seafaring board (with lighthouse pieces), the Pink Glam, vanity mirrors and hearts in hot pink (with perfume-bottle pieces), the Cinderella, a midnight ball (with princess pieces), and the Pink Bows, satin bows and lace (with hair-bow pieces); these seven are meant to be earned by playing once there are more players.
+- **Board designs:** new art. Every board is free to everyone for now (changed 2026-10-02), including the Bazaar (with its own lantern pieces) the Rug, a Persian/Balochi rug (with wool-spindle pieces), the Mosaic, glazed star tilework (with glazed-tier pieces), the Sindbad, a seafaring board (with lighthouse pieces), the Pink Glam, vanity mirrors and hearts in hot pink (with perfume-bottle pieces), the Cinderella, a midnight ball (with princess pieces), the Pink Bows, satin bows and lace (with hair-bow pieces), and the Boba, bubble tea and tapioca pearls (with bubble-tea cup pieces); these eight are meant to be earned by playing once there are more players.
 - **Room themes:** café, rooftop, lake cabin. This is our unique 3D advantage.
 - **Reaction packs.**
 

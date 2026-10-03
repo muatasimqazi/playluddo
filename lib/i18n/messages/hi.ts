@@ -93,6 +93,8 @@ export const hi: Messages = {
     boardCinderellaDesc: "काँच की जूती, कद्दू की बग्घी और आधी रात की घड़ी",
     boardBows: "गुलाबी रिबन",
     boardBowsDesc: "साटन के बो, रिबन और लेस",
+    boardBoba: "बोबा",
+    boardBobaDesc: "बबल टी के कप और टैपिओका मोती",
 
     yourTeam: "आपकी टीम",
     memberOne: "{count} सदस्य",

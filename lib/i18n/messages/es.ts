@@ -94,6 +94,8 @@ export const es: Messages = {
     boardCinderellaDesc: "Zapatilla de cristal, carroza de calabaza y un reloj a medianoche",
     boardBows: "Lazos rosas",
     boardBowsDesc: "Lazos de satén, cintas y encaje",
+    boardBoba: "Boba",
+    boardBobaDesc: "Vasos de té de burbujas y perlas de tapioca",
 
     yourTeam: "Tu equipo",
     memberOne: "{count} miembro",

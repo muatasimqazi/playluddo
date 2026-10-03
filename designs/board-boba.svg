@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1500" viewBox="0 0 1500 1500" role="img" aria-label="Boba bubble tea themed Luddo board with taro, strawberry, mango and matcha cups">
+<defs>
+<!-- tapioca pearl -->
+<g id="bb-pearl">
+<circle r="12" fill="#3A2418"></circle>
+<circle cx="-4" cy="-4" r="3.6" fill="#FFFFFF" fill-opacity="0.7"></circle>
+</g>
+<radialGradient id="bb-gloss" cx="0.35" cy="0.3" r="0.65">
+<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.7"></stop>
+<stop offset="0.5" stop-color="#FFFFFF" stop-opacity="0.12"></stop>
+<stop offset="1" stop-color="#FFFFFF" stop-opacity="0"></stop>
+</radialGradient>
+<radialGradient id="bb-milktea" cx="0.45" cy="0.4" r="0.7">
+<stop offset="0" stop-color="#E2BC93"></stop>
+<stop offset="1" stop-color="#B57E55"></stop>
+</radialGradient>
+
+<!-- pearl-studded milk tea frame -->
+<pattern id="bb-pearls" x="-60" y="-60" width="40" height="40" patternUnits="userSpaceOnUse">
+<rect width="40" height="40" fill="#C8946A"></rect>
+<use href="#bb-pearl" transform="translate(10 10) scale(0.75)"></use>
+<use href="#bb-pearl" transform="translate(30 30) scale(0.75)"></use>
+</pattern>
+<!-- rising bubbles -->
+<pattern id="bb-bubbles" width="90" height="90" patternUnits="userSpaceOnUse">
+<circle cx="20" cy="22" r="9" fill="none" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="3"></circle>
+<circle cx="62" cy="52" r="14" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3"></circle>
+<circle cx="30" cy="72" r="5" fill="#FFFFFF" fill-opacity="0.6"></circle>
+<circle cx="76" cy="16" r="4" fill="#FFFFFF" fill-opacity="0.6"></circle>
+</pattern>
+<!-- track cells -->
+<pattern id="bb-cell" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="#FFF6EA"></rect>
+<rect x="9" y="9" width="82" height="82" rx="18" fill="none" stroke="#EBD3B5" stroke-width="3" stroke-dasharray="8 6"></rect>
+</pattern>
+<pattern id="bb-lanebubble" width="100" height="100" patternUnits="userSpaceOnUse">
+<circle cx="46" cy="54" r="16" fill="#FFFFFF" fill-opacity="0.85"></circle>
+<circle cx="70" cy="30" r="7" fill="#FFFFFF" fill-opacity="0.6"></circle>
+<circle cx="40" cy="48" r="5" fill="#FFFFFF"></circle>
+</pattern>
+<pattern id="bb-grout" width="100" height="100" patternUnits="userSpaceOnUse">
+<rect width="100" height="100" fill="none" stroke="#7A4E32" stroke-width="4"></rect>
+</pattern>
+
+<!-- kawaii boba cup: the drink takes the fill colour -->
+<g id="bb-cup">
+<path d="M322,196 L352,62" stroke="#F06292" stroke-width="24" stroke-linecap="round"></path>
+<path d="M330,170 L356,62" stroke="#FFFFFF" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"></path>
+<path d="M214,202 L386,202 L366,470 Q300,484 234,470Z"></path>
+<path d="M216,236 Q245,222 272,236 T328,236 T384,236 L382,262 Q356,250 328,262 T272,262 T218,262Z" fill="#FFFFFF" fill-opacity="0.32"></path>
+<path d="M232,220 L246,460" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="10" stroke-linecap="round"></path>
+<use href="#bb-pearl" x="250" y="450"></use><use href="#bb-pearl" x="276" y="454"></use><use href="#bb-pearl" x="302" y="455"></use><use href="#bb-pearl" x="328" y="454"></use><use href="#bb-pearl" x="353" y="450"></use>
+<use href="#bb-pearl" x="263" y="428"></use><use href="#bb-pearl" x="290" y="431"></use><use href="#bb-pearl" x="316" y="431"></use><use href="#bb-pearl" x="342" y="428"></use>
+<use href="#bb-pearl" x="278" y="406"></use><use href="#bb-pearl" x="306" y="408"></use><use href="#bb-pearl" x="332" y="405"></use>
+<g fill="#3A2418">
+<circle cx="276" cy="320" r="8"></circle><circle cx="324" cy="320" r="8"></circle>
+</g>
+<circle cx="279" cy="317" r="2.5" fill="#FFFFFF"></circle><circle cx="327" cy="317" r="2.5" fill="#FFFFFF"></circle>
+<path d="M288,338 Q300,350 312,338" fill="none" stroke="#3A2418" stroke-width="4" stroke-linecap="round"></path>
+<ellipse cx="256" cy="340" rx="12" ry="7" fill="#FF8FB1" fill-opacity="0.75"></ellipse>
+<ellipse cx="344" cy="340" rx="12" ry="7" fill="#FF8FB1" fill-opacity="0.75"></ellipse>
+<path d="M214,202 L386,202 L366,470 Q300,484 234,470Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.85" stroke-width="5" stroke-linejoin="round"></path>
+<path d="M212,192 Q300,118 388,192Z" fill="#FFFFFF" fill-opacity="0.75" stroke="#FFFFFF" stroke-width="3"></path>
+<path d="M240,176 Q262,152 290,146" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path>
+<rect x="200" y="186" width="200" height="18" rx="9" fill="#FFFFFF"></rect>
+<rect x="200" y="186" width="200" height="18" rx="9" fill="none" stroke="#E8DCCF" stroke-width="2"></rect>
+</g>
+
+<!-- token seat: flavour disc with a pearl -->
+<g id="bb-seat">
+<circle r="56" fill="#FFFFFF"></circle>
+<circle r="56" fill="none" stroke="#E8DCCF" stroke-width="3"></circle>
+<circle r="47"></circle>
+<circle r="47" fill="url(#bb-gloss)"></circle>
+<use href="#bb-pearl" transform="scale(1.3)"></use>
+</g>
+
+<g id="bb-yard">
+<rect width="600" height="600" fill="url(#bb-bubbles)"></rect>
+<rect x="22" y="22" width="556" height="556" rx="48" fill="none" stroke="#FFFFFF" stroke-width="12"></rect>
+<rect x="40" y="40" width="520" height="520" rx="34" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="10 8"></rect>
+<ellipse cx="300" cy="478" rx="120" ry="18" fill="#000000" fill-opacity="0.08"></ellipse>
+</g>
+
+<path id="bb-arrow" d="M-20,-20 L0,0 L-20,20 M2,-20 L22,0 L2,20" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+<g id="bb-safe">
+<circle r="34" fill="#F3E2CC"></circle>
+<use href="#bb-pearl" transform="translate(-13 9) scale(1.35)"></use>
+<use href="#bb-pearl" transform="translate(13 9) scale(1.35)"></use>
+<use href="#bb-pearl" transform="translate(0 -13) scale(1.35)"></use>
+</g>
+</defs>
+
+<!-- milk tea frame studded with pearls -->
+<rect x="-60" y="-60" width="1620" height="1620" rx="56" fill="url(#bb-pearls)"></rect>
+<rect x="-44" y="-44" width="1588" height="1588" rx="42" fill="none" stroke="#FFF6EA" stroke-width="6"></rect>
+
+<!-- home yards: strawberry, matcha, taro, mango -->
+<g>
+<rect width="600" height="600" fill="#FCDDE6"></rect>
+<use href="#bb-yard"></use>
+<use href="#bb-cup" fill="#EE7799"></use>
+<g fill="#EE7799"><use href="#bb-seat" x="112" y="112"></use><use href="#bb-seat" x="488" y="112"></use><use href="#bb-seat" x="112" y="488"></use><use href="#bb-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(900 0)">
+<rect width="600" height="600" fill="#DDEFD3"></rect>
+<use href="#bb-yard"></use>
+<use href="#bb-cup" fill="#78B062"></use>
+<g fill="#78B062"><use href="#bb-seat" x="112" y="112"></use><use href="#bb-seat" x="488" y="112"></use><use href="#bb-seat" x="112" y="488"></use><use href="#bb-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(0 900)">
+<rect width="600" height="600" fill="#E4D8F3"></rect>
+<use href="#bb-yard"></use>
+<use href="#bb-cup" fill="#9B7BC8"></use>
+<g fill="#9B7BC8"><use href="#bb-seat" x="112" y="112"></use><use href="#bb-seat" x="488" y="112"></use><use href="#bb-seat" x="112" y="488"></use><use href="#bb-seat" x="488" y="488"></use></g>
+</g>
+<g transform="translate(900 900)">
+<rect width="600" height="600" fill="#FDE8C8"></rect>
+<use href="#bb-yard"></use>
+<use href="#bb-cup" fill="#F2A33A"></use>
+<g fill="#F2A33A"><use href="#bb-seat" x="112" y="112"></use><use href="#bb-seat" x="488" y="112"></use><use href="#bb-seat" x="112" y="488"></use><use href="#bb-seat" x="488" y="488"></use></g>
+</g>
+
+<!-- track arms -->
+<g fill="url(#bb-cell)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- home lanes -->
+<rect x="700" y="100" width="100" height="500" fill="#78B062"></rect>
+<rect x="900" y="700" width="500" height="100" fill="#F2A33A"></rect>
+<rect x="700" y="900" width="100" height="500" fill="#9B7BC8"></rect>
+<rect x="100" y="700" width="500" height="100" fill="#EE7799"></rect>
+<g fill="url(#bb-lanebubble)">
+<rect x="700" y="100" width="100" height="500"></rect>
+<rect x="900" y="700" width="500" height="100"></rect>
+<rect x="700" y="900" width="100" height="500"></rect>
+<rect x="100" y="700" width="500" height="100"></rect>
+</g>
+
+<!-- start squares -->
+<rect x="100" y="600" width="100" height="100" fill="#EE7799"></rect>
+<rect x="800" y="100" width="100" height="100" fill="#78B062"></rect>
+<rect x="1300" y="800" width="100" height="100" fill="#F2A33A"></rect>
+<rect x="600" y="1300" width="100" height="100" fill="#9B7BC8"></rect>
+<use href="#bb-arrow" transform="translate(148 650)"></use>
+<use href="#bb-arrow" transform="translate(850 148) rotate(90)"></use>
+<use href="#bb-arrow" transform="translate(1352 850) rotate(180)"></use>
+<use href="#bb-arrow" transform="translate(650 1352) rotate(270)"></use>
+
+<!-- safe squares: pearl clusters -->
+<use href="#bb-safe" x="250" y="850"></use>
+<use href="#bb-safe" x="650" y="250"></use>
+<use href="#bb-safe" x="1250" y="650"></use>
+<use href="#bb-safe" x="850" y="1250"></use>
+
+<!-- grout -->
+<g fill="url(#bb-grout)">
+<rect x="600" y="0" width="300" height="600"></rect>
+<rect x="900" y="600" width="600" height="300"></rect>
+<rect x="600" y="900" width="300" height="600"></rect>
+<rect x="0" y="600" width="600" height="300"></rect>
+</g>
+
+<!-- center: home triangles under a top-down cup of milk tea -->
+<polygon points="600,600 900,600 750,750" fill="#78B062"></polygon>
+<polygon points="900,600 900,900 750,750" fill="#F2A33A"></polygon>
+<polygon points="900,900 600,900 750,750" fill="#9B7BC8"></polygon>
+<polygon points="600,900 600,600 750,750" fill="#EE7799"></polygon>
+<path d="M600,600 L900,900 M900,600 L600,900" stroke="#FFFFFF" stroke-width="5"></path>
+<path d="M600,0 V1500 M900,0 V1500 M0,600 H1500 M0,900 H1500" stroke="#7A4E32" stroke-width="6"></path>
+<rect x="0" y="0" width="1500" height="1500" fill="none" stroke="#7A4E32" stroke-width="8"></rect>
+<rect x="600" y="600" width="300" height="300" fill="none" stroke="#FFFFFF" stroke-width="8"></rect>
+<g transform="translate(750 750)">
+<circle r="120" fill="#FFFFFF"></circle>
+<circle r="120" fill="none" stroke="#E8DCCF" stroke-width="4"></circle>
+<circle r="106" fill="url(#bb-milktea)"></circle>
+<path d="M-70,-50 Q-30,-80 20,-70 Q60,-60 70,-20" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="10" stroke-linecap="round"></path>
+<g>
+<use href="#bb-pearl" transform="translate(-62 18) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(-48 52) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(-14 72) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(22 70) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(54 48) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(70 12) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(-78 -16) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(-20 40) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(30 36) scale(1.25)"></use>
+<use href="#bb-pearl" transform="translate(56 -40) scale(1.25)"></use>
+</g>
+<circle cx="8" cy="-12" r="28" fill="#F06292"></circle>
+<circle cx="8" cy="-12" r="17" fill="#8E2F52"></circle>
+<path d="M-12,-26 A24,24 0 0 1 12,-38" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="5" stroke-linecap="round"></path>
+</g>
+</svg>

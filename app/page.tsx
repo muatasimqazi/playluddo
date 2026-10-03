@@ -31,6 +31,7 @@ import sindbadBoardArt from "@/designs/board-sindbad.svg";
 import glamBoardArt from "@/designs/board-glam.svg";
 import cinderellaBoardArt from "@/designs/board-cinderella.svg";
 import bowsBoardArt from "@/designs/board-bows.svg";
+import bobaBoardArt from "@/designs/board-boba.svg";
 import hexClassicBoardArt from "@/designs/board-hex-classic.svg";
 import hexSignatureBoardArt from "@/designs/board-hex-signature.svg";
 import hexGeometricBoardArt from "@/designs/board-hex-geometric.svg";
@@ -42,6 +43,7 @@ import hexSindbadBoardArt from "@/designs/board-hex-sindbad.svg";
 import hexGlamBoardArt from "@/designs/board-hex-glam.svg";
 import hexCinderellaBoardArt from "@/designs/board-hex-cinderella.svg";
 import hexBowsBoardArt from "@/designs/board-hex-bows.svg";
+import hexBobaBoardArt from "@/designs/board-hex-boba.svg";
 import snakesBoardArt from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakesBoardArt2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
 import { useGamePreference } from "@/lib/preferences-react";
@@ -140,6 +142,7 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
     glam: glamBoardArt.src as string,
     cinderella: cinderellaBoardArt.src as string,
     bows: bowsBoardArt.src as string,
+    boba: bobaBoardArt.src as string,
   },
   hex: {
     classic: hexClassicBoardArt.src as string,
@@ -153,6 +156,7 @@ const BOARD_THUMBNAILS: Record<"square" | "hex", Record<BoardStyle, string>> = {
     glam: hexGlamBoardArt.src as string,
     cinderella: hexCinderellaBoardArt.src as string,
     bows: hexBowsBoardArt.src as string,
+    boba: hexBobaBoardArt.src as string,
   },
 };
 
@@ -195,6 +199,7 @@ export default function Home() {
     { value: "glam", label: t("entrance.boardGlam"), desc: t("entrance.boardGlamDesc") },
     { value: "cinderella", label: t("entrance.boardCinderella"), desc: t("entrance.boardCinderellaDesc") },
     { value: "bows", label: t("entrance.boardBows"), desc: t("entrance.boardBowsDesc") },
+    { value: "boba", label: t("entrance.boardBoba"), desc: t("entrance.boardBobaDesc") },
   ];
   // "Quick match" is the highlighted default — the quickest way into a game
   // against real people. Once a mode has been picked, its tile stays

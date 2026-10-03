@@ -81,6 +81,7 @@ import sindbadBoardArtwork from "@/designs/board-sindbad.svg";
 import glamBoardArtwork from "@/designs/board-glam.svg";
 import cinderellaBoardArtwork from "@/designs/board-cinderella.svg";
 import bowsBoardArtwork from "@/designs/board-bows.svg";
+import bobaBoardArtwork from "@/designs/board-boba.svg";
 // The 5-6 player hexagon in each board style (F5.2); lib/presentation/hexArtwork.ts.
 import hexClassicArtwork from "@/designs/board-hex-classic.svg";
 import hexSignatureArtwork from "@/designs/board-hex-signature.svg";
@@ -93,6 +94,7 @@ import hexSindbadArtwork from "@/designs/board-hex-sindbad.svg";
 import hexGlamArtwork from "@/designs/board-hex-glam.svg";
 import hexCinderellaArtwork from "@/designs/board-hex-cinderella.svg";
 import hexBowsArtwork from "@/designs/board-hex-bows.svg";
+import hexBobaArtwork from "@/designs/board-hex-boba.svg";
 import lampArtwork from "@/designs/lamp.svg";
 import snakeArtwork from "@/designs/snake-and-ladder/snakes-and-ladders-board.svg";
 import snakeArtwork2 from "@/designs/snake-and-ladder/snakes-and-ladders-board-2.svg";
@@ -123,6 +125,7 @@ import { SindbadPawn, SINDBAD_PAWN_HEIGHT } from "./SindbadPawn";
 import { GlamPawn, GLAM_PAWN_HEIGHT } from "./GlamPawn";
 import { CinderellaPawn, CINDERELLA_PAWN_HEIGHT } from "./CinderellaPawn";
 import { BowsPawn, BOWS_PAWN_HEIGHT } from "./BowsPawn";
+import { BobaPawn, BOBA_PAWN_HEIGHT } from "./BobaPawn";
 import { MarblePawn, MARBLE_PAWN_HEIGHT, WoodPawn, WOOD_PAWN_HEIGHT } from "./TurnedPawns";
 import { isFigure, pieceStyleFor, type PieceStyle } from "@/lib/presentation/pieceStyles";
 import { Icon } from "./Icon";
@@ -379,8 +382,9 @@ function CameraRig({
 // (designs/board-mosaic.svg) its four spots low in the yard, under the arch,
 // the Sindbad (designs/board-sindbad.svg) its portholes near the corners,
 // the Pink Glam (designs/board-glam.svg) its compacts likewise, the
-// Cinderella (designs/board-cinderella.svg) its pearls and the Pink Bows
-// (designs/board-bows.svg) its rosettes.
+// Cinderella (designs/board-cinderella.svg) its pearls, the Pink Bows
+// (designs/board-bows.svg) its rosettes and the Boba (designs/board-boba.svg)
+// its flavour discs.
 // Slot order matches those: 0 top-left, 1 top-right, 2 bottom-left,
 // 3 bottom-right.
 type Nests = { across: readonly [number, number]; down: readonly [number, number] };
@@ -394,6 +398,7 @@ const OWN_NESTS: Partial<Record<BoardStyle, Nests>> = {
   glam: square((118 / 600) * 100, (482 / 600) * 100),
   cinderella: square((112 / 600) * 100, (488 / 600) * 100),
   bows: square((112 / 600) * 100, (488 / 600) * 100),
+  boba: square((112 / 600) * 100, (488 / 600) * 100),
 };
 
 /** pawnPoint, with parked pieces moved onto a board's own nest circles. */
@@ -489,6 +494,7 @@ function Piece({
       glam: GLAM_PAWN_HEIGHT,
       cinderella: CINDERELLA_PAWN_HEIGHT,
       bows: BOWS_PAWN_HEIGHT,
+      boba: BOBA_PAWN_HEIGHT,
       wood: WOOD_PAWN_HEIGHT,
       marble: MARBLE_PAWN_HEIGHT,
     }[style] * scale;
@@ -751,6 +757,8 @@ function Piece({
           <CinderellaPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "bows" ? (
           <BowsPawn color={pawn.color} colorBlind={colorBlind} />
+        ) : style === "boba" ? (
+          <BobaPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "wood" ? (
           <WoodPawn color={pawn.color} colorBlind={colorBlind} />
         ) : style === "marble" ? (
@@ -1329,6 +1337,7 @@ const HEX_ARTWORK: Record<HexBoardStyle, { src: string }> = {
   glam: hexGlamArtwork,
   cinderella: hexCinderellaArtwork,
   bows: hexBowsArtwork,
+  boba: hexBobaArtwork,
 };
 
 /**
@@ -1389,7 +1398,7 @@ function BoardObject(props: SceneProps) {
   const colorBlind = !!props.colorBlind;
   const seats = (src: string, artworkKey: string) =>
     colorBlind ? `${src}#seats=${artworkKey}` : src;
-  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, sindbadArtwork, glamArtwork, cinderellaArtwork, bowsArtwork, snakeSource] =
+  const [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, sindbadArtwork, glamArtwork, cinderellaArtwork, bowsArtwork, bobaArtwork, snakeSource] =
     useLoader(colorBlind ? SeatRecolorLoader : THREE.ImageLoader, [
       boardArtwork.src,
       seats(classicBoardArtwork.src as string, "classic"),
@@ -1402,6 +1411,7 @@ function BoardObject(props: SceneProps) {
       seats(glamBoardArtwork.src as string, "glam"),
       seats(cinderellaBoardArtwork.src as string, "cinderella"),
       seats(bowsBoardArtwork.src as string, "bows"),
+      seats(bobaBoardArtwork.src as string, "boba"),
       snakeSrc,
     ]);
   // Vector boards are rasterized once into a texture. On a desktop screen
@@ -1432,6 +1442,7 @@ function BoardObject(props: SceneProps) {
         glam: glamArtwork,
         cinderella: cinderellaArtwork,
         bows: bowsArtwork,
+        boba: bobaArtwork,
       };
       const vector = vectors[props.boardStyle ?? "signature"];
       return makeBoardTexture(
@@ -1442,7 +1453,7 @@ function BoardObject(props: SceneProps) {
         colorBlind,
       );
     },
-    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, sindbadArtwork, glamArtwork, cinderellaArtwork, bowsArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
+    [artwork, classicArtwork, geometricArtwork, aladdinArtwork, bazaarArtwork, rugArtwork, mosaicArtwork, sindbadArtwork, glamArtwork, cinderellaArtwork, bowsArtwork, bobaArtwork, props.boardStyle, props.view, vectorSize, colorBlind],
   );
   const snakeTexture = useMemo(
     () => makeBoardTexture(snakeSource, "full", 1, vectorSize),

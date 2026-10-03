@@ -33,6 +33,7 @@ import {
  *   glam      -> designs/board-hex-glam.svg       (board-glam.svg)
  *   cinderella -> designs/board-hex-cinderella.svg (board-cinderella.svg)
  *   bows      -> designs/board-hex-bows.svg       (board-bows.svg)
+ *   boba      -> designs/board-hex-boba.svg       (board-boba.svg)
  *
  * Written by `npm run board:hex`, then free to restyle by hand. Every style
  * draws the same anchors — the track cells, home columns, bases and nest
@@ -46,7 +47,7 @@ import {
  * onto the hexagonal top face.
  */
 
-export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows";
+export type HexBoardStyle = "classic" | "signature" | "geometric" | "aladdin" | "bazaar" | "rug" | "mosaic" | "sindbad" | "glam" | "cinderella" | "bows" | "boba";
 export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "classic",
   "signature",
@@ -59,6 +60,7 @@ export const HEX_BOARD_STYLES: readonly HexBoardStyle[] = [
   "glam",
   "cinderella",
   "bows",
+  "boba",
 ];
 /** File name in designs/ for each style. */
 export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
@@ -73,6 +75,7 @@ export const HEX_BOARD_FILE: Record<HexBoardStyle, string> = {
   glam: "board-hex-glam.svg",
   cinderella: "board-hex-cinderella.svg",
   bows: "board-hex-bows.svg",
+  boba: "board-hex-boba.svg",
 };
 
 // ---------------------------------------------------------------------------
@@ -1083,7 +1086,111 @@ const bows: Theme = {
   tip: (arm) => chevron(arm, RIBBON),
 };
 
-const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic, sindbad, glam, cinderella, bows };
+// ---------------------------------------------------------------------------
+// Boba: a milk-tea frame, cream tiles, flavour-disc nests, tapioca pearls
+// and a cup of milk tea seen from above (board-boba.svg)
+// ---------------------------------------------------------------------------
+
+// The square board's flavours, with a lighter mango for yellow so the
+// hexagon's Thai-tea orange stands apart, and brown sugar for black.
+const BOBA_INK: Record<PlayerColor, string> = {
+  red: "#EE7799",
+  green: "#78B062",
+  yellow: "#F4B942",
+  blue: "#9B7BC8",
+  orange: "#DD6A2C",
+  black: "#5A3A28",
+};
+const MILK_TEA = "#C8946A";
+const BOBA_CREAM = "#FFF6EA";
+const BOBA_GROUT = "#7A4E32";
+const TAPIOCA = "#3A2418";
+const STRAW = "#F06292";
+
+/** A tapioca pearl about the origin, with its highlight. */
+function tapioca(r: number): string {
+  return `<circle r="${n(r)}" fill="${TAPIOCA}"/><circle cx="${n(-r * 0.33)}" cy="${n(-r * 0.33)}" r="${n(r * 0.3)}" fill="#ffffff" fill-opacity="0.7"/>`;
+}
+
+/** Pearls at `points` (offsets from the origin), each `r` across. */
+function pearls(points: readonly (readonly [number, number])[], r: number): string {
+  return points.map(([x, y]) => `<g transform="translate(${n(x)} ${n(y)})">${tapioca(r)}</g>`).join("");
+}
+
+const boba: Theme = {
+  defs: gradient("milk-tea", ["#E2BC93", "#B57E55"], true),
+  board:
+    `<polygon points="${hexagon(HEX_ART_RADIUS)}" fill="${MILK_TEA}"/>` +
+    `<polygon points="${hexagon(HEX_ART_RADIUS - 0.03)}" fill="none" stroke="${BOBA_CREAM}" stroke-width="0.012"/>`,
+  base: (color, center, angle) => {
+    const R = HEX_BASE_RADIUS;
+    return (
+      anchorCircle(`base-${color}`, center, R, `fill="${BOBA_INK[color]}" stroke="#ffffff" stroke-width="0.03"`) +
+      around(
+        center,
+        angle,
+        `<circle r="${n(R * 0.86)}" fill="none" stroke="#ffffff" stroke-width="0.01" stroke-dasharray="0.03 0.024"/>`,
+      )
+    );
+  },
+  // A flavour disc on a white rim, a tapioca pearl at its centre.
+  nest: (color, index, point) =>
+    anchorCircle(`nest-${color}-${index}`, point, C * 0.6, `fill="#ffffff"`) +
+    around(point, 0, `<circle r="${n(C * 0.5)}" fill="${BOBA_INK[color]}"/>` + tapioca(C * 0.16)),
+  hub: (color, arm) => {
+    const [a, b] = hubTriangle(arm);
+    return `<polygon points="0,0 ${n(a[0])},${n(a[1])} ${n(b[0])},${n(b[1])}" fill="${BOBA_INK[color]}" stroke="#ffffff" stroke-width="0.014"/>`;
+  },
+  // Kept inside the triangles' inner half: a finishing pawn touches down at
+  // 0.55 of the hub apothem (hexGoalPoint), on its own colour.
+  hubCenter: (() => {
+    const r = HEX_HUB_APOTHEM * 0.42;
+    const ring = Array.from({ length: 9 }, (_, i) => {
+      const angle = Math.PI * 0.15 + (i / 9) * Math.PI * 1.7;
+      return [Math.cos(angle) * r * 0.62, Math.sin(angle) * r * 0.62] as const;
+    });
+    return (
+      `<circle r="${n(r)}" fill="#ffffff"/>` +
+      `<circle r="${n(r * 0.88)}" fill="url(#milk-tea)"/>` +
+      pearls(ring, r * 0.1) +
+      `<circle cx="${n(r * 0.06)}" cy="${n(-r * 0.1)}" r="${n(r * 0.24)}" fill="${STRAW}"/>` +
+      `<circle cx="${n(r * 0.06)}" cy="${n(-r * 0.1)}" r="${n(r * 0.14)}" fill="#8E2F52"/>`
+    );
+  })(),
+  home: (color, index, point, arm) =>
+    anchorCell(`home-${color}-${index}`, point, arm, `fill="${BOBA_INK[color]}" stroke="${BOBA_GROUT}" stroke-width="0.012"`) +
+    around(
+      point,
+      0,
+      `<circle cx="${n(-C * 0.06)}" cy="${n(C * 0.06)}" r="${n(C * 0.17)}" fill="#ffffff" fill-opacity="0.85"/>` +
+        `<circle cx="${n(C * 0.2)}" cy="${n(-C * 0.18)}" r="${n(C * 0.07)}" fill="#ffffff" fill-opacity="0.6"/>`,
+    ),
+  track: (cell, point, arm, kind, owner) =>
+    anchorCell(
+      `track-${cell}`,
+      point,
+      arm,
+      `fill="${kind === "entry" ? BOBA_INK[owner] : BOBA_CREAM}" stroke="${BOBA_GROUT}" stroke-width="0.012"`,
+    ) +
+    (kind === "star"
+      ? around(
+          point,
+          0,
+          `<circle r="${n(C * 0.36)}" fill="#F3E2CC"/>` +
+            pearls(
+              [
+                [-C * 0.13, C * 0.09],
+                [C * 0.13, C * 0.09],
+                [0, -C * 0.13],
+              ],
+              C * 0.15,
+            ),
+        )
+      : ""),
+  tip: (arm) => chevron(arm, BOBA_GROUT),
+};
+
+const THEMES: Record<HexBoardStyle, Theme> = { classic, signature, geometric, aladdin, bazaar, rug, mosaic, sindbad, glam, cinderella, bows, boba };
 
 // ---------------------------------------------------------------------------
 // The document
